@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LearnLoom - Master the Deep End of Tech</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error-container": "#ffdad6",
+                        "tertiary-container": "#d97721",
+                        "secondary-fixed": "#f0dbff",
+                        "surface-low": "#1c1b1d",
+                        "primary-fixed": "#e1e0ff",
+                        "on-secondary-container": "#d6a9ff",
+                        "on-primary-fixed-variant": "#2f2ebe",
+                        "background": "#131315",
+                        "on-tertiary-fixed": "#301400",
+                        "outline": "#908fa0",
+                        "tertiary": "#ffb783",
+                        "on-secondary": "#490080",
+                        "primary": "#c0c1ff",
+                        "on-secondary-fixed-variant": "#6900b3",
+                        "gold-tier": "#ffb783",
+                        "surface-tint": "#c0c1ff",
+                        "surface-container-low": "#1c1b1d",
+                        "inverse-on-surface": "#313032",
+                        "error-container": "#93000a",
+                        "surface": "#131315",
+                        "on-tertiary-fixed-variant": "#713700",
+                        "inverse-surface": "#e5e1e4",
+                        "surface-container": "#201f22",
+                        "on-background": "#e5e1e4",
+                        "secondary-container": "#6f00be",
+                        "outline-variant": "#464554",
+                        "on-tertiary-container": "#451f00",
+                        "on-surface-variant": "#c7c4d7",
+                        "secondary-fixed-dim": "#ddb7ff",
+                        "primary-fixed-dim": "#c0c1ff",
+                        "on-error": "#690005",
+                        "surface-container-lowest": "#0e0e10",
+                        "outline-muted": "#464554",
+                        "surface-dim": "#131315",
+                        "on-primary-fixed": "#07006c",
+                        "secondary": "#ddb7ff",
+                        "primary-container": "#8083ff",
+                        "on-secondary-fixed": "#2c0051",
+                        "on-tertiary": "#4f2500",
+                        "surface-container-highest": "#353437",
+                        "surface-variant": "#353437",
+                        "surface-lowest": "#0e0e10",
+                        "tertiary-fixed": "#ffdcc5",
+                        "on-surface": "#e5e1e4",
+                        "surface-bright": "#39393b",
+                        "on-primary": "#1000a9",
+                        "error": "#ffb4ab",
+                        "inverse-primary": "#494bd6",
+                        "tertiary-fixed-dim": "#ffb783",
+                        "surface-container-high": "#2a2a2c",
+                        "on-primary-container": "#0d0096"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "2rem",
+                        "gutter": "1.5rem",
+                        "2xl": "3rem",
+                        "md": "1rem",
+                        "sm": "0.5rem",
+                        "margin": "2rem",
+                        "xs": "0.25rem",
+                        "lg": "1.5rem"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["JetBrains Mono"],
+                        "headline-lg": ["Geist"],
+                        "body-md": ["Geist"],
+                        "body-lg": ["Geist"],
+                        "headline-lg-mobile": ["Geist"],
+                        "label-md": ["JetBrains Mono"],
+                        "headline-md": ["Geist"],
+                        "display": ["Geist"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", { "lineHeight": "1.2", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "label-md": ["14px", { "lineHeight": "1.2", "fontWeight": "500" }],
+                        "headline-md": ["24px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "display": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.05em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glow-effect {
+            position: relative;
+        }
+        .glow-effect::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, #c0c1ff, transparent, #c0c1ff);
+            z-index: -1;
+            border-radius: inherit;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .glow-effect:hover::before {
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased overflow-x-hidden selection:bg-primary/30 selection:text-primary">
+<!-- TopAppBar -->
+<header class="bg-background/80 backdrop-blur-md fixed top-0 w-full z-50 border-b border-outline-variant/30 shadow-[0_0_20px_rgba(128,131,255,0.1)]">
+<div class="flex justify-between items-center px-gutter py-md max-w-[1440px] mx-auto">
+<div class="font-headline-md text-headline-md font-bold text-primary tracking-tight">LearnLoom</div>
+<!-- Desktop Nav -->
+<nav class="hidden md:flex items-center space-x-lg font-label-md text-label-md">
+<a class="text-primary border-b-2 border-primary pb-1" href="#">Curriculum</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors hover:bg-primary/10 transition-all duration-200 px-sm py-xs rounded" href="#">Features</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors hover:bg-primary/10 transition-all duration-200 px-sm py-xs rounded" href="#">Enterprise</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors hover:bg-primary/10 transition-all duration-200 px-sm py-xs rounded" href="#">Pricing</a>
+</nav>
+<div class="hidden md:flex items-center space-x-md font-label-md text-label-md">
+<button class="text-on-surface-variant hover:text-primary transition-colors">Sign In</button>
+<button class="bg-primary text-on-primary px-lg py-sm rounded hover:scale-95 duration-100 font-bold shadow-[0_0_8px_rgba(192,193,255,0.5)]">Get Started</button>
+</div>
+<!-- Mobile Menu Toggle -->
+<button class="md:hidden text-primary">
+<span class="material-symbols-outlined text-[24px]">menu</span>
+</button>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="pt-[80px] min-h-screen">
+<!-- Hero Section -->
+<section class="relative px-gutter py-2xl lg:py-[120px] max-w-[1440px] mx-auto overflow-hidden">
+<!-- Decorative Background Elements -->
+<div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-primary/10 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-xl items-center">
+<!-- Hero Content -->
+<div class="space-y-lg z-10">
+<div class="inline-flex items-center px-sm py-xs rounded-full bg-surface-container-high border border-outline-variant/60 font-label-sm text-label-sm text-primary mb-sm">
+<span class="material-symbols-outlined text-[16px] mr-xs" style="font-variation-settings: 'FILL' 1;">rocket_launch</span>
+                        LearnLoom v2.0 is Live
+                    </div>
+<h1 class="font-display text-display text-on-surface">Master the <span class="text-primary">Deep End</span> of Tech.</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-[600px]">
+                        Engineered for high-performance learners. Elevate your engineering skills with interactive environments, expert-led curriculum, and AI-driven insights. Stop tutorial hunting. Start building.
+                    </p>
+<div class="flex flex-col sm:flex-row gap-md pt-md">
+<button class="bg-primary text-on-primary font-label-md text-label-md font-bold px-xl py-md rounded-lg shadow-[0_0_16px_rgba(192,193,255,0.4)] hover:shadow-[0_0_24px_rgba(192,193,255,0.6)] transition-all flex items-center justify-center">
+                            Get Started
+                            <span class="material-symbols-outlined ml-sm text-[20px]">arrow_forward</span>
+</button>
+<button class="bg-surface-container-high text-on-surface border border-outline-variant/60 font-label-md text-label-md px-xl py-md rounded-lg hover:bg-surface-container-highest transition-all flex items-center justify-center">
+<span class="material-symbols-outlined mr-sm text-[20px]">play_circle</span>
+                            Watch Demo
+                        </button>
+</div>
+</div>
+<!-- Hero Interactive Preview -->
+<div class="relative w-full aspect-[4/3] lg:aspect-square max-h-[500px] rounded-xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden shadow-2xl z-10 glow-effect">
+<!-- Faux Mac Header -->
+<div class="h-8 bg-surface-container flex items-center px-md border-b border-outline-variant/30 gap-xs">
+<div class="w-3 h-3 rounded-full bg-error"></div>
+<div class="w-3 h-3 rounded-full bg-tertiary-container"></div>
+<div class="w-3 h-3 rounded-full bg-primary"></div>
+<div class="ml-auto font-label-sm text-label-sm text-on-surface-variant flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]">terminal</span> bash
+                        </div>
+</div>
+<div class="p-md font-label-md text-label-md font-mono text-on-surface-variant overflow-hidden h-[calc(100%-2rem)] flex flex-col relative">
+<div class="mb-sm"><span class="text-primary">user@learnloom</span>:~$ npm run dev</div>
+<div class="mb-sm text-secondary">&gt; learnloom-kernel@2.0.4 dev</div>
+<div class="mb-sm text-secondary">&gt; starting local environment...</div>
+<div class="mt-md text-tertiary">Compiling advanced_concurrency.rs [===================&gt;] 100%</div>
+<div class="mt-sm text-on-surface">Successfully compiled in 0.42s</div>
+<!-- Floating snippet -->
+<div class="absolute bottom-md right-md bg-surface-container-high border border-outline-variant/60 rounded-lg p-sm shadow-lg max-w-[200px]">
+<div class="text-label-sm font-label-sm text-primary mb-xs flex justify-between"><span>Status</span> <span>Active</span></div>
+<div class="h-1 bg-surface-lowest rounded-full overflow-hidden">
+<div class="h-full bg-primary w-3/4 shadow-[0_0_8px_rgba(192,193,255,0.8)]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Social Proof -->
+<section class="border-y border-outline-variant/30 bg-surface-container-lowest/50 py-lg">
+<div class="max-w-[1440px] mx-auto px-gutter flex flex-col items-center">
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-md">Trusted by engineers at</p>
+<div class="flex flex-wrap justify-center gap-xl md:gap-2xl opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+<!-- Placeholder logos using material icons for abstraction -->
+<div class="flex items-center gap-sm text-on-surface font-headline-md text-headline-md"><span class="material-symbols-outlined text-[32px]">code</span> Google</div>
+<div class="flex items-center gap-sm text-on-surface font-headline-md text-headline-md"><span class="material-symbols-outlined text-[32px]">hub</span> Meta</div>
+<div class="flex items-center gap-sm text-on-surface font-headline-md text-headline-md"><span class="material-symbols-outlined text-[32px]">change_history</span> Vercel</div>
+<div class="flex items-center gap-sm text-on-surface font-headline-md text-headline-md"><span class="material-symbols-outlined text-[32px]">widgets</span> Stripe</div>
+</div>
+</div>
+</section>
+<!-- Feature Grid (Bento) -->
+<section class="px-gutter py-2xl max-w-[1440px] mx-auto">
+<div class="text-center mb-xl">
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-sm">Curriculum for Senior Engineers</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-[500px] mx-auto">Deep-dive modules that go beyond the basics. Built by industry veterans.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md md:grid-rows-2">
+<!-- Feature 1: Large Span -->
+<div class="md:col-span-2 bg-surface-container-low border border-outline-variant/60 rounded-xl p-xl flex flex-col justify-between hover:border-outline transition-colors group glow-effect">
+<div>
+<div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary mb-md group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">architecture</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-sm">System Design Mastery</h3>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-[400px]">Architect scalable, fault-tolerant systems. Learn trade-offs between microservices, event-driven architectures, and distributed databases.</p>
+</div>
+<div class="mt-lg h-32 bg-surface-lowest rounded-lg border border-outline-variant/30 flex items-center justify-center relative overflow-hidden">
+<!-- Abstract visual -->
+<div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 2px 2px, #c0c1ff 1px, transparent 0); background-size: 16px 16px;"></div>
+<div class="flex gap-md z-10">
+<div class="w-16 h-16 bg-surface-container rounded border border-primary/50 shadow-[0_0_10px_rgba(192,193,255,0.2)]"></div>
+<div class="w-16 h-16 bg-surface-container rounded border border-primary/50 shadow-[0_0_10px_rgba(192,193,255,0.2)] translate-y-4"></div>
+<div class="w-16 h-16 bg-surface-container rounded border border-primary/50 shadow-[0_0_10px_rgba(192,193,255,0.2)] -translate-y-4"></div>
+</div>
+</div>
+</div>
+<!-- Feature 2 -->
+<div class="bg-surface-container-low border border-outline-variant/60 rounded-xl p-xl flex flex-col hover:border-outline transition-colors group">
+<div class="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center text-secondary mb-md group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">memory</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-sm text-[20px]">Advanced Concurrency</h3>
+<p class="font-body-md text-body-md text-on-surface-variant flex-grow">Master multithreading, mutexes, and channels in Rust and Go.</p>
+<div class="mt-md">
+<div class="h-2 bg-surface-lowest rounded-full overflow-hidden mb-xs"><div class="h-full bg-secondary w-[80%]"></div></div>
+<div class="text-right font-label-sm text-label-sm text-on-surface-variant">Module 4/5</div>
+</div>
+</div>
+<!-- Feature 3 -->
+<div class="bg-surface-container-low border border-outline-variant/60 rounded-xl p-xl flex flex-col hover:border-outline transition-colors group">
+<div class="w-12 h-12 bg-tertiary/10 rounded-lg flex items-center justify-center text-tertiary mb-md group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">security</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-sm text-[20px]">Zero-Trust Security</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Implement robust authentication, authorization, and secure communication protocols.</p>
+</div>
+<!-- Feature 4: Medium Span -->
+<div class="md:col-span-2 bg-surface-container-low border border-outline-variant/60 rounded-xl p-xl flex items-center justify-between hover:border-outline transition-colors group">
+<div class="max-w-[300px]">
+<div class="inline-flex items-center px-sm py-xs rounded bg-surface-container-high border border-outline-variant/60 font-label-sm text-label-sm text-primary mb-sm">
+<span class="material-symbols-outlined text-[14px] mr-xs">new_releases</span> New Module
+                        </div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-sm text-[20px]">WASM &amp; Edge Computing</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Deploy high-performance WebAssembly modules to the edge.</p>
+</div>
+<div class="hidden sm:block w-24 h-24 rounded-full border-4 border-surface-container-highest border-t-primary animate-spin" style="animation-duration: 3s;"></div>
+</div>
+</div>
+</section>
+<!-- Loomie AI Preview -->
+<section class="border-y border-outline-variant/30 bg-surface-container-lowest py-2xl overflow-hidden relative">
+<div class="absolute right-0 top-0 w-1/2 h-full bg-secondary/5 blur-[150px] -z-10 pointer-events-none"></div>
+<div class="max-w-[1440px] mx-auto px-gutter grid grid-cols-1 lg:grid-cols-2 gap-xl items-center">
+<div class="order-2 lg:order-1 relative h-[400px] bg-surface-container border border-outline-variant/60 rounded-xl p-md flex flex-col shadow-lg">
+<!-- AI Chat interface mockup -->
+<div class="flex-grow overflow-y-auto space-y-md pr-sm scrollbar-hide">
+<div class="flex gap-sm">
+<div class="w-8 h-8 rounded bg-surface-container-highest flex-shrink-0 flex items-center justify-center text-on-surface font-label-sm">U</div>
+<div class="bg-surface-container-high rounded-lg p-sm border border-outline-variant/30 font-body-md text-body-md text-on-surface">
+                                Can you explain why this Rust borrow checker error is occurring in my graph implementation?
+                            </div>
+</div>
+<div class="flex gap-sm">
+<div class="w-8 h-8 rounded bg-secondary/20 flex-shrink-0 flex items-center justify-center text-secondary font-label-sm">
+<span class="material-symbols-outlined text-[16px]">smart_toy</span>
+</div>
+<div class="bg-surface-low rounded-lg p-sm border border-secondary/30 font-body-md text-body-md text-on-surface">
+<p class="mb-sm">The issue is that you're trying to maintain multiple mutable references to a node.</p>
+<div class="bg-surface-lowest p-sm rounded border border-outline-variant/30 font-mono text-label-sm text-on-surface-variant mt-sm">
+<span class="text-error">// Error: cannot borrow `*node` as mutable more than once at a time</span><br/>
+                                    node.neighbors.push(&amp;mut other_node);
+                                </div>
+<p class="mt-sm">Consider using <code class="text-primary bg-primary/10 px-xs rounded">Rc&lt;RefCell&lt;Node&gt;&gt;</code> or an arena allocator like <code class="text-primary bg-primary/10 px-xs rounded">petgraph</code>.</p>
+</div>
+</div>
+</div>
+<div class="mt-md relative">
+<input class="w-full bg-surface-container-lowest border border-outline-variant/60 rounded-full py-sm pl-md pr-xl focus:border-secondary focus:ring-1 focus:ring-secondary text-on-surface placeholder:text-on-surface-variant font-body-md outline-none transition-all" placeholder="Ask Loomie AI..." type="text"/>
+<button class="absolute right-sm top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-secondary bg-secondary/10 rounded-full hover:bg-secondary/20 transition-colors">
+<span class="material-symbols-outlined text-[18px]">send</span>
+</button>
+</div>
+</div>
+<div class="order-1 lg:order-2 space-y-md z-10">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Unblock yourself instantly with <span class="text-secondary drop-shadow-[0_0_10px_rgba(221,183,255,0.3)]">Loomie AI</span>.</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">
+                        Your personalized coding mentor, context-aware of the curriculum and your current project state. It doesn't just give answers; it guides you to understanding.
+                    </p>
+<ul class="space-y-sm font-body-md text-body-md text-on-surface-variant pt-sm">
+<li class="flex items-start gap-sm"><span class="material-symbols-outlined text-secondary text-[20px] mt-xs">check_circle</span> Contextual code explanations</li>
+<li class="flex items-start gap-sm"><span class="material-symbols-outlined text-secondary text-[20px] mt-xs">check_circle</span> Architecture pattern suggestions</li>
+<li class="flex items-start gap-sm"><span class="material-symbols-outlined text-secondary text-[20px] mt-xs">check_circle</span> Real-time debugging assistance</li>
+</ul>
+</div>
+</div>
+</section>
+<!-- Pricing -->
+<section class="px-gutter py-2xl max-w-[1440px] mx-auto">
+<div class="text-center mb-xl">
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-sm">Invest in your trajectory</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Simple, transparent pricing for individuals and teams.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg max-w-[1000px] mx-auto">
+<!-- Pro Plan -->
+<div class="bg-surface-container-lowest border border-outline-variant/60 rounded-xl p-lg flex flex-col hover:border-outline transition-colors">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-xs">Pro</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-md h-12">For individual developers upgrading their skills.</p>
+<div class="mb-lg">
+<span class="font-display text-[40px] text-on-surface font-bold">$29</span>
+<span class="font-body-md text-on-surface-variant">/mo</span>
+</div>
+<ul class="space-y-sm font-body-md text-body-md text-on-surface-variant flex-grow mb-lg">
+<li class="flex items-center gap-sm"><span class="material-symbols-outlined text-primary text-[18px]">done</span> Full Curriculum Access</li>
+<li class="flex items-center gap-sm"><span class="material-symbols-outlined text-primary text-[18px]">done</span> Interactive Environments</li>
+<li class="flex items-center gap-sm"><span class="material-symbols-outlined text-primary text-[18px]">done</span> Community Discord</li>
+</ul>
+<button class="w-full bg-surface-container-high text-on-surface border border-outline-variant/60 font-label-md text-label-md py-sm rounded hover:bg-surface-container-highest transition-all">Start Free Trial</button>
+</div>
+<!-- Premium Plan (Highlighted) -->
+<div class="bg-surface-container border-2 border-primary rounded-xl p-lg flex flex-col relative transform lg:-translate-y-4 shadow-[0_10px_30px_rgba(192,193,255,0.1)] glow-effect">
+<div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-on-primary font-label-sm text-label-sm px-md py-xs rounded-full font-bold">Most Popular</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-xs mt-sm">Elite</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-md h-12">For senior engineers seeking mastery with AI support.</p>
+<div class="mb-lg">
+<span class="font-display text-[40px] text-on-surface font-bold">$49</span>
+<span class="font-body-md text-on-surface-variant">/mo</span>
+</div>
+<ul class="space-y-sm font-body-md text-body-md text-on-surface-variant flex-grow mb-lg">
+<li class="flex items-center gap-sm"><span class="material-symbols-outlined text-primary text-[18px]">done</span> Everything in Pro</li>
+<li class="flex items-center gap-sm"><span class="material-symbols-outlined text-secondary text-[18px]">done</span> Unlimited Loomie AI Access</li>
+<li class="flex items-center gap-sm"><span class="material-symbols-outlined text-primary text-[18px]">done</span> Project Code Reviews</li>
+<li class="flex items-center gap-sm"><span class="material-symbols-outlined text-primary text-[18px]">done</span> Early Access to Modules</li>
+</ul>
+<button class="w-full bg-primary text-on-primary font-label-md text-label-md font-bold py-sm rounded hover:shadow-[0_0_12px_rgba(192,193,255,0.6)] transition-all">Go Elite</button>
+</div>
+<!-- Team Plan -->
+<div class="bg-surface-container-lowest border border-outline-variant/60 rounded-xl p-lg flex flex-col hover:border-outline transition-colors lg:col-span-1 md:col-span-2 md:w-1/2 lg:w-full md:mx-auto">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-xs">Enterprise</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-md h-12">Scale engineering excellence across your team.</p>
+<div class="mb-lg">
+<span class="font-headline-lg text-[32px] text-on-surface font-bold">Custom</span>
+</div>
+<ul class="space-y-sm font-body-md text-body-md text-on-surface-variant flex-grow mb-lg">
+<li class="flex items-center gap-sm"><span class="material-symbols-outlined text-primary text-[18px]">done</span> Team Analytics Dashboard</li>
+<li class="flex items-center gap-sm"><span class="material-symbols-outlined text-primary text-[18px]">done</span> SSO &amp; SAML</li>
+<li class="flex items-center gap-sm"><span class="material-symbols-outlined text-primary text-[18px]">done</span> Custom Learning Paths</li>
+</ul>
+<button class="w-full bg-surface-container-high text-on-surface border border-outline-variant/60 font-label-md text-label-md py-sm rounded hover:bg-surface-container-highest transition-all">Contact Sales</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest w-full py-xl border-t border-outline-variant mt-2xl">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-lg px-gutter max-w-[1440px] mx-auto">
+<div class="col-span-1 md:col-span-4 flex justify-between items-center mb-md border-b border-outline-variant/30 pb-md">
+<div class="font-headline-sm text-headline-sm text-on-surface font-bold">LearnLoom</div>
+<div class="flex space-x-md text-on-surface-variant">
+<!-- Social Icons placeholder -->
+<span class="material-symbols-outlined text-[20px] hover:text-primary transition-colors cursor-pointer">public</span>
+<span class="material-symbols-outlined text-[20px] hover:text-primary transition-colors cursor-pointer">mail</span>
+</div>
+</div>
+<div class="col-span-1 md:col-span-3 flex flex-wrap gap-x-lg gap-y-sm font-label-sm text-label-sm">
+<a class="text-on-surface-variant hover:text-on-surface hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:text-primary transition-colors" href="#">Terms of Service</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:text-primary transition-colors" href="#">Security</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:text-primary transition-colors" href="#">Status</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:text-primary transition-colors" href="#">Github</a>
+</div>
+<div class="col-span-1 md:col-span-1 text-right font-label-sm text-label-sm text-on-surface-variant">
+                © 2024 LearnLoom. Engineered for high-performance learners.
+            </div>
+</div>
+</footer>
+</body></html>

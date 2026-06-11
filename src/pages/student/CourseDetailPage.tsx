@@ -1,19 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  CheckCircle, Lock, Clock, BookOpen, FileText, Award,
-  ChevronLeft, PlayCircle, Loader2, Trophy,
-  ClipboardList, FlaskConical, Send, RotateCcw, AlertCircle,
-  Users, Star, Play,
-} from 'lucide-react';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { enrollInCourse, getEnrollment, getCourseModuleProgress } from '@/lib/progress';
@@ -41,11 +30,16 @@ interface QuizWithState extends DBQuiz {
   submitting: boolean;
 }
 
-// Difficulty color
-const difficultyColor: Record<string, string> = {
-  Beginner:     'bg-amber-100 text-amber-700 border-amber-200',
-  Intermediate: 'bg-sky-100 text-sky-700 border-sky-200',
-  Advanced:     'bg-rose-100 text-rose-700 border-rose-200',
+const getDifficultyColor = (diff: string) => {
+  if (diff === 'Beginner') return 'text-secondary';
+  if (diff === 'Intermediate') return 'text-primary';
+  return 'text-gold-tier';
+};
+
+const getDifficultyIcon = (diff: string) => {
+  if (diff === 'Beginner') return 'speed';
+  if (diff === 'Intermediate') return 'trending_up';
+  return 'workspace_premium';
 };
 
 export default function CourseDetailPage() {
@@ -137,7 +131,6 @@ export default function CourseDetailPage() {
     }
     setModules(enrichedModules);
 
-    // Preview = first module (or first unlocked for enrolled)
     const firstUnlocked = enrichedModules.find(m => m.status === 'unlocked');
     setPreviewModule(firstUnlocked ?? enrichedModules[0] ?? null);
 
@@ -159,7 +152,6 @@ export default function CourseDetailPage() {
 
   const startOrResume = () => {
     if (!enrollment) { handleEnroll(); return; }
-    // Navigate to last visited module, or first module
     const targetModuleId = enrollment.last_module_id
       ?? modules.find(m => m.status === 'unlocked')?.id
       ?? modules[0]?.id;
@@ -170,7 +162,6 @@ export default function CourseDetailPage() {
     }
   };
 
-  // Assignment submission
   const submitAssignment = async (asgIdx: number) => {
     if (!user) return;
     const asg = assignments[asgIdx];
@@ -185,7 +176,6 @@ export default function CourseDetailPage() {
 
   const updateDraft = (asgIdx: number, text: string) => setAssignments(prev => prev.map((a, i) => i === asgIdx ? { ...a, draftText: text } : a));
 
-  // Quiz actions
   const startQuiz = (quizIdx: number, isGrandTest = false) => {
     if (isGrandTest && grandTest) setGrandTest(prev => prev ? { ...prev, quizStarted: true, selectedAnswers: Array(prev.questions.length).fill(-1) } : prev);
     else setModuleQuizzes(prev => prev.map((q, i) => i === quizIdx ? { ...q, quizStarted: true, selectedAnswers: Array(q.questions.length).fill(-1) } : q));
@@ -224,33 +214,20 @@ export default function CourseDetailPage() {
     else setModuleQuizzes(prev => prev.map((q, i) => i === quizIdx ? { ...q, attempt: null, quizStarted: true, selectedAnswers: Array(q.questions.length).fill(-1) } : q));
   };
 
-  // Loading skeleton
   if (loading) return (
-    <AppLayout title="Course">
-      <div className="max-w-7xl mx-auto space-y-5">
-        <Skeleton className="h-4 w-28" />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-4">
-            <Skeleton className="aspect-video rounded-xl" />
-            <div className="flex gap-4"><Skeleton className="h-8 w-24" /><Skeleton className="h-8 w-24" /><Skeleton className="h-8 w-24" /></div>
-            {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-16 rounded-lg" />)}
-          </div>
-          <div className="space-y-4">
-            <Skeleton className="h-10 rounded-lg" />
-            <Skeleton className="h-40 rounded-lg" />
-            <Skeleton className="h-28 rounded-lg" />
-          </div>
-        </div>
+    <AppLayout title="Loading Course...">
+      <div className="max-w-[1440px] mx-auto p-xl flex justify-center items-center h-64">
+        <span className="material-symbols-outlined animate-spin text-[48px] text-primary">autorenew</span>
       </div>
     </AppLayout>
   );
 
   if (!course) return (
     <AppLayout title="Not Found">
-      <div className="max-w-7xl mx-auto text-center py-16">
-        <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-        <h2 className="text-xl font-bold text-foreground mb-2">Course not found</h2>
-        <Link to="/courses"><Button className="bg-primary text-primary-foreground">Browse Courses</Button></Link>
+      <div className="max-w-[1440px] mx-auto text-center py-16 flex flex-col items-center">
+        <span className="material-symbols-outlined text-[64px] text-outline-variant mb-4">menu_book</span>
+        <h2 className="text-xl font-bold text-on-surface mb-2">Course not found</h2>
+        <Link to="/courses" className="mt-4 px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md">Browse Courses</Link>
       </div>
     </AppLayout>
   );
@@ -260,421 +237,395 @@ export default function CourseDetailPage() {
   const completedCount = modules.filter(m => m.status === 'completed').length;
   const allModulesCompleted = modules.length > 0 && completedCount === modules.length;
 
-  const statusBadge = (attempt: DBQuizAttempt | null) => {
-    if (!attempt) return <Badge className="text-[10px] bg-muted text-muted-foreground border-border">Not Attempted</Badge>;
-    if (attempt.passed) return <Badge className="text-[10px] bg-emerald-100 text-emerald-700 border-emerald-200">Passed</Badge>;
-    return <Badge className="text-[10px] bg-rose-100 text-rose-700 border-rose-200">Failed</Badge>;
-  };
-
-  // Quiz MCQ renderer (shared between module quizzes and grand test)
   const renderQuizInProgress = (quiz: QuizWithState, quizIdx: number, isGT = false) => (
-    <Card key={quiz.id} className={`bg-card ${isGT ? 'border-2 border-amber-300' : 'border-border'}`}>
-      <CardContent className="p-5 space-y-5">
-        <div className="flex items-center justify-between">
-          <h4 className="font-semibold text-foreground text-sm">{quiz.title}</h4>
-          <Badge className="text-[10px] bg-primary/15 text-primary border-primary/30">{quiz.questions.length} Questions</Badge>
-        </div>
-        <div className="space-y-5">
-          {quiz.questions.map((q, qiIdx) => (
-            <div key={q.id} className="space-y-2">
-              <p className="text-sm font-medium text-foreground">{qiIdx + 1}. {q.question}</p>
-              <div className="space-y-1.5">
-                {q.options.map((opt, optIdx) => (
-                  <button key={optIdx} onClick={() => selectAnswer(quizIdx, qiIdx, optIdx, isGT)}
-                    className={`w-full text-left px-3 py-2 rounded-lg border text-xs transition-all ${quiz.selectedAnswers[qiIdx] === optIdx ? 'border-primary bg-primary/10 text-primary font-medium' : 'border-border text-foreground hover:border-primary/40 hover:bg-primary/5'}`}>
-                    <span className="font-semibold mr-2">{String.fromCharCode(65 + optIdx)}.</span>{opt}
-                  </button>
-                ))}
-              </div>
+    <div key={quiz.id} className={`bg-surface-container rounded-xl border p-md ${isGT ? 'border-amber-500/50' : 'border-outline-variant/40'}`}>
+      <div className="flex items-center justify-between mb-4">
+        <h4 className="font-label-md text-label-md font-bold text-on-surface">{quiz.title}</h4>
+        <span className="font-label-sm text-label-sm px-2 py-1 rounded bg-primary/10 text-primary">{quiz.questions.length} Questions</span>
+      </div>
+      <div className="space-y-6">
+        {quiz.questions.map((q, qiIdx) => (
+          <div key={q.id} className="space-y-3">
+            <p className="font-body-md text-body-md text-on-surface">{qiIdx + 1}. {q.question}</p>
+            <div className="space-y-2">
+              {q.options.map((opt, optIdx) => (
+                <button key={optIdx} onClick={() => selectAnswer(quizIdx, qiIdx, optIdx, isGT)}
+                  className={`w-full text-left px-4 py-3 rounded-lg border transition-all text-sm ${quiz.selectedAnswers[qiIdx] === optIdx ? 'border-primary bg-primary/10 text-primary font-medium' : 'border-outline-variant/60 text-on-surface hover:border-primary/40 hover:bg-surface-container-high'}`}>
+                  <span className="font-bold mr-3">{String.fromCharCode(65 + optIdx)}.</span>{opt}
+                </button>
+              ))}
             </div>
-          ))}
-        </div>
-        <div className="flex items-center justify-between pt-2 border-t border-border">
-          <p className="text-xs text-muted-foreground">{quiz.selectedAnswers.filter(a => a >= 0).length}/{quiz.questions.length} answered</p>
-          <Button size="sm" onClick={() => submitQuiz(quizIdx, isGT)} disabled={quiz.submitting || quiz.selectedAnswers.includes(-1)} className="h-8 text-xs bg-primary text-primary-foreground hover:bg-primary/90">
-            {quiz.submitting ? <Loader2 className="w-3 h-3 mr-1.5 animate-spin" /> : <Send className="w-3 h-3 mr-1.5" />}
-            Submit Quiz
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center justify-between pt-4 mt-6 border-t border-outline-variant/30">
+        <p className="text-sm text-on-surface-variant">{quiz.selectedAnswers.filter(a => a >= 0).length}/{quiz.questions.length} answered</p>
+        <button onClick={() => submitQuiz(quizIdx, isGT)} disabled={quiz.submitting || quiz.selectedAnswers.includes(-1)} className="px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md flex items-center gap-2 hover:bg-primary/90 disabled:opacity-50">
+          {quiz.submitting ? <span className="material-symbols-outlined text-[18px] animate-spin">autorenew</span> : <span className="material-symbols-outlined text-[18px]">send</span>}
+          Submit Quiz
+        </button>
+      </div>
+    </div>
   );
 
   return (
     <AppLayout title={course.title}>
-      <div className="max-w-7xl mx-auto space-y-4">
+      <div className="max-w-[1440px] mx-auto w-full relative">
+        <div className="absolute top-0 left-1/4 w-1/2 h-[500px] bg-primary/5 blur-[120px] rounded-full pointer-events-none z-0"></div>
+        <div className="p-md sm:p-xl lg:p-2xl relative z-10 grid gap-2xl">
+          <Link to="/courses" className="inline-flex items-center gap-2 font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors w-fit">
+            <span className="material-symbols-outlined text-[18px]">arrow_back</span> Back to Catalog
+          </Link>
 
-        {/* Back */}
-        <Link to="/courses" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
-          <ChevronLeft className="w-4 h-4" /> Back to Courses
-        </Link>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* ─────────── LEFT: Video + Tabs ─────────── */}
-          <div className="lg:col-span-2 space-y-4">
-
-            {/* Video player area */}
-            <div className="rounded-xl overflow-hidden border border-border bg-black">
-              {/* Module label bar */}
-              {previewModule && (
-                <div className="bg-card border-b border-border px-4 py-2 flex items-center justify-between">
-                  <span className="text-sm font-medium text-foreground truncate">{previewModule.title}</span>
-                  <span className="text-xs text-muted-foreground shrink-0 ml-2 flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> {previewModule.duration_minutes} min
+          <section className="grid lg:grid-cols-[1fr_400px] gap-xl items-start">
+            <div className="flex flex-col gap-lg">
+              <div className="flex flex-wrap gap-sm items-center">
+                <span className="bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm px-md py-xs rounded-full border border-outline-variant/60 flex items-center gap-xs">
+                  <span className="material-symbols-outlined text-xs text-secondary">code</span>
+                  {course.category}
+                </span>
+                <span className="bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm px-md py-xs rounded-full border border-outline-variant/60 flex items-center gap-xs">
+                  <span className={`material-symbols-outlined text-xs ${getDifficultyColor(course.difficulty)}`}>{getDifficultyIcon(course.difficulty)}</span>
+                  {course.difficulty}
+                </span>
+              </div>
+              
+              <h1 className="font-display text-display font-bold text-on-surface tracking-tight leading-tight hidden md:block">
+                {course.title.split(':').map((part, i, arr) => (
+                  <span key={i}>
+                    {i === 0 && arr.length > 1 ? <>{part}:<br/><span className="text-gradient">{arr.slice(1).join(':')}</span></> : part}
                   </span>
+                ))}
+              </h1>
+              <h1 className="font-headline-lg-mobile text-headline-lg-mobile font-bold text-on-surface md:hidden">
+                {course.title}
+              </h1>
+              
+              <p className="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">
+                {course.description}
+              </p>
+
+              <div className="flex items-center gap-lg border-y border-outline-variant/30 py-md mt-sm">
+                <div className="flex items-center gap-sm">
+                  <div className="flex text-gold-tier">
+                    <span className="material-symbols-outlined fill text-[18px]">star</span>
+                    <span className="font-body-md text-body-md font-bold text-on-surface ml-1">{course.rating.toFixed(1)}</span>
+                  </div>
+                </div>
+                <div className="w-px h-6 bg-outline-variant/60 hidden sm:block"></div>
+                <div className="flex items-center gap-sm hidden sm:flex">
+                  <span className="material-symbols-outlined text-on-surface-variant text-[18px]">group</span>
+                  <span className="font-label-md text-label-md text-on-surface">{course.student_count.toLocaleString()} Students</span>
+                </div>
+              </div>
+
+              {course.topics && course.topics.length > 0 && (
+                <div className="mt-xl">
+                  <h2 className="font-headline-md text-headline-md font-bold text-on-surface mb-md">Topics Covered</h2>
+                  <div className="flex flex-wrap gap-md">
+                    {course.topics.map((topic, i) => {
+                      const colors = ['text-primary', 'text-[#3178c6]', 'text-secondary'];
+                      return (
+                        <span key={topic} className={`bg-surface-container px-sm py-xs rounded border border-outline-variant/40 font-label-sm text-label-sm flex items-center gap-xs ${colors[i % colors.length]}`}>
+                          {topic}
+                        </span>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
-              <div className="aspect-video w-full relative">
-                {previewModule?.youtube_url ? (() => {
-                  const embedUrl = buildYouTubeEmbedUrl(previewModule.youtube_url);
-                  if (isEnrolled && embedUrl) {
-                    return (
-                      <iframe key={embedUrl} src={embedUrl} title={previewModule.title}
-                        className="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowFullScreen referrerPolicy="strict-origin-when-cross-origin" loading="lazy"
-                        sandbox="allow-same-origin allow-scripts allow-popups allow-presentation" />
-                    );
-                  }
-                  // Not enrolled - show YouTube thumbnail with play overlay
-                  const videoId = getYouTubeVideoId(previewModule.youtube_url);
-                  const thumbUrl = videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : null;
-                  return (
-                    <div className="relative w-full h-full">
-                      {thumbUrl
-                        ? <img src={thumbUrl} alt={previewModule.title} className="w-full h-full object-cover" />
-                        : <div className="w-full h-full bg-muted flex items-center justify-center"><BookOpen className="w-16 h-16 text-muted-foreground" /></div>}
-                      <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-4">
-                        {!isEnrolled && (
-                          <>
-                            <div className="w-16 h-16 rounded-full bg-white/20 border-2 border-white/60 flex items-center justify-center">
-                              <Lock className="w-8 h-8 text-white" />
+
+              <div className="mt-xl">
+                <div className="flex items-center justify-between mb-md">
+                  <h2 className="font-headline-md text-headline-md font-bold text-on-surface">Curriculum & Tasks</h2>
+                  <span className="font-label-sm text-label-sm text-on-surface-variant">{modules.length} Modules</span>
+                </div>
+                
+                <Tabs defaultValue="modules" className="w-full">
+                  <TabsList className="w-full justify-start bg-transparent border-b border-outline-variant/30 overflow-x-auto whitespace-nowrap rounded-none p-0 h-auto gap-4">
+                    <TabsTrigger value="modules" className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-primary data-[state=active]:shadow-none border-b-2 border-transparent rounded-none px-2 py-3 text-on-surface-variant">Modules</TabsTrigger>
+                    <TabsTrigger value="assignments" className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-primary data-[state=active]:shadow-none border-b-2 border-transparent rounded-none px-2 py-3 text-on-surface-variant">Assignments</TabsTrigger>
+                    <TabsTrigger value="quiz" className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-primary data-[state=active]:shadow-none border-b-2 border-transparent rounded-none px-2 py-3 text-on-surface-variant">Quizzes</TabsTrigger>
+                    <TabsTrigger value="grandtest" className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-primary data-[state=active]:shadow-none border-b-2 border-transparent rounded-none px-2 py-3 text-on-surface-variant">Grand Test</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="modules" className="mt-4 flex flex-col gap-sm">
+                    {modules.map((mod, idx) => {
+                      const accessible = mod.status !== 'locked';
+                      return (
+                        <div key={mod.id} className="bg-surface-container-lowest border border-outline-variant/50 rounded-lg overflow-hidden group">
+                          <div 
+                            onClick={() => {
+                              setPreviewModule(mod);
+                              if (accessible && isEnrolled) navigate(`/courses/${courseId}/learn/${mod.id}`);
+                            }}
+                            className={`p-md flex items-center justify-between transition-colors ${accessible || isEnrolled ? 'cursor-pointer hover:bg-surface-container bg-surface-container-low' : 'bg-surface-lowest opacity-60'}`}
+                          >
+                            <div className="flex items-center gap-md min-w-0">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-label-sm text-label-sm shrink-0
+                                ${mod.status === 'completed' ? 'bg-primary/20 text-primary border border-primary/30' : 
+                                  mod.status === 'unlocked' || isEnrolled ? 'bg-surface-variant text-on-surface' : 'bg-surface-variant/50 text-on-surface-variant'}`}>
+                                {mod.status === 'completed' ? <span className="material-symbols-outlined text-[16px]">check</span> : mod.status === 'locked' && !isEnrolled ? <span className="material-symbols-outlined text-[16px]">lock</span> : idx + 1}
+                              </div>
+                              <div className="min-w-0">
+                                <h3 className={`font-label-md text-label-md font-bold truncate ${mod.status === 'completed' ? 'text-primary' : 'text-on-surface'}`}>{mod.title}</h3>
+                                <p className="text-[12px] text-on-surface-variant truncate mt-0.5">{mod.description}</p>
+                              </div>
                             </div>
-                            <p className="text-white font-semibold text-sm">Enroll to access all videos</p>
-                            <Button onClick={handleEnroll} disabled={enrolling} className="bg-primary text-primary-foreground hover:bg-primary/90 h-9">
-                              {enrolling ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Enrolling…</> : 'Enroll Now — Free'}
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })() : (
-                  <div className="w-full h-full flex items-center justify-center bg-muted">
-                    <BookOpen className="w-12 h-12 text-muted-foreground" />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* ── Tabs ── */}
-            <Tabs defaultValue="modules" className="w-full">
-              <TabsList className="w-full justify-start bg-card border border-border overflow-x-auto whitespace-nowrap">
-                <TabsTrigger value="modules" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground">Modules</TabsTrigger>
-                <TabsTrigger value="assignments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground">Assignments</TabsTrigger>
-                <TabsTrigger value="quiz" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground">Quizzes</TabsTrigger>
-                <TabsTrigger value="grandtest" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground">Grand Test</TabsTrigger>
-              </TabsList>
-
-              {/* MODULES tab */}
-              <TabsContent value="modules" className="mt-3">
-                <div className="space-y-2">
-                  {modules.map((mod, idx) => {
-                    const isActive = mod.id === previewModule?.id;
-                    const accessible = mod.status !== 'locked';
-                    return (
-                      <button
-                        key={mod.id}
-                        onClick={() => {
-                          setPreviewModule(mod);
-                          if (accessible && isEnrolled) navigate(`/courses/${courseId}/learn/${mod.id}`);
-                        }}
-                        disabled={!accessible && !isEnrolled}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg border text-left transition-all group
-                          ${isActive ? 'border-primary/40 bg-primary/5' : 'border-border hover:border-primary/30 hover:bg-muted/40'}
-                          ${!accessible && !isEnrolled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
-                      >
-                        {/* Number circle */}
-                        <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-sm font-bold transition-colors
-                          ${mod.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
-                            mod.status === 'unlocked' || (isEnrolled) ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'}`}>
-                          {mod.status === 'completed'
-                            ? <CheckCircle className="w-4 h-4" />
-                            : mod.status === 'locked' && !isEnrolled
-                              ? <Lock className="w-3.5 h-3.5" />
-                              : <span>{idx + 1}</span>
-                          }
-                        </div>
-
-                        {/* Title + description */}
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-sm font-medium truncate ${isActive ? 'text-primary' : 'text-foreground'}`}>{mod.title}</p>
-                          <p className="text-[11px] text-muted-foreground truncate mt-0.5">{mod.description}</p>
-                        </div>
-
-                        {/* Duration + play icon */}
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-xs text-muted-foreground hidden sm:block">{mod.duration_minutes} min</span>
-                          <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors
-                            ${accessible || isEnrolled ? 'text-primary group-hover:bg-primary/15' : 'text-muted-foreground'}`}>
-                            <Play className="w-3.5 h-3.5 fill-current" />
+                            <div className="flex items-center gap-sm font-label-sm text-label-sm text-on-surface-variant shrink-0 ml-4">
+                              <span className="hidden sm:inline">{mod.duration_minutes} min</span>
+                              <span className={`material-symbols-outlined text-[18px] ml-sm transition-transform duration-200 ${(accessible || isEnrolled) ? 'group-hover:translate-x-1 group-hover:text-primary' : ''}`}>play_circle</span>
+                            </div>
                           </div>
                         </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </TabsContent>
+                      );
+                    })}
+                  </TabsContent>
 
-              {/* ASSIGNMENTS tab */}
-              <TabsContent value="assignments" className="mt-3">
-                {!isEnrolled ? (
-                  <div className="text-center py-10 text-muted-foreground">
-                    <FileText className="w-10 h-10 mx-auto mb-3 opacity-40" />
-                    <p className="text-sm">Enroll in this course to view assignments.</p>
-                  </div>
-                ) : assignments.length === 0 ? (
-                  <div className="text-center py-10 text-muted-foreground">
-                    <ClipboardList className="w-10 h-10 mx-auto mb-3 opacity-40" />
-                    <p className="text-sm">No assignments for this course yet.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {assignments.map((asg, asgIdx) => {
-                      const sub = asg.submission;
-                      const isGraded = sub?.status === 'graded';
-                      const isSubmitted = !!sub;
-                      return (
-                        <Card key={asg.id} className="bg-card border-border">
-                          <CardContent className="p-5 space-y-4">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex items-center gap-2 min-w-0">
-                                <FileText className="w-4 h-4 text-primary shrink-0" />
-                                <h4 className="font-semibold text-foreground text-sm truncate">{asg.title}</h4>
+                  <TabsContent value="assignments" className="mt-4 flex flex-col gap-sm">
+                    {!isEnrolled ? (
+                      <div className="text-center py-10 text-on-surface-variant">
+                        <span className="material-symbols-outlined text-[48px] opacity-40 mb-3">assignment</span>
+                        <p className="font-body-md">Enroll in this course to view assignments.</p>
+                      </div>
+                    ) : assignments.length === 0 ? (
+                      <div className="text-center py-10 text-on-surface-variant">
+                        <span className="material-symbols-outlined text-[48px] opacity-40 mb-3">assignment_turned_in</span>
+                        <p className="font-body-md">No assignments for this course yet.</p>
+                      </div>
+                    ) : (
+                      assignments.map((asg, asgIdx) => {
+                        const sub = asg.submission;
+                        const isGraded = sub?.status === 'graded';
+                        const isSubmitted = !!sub;
+                        return (
+                          <div key={asg.id} className="bg-surface-container border border-outline-variant/40 rounded-xl p-md">
+                            <div className="flex items-start justify-between gap-3 mb-2">
+                              <div className="flex items-center gap-2">
+                                <span className="material-symbols-outlined text-primary text-[20px]">description</span>
+                                <h4 className="font-label-md text-label-md font-bold text-on-surface">{asg.title}</h4>
                               </div>
-                              <div className="shrink-0">
-                                {isGraded && <Badge className="text-[10px] bg-emerald-100 text-emerald-700 border-emerald-200">Graded</Badge>}
-                                {isSubmitted && !isGraded && <Badge className="text-[10px] bg-sky-100 text-sky-700 border-sky-200">Submitted</Badge>}
-                                {!isSubmitted && <Badge className="text-[10px] bg-amber-100 text-amber-700 border-amber-200">Pending</Badge>}
-                              </div>
+                              {isGraded && <span className="px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-label-sm text-[10px]">Graded</span>}
+                              {isSubmitted && !isGraded && <span className="px-2 py-0.5 rounded bg-secondary/10 text-secondary border border-secondary/20 font-label-sm text-[10px]">Submitted</span>}
+                              {!isSubmitted && <span className="px-2 py-0.5 rounded bg-surface-variant text-on-surface-variant font-label-sm text-[10px]">Pending</span>}
                             </div>
-                            <p className="text-xs text-muted-foreground text-pretty">{asg.instructions ?? ''}</p>
-                            <p className="text-[11px] text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Due within {asg.due_days} days of enrollment</p>
+                            <p className="font-body-sm text-body-sm text-on-surface-variant mb-4">{asg.instructions}</p>
+                            
                             {isGraded && (
-                              <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-3">
-                                <p className="text-xs font-semibold text-emerald-700 mb-1">Score: {sub!.score ?? '—'}/100</p>
-                                {sub!.feedback && <p className="text-xs text-muted-foreground">{sub!.feedback}</p>}
+                              <div className="rounded-lg bg-primary/5 border border-primary/20 p-sm mb-4">
+                                <p className="font-label-sm text-label-sm font-bold text-primary mb-1">Score: {sub!.score ?? '—'}/100</p>
+                                {sub!.feedback && <p className="font-body-sm text-body-sm text-on-surface-variant">{sub!.feedback}</p>}
                               </div>
                             )}
                             {isSubmitted && !isGraded && (
-                              <div className="rounded-lg bg-primary/5 border border-primary/20 p-3">
-                                <p className="text-[11px] font-medium text-primary mb-1">Your submission:</p>
-                                <p className="text-xs text-muted-foreground">{sub!.answer_text}</p>
+                              <div className="rounded-lg bg-surface-container-high border border-outline-variant/40 p-sm mb-4">
+                                <p className="font-label-sm text-label-sm font-bold text-on-surface mb-1">Your submission:</p>
+                                <p className="font-body-sm text-body-sm text-on-surface-variant">{sub!.answer_text}</p>
                               </div>
                             )}
                             {!isGraded && (
                               <div className="space-y-2">
-                                <Textarea placeholder="Write your answer here…" value={asg.draftText} onChange={e => updateDraft(asgIdx, e.target.value)}
-                                  className="min-h-[100px] text-sm resize-none" disabled={asg.submitting} />
+                                <Textarea placeholder="Write your answer here…" value={asg.draftText} onChange={e => updateDraft(asgIdx, e.target.value)} className="min-h-[100px] bg-surface text-on-surface border-outline-variant/50 focus:border-primary resize-none font-body-sm text-body-sm" disabled={asg.submitting} />
                                 <div className="flex items-center justify-between">
-                                  <p className="text-[10px] text-muted-foreground">{asg.draftText.length} characters</p>
-                                  <Button size="sm" onClick={() => submitAssignment(asgIdx)} disabled={asg.submitting || !asg.draftText.trim()}
-                                    className="h-8 text-xs bg-primary text-primary-foreground hover:bg-primary/90">
-                                    {asg.submitting ? <><Loader2 className="w-3 h-3 mr-1.5 animate-spin" />Submitting…</> : <><Send className="w-3 h-3 mr-1.5" />{isSubmitted ? 'Resubmit' : 'Submit'}</>}
-                                  </Button>
+                                  <p className="text-[10px] text-on-surface-variant">{asg.draftText.length} characters</p>
+                                  <button onClick={() => submitAssignment(asgIdx)} disabled={asg.submitting || !asg.draftText.trim()} className="px-4 py-1.5 bg-primary text-on-primary rounded font-label-sm flex items-center gap-2 hover:bg-primary/90 disabled:opacity-50">
+                                    {asg.submitting ? <span className="material-symbols-outlined text-[16px] animate-spin">autorenew</span> : <span className="material-symbols-outlined text-[16px]">send</span>}
+                                    {isSubmitted ? 'Resubmit' : 'Submit'}
+                                  </button>
                                 </div>
                               </div>
                             )}
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                )}
-              </TabsContent>
+                          </div>
+                        );
+                      })
+                    )}
+                  </TabsContent>
 
-              {/* QUIZZES tab */}
-              <TabsContent value="quiz" className="mt-3">
-                {!isEnrolled ? (
-                  <div className="text-center py-10 text-muted-foreground"><ClipboardList className="w-10 h-10 mx-auto mb-3 opacity-40" /><p className="text-sm">Enroll to access quizzes.</p></div>
-                ) : moduleQuizzes.length === 0 ? (
-                  <div className="text-center py-10 text-muted-foreground"><ClipboardList className="w-10 h-10 mx-auto mb-3 opacity-40" /><p className="text-sm">No quizzes yet.</p></div>
-                ) : (
-                  <div className="space-y-4">
-                    {moduleQuizzes.map((quiz, qIdx) => {
-                      if (quiz.quizStarted && !quiz.attempt) return renderQuizInProgress(quiz, qIdx);
-                      return (
-                        <Card key={quiz.id} className="bg-card border-border">
-                          <CardContent className="p-4">
-                            <div className="flex items-center justify-between gap-3 flex-wrap">
-                              <div className="min-w-0">
-                                <h4 className="font-semibold text-foreground text-sm mb-1">{quiz.title}</h4>
-                                <div className="flex gap-3 text-xs text-muted-foreground">
-                                  <span>{quiz.questions.length} questions</span>
-                                  <span>Pass: {quiz.passing_score}%</span>
-                                  {quiz.attempt && <span>Score: {Math.round((quiz.attempt.score / quiz.attempt.total) * 100)}%</span>}
+                  <TabsContent value="quiz" className="mt-4 flex flex-col gap-sm">
+                    {!isEnrolled ? (
+                      <div className="text-center py-10 text-on-surface-variant"><span className="material-symbols-outlined text-[48px] opacity-40 mb-3">quiz</span><p className="font-body-md">Enroll to access quizzes.</p></div>
+                    ) : moduleQuizzes.length === 0 ? (
+                      <div className="text-center py-10 text-on-surface-variant"><span className="material-symbols-outlined text-[48px] opacity-40 mb-3">quiz</span><p className="font-body-md">No quizzes yet.</p></div>
+                    ) : (
+                      moduleQuizzes.map((quiz, qIdx) => {
+                        if (quiz.quizStarted && !quiz.attempt) return renderQuizInProgress(quiz, qIdx);
+                        return (
+                          <div key={quiz.id} className="bg-surface-container border border-outline-variant/40 rounded-xl p-md flex items-center justify-between gap-4 flex-wrap">
+                            <div>
+                              <h4 className="font-label-md text-label-md font-bold text-on-surface mb-1">{quiz.title}</h4>
+                              <div className="flex gap-4 text-xs text-on-surface-variant">
+                                <span>{quiz.questions.length} questions</span>
+                                <span>Pass: {quiz.passing_score}%</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              {quiz.attempt && (
+                                <span className={`font-label-sm text-label-sm px-2 py-1 rounded border ${quiz.attempt.passed ? 'bg-primary/10 text-primary border-primary/20' : 'bg-error/10 text-error border-error/20'}`}>
+                                  {quiz.attempt.passed ? 'Passed' : 'Failed'} ({Math.round((quiz.attempt.score / quiz.attempt.total) * 100)}%)
+                                </span>
+                              )}
+                              <button onClick={() => quiz.attempt ? retakeQuiz(qIdx) : startQuiz(qIdx)} className="px-4 py-1.5 bg-surface-container-high border border-outline-variant/60 text-on-surface hover:text-primary hover:border-primary/50 rounded font-label-sm transition-colors">
+                                {quiz.attempt ? 'Retake' : 'Start'}
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="grandtest" className="mt-4">
+                    {!isEnrolled ? (
+                      <div className="text-center py-10 text-on-surface-variant"><span className="material-symbols-outlined text-[48px] opacity-40 mb-3">workspace_premium</span><p className="font-body-md">Enroll in this course to access the Grand Test.</p></div>
+                    ) : !allModulesCompleted ? (
+                      <div className="bg-surface-container border border-outline-variant/40 rounded-xl p-xl text-center flex flex-col items-center">
+                        <div className="w-16 h-16 rounded-full bg-surface-container-high border border-outline-variant/60 flex items-center justify-center mb-4"><span className="material-symbols-outlined text-[32px] text-on-surface-variant">lock</span></div>
+                        <h3 className="font-headline-sm text-headline-sm font-bold text-on-surface mb-2">Grand Test Locked</h3>
+                        <p className="font-body-md text-on-surface-variant max-w-sm mb-6">Complete all {modules.length} modules to unlock. You've completed {completedCount} so far.</p>
+                        <div className="w-full max-w-xs h-2 bg-surface-container-highest rounded-full overflow-hidden mb-6">
+                          <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${enrollment?.progress_percent ?? 0}%` }}></div>
+                        </div>
+                        <button onClick={startOrResume} className="px-6 py-2 bg-primary text-on-primary rounded-lg font-label-md hover:bg-primary/90 flex items-center gap-2">
+                          <span className="material-symbols-outlined text-[18px]">play_arrow</span> Continue Learning
+                        </button>
+                      </div>
+                    ) : !grandTest ? (
+                      <div className="text-center py-10 text-on-surface-variant"><span className="material-symbols-outlined text-[48px] opacity-40 mb-3">pending</span><p className="font-body-md">Grand Test not available yet.</p></div>
+                    ) : grandTest.quizStarted && !grandTest.attempt ? renderQuizInProgress(grandTest, 0, true)
+                    : (
+                      <div className="bg-surface-container border-2 border-gold-tier/50 rounded-xl p-lg relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-gold-tier/10 rounded-full blur-2xl pointer-events-none"></div>
+                        <div className="flex items-start gap-4 relative z-10">
+                          <div className="w-14 h-14 rounded-full bg-gold-tier/20 border border-gold-tier/40 flex items-center justify-center shrink-0">
+                            <span className="material-symbols-outlined text-gold-tier text-[28px]">workspace_premium</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-headline-sm text-headline-sm font-bold text-on-surface mb-1">{grandTest.title}</h3>
+                            <p className="font-body-sm text-on-surface-variant mb-4">{grandTest.questions.length} questions · Pass: {grandTest.passing_score}%</p>
+                            
+                            {grandTest.attempt ? (
+                              <div className="space-y-4">
+                                <div className={`p-4 rounded-lg border ${grandTest.attempt.passed ? 'bg-primary/10 border-primary/30' : 'bg-error/10 border-error/30'}`}>
+                                  <p className={`font-bold text-lg ${grandTest.attempt.passed ? 'text-primary' : 'text-error'}`}>{grandTest.attempt.passed ? '🎉 Passed!' : '❌ Failed'}</p>
+                                  <p className="font-body-sm text-on-surface-variant mt-1">Score: {grandTest.attempt.score}/{grandTest.attempt.total} ({Math.round((grandTest.attempt.score / grandTest.attempt.total) * 100)}%)</p>
+                                  {grandTest.attempt.passed && <p className="font-label-sm text-primary mt-2 flex items-center gap-1"><span className="material-symbols-outlined text-[16px]">check_circle</span> You are eligible for your certificate!</p>}
+                                </div>
+                                <div className="flex gap-3">
+                                  <button onClick={() => retakeQuiz(0, true)} className="px-4 py-2 bg-surface-container-high text-on-surface border border-outline-variant/60 hover:bg-surface-container-highest rounded-lg font-label-md flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-[18px]">refresh</span> Retake
+                                  </button>
+                                  {grandTest.attempt.passed && (
+                                    <Link to="/certificates" className="px-4 py-2 bg-gold-tier text-on-tertiary-fixed rounded-lg font-label-md font-bold flex items-center gap-2 hover:bg-gold-tier/90">
+                                      <span className="material-symbols-outlined text-[18px]">military_tech</span> View Certificate
+                                    </Link>
+                                  )}
                                 </div>
                               </div>
-                              <div className="flex items-center gap-2 shrink-0">
-                                {statusBadge(quiz.attempt)}
-                                {quiz.attempt
-                                  ? <Button size="sm" onClick={() => retakeQuiz(qIdx)} className="h-7 text-xs bg-primary text-primary-foreground hover:bg-primary/90"><RotateCcw className="w-3 h-3 mr-1" />Retake</Button>
-                                  : <Button size="sm" onClick={() => startQuiz(qIdx)} className="h-7 text-xs bg-primary text-primary-foreground hover:bg-primary/90">Start Quiz</Button>}
-                              </div>
-                            </div>
-                            {quiz.attempt && (
-                              <div className="mt-3 pt-3 border-t border-border space-y-2">
-                                {quiz.questions.map((q, i) => {
-                                  const userAns = quiz.attempt!.answers[i]; const correct = q.answer_index === userAns;
-                                  return (
-                                    <div key={q.id} className="text-xs">
-                                      <p className={`font-medium ${correct ? 'text-emerald-600' : 'text-rose-600'}`}>{correct ? '✓' : '✗'} Q{i + 1}: {q.question}</p>
-                                      <p className="text-muted-foreground ml-4">Correct: <span className="text-foreground">{q.options[q.answer_index]}</span>{!correct && <> | Your answer: <span className="text-rose-600">{q.options[userAns] ?? '—'}</span></>}</p>
-                                    </div>
-                                  );
-                                })}
-                              </div>
+                            ) : (
+                              <button onClick={() => startQuiz(0, true)} className="px-6 py-2 bg-gold-tier text-on-tertiary-fixed rounded-lg font-label-md font-bold flex items-center gap-2 hover:bg-gold-tier/90">
+                                <span className="material-symbols-outlined text-[20px]">workspace_premium</span> Start Grand Test
+                              </button>
                             )}
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                )}
-              </TabsContent>
-
-              {/* GRAND TEST tab */}
-              <TabsContent value="grandtest" className="mt-3">
-                {!isEnrolled ? (
-                  <div className="text-center py-10 text-muted-foreground"><FlaskConical className="w-10 h-10 mx-auto mb-3 opacity-40" /><p className="text-sm">Enroll in this course to access the Grand Test.</p></div>
-                ) : !allModulesCompleted ? (
-                  <div className="rounded-xl border border-border bg-card p-8 text-center space-y-4">
-                    <div className="w-16 h-16 rounded-full bg-amber-100 border border-amber-200 flex items-center justify-center mx-auto"><Lock className="w-8 h-8 text-amber-600" /></div>
-                    <div>
-                      <h3 className="font-bold text-foreground text-balance mb-2">Grand Test Locked</h3>
-                      <p className="text-sm text-muted-foreground max-w-sm mx-auto">Complete all {modules.length} modules to unlock. You've completed {completedCount} so far.</p>
-                    </div>
-                    <Progress value={enrollment ? enrollment.progress_percent : 0} className="h-2 max-w-xs mx-auto" />
-                    <Button onClick={startOrResume} className="bg-primary text-primary-foreground hover:bg-primary/90"><PlayCircle className="w-4 h-4 mr-2" />Continue Learning</Button>
-                  </div>
-                ) : !grandTest ? (
-                  <div className="text-center py-10 text-muted-foreground"><AlertCircle className="w-10 h-10 mx-auto mb-3 opacity-40" /><p className="text-sm">Grand Test not available yet.</p></div>
-                ) : grandTest.quizStarted && !grandTest.attempt ? renderQuizInProgress(grandTest, 0, true)
-                : (
-                  <Card className="bg-card border-2 border-amber-200">
-                    <CardContent className="p-6 space-y-4">
-                      <div className="flex items-start gap-4">
-                        <div className="w-14 h-14 rounded-full bg-amber-100 border border-amber-200 flex items-center justify-center shrink-0"><Trophy className="w-7 h-7 text-amber-600" /></div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-foreground text-balance mb-1">{grandTest.title}</h3>
-                          <p className="text-xs text-muted-foreground">{grandTest.questions.length} questions · Pass: {grandTest.passing_score}%</p>
-                          {grandTest.attempt ? (
-                            <div className="mt-3 space-y-3">
-                              <div className={`rounded-lg p-4 border ${grandTest.attempt.passed ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'}`}>
-                                <p className={`font-bold text-lg ${grandTest.attempt.passed ? 'text-emerald-700' : 'text-rose-700'}`}>{grandTest.attempt.passed ? '🎉 Passed!' : '❌ Failed'}</p>
-                                <p className="text-sm text-muted-foreground mt-1">Score: {grandTest.attempt.score}/{grandTest.attempt.total} ({Math.round((grandTest.attempt.score / grandTest.attempt.total) * 100)}%)</p>
-                                {grandTest.attempt.passed && <p className="text-xs text-emerald-600 mt-1">You are eligible for your certificate!</p>}
-                              </div>
-                              <div className="flex gap-2">
-                                <Button size="sm" onClick={() => retakeQuiz(0, true)} className="h-8 text-xs bg-primary text-primary-foreground hover:bg-primary/90"><RotateCcw className="w-3 h-3 mr-1.5" />Retake</Button>
-                                {grandTest.attempt.passed && <Link to="/certificates"><Button size="sm" className="h-8 text-xs bg-amber-500 text-white hover:bg-amber-600"><Award className="w-3 h-3 mr-1.5" />View Certificate</Button></Link>}
-                              </div>
-                            </div>
-                          ) : (
-                            <Button onClick={() => startQuiz(0, true)} className="mt-3 bg-amber-500 text-white hover:bg-amber-600"><Trophy className="w-4 h-4 mr-2" />Start Grand Test</Button>
-                          )}
+                          </div>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </TabsContent>
-            </Tabs>
-          </div>
-
-          {/* ─────────── RIGHT: Info Sidebar ─────────── */}
-          <div className="space-y-4">
-            {/* Enrolled / Enroll button */}
-            {isEnrolled ? (
-              <div className={`rounded-xl border px-5 py-4 flex items-center gap-3 ${isCompleted ? 'bg-amber-50 border-amber-200' : 'bg-emerald-50 border-emerald-200'}`}>
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${isCompleted ? 'bg-amber-100' : 'bg-emerald-100'}`}>
-                  {isCompleted ? <Trophy className={`w-5 h-5 text-amber-600`} /> : <CheckCircle className="w-5 h-5 text-emerald-600" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className={`font-semibold text-sm ${isCompleted ? 'text-amber-700' : 'text-emerald-700'}`}>{isCompleted ? 'Completed' : 'Enrolled'}</p>
-                  {!isCompleted && <p className="text-xs text-emerald-600">{enrollment.progress_percent}% complete</p>}
-                </div>
-                <Button size="sm" onClick={startOrResume} className="h-8 text-xs bg-primary text-primary-foreground hover:bg-primary/90 shrink-0">
-                  {isCompleted ? 'Review' : 'Continue'}
-                </Button>
+                    )}
+                  </TabsContent>
+                </Tabs>
               </div>
-            ) : (
-              <Button onClick={handleEnroll} disabled={enrolling} className="w-full h-11 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold">
-                {enrolling ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Enrolling…</> : 'Enroll Now — Free'}
-              </Button>
-            )}
 
-            {/* Course details card */}
-            <div className="rounded-xl border border-border bg-card overflow-hidden">
-              <div className="divide-y divide-border">
-                {[
-                  { label: 'Instructor', value: course.instructor, icon: <Users className="w-3.5 h-3.5" /> },
-                  { label: 'Duration', value: `${course.duration_weeks} weeks`, icon: <Clock className="w-3.5 h-3.5" /> },
-                  { label: 'Modules', value: `${modules.length} lessons`, icon: <BookOpen className="w-3.5 h-3.5" /> },
-                  { label: 'Difficulty', value: course.difficulty, icon: null },
-                  { label: 'Certificate', value: 'Included on completion', icon: <Award className="w-3.5 h-3.5" /> },
-                ].map(row => (
-                  <div key={row.label} className="flex items-center justify-between px-4 py-3">
-                    <span className="text-xs text-muted-foreground flex items-center gap-1.5">{row.icon}{row.label}</span>
-                    {row.label === 'Difficulty'
-                      ? <span className={`text-xs font-medium px-2 py-0.5 rounded border ${difficultyColor[course.difficulty] ?? 'bg-muted text-foreground border-border'}`}>{row.value}</span>
-                      : <span className="text-xs font-medium text-foreground text-right max-w-[55%] truncate">{row.value}</span>}
+              {course.instructor && (
+                <section className="mt-xl pt-xl border-t border-outline-variant/30">
+                  <h2 className="font-headline-md text-headline-md font-bold text-on-surface mb-lg">Your Instructor</h2>
+                  <div className="flex flex-col sm:flex-row gap-lg items-start">
+                    <div className="w-32 h-32 rounded-xl bg-surface-container-high border border-outline-variant/60 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-[48px] text-on-surface-variant">person</span>
+                    </div>
+                    <div className="flex flex-col gap-sm">
+                      <div>
+                        <h3 className="font-headline-sm text-headline-sm font-bold text-on-surface">{course.instructor}</h3>
+                        <p className="font-label-md text-label-md text-primary mt-xs">LearnLoom Educator</p>
+                      </div>
+                    </div>
                   </div>
-                ))}
-                {/* Rating row */}
-                <div className="flex items-center justify-between px-4 py-3">
-                  <span className="text-xs text-muted-foreground flex items-center gap-1.5"><Star className="w-3.5 h-3.5" />Rating</span>
-                  <span className="flex items-center gap-1 text-xs font-medium text-foreground">
-                    <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {course.rating.toFixed(1)} · {course.student_count.toLocaleString()} students
-                  </span>
+                </section>
+              )}
+            </div>
+
+            <div className="bg-surface-container-low border border-outline-variant/60 rounded-xl p-lg flex flex-col gap-md sticky top-24 glow-indigo shadow-xl">
+              <div className="aspect-video bg-surface-container-highest rounded-lg overflow-hidden border border-outline-variant/30 relative flex items-center justify-center group">
+                {previewModule?.youtube_url ? (
+                  isEnrolled ? (
+                    <iframe 
+                      src={buildYouTubeEmbedUrl(previewModule.youtube_url)} 
+                      title={previewModule.title}
+                      className="w-full h-full" 
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen 
+                    />
+                  ) : (
+                    <>
+                      {(() => {
+                        const videoId = getYouTubeVideoId(previewModule.youtube_url);
+                        const thumbUrl = videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : null;
+                        return thumbUrl ? <img src={thumbUrl} alt="Preview" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-300" /> : <span className="material-symbols-outlined text-[48px] text-outline-variant">smart_display</span>;
+                      })()}
+                      <div onClick={handleEnroll} className="w-16 h-16 bg-surface/80 backdrop-blur-sm rounded-full flex items-center justify-center z-10 border border-outline-variant/60 group-hover:scale-110 transition-transform duration-300 cursor-pointer">
+                        <span className="material-symbols-outlined text-display text-primary fill">play_arrow</span>
+                      </div>
+                    </>
+                  )
+                ) : (
+                  <span className="material-symbols-outlined text-[48px] text-outline-variant">smart_display</span>
+                )}
+              </div>
+              
+              {!isEnrolled && (
+                <div className="flex items-baseline gap-sm">
+                  <span className="font-headline-lg text-headline-lg font-bold text-on-surface">Free</span>
+                </div>
+              )}
+              
+              {isEnrolled ? (
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-label-md text-on-surface">Your Progress</span>
+                    <span className="font-label-md text-primary">{enrollment.progress_percent}%</span>
+                  </div>
+                  <div className="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+                    <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${enrollment.progress_percent}%` }}></div>
+                  </div>
+                  <button onClick={startOrResume} className="w-full bg-primary text-on-primary font-label-md text-label-md font-bold py-md rounded-lg hover:bg-primary/90 transition-colors duration-200 active:scale-[0.98] shadow-[0_0_12px_rgba(192,193,255,0.3)] mt-2">
+                    {isCompleted ? 'Review Course' : 'Continue Learning'}
+                  </button>
+                </div>
+              ) : (
+                <button onClick={handleEnroll} disabled={enrolling} className="w-full bg-primary text-on-primary font-label-md text-label-md font-bold py-md rounded-lg hover:bg-primary/90 transition-colors duration-200 active:scale-[0.98] shadow-[0_0_12px_rgba(192,193,255,0.3)] flex justify-center items-center gap-2">
+                  {enrolling ? <span className="material-symbols-outlined animate-spin text-[20px]">autorenew</span> : null}
+                  Enroll Now
+                </button>
+              )}
+              
+              <div className="flex flex-col gap-sm font-label-sm text-label-sm text-on-surface-variant mt-sm">
+                <div className="flex items-center gap-sm">
+                  <span className="material-symbols-outlined text-sm">schedule</span>
+                  {course.duration_weeks} weeks of content
+                </div>
+                <div className="flex items-center gap-sm">
+                  <span className="material-symbols-outlined text-sm">menu_book</span>
+                  {modules.length} interactive modules
+                </div>
+                <div className="flex items-center gap-sm">
+                  <span className="material-symbols-outlined text-sm">workspace_premium</span>
+                  Certificate of completion
+                </div>
+                <div className="flex items-center gap-sm">
+                  <span className="material-symbols-outlined text-sm">all_inclusive</span>
+                  Lifetime access
                 </div>
               </div>
             </div>
-
-            {/* Topics Covered */}
-            {course.topics && course.topics.length > 0 && (
-              <div className="rounded-xl border border-border bg-card p-4">
-                <h4 className="text-sm font-semibold text-foreground mb-3">Topics Covered</h4>
-                <div className="flex flex-wrap gap-2">
-                  {course.topics.map(topic => (
-                    <span key={topic} className="px-2.5 py-1 rounded-md text-xs font-medium bg-primary/10 text-primary border border-primary/20">{topic}</span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Earn a Certificate */}
-            <div className="rounded-xl border border-border bg-card p-4 flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-amber-100 border border-amber-200 flex items-center justify-center shrink-0">
-                <Award className="w-5 h-5 text-amber-600" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-foreground">Earn a Certificate</p>
-                <p className="text-xs text-muted-foreground mt-0.5 text-pretty">Complete all modules and pass the grand test</p>
-              </div>
-            </div>
-
-            {/* Progress bar for enrolled */}
-            {isEnrolled && !isCompleted && (
-              <div className="rounded-xl border border-border bg-card p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-foreground">Your Progress</span>
-                  <span className="text-xs font-semibold text-primary">{enrollment.progress_percent}%</span>
-                </div>
-                <Progress value={enrollment.progress_percent} className="h-2" />
-                <p className="text-[11px] text-muted-foreground">{completedCount} of {modules.length} modules completed</p>
-              </div>
-            )}
-          </div>
+          </section>
         </div>
       </div>
     </AppLayout>

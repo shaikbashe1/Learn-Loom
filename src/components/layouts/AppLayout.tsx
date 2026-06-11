@@ -2,77 +2,68 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuTrigger,
   DropdownMenuItem, DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
-import {
-  LayoutDashboard, BookOpen, Brain, Code2, Trophy,
-  MessageSquare, Users, FileText, Medal, Settings, LogOut,
-  Menu, Zap, Target, BarChart3, GraduationCap, Bell, CreditCard,
-  CheckCheck, Flame,
-} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { formatDistanceToNow } from 'date-fns';
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/clerk-react';
 
 const studentNavItems = [
-  { label: 'Dashboard',       path: '/dashboard',   icon: LayoutDashboard },
-  { label: 'Courses',         path: '/courses',      icon: BookOpen },
-  { label: 'AI Roadmap',      path: '/ai-roadmap',   icon: Target },
-  { label: 'AI Mentor',       path: '/ai-mentor',    icon: Brain },
-  { label: 'Coding Practice', path: '/coding',       icon: Code2 },
-  { label: 'Assignments',     path: '/assignments',  icon: FileText },
-  { label: 'Community',       path: '/community',    icon: MessageSquare },
-  { label: 'Leaderboard',     path: '/leaderboard',  icon: Trophy },
-  { label: 'Grand Test',      path: '/grand-test',   icon: GraduationCap },
-  { label: 'Certificates',    path: '/certificates', icon: Medal },
-  { label: 'Pricing',         path: '/pricing',      icon: CreditCard },
+  { label: 'Dashboard',       path: '/dashboard',   icon: 'dashboard' },
+  { label: 'Courses',         path: '/courses',      icon: 'menu_book' },
+  { label: 'AI Roadmap',      path: '/ai-roadmap',   icon: 'explore' },
+  { label: 'AI Mentor',       path: '/ai-mentor',    icon: 'smart_toy' },
+  { label: 'Coding Practice', path: '/coding',       icon: 'terminal' },
+  { label: 'Assignments',     path: '/assignments',  icon: 'assignment' },
+  { label: 'Community',       path: '/community',    icon: 'group' },
+  { label: 'Leaderboard',     path: '/leaderboard',  icon: 'leaderboard' },
+  { label: 'Grand Test',      path: '/grand-test',   icon: 'school' },
+  { label: 'Certificates',    path: '/certificates', icon: 'workspace_premium' },
+  { label: 'Pricing',         path: '/pricing',      icon: 'credit_card' },
 ];
 
 const adminNavItems = [
-  { label: 'Admin Dashboard', path: '/admin',               icon: LayoutDashboard },
-  { label: 'Manage Courses',  path: '/admin/courses',       icon: BookOpen },
-  { label: 'Manage Students', path: '/admin/students',      icon: Users },
-  { label: 'Certificates',    path: '/admin/certificates',  icon: Medal },
-  { label: 'Community',       path: '/admin/community',     icon: MessageSquare },
-  { label: 'Submissions',     path: '/admin/submissions',   icon: FileText },
-  { label: 'Reports',         path: '/admin/reports',       icon: BarChart3 },
+  { label: 'Admin Dashboard', path: '/admin',               icon: 'dashboard' },
+  { label: 'Manage Courses',  path: '/admin/courses',       icon: 'menu_book' },
+  { label: 'Manage Students', path: '/admin/students',      icon: 'group' },
+  { label: 'Certificates',    path: '/admin/certificates',  icon: 'workspace_premium' },
+  { label: 'Community',       path: '/admin/community',     icon: 'forum' },
+  { label: 'Submissions',     path: '/admin/submissions',   icon: 'assignment' },
+  { label: 'Reports',         path: '/admin/reports',       icon: 'analytics' },
 ];
 
-interface SidebarNavProps {
-  items: typeof studentNavItems;
-  onClose?: () => void;
-}
-
-function SidebarNav({ items, onClose }: SidebarNavProps) {
+function SidebarNav({ items, onClose }: { items: typeof studentNavItems, onClose?: () => void }) {
   const location = useLocation();
   return (
-    <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
+    <nav className="flex-1 flex flex-col gap-xs font-label-md text-label-md overflow-y-auto pr-2">
       {items.map((item) => {
         const isActive =
           location.pathname === item.path ||
           (item.path !== '/dashboard' && item.path !== '/admin' &&
            location.pathname.startsWith(item.path));
+        
         return (
           <Link
             key={item.path}
             to={item.path}
             onClick={onClose}
             className={cn(
-              'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group border-l-[3px]',
+              'flex items-center gap-md px-sm py-sm rounded-lg transition-all group',
               isActive
-                ? 'bg-primary/15 text-primary border-primary pl-[9px]'
-                : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-white border-transparent pl-[9px]'
+                ? 'text-primary-fixed-dim font-bold bg-primary/10 transition-transform duration-200 translate-x-1'
+                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/20'
             )}
           >
-            <item.icon className={cn('w-4 h-4 shrink-0', isActive ? 'text-primary' : 'text-slate-400 group-hover:text-white')} />
-            <span className="min-w-0 truncate">{item.label}</span>
+            <span className={cn("material-symbols-outlined transition-transform", isActive ? 'fill group-hover:scale-110' : 'group-hover:scale-110')}>
+              {item.icon}
+            </span>
+            <span>{item.label}</span>
           </Link>
         );
       })}
@@ -85,39 +76,34 @@ function NotificationBell() {
   const [open, setOpen] = useState(false);
 
   const typeIcon: Record<string, string> = {
-    certificate: '🎓', quiz: '✅', reply: '💬', system: '🔔', info: '🔔',
+    certificate: 'workspace_premium', quiz: 'check_circle', reply: 'chat', system: 'notifications', info: 'info',
   };
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
-          className="text-muted-foreground hover:text-foreground hover:bg-accent relative"
-        >
-          <Bell className="w-4 h-4" />
+        <button className="relative p-2 text-on-surface-variant hover:text-primary transition-colors duration-200 hover:scale-95 active:scale-90">
+          <span className="material-symbols-outlined">notifications</span>
           {unreadCount > 0 && (
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full ring-2 ring-background" />
+            <span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
           )}
-        </Button>
+        </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80 p-0" aria-live="polite">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-          <span className="text-sm font-semibold text-foreground">
+      <DropdownMenuContent align="end" className="w-80 p-0 bg-surface-container-high border-outline-variant/60" aria-live="polite">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-outline-variant/60">
+          <span className="font-label-md text-label-md font-bold text-on-surface">
             Notifications
             {unreadCount > 0 && (
-              <Badge className="ml-2 text-[10px] h-4 px-1.5 bg-primary/15 text-primary border-0">{unreadCount}</Badge>
+              <Badge className="ml-2 text-[10px] h-4 px-1.5 bg-primary/20 text-primary border-0">{unreadCount}</Badge>
             )}
           </span>
           {unreadCount > 0 && (
             <button
               type="button"
               onClick={() => void markAllRead()}
-              className="flex items-center gap-1 text-xs text-primary hover:text-primary/80"
+              className="flex items-center gap-1 font-label-sm text-label-sm text-primary hover:text-primary-fixed-dim"
             >
-              <CheckCheck className="w-3.5 h-3.5" />
+              <span className="material-symbols-outlined text-[14px]">done_all</span>
               Mark all read
             </button>
           )}
@@ -125,26 +111,26 @@ function NotificationBell() {
         <div className="max-h-80 overflow-y-auto">
           {notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
-              <Bell className="w-8 h-8 text-muted-foreground/40 mb-2" />
-              <p className="text-sm text-muted-foreground">No notifications yet</p>
+              <span className="material-symbols-outlined text-3xl text-on-surface-variant/40 mb-2">notifications_off</span>
+              <p className="font-body-sm text-body-sm text-on-surface-variant">No notifications yet</p>
             </div>
           ) : (
             notifications.map((n, i) => (
               <div key={n.id}>
-                {i > 0 && <Separator />}
+                {i > 0 && <Separator className="bg-outline-variant/30" />}
                 <DropdownMenuItem
                   className={cn(
-                    'flex items-start gap-3 px-4 py-3 cursor-pointer rounded-none',
+                    'flex items-start gap-3 px-4 py-3 cursor-pointer rounded-none focus:bg-surface-variant/50',
                     !n.read && 'bg-primary/5'
                   )}
                   onClick={() => void markRead(n.id)}
                 >
-                  <span className="text-lg shrink-0 mt-0.5">{typeIcon[n.type] ?? '🔔'}</span>
+                  <span className="material-symbols-outlined text-primary text-[20px] mt-0.5">{typeIcon[n.type] ?? 'notifications'}</span>
                   <div className="flex-1 min-w-0">
-                    <p className={cn('text-sm leading-snug', !n.read ? 'font-medium text-foreground' : 'text-muted-foreground')}>
+                    <p className={cn('font-body-sm text-body-sm leading-snug', !n.read ? 'font-medium text-on-surface' : 'text-on-surface-variant')}>
                       {n.message}
                     </p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                    <p className="font-label-sm text-label-sm text-on-surface-variant/70 mt-1">
                       {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
                     </p>
                   </div>
@@ -164,12 +150,6 @@ function SidebarContent({ isAdmin, onClose }: { isAdmin?: boolean; onClose?: () 
   const navigate = useNavigate();
   const navItems = isAdmin ? adminNavItems : studentNavItems;
 
-  const displayName = profile?.full_name ?? user?.email?.split('@')[0] ?? 'User';
-  const initials = displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
-  const avatarUrl = profile?.avatar_url ?? user?.user_metadata?.avatar_url as string | undefined;
-  const credits = profile?.credits ?? 0;
-  const streak = profile?.streak_days ?? 0;
-
   const handleSignOut = async () => {
     await signOut();
     onClose?.();
@@ -177,68 +157,37 @@ function SidebarContent({ isAdmin, onClose }: { isAdmin?: boolean; onClose?: () 
   };
 
   return (
-    <div className="flex flex-col h-full bg-sidebar">
-      {/* Logo */}
-      <div className="flex items-center gap-3 px-4 py-5 border-b border-sidebar-border shrink-0">
-        <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-md">
-          <Zap className="w-5 h-5 text-white" />
-        </div>
-        <div className="min-w-0">
-          <span className="text-base font-bold text-white tracking-tight">LearnLoom</span>
-          <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">
-            {isAdmin ? 'Admin Portal' : 'Student Portal'}
+    <div className="flex flex-col h-full bg-surface-container-lowest p-md gap-base">
+      {/* Header */}
+      <div className="flex items-center gap-md px-sm py-md mb-lg">
+        <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center text-on-primary font-bold">L</div>
+        <div>
+          <h1 className="font-display text-headline-md font-bold text-primary-fixed-dim tracking-tight">LearnLoom</h1>
+          <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
+            {isAdmin ? 'Admin Portal' : 'Premium EdTech'}
           </p>
         </div>
       </div>
 
-      {/* Credits / Streak — students only */}
-      {!isAdmin && (
-        <div className="mx-3 mt-3 p-3 rounded-xl bg-white/5 border border-white/10 shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Zap className="w-3.5 h-3.5 text-primary" />
-              <span className="text-xs font-semibold text-white">{credits} Credits</span>
-            </div>
-            <Badge className="text-[10px] py-0 h-4 bg-orange-500/20 text-orange-300 border-0">
-              <Flame className="w-2.5 h-2.5 mr-0.5" />
-              {streak}-day streak
-            </Badge>
-          </div>
-        </div>
-      )}
-
       <SidebarNav items={navItems} onClose={onClose} />
 
-      {/* Bottom user row */}
-      <div className="shrink-0 border-t border-sidebar-border">
-        <div className="flex items-center gap-3 px-4 py-3">
-          <Avatar className="w-8 h-8 shrink-0">
-            {avatarUrl && <AvatarImage src={avatarUrl} alt={displayName} />}
-            <AvatarFallback className="bg-primary/30 text-primary text-xs font-bold">{initials}</AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-white truncate">{displayName}</p>
-            <p className="text-[10px] text-slate-400 truncate">{user?.email}</p>
-          </div>
-        </div>
-        <div className="px-3 pb-3 space-y-0.5">
-          <Link
-            to="/profile"
-            onClick={onClose}
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-white transition-all border-l-[3px] border-transparent pl-[9px]"
-          >
-            <Settings className="w-4 h-4 text-slate-400" />
-            <span>Profile Settings</span>
-          </Link>
-          <button
-            type="button"
-            onClick={() => void handleSignOut()}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all border-l-[3px] border-transparent pl-[9px]"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Sign Out</span>
-          </button>
-        </div>
+      {/* Footer Nav */}
+      <div className="mt-auto flex flex-col gap-xs font-label-md text-label-md border-t border-outline-variant/60 pt-md">
+        <Link
+          to="/profile"
+          onClick={onClose}
+          className="flex items-center gap-md px-sm py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/20 rounded-lg transition-all group"
+        >
+          <span className="material-symbols-outlined group-hover:rotate-45 transition-transform">settings</span>
+          <span>Settings</span>
+        </Link>
+        <button
+          onClick={() => void handleSignOut()}
+          className="flex items-center gap-md px-sm py-sm text-error hover:text-error-container hover:bg-error/10 rounded-lg transition-all group w-full text-left"
+        >
+          <span className="material-symbols-outlined group-hover:scale-110 transition-transform">logout</span>
+          <span>Sign Out</span>
+        </button>
       </div>
     </div>
   );
@@ -252,68 +201,96 @@ interface AppLayoutProps {
 
 export function AppLayout({ children, isAdmin: isAdminProp, title }: AppLayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { user, profile } = useAuth();
+  const { profile } = useAuth();
 
   const isAdmin = isAdminProp ?? (profile?.role === 'admin');
-  const displayName = profile?.full_name ?? user?.email?.split('@')[0] ?? 'User';
-  const initials = displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
-  const avatarUrl = profile?.avatar_url ?? user?.user_metadata?.avatar_url as string | undefined;
+  const credits = profile?.credits ?? 0;
+  const streak = profile?.streak_days ?? 0;
 
   return (
-    <div className="flex min-h-screen w-full bg-background">
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 shrink-0 shadow-lg">
+    <div className="flex h-screen overflow-hidden bg-background text-on-surface font-body-md text-body-md antialiased selection:bg-primary/20 selection:text-primary">
+      {/* SideNavBar (Desktop) */}
+      <aside className="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 bg-surface-container-lowest border-r border-outline-variant/60 z-40">
         <SidebarContent isAdmin={isAdmin} />
       </aside>
 
-      <div className="flex-1 min-w-0 overflow-x-hidden flex flex-col">
-        {/* Top Header */}
-        <header className="sticky top-0 z-30 flex items-center gap-3 px-4 md:px-6 h-14 border-b border-border bg-white/95 backdrop-blur-sm shrink-0 shadow-sm">
-          {/* Mobile hamburger */}
-          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Open menu" className="lg:hidden shrink-0 text-foreground hover:bg-accent">
-                <Menu className="w-5 h-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-64 bg-sidebar border-sidebar-border">
-              <SidebarContent isAdmin={isAdmin} onClose={() => setMobileOpen(false)} />
-            </SheetContent>
-          </Sheet>
-
-          {/* Logo (mobile only) */}
-          <div className="flex items-center gap-2 lg:hidden">
-            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center shrink-0">
-              <Zap className="w-4 h-4 text-white" />
-            </div>
-            <span className="text-sm font-bold text-foreground">LearnLoom</span>
+      {/* Main Content Area */}
+      <main className="flex-1 md:ml-64 flex flex-col h-screen overflow-y-auto bg-background">
+        {/* TopNavBar */}
+        <header className="sticky top-0 z-30 flex justify-between items-center px-lg py-sm w-full max-w-[1440px] mx-auto bg-background/80 backdrop-blur-md border-b border-outline-variant/60">
+          
+          {/* Mobile Menu Toggle & Title */}
+          <div className="flex items-center gap-2 md:hidden">
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger asChild>
+                <button className="text-on-surface-variant p-sm">
+                  <span className="material-symbols-outlined">menu</span>
+                </button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-64 bg-surface-container-lowest border-r border-outline-variant/60">
+                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                <SidebarContent isAdmin={isAdmin} onClose={() => setMobileOpen(false)} />
+              </SheetContent>
+            </Sheet>
+            <span className="font-headline-sm font-bold text-on-surface">LearnLoom</span>
           </div>
 
-          {title && <h1 className="hidden lg:block text-sm font-semibold text-foreground flex-1 min-w-0 truncate">{title}</h1>}
-          <div className="flex-1 min-w-0" />
+          {/* Search (Desktop) */}
+          <div className="flex-1 max-w-md relative hidden md:block">
+            <span className="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+            <input 
+              className="w-full bg-surface-container-low border border-outline-variant/60 rounded-full py-2 pl-xl pr-md text-body-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-on-surface-variant" 
+              placeholder="Search courses, concepts, or mentors..." 
+              type="text"
+            />
+          </div>
 
-          <div className="flex items-center gap-1 shrink-0">
+          {/* Trailing Actions */}
+          <div className="flex items-center gap-md ml-auto">
+            {!isAdmin && (
+              <>
+                {/* Credits */}
+                <div className="hidden sm:flex items-center gap-xs px-sm py-1 bg-surface-container-low border border-outline-variant/60 rounded-full cursor-pointer hover:border-primary/50 transition-colors">
+                  <span className="material-symbols-outlined text-primary text-sm fill">monetization_on</span>
+                  <span className="font-label-sm text-label-sm font-bold">{credits}</span>
+                </div>
+                {/* Streak */}
+                <div className="flex items-center gap-xs px-sm py-1 bg-tertiary-container/10 border border-tertiary-container/30 rounded-full text-tertiary cursor-pointer hover:bg-tertiary-container/20 transition-colors">
+                  <span className="material-symbols-outlined text-sm fill">local_fire_department</span>
+                  <span className="font-label-sm text-label-sm font-bold">{streak}d</span>
+                </div>
+              </>
+            )}
+
             <NotificationBell />
-            <SignedIn>
-              <UserButton />
-            </SignedIn>
-            <SignedOut>
-              <div className="flex items-center gap-2 ml-2">
-                <SignInButton>
-                  <Button variant="outline" size="sm">Sign In</Button>
-                </SignInButton>
-                <SignUpButton>
-                  <Button size="sm">Sign Up</Button>
-                </SignUpButton>
-              </div>
-            </SignedOut>
+            
+            <div className="ml-sm shrink-0 flex items-center justify-center">
+              <SignedIn>
+                <UserButton appearance={{
+                  elements: {
+                    avatarBox: "w-8 h-8 border border-outline-variant/60 hover:ring-2 hover:ring-primary transition-all",
+                  }
+                }}/>
+              </SignedIn>
+              <SignedOut>
+                <div className="flex items-center gap-2">
+                  <SignInButton>
+                    <Button variant="ghost" className="text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/20 font-label-md">Sign In</Button>
+                  </SignInButton>
+                  <SignUpButton>
+                    <Button className="bg-primary text-on-primary font-label-md hover:brightness-110">Sign Up</Button>
+                  </SignUpButton>
+                </div>
+              </SignedOut>
+            </div>
           </div>
         </header>
 
-        <main className="flex-1 p-4 md:p-6">
+        {/* Scrollable Canvas for Children */}
+        <div className="flex-1 w-full max-w-[1440px] mx-auto flex flex-col relative">
           {children}
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }

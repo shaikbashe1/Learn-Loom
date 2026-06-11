@@ -1,15 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  GraduationCap, Camera, CameraOff, CheckCircle, AlertTriangle,
-  Clock, ArrowRight, Shield, AlertOctagon
-} from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -233,77 +225,86 @@ export default function GrandTestPage() {
     `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
 
   const score = questions.reduce((acc, q, i) => acc + (answers[i] === q.correct ? 1 : 0), 0);
-  const passed = questions.length > 0 && score / questions.length >= 0.6;
 
   if (stage === 'instructions') {
     return (
       <AppLayout title="Grand Test">
-        <div className="max-w-2xl mx-auto space-y-6">
-          <Card className="bg-card border-border">
-            <CardContent className="p-8">
-              <div className="text-center mb-8">
-                <div className="w-20 h-20 rounded-2xl bg-primary/15 flex items-center justify-center mx-auto mb-4">
-                  <GraduationCap className="w-10 h-10 text-primary" />
+        <div className="max-w-[1440px] mx-auto flex justify-center items-center py-xl">
+          <div className="glass-card rounded-xl p-xl max-w-2xl w-full relative overflow-hidden border border-outline-variant/60 shadow-[0_0_20px_rgba(0,0,0,0.2)]">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
+            <div className="text-center mb-xl relative z-10">
+              <div className="w-20 h-20 rounded-2xl bg-primary/15 border border-primary/30 flex items-center justify-center mx-auto mb-4 shadow-[0_0_15px_rgba(192,193,255,0.2)]">
+                <span className="material-symbols-outlined text-[40px] text-primary">school</span>
+              </div>
+              <h2 className="font-display text-display text-on-surface">LearnLoom Grand Test</h2>
+              <p className="font-body-md text-body-md text-on-surface-variant mt-2">Full Stack Development — Certification Exam</p>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-md mb-xl relative z-10">
+              {[
+                { label: 'Questions', value: '10', icon: 'format_list_bulleted' },
+                { label: 'Duration', value: '30 min', icon: 'timer' },
+                { label: 'Passing Score', value: '60%', icon: 'flag' },
+                { label: 'Attempts', value: '1 (Proctored)', icon: 'videocam' },
+              ].map(item => (
+                <div key={item.label} className="p-md rounded-xl bg-surface-container-low border border-outline-variant/40 text-center flex flex-col items-center">
+                  <span className="material-symbols-outlined text-outline mb-2">{item.icon}</span>
+                  <div className="font-headline-md text-headline-md text-primary mb-1">{item.value}</div>
+                  <div className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">{item.label}</div>
                 </div>
-                <h2 className="text-2xl font-bold text-foreground text-balance">LearnLoom Grand Test</h2>
-                <p className="text-muted-foreground text-sm mt-2">Full Stack Development — Certification Exam</p>
-              </div>
-              <div className="grid grid-cols-2 gap-4 mb-8">
-                {[
-                  { label: 'Questions', value: '10' },
-                  { label: 'Duration', value: '30 min' },
-                  { label: 'Passing Score', value: '60%' },
-                  { label: 'Attempts', value: '1 (Proctored)' },
-                ].map(item => (
-                  <div key={item.label} className="p-3 rounded-lg bg-muted/50 text-center">
-                    <div className="text-lg font-bold text-primary">{item.value}</div>
-                    <div className="text-xs text-muted-foreground">{item.label}</div>
+              ))}
+            </div>
+            
+            <div className="space-y-sm mb-xl relative z-10 bg-surface-container-lowest p-md rounded-lg border border-outline-variant/30">
+              <h4 className="font-headline-sm text-headline-sm text-on-surface mb-md flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">rule</span> Instructions
+              </h4>
+              {[
+                'Your webcam will be monitored throughout the exam.',
+                'Do not switch tabs or minimize the browser window.',
+                'Each question has exactly one correct answer.',
+                'You cannot go back to previous questions once answered.',
+                'Submitting incomplete answers will mark them as incorrect.',
+              ].map((inst, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center shrink-0">
+                    <span className="font-label-sm text-[12px] text-primary">{i + 1}</span>
                   </div>
-                ))}
-              </div>
-              <div className="space-y-3 mb-8">
-                <h4 className="font-semibold text-foreground text-sm">Instructions</h4>
-                {[
-                  'Your webcam will be monitored throughout the exam',
-                  'Do not switch tabs or minimize the browser window',
-                  'Each question has exactly one correct answer',
-                  'You cannot go back to previous questions once answered',
-                  'Submitting incomplete answers will mark them as incorrect',
-                ].map((inst, i) => (
-                  <div key={i} className="flex items-start gap-3">
-                    <div className="w-5 h-5 rounded-full bg-primary/15 flex items-center justify-center shrink-0 mt-0.5">
-                      <span className="text-[10px] font-bold text-primary">{i + 1}</span>
-                    </div>
-                    <span className="text-sm text-muted-foreground">{inst}</span>
-                  </div>
-                ))}
-              </div>
+                  <span className="font-body-md text-body-md text-on-surface-variant mt-0.5">{inst}</span>
+                </div>
+              ))}
+            </div>
+            
+            <div className="relative z-10">
               {checkingCooldown ? (
-                <Button disabled className="w-full h-11 bg-primary/50 text-primary-foreground/50">
-                  Checking Cooldown...
-                </Button>
+                <button disabled className="w-full h-12 bg-surface-variant text-on-surface-variant rounded-lg font-label-md flex items-center justify-center gap-2">
+                  <span className="material-symbols-outlined animate-spin text-[20px]">autorenew</span> Checking Status...
+                </button>
               ) : cooldownTime !== null && cooldownTime > 0 ? (
                 <div className="space-y-4">
-                  <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/30 flex items-start gap-3 text-destructive">
-                    <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+                  <div className="p-md rounded-lg bg-error/10 border border-error/30 flex items-start gap-3 text-error">
+                    <span className="material-symbols-outlined text-[20px] mt-0.5">warning</span>
                     <div>
-                      <p className="font-semibold text-sm">Cooldown Active</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
+                      <p className="font-headline-sm text-headline-sm mb-1">Cooldown Active</p>
+                      <p className="font-body-md text-body-md text-error/80">
                         You must wait 1 hour between Grand Test attempts. Please try again after the cooldown expires.
                       </p>
                     </div>
                   </div>
-                  <Button disabled className="w-full h-11 opacity-60">
-                    <Clock className="w-4 h-4 mr-2" /> Retry in {formatTime(cooldownTime)}
-                  </Button>
+                  <button disabled className="w-full h-12 bg-surface-variant text-on-surface-variant rounded-lg font-label-md flex items-center justify-center gap-2 cursor-not-allowed border border-outline-variant/30">
+                    <span className="material-symbols-outlined text-[20px]">schedule</span> Retry in {formatTime(cooldownTime)}
+                  </button>
                 </div>
               ) : (
-                <Button onClick={() => setStage('camera')} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-11 glow-cyan">
-                  Proceed to Camera Setup <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
+                <button 
+                  onClick={() => setStage('camera')} 
+                  className="w-full bg-primary text-on-primary-container hover:brightness-110 h-12 rounded-lg font-label-md text-label-md flex justify-center items-center gap-2 shadow-[0_0_15px_rgba(192,193,255,0.2)] transition-all"
+                >
+                  Proceed to Camera Setup <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
+                </button>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </AppLayout>
     );
@@ -312,170 +313,257 @@ export default function GrandTestPage() {
   if (stage === 'camera') {
     return (
       <AppLayout title="Camera Setup">
-        <div className="max-w-2xl mx-auto space-y-6">
-          <Card className="bg-card border-border">
-            <CardContent className="p-8">
-              <div className="text-center mb-6">
-                <Shield className="w-10 h-10 text-primary mx-auto mb-3" />
-                <h3 className="text-xl font-bold text-foreground text-balance">Webcam Verification</h3>
-                <p className="text-muted-foreground text-sm mt-1">Please enable your camera for identity verification</p>
-              </div>
-              <div className="aspect-video rounded-xl overflow-hidden bg-muted mb-6 flex items-center justify-center">
-                {cameraOn ? (
+        <div className="max-w-[1440px] mx-auto flex justify-center items-center py-xl">
+          <div className="glass-card rounded-xl p-xl max-w-2xl w-full relative overflow-hidden border border-outline-variant/60 shadow-[0_0_20px_rgba(0,0,0,0.2)]">
+            <div className="text-center mb-xl">
+              <span className="material-symbols-outlined text-[48px] text-primary mb-3 text-shadow-[0_0_15px_rgba(192,193,255,0.4)]">shield_person</span>
+              <h3 className="font-headline-lg text-headline-lg text-on-surface">Webcam Verification</h3>
+              <p className="font-body-md text-body-md text-on-surface-variant mt-2">Please enable your camera for identity verification.</p>
+            </div>
+            
+            <div className="aspect-video rounded-xl overflow-hidden bg-surface-lowest border border-outline-variant/40 mb-xl flex items-center justify-center relative shadow-inner">
+              {cameraOn ? (
+                <>
                   <video ref={videoRef} autoPlay muted className="w-full h-full object-cover" />
-                ) : (
-                  <div className="text-center">
-                    <CameraOff className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                    <p className="text-sm text-muted-foreground">Camera not enabled</p>
+                  <div className="absolute inset-0 border-4 border-primary/20 pointer-events-none rounded-xl"></div>
+                  <div className="absolute top-4 right-4 flex items-center gap-2 bg-black/50 backdrop-blur px-3 py-1.5 rounded-full border border-white/10">
+                    <span className="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+                    <span className="font-label-sm text-[12px] text-white">REC</span>
                   </div>
-                )}
-              </div>
-              <div className="space-y-3">
-                {!cameraOn ? (
-                  <>
-                    <Button onClick={startCamera} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-11">
-                      <Camera className="w-4 h-4 mr-2" /> Enable Camera
-                    </Button>
-                    {cameraError && (
-                      <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-xs text-destructive flex items-start gap-2">
-                        <AlertOctagon className="w-4 h-4 shrink-0 mt-0.5" />
-                        {cameraError}
-                      </div>
-                    )}
-                    <Button onClick={() => setStage('exam')} variant="ghost" className="w-full border border-border text-muted-foreground hover:bg-accent text-sm h-9">
-                      Skip Camera (Demo Mode)
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <div className="p-3 rounded-lg bg-chart-3/10 border border-chart-3/30 flex items-center gap-3">
-                      <CheckCircle className="w-5 h-5 text-chart-3 shrink-0" />
-                      <span className="text-sm text-chart-3">Camera active — you're ready to begin</span>
+                </>
+              ) : (
+                <div className="text-center">
+                  <span className="material-symbols-outlined text-[48px] text-outline mb-3 opacity-50">videocam_off</span>
+                  <p className="font-body-md text-body-md text-on-surface-variant">Camera not enabled</p>
+                </div>
+              )}
+            </div>
+            
+            <div className="space-y-md">
+              {!cameraOn ? (
+                <>
+                  <button 
+                    onClick={startCamera} 
+                    className="w-full bg-primary text-on-primary-container hover:brightness-110 h-12 rounded-lg font-label-md text-label-md flex justify-center items-center gap-2 shadow-[0_0_15px_rgba(192,193,255,0.2)] transition-all"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">videocam</span> Enable Camera
+                  </button>
+                  {cameraError && (
+                    <div className="p-md rounded-lg bg-error/10 border border-error/30 text-error flex items-start gap-3">
+                      <span className="material-symbols-outlined text-[20px] mt-0.5">error</span>
+                      <p className="font-body-sm text-[14px]">{cameraError}</p>
                     </div>
-                    <Button onClick={() => setStage('exam')} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-11">
-                      Start Exam <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                  )}
+                  <button 
+                    onClick={() => setStage('exam')} 
+                    className="w-full border border-outline-variant text-on-surface-variant hover:bg-surface-variant hover:text-on-surface h-12 rounded-lg font-label-md transition-colors"
+                  >
+                    Skip Camera (Demo Mode)
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="p-md rounded-lg bg-primary/10 border border-primary/30 flex items-center gap-3">
+                    <span className="material-symbols-outlined text-[24px] text-primary">check_circle</span>
+                    <span className="font-body-md text-body-md text-on-surface">Camera active — you're ready to begin.</span>
+                  </div>
+                  <button 
+                    onClick={() => setStage('exam')} 
+                    className="w-full bg-primary text-on-primary-container hover:brightness-110 h-12 rounded-lg font-label-md text-label-md flex justify-center items-center gap-2 shadow-[0_0_15px_rgba(192,193,255,0.2)] transition-all"
+                  >
+                    Start Exam <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       </AppLayout>
     );
   }
 
   if (stage === 'submitted') {
-    const passed = score >= 3;
+    const passed = questions.length > 0 && score / questions.length >= 0.6;
     return (
       <AppLayout title="Exam Results">
-        <div className="max-w-2xl mx-auto space-y-6">
-          <Card className="bg-card border-border">
-            <CardContent className="p-8 text-center">
-              <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 ${passed ? 'bg-chart-3/20' : 'bg-destructive/20'}`}>
-                {passed ? <CheckCircle className="w-12 h-12 text-chart-3" /> : <AlertTriangle className="w-12 h-12 text-destructive" />}
-              </div>
-              <h3 className="text-2xl font-bold text-foreground mb-2">{passed ? 'You Passed!' : 'Not Quite Yet'}</h3>
-              <p className="text-muted-foreground text-sm mb-6">
-                {passed ? 'Congratulations! You have successfully completed the Grand Test.' : 'Keep practicing and try again when you feel ready.'}
-              </p>
-              <div className="text-6xl font-bold gradient-text mb-2">{questions.length > 0 ? Math.round((score / questions.length) * 100) : 0}%</div>
-              <p className="text-muted-foreground">{score} of {questions.length} correct</p>
-              <Progress value={questions.length > 0 ? (score / questions.length) * 100 : 0} className="h-3 mt-4 mb-8" />
+        <div className="max-w-[1440px] mx-auto flex justify-center items-center py-xl">
+          <div className="glass-card rounded-xl p-xl max-w-2xl w-full border border-outline-variant/60 shadow-[0_0_20px_rgba(0,0,0,0.2)] text-center">
+            <div className={`w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-xl border-4 ${passed ? 'bg-primary/10 border-primary text-primary' : 'bg-error/10 border-error text-error'}`}>
+              <span className="material-symbols-outlined text-[64px]">{passed ? 'verified' : 'gpp_bad'}</span>
+            </div>
+            
+            <h3 className="font-display text-display text-on-surface mb-2">{passed ? 'You Passed!' : 'Not Quite Yet'}</h3>
+            <p className="font-body-md text-body-md text-on-surface-variant mb-xl">
+              {passed ? 'Congratulations! You have successfully completed the Grand Test and earned your certification.' : 'Keep practicing and try again when you feel ready.'}
+            </p>
+            
+            <div className="text-[80px] font-bold leading-none mb-4" style={{ color: passed ? 'var(--primary)' : 'var(--error)', textShadow: passed ? '0 0 20px rgba(192,193,255,0.3)' : 'none' }}>
+              {questions.length > 0 ? Math.round((score / questions.length) * 100) : 0}%
+            </div>
+            <p className="font-headline-sm text-headline-sm text-outline mb-xl">{score} of {questions.length} correct</p>
+            
+            <div className="w-full h-3 bg-surface-container-highest rounded-full overflow-hidden mb-xl border border-outline-variant/40">
+              <div className={`h-full rounded-full ${passed ? 'bg-primary shadow-[0_0_10px_var(--primary)]' : 'bg-error'}`} style={{ width: `${questions.length > 0 ? (score / questions.length) * 100 : 0}%` }}></div>
+            </div>
+            
+            <div className="space-y-md">
               {passed && (
-                <Link to="/certificates">
-                  <Button className="bg-primary text-primary-foreground hover:bg-primary/90 glow-cyan mb-3 w-full">
-                    <GraduationCap className="w-4 h-4 mr-2" /> View Your Certificate
-                  </Button>
+                <Link to="/certificates" className="block">
+                  <button className="w-full bg-primary text-on-primary-container hover:brightness-110 h-14 rounded-lg font-label-md text-label-md flex justify-center items-center gap-2 shadow-[0_0_20px_rgba(192,193,255,0.3)] transition-all">
+                    <span className="material-symbols-outlined text-[24px]">workspace_premium</span> View Your Certificate
+                  </button>
                 </Link>
               )}
-              <Button onClick={() => { setStage('instructions'); setAnswers(Array(questions.length).fill(null)); setQuestions([]); setCurrent(0); }} variant="ghost" className="border border-border text-foreground hover:bg-accent w-full">
-                Back to Instructions
-              </Button>
-            </CardContent>
-          </Card>
+              <button 
+                onClick={() => { setStage('instructions'); setAnswers(Array(questions.length).fill(null)); setQuestions([]); setCurrent(0); }} 
+                className="w-full border border-outline-variant text-on-surface-variant hover:bg-surface-variant hover:text-on-surface h-12 rounded-lg font-label-md transition-colors flex justify-center items-center gap-2"
+              >
+                <span className="material-symbols-outlined text-[20px]">home</span> Back to Instructions
+              </button>
+            </div>
+          </div>
         </div>
       </AppLayout>
     );
   }
 
+  // EXAM STATE (Lockdown Environment)
   const q = questions[current];
-  if (stage === 'exam' && (loadingQ || !q)) {
+  if (loadingQ || !q) {
     return (
-      <AppLayout title="Grand Test">
-        <div className="max-w-2xl mx-auto space-y-4">
-          <Skeleton className="h-2 w-full bg-muted" />
-          <Skeleton className="h-48 w-full bg-muted rounded-xl" />
-          <Skeleton className="h-14 w-full bg-muted rounded-xl" />
-          <Skeleton className="h-14 w-full bg-muted rounded-xl" />
-          <Skeleton className="h-14 w-full bg-muted rounded-xl" />
-          <Skeleton className="h-14 w-full bg-muted rounded-xl" />
+      <div className="bg-background min-h-screen flex items-center justify-center">
+        <div className="space-y-4 w-full max-w-2xl px-xl">
+          <Skeleton className="h-16 w-full bg-surface-container rounded-xl" />
+          <Skeleton className="h-[400px] w-full bg-surface-container rounded-xl" />
         </div>
-      </AppLayout>
+      </div>
     );
   }
+
   return (
-    <AppLayout title="Grand Test — In Progress">
-      <div className="max-w-2xl mx-auto space-y-4">
-        {/* Tab-switch warning */}
-        {tabSwitches > 0 && (
-          <div className="rounded-lg bg-destructive/10 border border-destructive/30 p-3 flex items-center gap-3">
-            <AlertOctagon className="w-5 h-5 text-destructive shrink-0" />
-            <span className="text-sm text-destructive font-medium">
-              Tab switch warning: {tabSwitches}/3. {tabSwitches >= 3 ? 'Exam auto-submitted.' : 'One more switch will auto-submit your exam.'}
+    <div className="bg-background text-on-background font-body-md h-screen w-screen overflow-hidden flex flex-col">
+      {/* Grand Test Header (Intentional suppression of standard global nav for test lockdown) */}
+      <header className="bg-surface-container-lowest border-b border-outline-variant/60 px-lg h-16 flex justify-between items-center shrink-0 z-50">
+        <div className="flex items-center gap-md">
+          <span className="material-symbols-outlined text-primary text-[28px]">school</span>
+          <div className="font-headline-md text-headline-md text-on-surface">LearnLoom <span className="text-on-surface-variant font-label-md text-label-md ml-sm hidden md:inline">Grand Exam</span></div>
+        </div>
+        
+        {/* Timer & Proctoring Status */}
+        <div className="flex items-center gap-md md:gap-xl bg-surface-container rounded-full px-md md:px-lg py-sm border border-outline-variant/30">
+          <div className="flex items-center gap-xs text-error">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-error"></span>
             </span>
+            <span className="font-label-md text-label-md uppercase tracking-wider ml-xs hidden sm:inline">Proctoring Active</span>
+          </div>
+          <div className="w-[1px] h-4 bg-outline-variant/60"></div>
+          <div className={`flex items-center gap-sm font-label-md text-label-md font-bold ${timeLeft < 300 ? 'text-error animate-pulse' : 'text-primary'}`}>
+            <span className="material-symbols-outlined">timer</span>
+            {formatTime(timeLeft)}
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-md">
+          <button 
+            onClick={handleSubmit}
+            className="bg-primary text-on-primary-container font-label-md text-label-md px-md py-sm rounded hover:brightness-110 transition-colors shadow-[0_0_10px_rgba(192,193,255,0.2)]"
+          >
+            Submit Exam
+          </button>
+        </div>
+      </header>
+
+      {/* Main Workspace */}
+      <main className="flex-1 flex overflow-hidden flex-col md:flex-row">
+        
+        {/* Tab-switch warning overlay (absolute) */}
+        {tabSwitches > 0 && (
+          <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md bg-error/90 backdrop-blur text-white p-4 rounded-xl border border-error shadow-2xl flex items-center gap-3 animate-in slide-in-from-top-4">
+            <span className="material-symbols-outlined text-[32px]">warning</span>
+            <div>
+              <p className="font-bold text-[16px]">Tab switch warning: {tabSwitches}/3</p>
+              <p className="text-sm opacity-90">{tabSwitches >= 3 ? 'Exam auto-submitted.' : 'One more switch will auto-submit your exam.'}</p>
+            </div>
           </div>
         )}
 
-        {/* Exam Header */}
-        <div className="flex items-center justify-between">
-          <Badge className="bg-destructive/15 text-destructive border-destructive/30 text-xs flex items-center gap-1">
-            <span className="w-2 h-2 bg-destructive rounded-full animate-pulse" /> Proctored
-          </Badge>
-          <div className={`flex items-center gap-2 text-sm font-semibold ${timeLeft < 300 ? 'text-destructive' : 'text-foreground'}`}>
-            <Clock className="w-4 h-4" />{formatTime(timeLeft)}
-          </div>
-        </div>
-
-        <Progress value={questions.length > 0 ? ((current + 1) / questions.length) * 100 : 0} className="h-2" />
-
-        <Card className="bg-card border-border">
-          <CardHeader className="pb-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Badge className="bg-primary/15 text-primary border-primary/30 text-xs">Question {current + 1} of {questions.length}</Badge>
+        {/* Left Panel: Question Description */}
+        <aside className="w-full md:w-[45%] bg-surface border-r border-outline-variant/60 flex flex-col h-1/2 md:h-full overflow-y-auto">
+          <div className="p-xl border-b border-outline-variant/30 bg-surface-container-low sticky top-0 z-10 flex justify-between items-center">
+            <span className="bg-primary/20 text-primary font-label-sm text-label-sm px-sm py-xs rounded uppercase tracking-wide border border-primary/30">Question {current + 1} of {questions.length}</span>
+            <div className="flex gap-1">
+              {questions.map((_, i) => (
+                <div key={i} className={`w-2 h-2 rounded-full ${answers[i] !== null ? 'bg-primary' : i === current ? 'bg-primary/40 border border-primary' : 'bg-outline-variant/40'}`} />
+              ))}
             </div>
-            <CardTitle className="text-lg text-foreground font-semibold leading-relaxed text-balance">{q.text}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 pb-6">
-            {q.options.map((opt, i) => (
-              <button
-                key={i}
-                onClick={() => { const a = [...answers]; a[current] = i; setAnswers(a); }}
-                className={`w-full flex items-center gap-3 p-4 rounded-xl border text-left transition-all ${answers[current] === i ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/40 hover:bg-muted/30'}`}
-              >
-                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 text-xs font-bold ${answers[current] === i ? 'border-primary bg-primary text-primary-foreground' : 'border-border text-muted-foreground'}`}>
-                  {String.fromCharCode(65 + i)}
-                </div>
-                <span className="text-sm text-foreground">{opt}</span>
-              </button>
-            ))}
-          </CardContent>
-        </Card>
+          </div>
+          <div className="p-xl prose prose-invert max-w-none text-on-surface font-body-lg leading-relaxed whitespace-pre-wrap">
+            {q.text}
+          </div>
+        </aside>
 
-        <div className="flex justify-end">
-          <Button
-            onClick={() => {
-              if (current < questions.length - 1) setCurrent(current + 1);
-              else handleSubmit();
-            }}
-            disabled={answers[current] === null}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-          >
-            {current === questions.length - 1 ? 'Submit Exam' : 'Next Question'}
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
-        </div>
-      </div>
-    </AppLayout>
+        {/* Right Panel: Options & Navigation */}
+        <section className="flex-1 flex flex-col min-w-0 bg-surface-container-lowest relative h-1/2 md:h-full">
+          <div className="flex-1 overflow-y-auto p-xl flex flex-col gap-md bg-surface-lowest relative">
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none opacity-20"></div>
+            
+            <h3 className="font-headline-sm text-headline-sm text-on-surface mb-md relative z-10 flex items-center gap-2">
+              <span className="material-symbols-outlined text-outline">fact_check</span> Select your answer:
+            </h3>
+
+            <div className="space-y-md relative z-10">
+              {q.options.map((opt, i) => (
+                <label 
+                  key={i} 
+                  className={`group relative flex items-center p-lg rounded-lg border transition-all cursor-pointer shadow-sm ${answers[current] === i ? 'bg-primary/10 border-primary shadow-[0_0_15px_rgba(192,193,255,0.1)]' : 'bg-surface-container border-outline-variant/60 hover:border-primary/50 hover:bg-surface-container-high'}`}
+                >
+                  <input 
+                    type="radio" 
+                    name="answer" 
+                    className="sr-only peer" 
+                    checked={answers[current] === i}
+                    onChange={() => { const a = [...answers]; a[current] = i; setAnswers(a); }}
+                  />
+                  <div className={`flex items-center justify-center w-8 h-8 rounded border mr-md transition-colors shrink-0 ${answers[current] === i ? 'bg-primary border-primary' : 'border-outline-variant bg-surface'}`}>
+                    <span className={`material-symbols-outlined text-[20px] ${answers[current] === i ? 'text-on-primary' : 'opacity-0'}`}>check</span>
+                  </div>
+                  <div className={`flex-1 font-body-md text-[16px] transition-colors ${answers[current] === i ? 'text-on-surface' : 'text-on-surface-variant group-hover:text-on-surface'}`}>
+                    {opt}
+                  </div>
+                  <div className={`font-label-md text-label-md px-sm py-xs border rounded ml-md shrink-0 ${answers[current] === i ? 'text-primary border-primary/50 bg-surface' : 'text-outline border-outline/30 bg-surface-lowest'}`}>
+                    {String.fromCharCode(65 + i)}
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Bottom Navigation Area */}
+          <div className="h-20 bg-surface-container flex items-center justify-between px-xl shrink-0 shadow-[0_-4px_12px_rgba(0,0,0,0.2)] z-20 border-t border-outline-variant/60">
+             <button 
+                onClick={() => { if (current > 0) setCurrent(current - 1); }}
+                disabled={current === 0}
+                className="font-label-md text-label-md text-on-surface-variant hover:text-on-surface px-xl py-sm transition-colors disabled:opacity-30 flex items-center gap-2"
+              >
+                <span className="material-symbols-outlined text-[20px]">arrow_back</span> Previous
+              </button>
+              
+              <button 
+                onClick={() => {
+                  if (current < questions.length - 1) setCurrent(current + 1);
+                  else handleSubmit();
+                }}
+                disabled={answers[current] === null || submitting}
+                className="bg-primary text-on-primary-container font-label-md text-[16px] px-xl py-3 rounded-lg hover:brightness-110 transition-all shadow-[0_0_15px_rgba(192,193,255,0.2)] disabled:opacity-50 flex items-center gap-2"
+              >
+                {current === questions.length - 1 ? 'Finish & Submit' : 'Next Question'}
+                {current !== questions.length - 1 && <span className="material-symbols-outlined text-[20px]">arrow_forward</span>}
+              </button>
+          </div>
+        </section>
+      </main>
+    </div>
   );
 }

@@ -1,15 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Play, RotateCcw, CheckCircle, XCircle, Zap,
-  Clock, ChevronLeft, ChevronRight, Terminal, AlertCircle, Trophy
-} from 'lucide-react';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -53,18 +45,20 @@ interface JudgeResponse {
 const LANG_LABELS: Record<Lang, string> = {
   python: 'Python', javascript: 'JavaScript', java: 'Java', cpp: 'C++', c: 'C'
 };
+
 const DIFF_COLORS = {
-  Beginner:     'bg-chart-3/15 text-chart-3 border-chart-3/30',
-  Intermediate: 'bg-chart-4/15 text-chart-4 border-chart-4/30',
-  Advanced:     'bg-destructive/15 text-destructive border-destructive/30',
+  Beginner:     'bg-primary/10 text-primary',
+  Intermediate: 'bg-tertiary/10 text-tertiary',
+  Advanced:     'bg-error/10 text-error',
 };
-const VERDICT_META: Record<string, { label: string; color: string; icon: typeof CheckCircle }> = {
-  accepted:             { label: 'Accepted',         color: 'text-chart-3',    icon: CheckCircle },
-  wrong_answer:         { label: 'Wrong Answer',     color: 'text-destructive', icon: XCircle },
-  time_limit_exceeded:  { label: 'TLE',              color: 'text-chart-4',    icon: Clock },
-  compilation_error:    { label: 'Compile Error',    color: 'text-destructive', icon: AlertCircle },
-  runtime_error:        { label: 'Runtime Error',    color: 'text-destructive', icon: XCircle },
-  pending:              { label: 'Pending',          color: 'text-muted-foreground', icon: Clock },
+
+const VERDICT_META: Record<string, { label: string; color: string; icon: string }> = {
+  accepted:             { label: 'Accepted',         color: 'text-[#4ade80]', icon: 'check_circle' },
+  wrong_answer:         { label: 'Wrong Answer',     color: 'text-error',     icon: 'cancel' },
+  time_limit_exceeded:  { label: 'TLE',              color: 'text-tertiary',  icon: 'schedule' },
+  compilation_error:    { label: 'Compile Error',    color: 'text-error',     icon: 'error' },
+  runtime_error:        { label: 'Runtime Error',    color: 'text-error',     icon: 'cancel' },
+  pending:              { label: 'Pending',          color: 'text-outline',   icon: 'schedule' },
 };
 
 export default function CodingPracticePage() {
@@ -72,7 +66,7 @@ export default function CodingPracticePage() {
   const [problems, setProblems]     = useState<Problem[]>([]);
   const [loadingP, setLoadingP]     = useState(true);
   const [idx, setIdx]               = useState(0);
-  const [language, setLanguage]     = useState<Lang>('python');
+  const [language, setLanguage]     = useState<Lang>('javascript');
   const [code, setCode]             = useState('');
   const [judging, setJudging]       = useState(false);
   const [result, setResult]         = useState<JudgeResponse | null>(null);
@@ -100,7 +94,7 @@ export default function CodingPracticePage() {
 
   useEffect(() => {
     if (problem) resetCode();
-  }, [idx, problem]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [idx, problem, resetCode]);
 
   const changeLang = (lang: Lang) => {
     setLanguage(lang);
@@ -153,17 +147,13 @@ export default function CodingPracticePage() {
     }
   };
 
-  const verdictMeta = result ? (VERDICT_META[result.verdict] ?? VERDICT_META.pending) : null;
-
   if (loadingP) {
     return (
       <AppLayout title="Coding Practice">
-        <div className="max-w-7xl mx-auto space-y-4">
-          <Skeleton className="h-8 w-48 bg-muted" />
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Skeleton className="h-96 bg-muted rounded-xl" />
-            <Skeleton className="h-96 bg-muted rounded-xl" />
-          </div>
+        <div className="flex-1 flex flex-col md:flex-row h-[calc(100vh-80px)] overflow-hidden gap-md w-full">
+          <Skeleton className="flex-1 bg-surface-container-lowest rounded-lg border border-outline-variant/30 min-w-[300px]" />
+          <Skeleton className="flex-[1.5] bg-[#1e1e1e] rounded-lg border border-outline-variant/30 min-w-[400px]" />
+          <Skeleton className="flex-1 bg-surface-container-lowest rounded-lg border border-outline-variant/30 min-w-[300px]" />
         </div>
       </AppLayout>
     );
@@ -172,9 +162,9 @@ export default function CodingPracticePage() {
   if (!problem) {
     return (
       <AppLayout title="Coding Practice">
-        <div className="text-center py-20 text-muted-foreground">
-          <Terminal className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p className="font-medium text-foreground">No problems available</p>
+        <div className="text-center py-20 text-on-surface-variant h-[calc(100vh-80px)] flex flex-col items-center justify-center">
+          <span className="material-symbols-outlined text-[48px] opacity-30 mb-4">terminal</span>
+          <p className="font-label-md text-label-md text-on-surface">No problems available</p>
         </div>
       </AppLayout>
     );
@@ -182,237 +172,200 @@ export default function CodingPracticePage() {
 
   return (
     <AppLayout title="Coding Practice">
-      <div className="max-w-7xl mx-auto space-y-4">
-
-        {/* Header */}
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3 flex-wrap">
-            <h2 className="text-xl font-bold text-foreground text-balance">Coding Practice</h2>
+      <div className="flex flex-col h-[calc(100vh-80px)] w-full gap-4 relative">
+        
+        {/* Actions Bar */}
+        <div className="flex flex-wrap items-center justify-between bg-surface-container-low border border-outline-variant/30 rounded-lg p-2 shrink-0">
+          <div className="flex items-center gap-4 pl-2">
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setIdx(Math.max(0, idx - 1))} 
+                disabled={idx === 0}
+                className="text-on-surface-variant hover:text-primary transition-colors disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined text-[20px]">chevron_left</span>
+              </button>
+              <span className="font-label-sm text-label-sm text-on-surface-variant">{idx + 1} / {problems.length}</span>
+              <button 
+                onClick={() => setIdx(Math.min(problems.length - 1, idx + 1))} 
+                disabled={idx === problems.length - 1}
+                className="text-on-surface-variant hover:text-primary transition-colors disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+              </button>
+            </div>
             {problem.is_daily && (
-              <Badge className="bg-chart-4/15 text-chart-4 border-chart-4/30 text-xs border">
-                <Zap className="w-3 h-3 mr-1" /> Daily +{problem.credits} Credits
-              </Badge>
+              <span className="bg-tertiary-container/20 text-tertiary px-2 py-0.5 rounded font-label-sm text-[10px] flex items-center gap-1">
+                <span className="material-symbols-outlined text-[12px]">local_fire_department</span> Daily +{problem.credits} pts
+              </span>
             )}
+            <div className="h-4 w-px bg-outline-variant/30 hidden sm:block"></div>
+            <select 
+              value={language} 
+              onChange={e => changeLang(e.target.value as Lang)}
+              className="bg-surface-container border border-outline-variant/30 text-on-surface font-label-sm text-label-sm rounded px-2 py-1 focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+            >
+              {(Object.keys(LANG_LABELS) as Lang[]).map(l => (
+                <option key={l} value={l}>{LANG_LABELS[l]}</option>
+              ))}
+            </select>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon"
-              className="border border-border text-foreground hover:bg-accent h-8 w-8"
-              onClick={() => { setIdx(Math.max(0, idx - 1)); }}
-              disabled={idx === 0}>
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <span className="text-xs text-muted-foreground">{idx + 1} / {problems.length}</span>
-            <Button variant="ghost" size="icon"
-              className="border border-border text-foreground hover:bg-accent h-8 w-8"
-              onClick={() => { setIdx(Math.min(problems.length - 1, idx + 1)); }}
-              disabled={idx === problems.length - 1}>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+            <button onClick={() => resetCode()} className="flex items-center gap-1 px-3 py-1.5 rounded border border-outline-variant/60 text-on-surface font-label-sm text-label-sm hover:border-outline transition-colors">
+              <span className="material-symbols-outlined text-[16px]">refresh</span> Reset
+            </button>
+            <button onClick={handleSubmit} disabled={judging || !user} className="flex items-center gap-1 bg-primary text-on-primary-fixed px-4 py-1.5 rounded font-label-sm text-label-sm font-bold hover:brightness-110 transition-colors disabled:opacity-50">
+              {judging ? <span className="material-symbols-outlined animate-spin text-[16px]">autorenew</span> : <span className="material-symbols-outlined text-[16px]">publish</span>}
+              {judging ? 'Judging' : 'Submit'}
+            </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-
-          {/* Problem panel */}
-          <Card className="bg-card border-border h-full flex flex-col">
-            <CardHeader className="pb-3 shrink-0">
-              <div className="flex items-center justify-between gap-2">
-                <CardTitle className="text-base text-foreground text-balance">{problem.title}</CardTitle>
-                <Badge className={`text-xs shrink-0 border ${DIFF_COLORS[problem.difficulty]}`}>
-                  {problem.difficulty}
-                </Badge>
+        {/* Workspace Layout */}
+        <div className="flex-1 flex flex-col md:flex-row overflow-hidden gap-4 pb-4">
+          
+          {/* Left Pane: Problem Description */}
+          <section className="flex-1 bg-surface-container-lowest rounded-lg border border-outline-variant/30 flex flex-col overflow-hidden min-w-[300px]">
+            <div className="px-md py-sm border-b border-outline-variant/30 bg-surface flex justify-between items-center">
+              <h2 className="font-label-md text-label-md text-on-surface">Description</h2>
+              <div className="flex gap-xs">
+                <span className={`px-sm py-xs rounded-full font-label-sm text-label-sm ${DIFF_COLORS[problem.difficulty]}`}>{problem.difficulty}</span>
               </div>
-            </CardHeader>
-            <CardContent className="overflow-y-auto flex-1 min-h-0 max-h-[60vh]">
-              <Tabs defaultValue="problem">
-                <TabsList className="bg-muted border border-border mb-4">
-                  {['problem','examples','constraints'].map(t => (
-                    <TabsTrigger key={t} value={t}
-                      className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground capitalize">
-                      {t}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-                <TabsContent value="problem">
-                  <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line text-pretty">
-                    {problem.description}
-                  </p>
-                </TabsContent>
-                <TabsContent value="examples" className="space-y-3">
-                  {problem.examples.map((ex, i) => (
-                    <div key={i} className="p-3 rounded-lg bg-muted/50 space-y-1.5">
-                      <p className="text-xs font-semibold text-foreground">Example {i + 1}</p>
-                      <div className="space-y-1 text-xs">
-                        <div><span className="text-muted-foreground">Input: </span><code className="text-primary">{ex.input}</code></div>
-                        <div><span className="text-muted-foreground">Output: </span><code className="text-chart-3">{ex.output}</code></div>
-                        {ex.explanation && <p className="text-muted-foreground italic text-[11px]">{ex.explanation}</p>}
-                      </div>
-                    </div>
-                  ))}
-                </TabsContent>
-                <TabsContent value="constraints">
-                  <ul className="space-y-1.5">
-                    {problem.constraints.map((c, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                        <span className="text-primary mt-0.5 shrink-0">•</span>
-                        <code className="text-xs break-words">{c}</code>
-                      </li>
-                    ))}
+            </div>
+            <div className="flex-1 overflow-y-auto p-md font-body-sm text-body-sm text-on-surface-variant" style={{ scrollbarWidth: 'thin' }}>
+              <h3 className="font-headline-md text-headline-md text-on-surface mb-md">{problem.title}</h3>
+              <p className="mb-md leading-relaxed whitespace-pre-line text-pretty">{problem.description}</p>
+              
+              {problem.examples.map((ex, i) => (
+                <div key={i} className="mb-md">
+                  <h4 className="font-label-sm text-label-sm text-on-surface mb-2">Example {i + 1}:</h4>
+                  <div className="bg-surface-container p-sm rounded border border-outline-variant/30 font-label-sm text-label-sm text-on-surface">
+                    <p><strong className="text-on-surface-variant">Input:</strong> {ex.input}</p>
+                    <p><strong className="text-on-surface-variant">Output:</strong> {ex.output}</p>
+                    {ex.explanation && <p className="text-on-surface-variant mt-1 text-[11px]">Explanation: {ex.explanation}</p>}
+                  </div>
+                </div>
+              ))}
+              
+              {problem.constraints.length > 0 && (
+                <div className="mb-lg">
+                  <h4 className="font-label-sm text-label-sm text-on-surface mb-2">Constraints:</h4>
+                  <ul className="list-disc list-inside font-label-sm text-[11px] text-on-surface-variant space-y-1 ml-1">
+                    {problem.constraints.map((c, i) => <li key={i}><code>{c}</code></li>)}
                   </ul>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+                </div>
+              )}
+            </div>
+          </section>
 
-          {/* Editor + results */}
-          <div className="space-y-3">
-            <Card className="bg-card border-border">
-              {/* Toolbar */}
-              <div className="flex items-center justify-between px-4 py-2.5 border-b border-border">
-                <Select value={language} onValueChange={v => changeLang(v as Lang)}>
-                  <SelectTrigger className="w-36 h-7 text-xs bg-input border-border text-foreground">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(Object.keys(LANG_LABELS) as Lang[]).map(l => (
-                      <SelectItem key={l} value={l} className="text-xs">{LANG_LABELS[l]}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button size="sm" variant="ghost"
-                  className="h-7 text-xs border border-border text-foreground hover:bg-accent"
-                  onClick={() => resetCode()}>
-                  <RotateCcw className="w-3 h-3 mr-1" /> Reset
-                </Button>
-              </div>
+          {/* Middle Pane: Code Editor */}
+          <section className="flex-[1.5] bg-[#1e1e1e] rounded-lg border border-outline-variant/30 flex flex-col overflow-hidden min-w-[300px]">
+            <div className="px-md py-sm border-b border-[#333] bg-[#2d2d2d] flex items-center">
+              <span className="material-symbols-outlined text-[16px] text-tertiary mr-sm">code</span>
+              <h2 className="font-label-sm text-label-sm text-on-surface">solution.{language === 'python' ? 'py' : language === 'javascript' ? 'js' : language === 'java' ? 'java' : language === 'cpp' ? 'cpp' : 'c'}</h2>
+            </div>
+            <div className="flex-1 overflow-auto flex relative">
+              <textarea
+                className="w-full h-full p-4 bg-transparent text-[#d4d4d4] font-label-sm text-label-sm resize-none outline-none leading-relaxed"
+                value={code}
+                onChange={e => setCode(e.target.value)}
+                spellCheck={false}
+                style={{ fontFamily: '"JetBrains Mono", "Fira Code", monospace', tabSize: 4 }}
+              />
+            </div>
+          </section>
 
-              {/* Monaco-style textarea */}
-              <CardContent className="p-0">
-                <textarea
-                  className="w-full h-72 p-4 bg-transparent text-foreground font-mono resize-none outline-none text-[13px] leading-relaxed"
-                  value={code}
-                  onChange={e => setCode(e.target.value)}
-                  spellCheck={false}
-                  style={{ fontFamily: '"JetBrains Mono", "Fira Code", monospace' }}
-                />
-              </CardContent>
+          {/* Right Pane: Console/Output */}
+          <section className="flex-1 bg-surface-container-lowest rounded-lg border border-outline-variant/30 flex flex-col overflow-hidden min-w-[300px]">
+            <div className="px-md py-sm border-b border-outline-variant/30 bg-surface flex gap-md">
+              <button className="font-label-md text-label-md text-primary border-b-2 border-primary pb-1 -mb-2">Output</button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-md font-label-sm text-label-sm" style={{ scrollbarWidth: 'thin' }}>
+              
+              {!result && !judging && (
+                <div className="text-center py-10 text-on-surface-variant">
+                  <span className="material-symbols-outlined text-[32px] opacity-30 mb-2">science</span>
+                  <p className="text-xs">Submit code to see results</p>
+                </div>
+              )}
 
-              {/* Actions */}
-              <div className="flex gap-3 px-4 py-3 border-t border-border">
-                <Button
-                  onClick={handleSubmit}
-                  disabled={judging || !user}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 text-sm flex-1"
-                >
-                  {judging ? (
-                    <><Play className="w-4 h-4 mr-2 animate-pulse" /> Judging…</>
-                  ) : (
-                    <><Terminal className="w-4 h-4 mr-2" /> Submit &amp; Judge</>
+              {judging && (
+                <div className="space-y-3 animate-pulse">
+                  {[1, 2].map(i => (
+                    <div key={i} className="h-20 rounded bg-surface-variant border border-outline-variant/30"></div>
+                  ))}
+                  <p className="text-center text-xs text-on-surface-variant">Running tests on Judge0...</p>
+                </div>
+              )}
+
+              {result && !judging && (
+                <div className="space-y-3">
+                  
+                  {/* Credits banner */}
+                  {result.creditsAwarded > 0 && (
+                    <div className="p-3 rounded border border-[#6f00be]/40 bg-[#6f00be]/10 text-center mb-4">
+                      <span className="material-symbols-outlined text-[#d6a9ff] mb-1 text-[24px]">workspace_premium</span>
+                      <p className="font-bold text-[#d6a9ff]">+{result.creditsAwarded} Credits Earned!</p>
+                      <p className="text-[10px] text-[#ddb7ff]">Daily challenge complete</p>
+                    </div>
                   )}
-                </Button>
-              </div>
-            </Card>
 
-            {/* Results panel */}
-            <Card className="bg-card border-border">
-              <CardHeader className="pb-2 pt-3 px-4">
-                <CardTitle className="text-sm text-foreground flex items-center gap-2">
-                  <Terminal className="w-4 h-4 text-primary" />
-                  Test Results
-                  {judging && (
-                    <Badge className="text-[10px] bg-chart-4/15 text-chart-4 border border-chart-4/30 animate-pulse">
-                      Running on Judge0…
-                    </Badge>
-                  )}
-                  {result && verdictMeta && (
-                    <Badge className={`text-[10px] border ml-auto ${result.verdict === 'accepted' ? 'bg-chart-3/15 text-chart-3 border-chart-3/30' : 'bg-destructive/15 text-destructive border-destructive/30'}`}>
-                      {verdictMeta.label} {result.passedCount}/{result.totalCount}
-                    </Badge>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 pb-4">
-                {!result && !judging && (
-                  <div className="text-center py-8 text-sm text-muted-foreground">
-                    <Clock className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                    <p>Submit your code to see real Judge0 results</p>
+                  {/* Summary */}
+                  <div className={`p-2 rounded border font-bold flex items-center gap-2 ${result.verdict === 'accepted' ? 'border-[#2f3b2f] bg-[#1a2e1e] text-[#4ade80]' : 'border-[#3b2f2f] bg-[#2e1a1a] text-error'}`}>
+                    <span className="material-symbols-outlined text-[18px]">{VERDICT_META[result.verdict]?.icon ?? 'info'}</span>
+                    <span>{VERDICT_META[result.verdict]?.label ?? result.verdict}</span>
+                    <span className="ml-auto text-xs font-normal opacity-80">{result.passedCount}/{result.totalCount} passed</span>
                   </div>
-                )}
 
-                {judging && (
-                  <div className="space-y-2">
-                    {[1, 2, 3].map(i => (
-                      <Skeleton key={i} className="h-10 rounded-lg bg-muted" />
-                    ))}
-                    <p className="text-xs text-center text-muted-foreground pt-1 animate-pulse">
-                      Compiling and running test cases…
-                    </p>
-                  </div>
-                )}
+                  {/* Stats */}
+                  {result.verdict === 'accepted' && (
+                    <div className="flex gap-4 text-[10px] text-on-surface-variant px-1">
+                      <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[12px]">timer</span> {result.time_ms.toFixed(0)}ms</span>
+                      <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[12px]">memory</span> {(result.memory_kb / 1024).toFixed(1)}MB</span>
+                    </div>
+                  )}
 
-                {result && !judging && (
-                  <div className="space-y-2">
-                    {/* Compile error */}
-                    {result.compileError && (
-                      <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30">
-                        <p className="text-xs font-semibold text-destructive mb-1 flex items-center gap-1">
-                          <AlertCircle className="w-3.5 h-3.5" /> Compilation Error
-                        </p>
-                        <pre className="text-[11px] text-destructive/80 font-mono whitespace-pre-wrap break-words">
-                          {result.compileError}
-                        </pre>
+                  {/* Compile error */}
+                  {result.compileError && (
+                    <div className="p-sm rounded border border-[#3b2f2f] bg-[#2e1a1a]">
+                      <div className="flex items-center gap-sm mb-sm text-error">
+                        <span className="material-symbols-outlined text-[16px]">error</span>
+                        <span className="font-bold">Compilation Error</span>
                       </div>
-                    )}
+                      <pre className="text-error/80 text-[10px] whitespace-pre-wrap font-mono">{result.compileError}</pre>
+                    </div>
+                  )}
 
-                    {/* Per-test results */}
-                    {result.testResults.map((t, i) => {
-                      const pass = t.verdict === 'accepted';
-                      return (
-                        <div key={i}
-                          className={`flex items-start gap-3 p-2.5 rounded-lg border ${pass ? 'bg-chart-3/10 border-chart-3/30' : 'bg-destructive/10 border-destructive/30'}`}>
-                          {pass
-                            ? <CheckCircle className="w-4 h-4 text-chart-3 shrink-0 mt-0.5" />
-                            : <XCircle    className="w-4 h-4 text-destructive shrink-0 mt-0.5" />}
-                          <div className="flex-1 min-w-0 space-y-0.5">
-                            <div className="flex items-center gap-2">
-                              <p className="text-xs font-medium text-foreground">Case {t.case}</p>
-                              <span className="text-[10px] text-muted-foreground">{t.time}</span>
-                            </div>
-                            {!pass && (
-                              <div className="text-[11px] font-mono space-y-0.5">
-                                <p className="text-muted-foreground">Expected: <code className="text-chart-3">{t.expectedOutput}</code></p>
-                                <p className="text-muted-foreground">Got: <code className="text-destructive break-words">{t.actualOutput || '(empty)'}</code></p>
-                              </div>
-                            )}
+                  {/* Test Cases */}
+                  {result.testResults.map((t, i) => {
+                    const pass = t.verdict === 'accepted';
+                    return (
+                      <div key={i} className={`p-sm rounded border ${pass ? 'border-[#2f3b2f] bg-[#1a2e1e]' : 'border-[#3b2f2f] bg-[#2e1a1a]'}`}>
+                        <div className={`flex justify-between items-center mb-2 ${pass ? 'text-[#4ade80]' : 'text-error'}`}>
+                          <div className="flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[14px]">{pass ? 'check_circle' : 'cancel'}</span>
+                            <span className="font-bold text-xs">Test Case {t.case}</span>
                           </div>
-                          <Badge className={`text-[10px] shrink-0 border ${pass ? 'bg-chart-3/15 text-chart-3 border-chart-3/30' : 'bg-destructive/15 text-destructive border-destructive/30'}`}>
-                            {pass ? 'Passed' : (VERDICT_META[t.verdict]?.label ?? t.verdict)}
-                          </Badge>
+                          {!pass && <span className="text-[10px] bg-error/20 px-1 rounded">{VERDICT_META[t.verdict]?.label ?? t.verdict}</span>}
                         </div>
-                      );
-                    })}
-
-                    {/* Credits banner */}
-                    {result.creditsAwarded > 0 && (
-                      <div className="p-3 rounded-lg bg-chart-4/10 border border-chart-4/30 text-center mt-1">
-                        <Trophy className="w-5 h-5 text-chart-4 mx-auto mb-1" />
-                        <p className="text-sm font-semibold text-chart-4">+{result.creditsAwarded} Credits Earned!</p>
-                        <p className="text-xs text-muted-foreground">Daily challenge complete</p>
+                        <div className="text-on-surface-variant grid grid-cols-[60px_1fr] gap-x-2 gap-y-1 text-[11px] font-mono">
+                          <span>Input:</span><span className="text-on-surface truncate break-all">{t.input}</span>
+                          <span>Expected:</span><span className="text-on-surface truncate break-all">{t.expectedOutput}</span>
+                          {!pass && (
+                            <>
+                              <span className="text-error mt-1">Output:</span>
+                              <span className="text-error mt-1 break-words bg-error/10 px-1 rounded">{t.actualOutput || '(empty)'}</span>
+                            </>
+                          )}
+                        </div>
                       </div>
-                    )}
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </section>
 
-                    {/* Stats */}
-                    {result.verdict === 'accepted' && (
-                      <div className="flex gap-4 pt-1 text-xs text-muted-foreground">
-                        <span>⏱ {result.time_ms.toFixed(0)}ms</span>
-                        <span>💾 {(result.memory_kb / 1024).toFixed(1)}MB</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
     </AppLayout>

@@ -1,12 +1,6 @@
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FileText, Upload, CheckCircle, Clock, AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -62,7 +56,6 @@ export default function AssignmentPage() {
 
       const merged = (asgns ?? []).map(a => ({ ...a, submission: subMap[a.id] }));
       setAssignments(merged);
-      if (merged.length > 0) setSelected(merged[0]);
       setLoading(false);
     })();
   }, [user]);
@@ -109,150 +102,222 @@ export default function AssignmentPage() {
   };
 
   const statusColor = (status?: string) => {
-    if (status === 'submitted') return 'bg-chart-2/15 text-chart-2 border-chart-2/30';
-    if (status === 'graded') return 'bg-chart-3/15 text-chart-3 border-chart-3/30';
-    return 'bg-chart-4/15 text-chart-4 border-chart-4/30';
+    if (status === 'submitted') return 'bg-primary/20 text-primary border-primary/30';
+    if (status === 'graded') return 'bg-tertiary/20 text-tertiary border-tertiary/30';
+    return 'bg-outline-variant text-on-surface border-outline-variant';
   };
 
   const statusIcon = (status?: string) => {
-    if (status === 'graded') return <CheckCircle className="w-3 h-3" />;
-    if (status === 'submitted') return <Clock className="w-3 h-3" />;
-    return <AlertCircle className="w-3 h-3" />;
+    if (status === 'graded') return 'check_circle';
+    if (status === 'submitted') return 'schedule';
+    return 'error';
   };
 
   const statusLabel = (a: Assignment) => a.submission?.status ?? 'pending';
 
   return (
     <AppLayout title="Assignments">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <h2 className="text-2xl font-bold text-foreground text-balance">Assignments</h2>
-
-        {loading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 w-full bg-muted rounded-xl" />)}
-          </div>
-        ) : assignments.length === 0 ? (
-          <div className="text-center py-20 border border-dashed border-border rounded-xl text-muted-foreground">
-            <FileText className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p className="font-medium text-foreground">No assignments yet</p>
-            <p className="text-sm">Enroll in a course to see its assignments here</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="space-y-3">
-              {assignments.map(a => (
-                <button
-                  key={a.id}
-                  onClick={() => { setSelected(a); setNote(''); setFile(null); }}
-                  className={`w-full text-left p-4 rounded-xl border transition-all ${selected?.id === a.id ? 'border-primary/40 bg-primary/10' : 'border-border bg-card hover:border-primary/20'}`}
-                >
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <p className="text-sm font-medium text-foreground flex-1 min-w-0 text-balance">{a.title}</p>
-                    <Badge className={`text-[10px] shrink-0 flex items-center gap-1 ${statusColor(statusLabel(a))}`}>
-                      {statusIcon(statusLabel(a))} {statusLabel(a)}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground">{a.courses?.title ?? '—'}</p>
-                </button>
-              ))}
-            </div>
-
-            {selected && (
-              <div className="lg:col-span-2 space-y-4">
-                <Card className="bg-card border-border">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <CardTitle className="text-lg text-foreground text-balance">{selected.title}</CardTitle>
-                        <p className="text-sm text-muted-foreground mt-1">{selected.courses?.title}</p>
+      <div className="max-w-[1440px] mx-auto h-full flex flex-col">
+        {!selected ? (
+          <div className="space-y-xl h-full pb-xl">
+            <h1 className="font-display text-display text-on-surface mb-xs">Assignments</h1>
+            <p className="font-body-md text-body-md text-on-surface-variant">View and submit your technical assignments.</p>
+            
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md">
+                {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-40 w-full bg-surface-container rounded-xl" />)}
+              </div>
+            ) : assignments.length === 0 ? (
+              <div className="text-center py-20 border border-dashed border-outline-variant/60 rounded-xl text-on-surface-variant glass-card">
+                <span className="material-symbols-outlined text-[48px] mx-auto mb-3 opacity-30">description</span>
+                <p className="font-headline-md text-headline-md text-on-surface">No assignments yet</p>
+                <p className="font-body-md text-body-md">Enroll in a course to see its assignments here</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md">
+                {assignments.map(a => (
+                  <button
+                    key={a.id}
+                    onClick={() => { setSelected(a); setNote(''); setFile(null); }}
+                    className="text-left p-xl rounded-xl border border-outline-variant/60 bg-surface-container-low hover:border-primary hover:shadow-[0_0_15px_rgba(192,193,255,0.15)] transition-all group flex flex-col h-full glass-card"
+                  >
+                    <div className="flex items-start justify-between gap-md mb-md">
+                      <div className="w-12 h-12 rounded-lg bg-surface-container-high flex items-center justify-center border border-outline-variant shrink-0 group-hover:bg-primary/10 group-hover:border-primary/30 transition-colors">
+                        <span className="material-symbols-outlined text-on-surface group-hover:text-primary">terminal</span>
                       </div>
-                      <Badge className={`text-[10px] shrink-0 flex items-center gap-1 mt-1 ${statusColor(statusLabel(selected))}`}>
-                        {statusIcon(statusLabel(selected))} {statusLabel(selected)}
-                      </Badge>
+                      <div className={`px-2 py-1 rounded text-[11px] font-label-sm uppercase tracking-wider border flex items-center gap-1 ${statusColor(statusLabel(a))}`}>
+                        <span className="material-symbols-outlined text-[14px]">{statusIcon(statusLabel(a))}</span>
+                        {statusLabel(a)}
+                      </div>
                     </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <h4 className="text-sm font-semibold text-foreground mb-2">Instructions</h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed text-pretty">{selected.instructions ?? 'No instructions provided.'}</p>
+                    <h3 className="font-headline-sm text-headline-sm text-on-surface mb-2">{a.title}</h3>
+                    <p className="font-body-sm text-body-sm text-on-surface-variant flex-grow line-clamp-2 mb-4">{a.instructions ?? 'No instructions provided.'}</p>
+                    <div className="font-label-sm text-label-sm text-outline-muted flex items-center mt-auto pt-4 border-t border-outline-variant/40">
+                      <span className="material-symbols-outlined text-[14px] mr-1">book</span>
+                      {a.courses?.title ?? '—'}
                     </div>
-                  </CardContent>
-                </Card>
-
-                {!selected.submission && (
-                  <Card className="bg-card border-border">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base text-foreground">Submit Assignment</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="space-y-2">
-                          <Label className="text-sm font-normal text-foreground">Upload File (optional)</Label>
-                          <div
-                            className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-primary/40 transition-colors cursor-pointer"
-                            onDragOver={e => e.preventDefault()}
-                            onDrop={e => { e.preventDefault(); setFile(e.dataTransfer.files[0]); }}
-                            onClick={() => document.getElementById('file-input')?.click()}
-                          >
-                            <input id="file-input" type="file" className="hidden" onChange={e => setFile(e.target.files?.[0] ?? null)} />
-                            <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-                            {file ? (
-                              <p className="text-sm font-medium text-primary">{file.name}</p>
-                            ) : (
-                              <>
-                                <p className="text-sm text-foreground font-medium">Drop file here or click to browse</p>
-                                <p className="text-xs text-muted-foreground mt-1">PDF, ZIP, IPYNB (max 50MB)</p>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-sm font-normal text-foreground">Notes / Answer</Label>
-                          <Textarea placeholder="Write your answer or notes for the reviewer…" className="bg-input border-border text-foreground resize-none" rows={4} value={note} onChange={e => setNote(e.target.value)} />
-                        </div>
-                        <Button type="submit" disabled={submitting || (!file && !note.trim())} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-11">
-                          {submitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Submitting…</> : <><Upload className="w-4 h-4 mr-2" />Submit Assignment</>}
-                        </Button>
-                      </form>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {selected.submission?.status === 'submitted' && (
-                  <Card className="bg-card border-border">
-                    <CardContent className="p-5 flex items-start gap-4">
-                      <Clock className="w-6 h-6 text-chart-2 shrink-0 mt-0.5" />
-                      <div>
-                        <h4 className="font-semibold text-foreground mb-1">Submission Received</h4>
-                        <p className="text-sm text-muted-foreground">Your assignment is pending review by the instructor.</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Submitted {new Date(selected.submission.submitted_at).toLocaleString()}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {selected.submission?.status === 'graded' && (
-                  <Card className="bg-card border-border">
-                    <CardContent className="p-5">
-                      <div className="flex items-start gap-4">
-                        <CheckCircle className="w-6 h-6 text-chart-3 shrink-0 mt-0.5" />
-                        <div>
-                          <h4 className="font-semibold text-foreground mb-1">Assignment Graded</h4>
-                          {selected.submission.feedback && (
-                            <p className="text-sm text-muted-foreground mb-2">{selected.submission.feedback}</p>
-                          )}
-                          {selected.submission.score !== null && (
-                            <p className="text-sm font-semibold text-primary">Score: {selected.submission.score}</p>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
+                  </button>
+                ))}
               </div>
             )}
+          </div>
+        ) : (
+          <div className="flex flex-col lg:flex-row gap-xl h-full lg:h-[calc(100vh-8rem)]">
+            <div className="lg:hidden mb-4">
+              <button 
+                onClick={() => setSelected(null)}
+                className="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md px-3 py-1.5 rounded-lg border border-outline-variant/60 bg-surface-container"
+              >
+                <span className="material-symbols-outlined text-[18px]">arrow_back</span> Back to Assignments
+              </button>
+            </div>
+
+            {/* Left Column: Assignment Brief */}
+            <section className="lg:w-[60%] flex flex-col h-full lg:overflow-y-auto glass-card rounded-xl border border-outline-variant/60">
+              {/* Header Section */}
+              <div className="p-md md:p-xl border-b border-outline-variant/60 bg-surface-container-lowest/50 sticky top-0 backdrop-blur-md z-10">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <button 
+                        onClick={() => setSelected(null)}
+                        className="hidden lg:flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md mr-2 bg-surface-container px-2 py-1 rounded border border-outline-variant/40"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">arrow_back</span> Back
+                      </button>
+                      <span className="font-label-sm text-label-sm text-secondary bg-secondary/10 px-2 py-1 rounded border border-secondary/20 uppercase tracking-widest">{selected.courses?.title}</span>
+                      <span className="font-label-sm text-label-sm text-outline-muted flex items-center"><span className="material-symbols-outlined text-[14px] mr-1">schedule</span>Due in {selected.due_days}d</span>
+                    </div>
+                    <h1 className="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-2">{selected.title}</h1>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Content */}
+              <div className="p-md md:p-xl font-body-md text-body-md flex-1 text-on-surface-variant whitespace-pre-wrap">
+                {selected.instructions ?? 'No instructions provided.'}
+              </div>
+            </section>
+
+            {/* Right Column: Submission Portal */}
+            <section className="lg:w-[40%] flex flex-col gap-lg h-full lg:overflow-y-auto">
+              
+              {!selected.submission ? (
+                <>
+                  {/* Action / Sync Card (GitHub style placeholder) */}
+                  <div className="glass-card rounded-xl p-md md:p-lg shadow-[0_0_15px_rgba(192,193,255,0.05)] relative overflow-hidden border border-outline-variant/60">
+                    <div className="absolute -right-10 -top-10 w-32 h-32 bg-primary/10 rounded-full blur-2xl"></div>
+                    <h3 className="font-headline-md text-[18px] text-on-surface mb-1 flex items-center">
+                      <span className="material-symbols-outlined mr-2 text-primary">terminal</span>
+                      Submit via GitHub (Coming Soon)
+                    </h3>
+                    <p className="font-body-md text-[14px] text-on-surface-variant mb-6">Link your repository to automatically run the CI/CD grading pipeline.</p>
+                    <div className="space-y-4 relative z-10 opacity-50 pointer-events-none">
+                      <div>
+                        <label className="block font-label-md text-label-sm text-outline mb-1">Repository URL</label>
+                        <div className="flex relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline text-[18px]">link</span>
+                          <input className="w-full bg-surface-container-highest border border-outline-variant/60 text-on-surface font-label-md text-label-md rounded-lg py-2 pl-10 pr-4" placeholder="https://github.com/username/repo" type="text" disabled/>
+                        </div>
+                      </div>
+                      <button className="w-full bg-surface-variant text-on-surface-variant font-label-md text-[14px] py-3 rounded-lg flex justify-center items-center gap-2 mt-2" disabled>
+                        <span className="material-symbols-outlined text-[20px]">sync</span> Run Autograder
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Manual Upload Card */}
+                  <div className="glass-card rounded-xl p-md md:p-lg flex-1 flex flex-col border border-outline-variant/60 shadow-[0_0_15px_rgba(192,193,255,0.15)] relative">
+                    <h3 className="font-headline-md text-[18px] text-on-surface mb-1 flex items-center">
+                      <span className="material-symbols-outlined mr-2 text-primary">upload_file</span>
+                      Manual Upload
+                    </h3>
+                    <p className="font-body-md text-[14px] text-on-surface-variant mb-4">Upload a file or provide a link/notes.</p>
+                    
+                    <form onSubmit={handleSubmit} className="flex flex-col flex-1 gap-4">
+                      <div 
+                        className={`flex-1 border-2 border-dashed rounded-lg flex flex-col items-center justify-center p-6 text-center transition-all group ${file ? 'border-primary bg-primary/5' : 'border-outline-variant/60 hover:border-primary/50 hover:bg-surface-container-high/30 cursor-pointer'}`}
+                        onClick={() => document.getElementById('file-input')?.click()}
+                        onDragOver={e => e.preventDefault()}
+                        onDrop={e => { e.preventDefault(); setFile(e.dataTransfer.files[0]); }}
+                      >
+                        <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                          <span className="material-symbols-outlined text-outline group-hover:text-primary text-[32px] transition-colors">cloud_upload</span>
+                        </div>
+                        {file ? (
+                          <>
+                            <span className="font-headline-md text-[16px] text-primary mb-1">Selected: {file.name}</span>
+                            <span className="font-body-md text-[14px] text-on-surface-variant mb-4">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                            <button type="button" onClick={(e) => { e.stopPropagation(); setFile(null); }} className="text-error font-label-md text-label-md hover:underline">Remove</button>
+                          </>
+                        ) : (
+                          <>
+                            <span className="font-headline-md text-[16px] text-on-surface mb-1">Drag and drop your files here</span>
+                            <span className="font-body-md text-[14px] text-on-surface-variant mb-4">or click to browse</span>
+                            <span className="font-label-sm text-label-sm text-outline border border-outline-variant rounded px-2 py-1 bg-surface">Max size: 50MB</span>
+                          </>
+                        )}
+                        <input id="file-input" type="file" className="hidden" onChange={e => setFile(e.target.files?.[0] ?? null)} />
+                      </div>
+                      
+                      <div>
+                        <label className="block font-label-md text-label-sm text-outline mb-1">Notes / Repository Link</label>
+                        <textarea 
+                          value={note} 
+                          onChange={e => setNote(e.target.value)}
+                          placeholder="Paste a link to your repository or write notes here..."
+                          className="w-full bg-surface-container-highest border border-outline-variant/60 text-on-surface font-body-md text-[14px] rounded-lg py-3 px-4 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-colors resize-none h-24"
+                        />
+                      </div>
+                      
+                      <button 
+                        type="submit" 
+                        disabled={submitting || (!file && !note.trim())} 
+                        className="w-full bg-primary text-on-primary-container font-headline-md text-[16px] py-3 rounded-lg hover:brightness-110 transition-colors flex justify-center items-center gap-2 disabled:opacity-50 mt-auto"
+                      >
+                        {submitting ? (
+                          <><span className="material-symbols-outlined text-[20px] animate-spin">autorenew</span> Submitting...</>
+                        ) : (
+                          <><span className="material-symbols-outlined text-[20px]">send</span> Submit Assignment</>
+                        )}
+                      </button>
+                    </form>
+                  </div>
+                </>
+              ) : (
+                /* Submission History / Status */
+                <div className="glass-card rounded-xl p-md md:p-lg border border-outline-variant/60">
+                  <h3 className="font-headline-md text-[18px] text-on-surface mb-4">Submission Status</h3>
+                  <div className="space-y-4">
+                    <div className={`flex items-start gap-3 p-4 rounded-lg border ${selected.submission.status === 'graded' ? 'border-tertiary/20 bg-tertiary/5' : 'border-primary/20 bg-primary/5'}`}>
+                      <span className={`material-symbols-outlined mt-0.5 ${selected.submission.status === 'graded' ? 'text-tertiary' : 'text-primary'}`}>
+                        {statusIcon(selected.submission.status)}
+                      </span>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="font-headline-sm text-[16px] text-on-surface capitalize">{selected.submission.status}</span>
+                          <span className="font-label-sm text-label-sm text-outline">
+                            {new Date(selected.submission.submitted_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        {selected.submission.status === 'graded' ? (
+                          <>
+                            <p className="font-body-md text-[14px] text-on-surface-variant mb-2">
+                              {selected.submission.feedback ?? 'No feedback provided.'}
+                            </p>
+                            <div className="font-label-md text-[14px] text-tertiary">
+                              Score: {selected.submission.score}/100
+                            </div>
+                          </>
+                        ) : (
+                          <p className="font-body-md text-[14px] text-on-surface-variant">Your submission is pending review by the instructor.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </section>
           </div>
         )}
       </div>

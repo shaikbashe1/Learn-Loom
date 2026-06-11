@@ -1,18 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  MessageSquare, ThumbsUp, Search, Plus, Flame, Loader2,
-  AlertCircle, ChevronDown, ChevronUp, Send, X, Wifi
-} from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -50,10 +38,10 @@ interface ForumReply {
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const CAT_COLORS: Record<string, string> = {
-  doubt:         'bg-primary/15 text-primary border-primary/30',
-  general:       'bg-chart-2/15 text-chart-2 border-chart-2/30',
-  challenge:     'bg-chart-4/15 text-chart-4 border-chart-4/30',
-  'study-group': 'bg-chart-3/15 text-chart-3 border-chart-3/30',
+  doubt:         'bg-primary/10 text-primary border-primary/20',
+  general:       'bg-secondary/10 text-secondary border-secondary/20',
+  challenge:     'bg-tertiary/10 text-tertiary border-tertiary/20',
+  'study-group': 'bg-chart-3/10 text-chart-3 border-chart-3/20',
 };
 
 function initials(name: string | null | undefined) {
@@ -106,7 +94,6 @@ function PostCard({
     setLoadingR(false);
   }, [post.id, currentUserId]);
 
-  // Subscribe to Realtime for this thread when expanded
   useEffect(() => {
     if (!expanded) { channelRef.current?.unsubscribe(); return; }
     loadReplies();
@@ -118,7 +105,6 @@ function PostCard({
         { event: 'INSERT', schema: 'public', table: 'forum_replies', filter: `post_id=eq.${post.id}` },
         async payload => {
           const newReply = payload.new as ForumReply;
-          // Fetch author profile
           const { data: prof } = await supabase
             .from('profiles')
             .select('full_name, avatar_url')
@@ -173,117 +159,139 @@ function PostCard({
   };
 
   const authorName = post.profiles?.full_name ?? 'Community Member';
+  const avatarUrl = post.profiles?.avatar_url;
 
   return (
-    <Card className="bg-card border-border hover:border-primary/25 transition-all">
-      <CardContent className="p-4">
-        {/* Post header */}
-        <div className="flex gap-3 items-start">
-          <Avatar className="w-9 h-9 shrink-0">
-            <AvatarFallback className="bg-primary/20 text-primary text-xs font-bold">
+    <article className="bg-surface border border-outline-variant/60 rounded-xl p-md flex flex-col gap-sm hover:border-outline-variant transition-colors group relative overflow-hidden">
+      {post.is_pinned && <div className="absolute top-0 right-0 w-8 h-8 overflow-hidden"><div className="absolute top-1 -right-3 w-12 text-center rotate-45 bg-chart-4 text-on-primary font-label-sm text-[8px] font-bold py-0.5">PINNED</div></div>}
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-sm">
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="User Avatar" className="w-10 h-10 rounded-full border border-outline-variant/40 object-cover" />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center border border-outline-variant/40 font-bold text-on-surface text-sm">
               {initials(post.profiles?.full_name)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2 mb-0.5">
-              <h4 className="font-semibold text-foreground text-sm text-balance flex-1 min-w-0 leading-snug">
-                {post.is_pinned && <span className="text-chart-4 mr-1.5">📌</span>}
-                {post.title}
-              </h4>
-              <Badge className={`text-[10px] shrink-0 capitalize border ${CAT_COLORS[post.category] ?? ''}`}>
-                {post.category.replace('-', ' ')}
-              </Badge>
             </div>
-            <p className="text-xs text-muted-foreground mb-2.5 line-clamp-2 text-pretty">{post.content}</p>
-
-            {/* Post actions */}
-            <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
-              <span className="font-medium text-foreground/80">{authorName}</span>
-              <span>{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</span>
-              <button
-                onClick={() => onVote(post)}
-                className={`flex items-center gap-1 transition-colors ${post.user_voted ? 'text-primary font-semibold' : 'hover:text-primary'}`}
-              >
-                <ThumbsUp className={`w-3 h-3 ${post.user_voted ? 'fill-primary' : ''}`} />
-                {post.upvotes}
-              </button>
-              <button
-                onClick={() => setExpanded(e => !e)}
-                className="flex items-center gap-1 hover:text-primary transition-colors"
-              >
-                <MessageSquare className="w-3 h-3" />
-                {post.reply_count} {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-              </button>
+          )}
+          <div>
+            <div className="flex items-center gap-xs">
+              <span className="text-label-md font-label-md text-on-surface font-semibold">{authorName}</span>
+              <span className="text-label-sm font-label-sm text-on-surface-variant">• {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</span>
             </div>
+            <span className="text-label-sm font-label-sm text-on-surface-variant capitalize">{post.category.replace('-', ' ')}</span>
           </div>
         </div>
+        <button className="text-on-surface-variant hover:text-on-surface opacity-0 group-hover:opacity-100 transition-opacity">
+          <span className="material-symbols-outlined">more_horiz</span>
+        </button>
+      </div>
 
-        {/* Replies thread */}
-        {expanded && (
-          <div className="mt-4 ml-12 space-y-3 border-l-2 border-border pl-4">
-            {loadingR ? (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
-                <Loader2 className="w-3 h-3 animate-spin" /> Loading replies…
-              </div>
-            ) : replies.length === 0 ? (
-              <p className="text-xs text-muted-foreground py-2">No replies yet — be the first!</p>
-            ) : (
-              replies.map(reply => (
-                <div key={reply.id} className="flex gap-2.5 items-start group">
-                  <Avatar className="w-7 h-7 shrink-0">
-                    <AvatarFallback className="bg-chart-2/20 text-chart-2 text-[10px] font-bold">
+      <div className="mt-xs">
+        <div className="flex items-center gap-xs mb-sm">
+          <span className={`text-label-sm font-label-sm px-xs py-[2px] rounded font-mono border ${CAT_COLORS[post.category] ?? 'bg-surface-container-high text-on-surface-variant border-outline-variant/40'}`}>
+            #{post.category}
+          </span>
+          {post.tags?.map(tag => (
+             <span key={tag} className="bg-surface-container-high text-on-surface-variant text-label-sm font-label-sm px-xs py-[2px] rounded font-mono border border-outline-variant/40">
+               #{tag}
+             </span>
+          ))}
+        </div>
+        <h2 className="text-headline-md font-headline-md text-on-surface mb-xs leading-snug">{post.title}</h2>
+        <p className="text-body-sm font-body-sm text-on-surface-variant mb-sm whitespace-pre-wrap">{post.content}</p>
+      </div>
+
+      <div className="flex items-center gap-md mt-sm pt-sm border-t border-outline-variant/30">
+        <button 
+          onClick={() => onVote(post)}
+          className={`flex items-center gap-xs transition-colors ${post.user_voted ? 'text-primary' : 'text-on-surface-variant hover:text-primary'}`}
+        >
+          <span className={`material-symbols-outlined text-[20px] ${post.user_voted ? 'fill' : ''}`}>thumb_up</span>
+          <span className="text-label-sm font-label-sm font-semibold">{post.upvotes}</span>
+        </button>
+        <button 
+          onClick={() => setExpanded(e => !e)}
+          className="flex items-center gap-xs text-on-surface-variant hover:text-on-surface transition-colors"
+        >
+          <span className="material-symbols-outlined text-[20px]">chat_bubble_outline</span>
+          <span className="text-label-sm font-label-sm font-semibold">{post.reply_count} comments</span>
+        </button>
+        <div className="flex items-center gap-xs text-on-surface-variant ml-auto">
+          <span className="material-symbols-outlined text-[20px]">visibility</span>
+          <span className="text-label-sm font-label-sm">{(post.upvotes * 3 + post.reply_count * 5) || 12} views</span>
+        </div>
+      </div>
+
+      {expanded && (
+        <div className="mt-md space-y-md border-t border-outline-variant/30 pt-md">
+          {loadingR ? (
+            <div className="flex items-center gap-2 text-label-sm text-on-surface-variant justify-center py-2">
+              <span className="material-symbols-outlined animate-spin">autorenew</span> Loading replies…
+            </div>
+          ) : replies.length === 0 ? (
+            <p className="text-label-sm text-on-surface-variant text-center py-2">No replies yet — be the first!</p>
+          ) : (
+            <div className="space-y-sm">
+              {replies.map(reply => (
+                <div key={reply.id} className="flex gap-sm items-start">
+                  {reply.profiles?.avatar_url ? (
+                    <img src={reply.profiles.avatar_url} alt="Avatar" className="w-8 h-8 rounded-full border border-outline-variant/40 object-cover shrink-0" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-xs font-bold shrink-0 text-on-surface">
                       {initials(reply.profiles?.full_name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0 bg-muted/50 rounded-xl px-3 py-2">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-xs font-medium text-foreground">
-                        {reply.profiles?.full_name ?? 'Community Member'}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground">
-                        {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
-                      </span>
                     </div>
-                    <p className="text-xs text-foreground/90 leading-relaxed text-pretty">{reply.content}</p>
+                  )}
+                  <div className="flex-1 min-w-0 bg-surface-container-low border border-outline-variant/30 rounded-xl px-sm py-xs">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-label-sm font-label-sm text-on-surface font-semibold">{reply.profiles?.full_name ?? 'Community Member'}</span>
+                      <span className="text-[10px] text-on-surface-variant">• {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}</span>
+                    </div>
+                    <p className="text-body-sm text-on-surface-variant">{reply.content}</p>
                     <button
                       onClick={() => voteReply(reply)}
-                      className={`flex items-center gap-1 mt-1.5 text-[10px] transition-colors ${reply.user_voted ? 'text-primary font-semibold' : 'text-muted-foreground hover:text-primary'}`}
+                      className={`flex items-center gap-1 mt-2 text-[10px] transition-colors ${reply.user_voted ? 'text-primary' : 'text-on-surface-variant hover:text-primary'}`}
                     >
-                      <ThumbsUp className={`w-2.5 h-2.5 ${reply.user_voted ? 'fill-primary' : ''}`} />
+                      <span className={`material-symbols-outlined text-[14px] ${reply.user_voted ? 'fill' : ''}`}>thumb_up</span>
                       {reply.upvotes}
                     </button>
                   </div>
                 </div>
-              ))
-            )}
+              ))}
+            </div>
+          )}
 
-            {/* Reply composer */}
-            {currentUserId ? (
-              <div className="flex gap-2 items-end pt-1">
-                <Textarea
-                  placeholder="Write a reply…"
-                  value={replyText}
-                  onChange={e => setReplyText(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitReply(); } }}
-                  rows={1}
-                  className="flex-1 bg-input border-border text-foreground text-xs resize-none min-h-[36px] max-h-[100px] py-2"
-                />
-                <Button
-                  onClick={submitReply}
-                  disabled={!replyText.trim() || posting}
-                  size="sm"
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-3 shrink-0"
-                >
-                  {posting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-                </Button>
-              </div>
-            ) : (
-              <p className="text-xs text-muted-foreground">Log in to reply</p>
-            )}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          {currentUserId ? (
+            <div className="flex gap-2 items-start pt-2 border-t border-outline-variant/30">
+               <div className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center shrink-0 border border-outline-variant/40">
+                  <span className="material-symbols-outlined text-[18px]">person</span>
+               </div>
+               <div className="flex-1 flex flex-col gap-2">
+                 <textarea
+                    placeholder="Write a reply…"
+                    value={replyText}
+                    onChange={e => setReplyText(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitReply(); } }}
+                    className="w-full bg-surface-container-lowest border border-outline-variant/60 rounded-lg p-sm text-body-sm text-on-surface focus:outline-none focus:border-primary resize-none min-h-[40px] max-h-[120px]"
+                    rows={1}
+                 />
+                 <div className="flex justify-end">
+                   <button
+                      onClick={submitReply}
+                      disabled={!replyText.trim() || posting}
+                      className="bg-primary text-on-primary-container px-md py-1 rounded-md text-label-sm font-label-sm font-bold hover:brightness-110 disabled:opacity-50 flex items-center gap-1"
+                   >
+                      {posting ? <span className="material-symbols-outlined text-[16px] animate-spin">autorenew</span> : <span className="material-symbols-outlined text-[16px]">send</span>}
+                      Reply
+                   </button>
+                 </div>
+               </div>
+            </div>
+          ) : (
+            <p className="text-label-sm text-on-surface-variant text-center">Log in to reply</p>
+          )}
+        </div>
+      )}
+    </article>
   );
 }
 
@@ -300,7 +308,7 @@ export default function CommunityPage() {
   const [newContent, setNewContent]     = useState('');
   const [newCategory, setNewCategory]   = useState('general');
   const [posting, setPosting]           = useState(false);
-  const [dialogOpen, setDialogOpen]     = useState(false);
+  const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [realtimeOk, setRealtimeOk]     = useState(false);
 
   // ── Fetch posts with vote state ──────────────────────────────────────────
@@ -391,10 +399,9 @@ export default function CommunityPage() {
     });
     setPosting(false);
     if (err) { toast.error('Failed to post', { description: err.message }); return; }
-    toast.success('Discussion posted!', { description: 'Your post is live — other students will see it in real time.' });
-    setDialogOpen(false);
+    toast.success('Discussion posted!');
+    setIsComposerOpen(false);
     setNewTitle(''); setNewContent(''); setNewCategory('general');
-    // Realtime will add it; no manual re-fetch needed
   };
 
   // ── Vote on a post ───────────────────────────────────────────────────────
@@ -427,161 +434,235 @@ export default function CommunityPage() {
 
   return (
     <AppLayout title="Community">
-      <div className="max-w-4xl mx-auto space-y-5">
+      <div className="max-w-[1440px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start pb-xl">
+        
+        {/* Left Column: Context Nav & Groups */}
+        <div className="col-span-1 lg:col-span-3 flex flex-col gap-lg lg:sticky lg:top-24">
+          <section className="flex flex-col gap-xs">
+            <h3 className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-sm px-sm flex items-center justify-between">
+              Feeds
+              {realtimeOk ? <span className="w-2 h-2 rounded-full bg-primary animate-pulse" title="Live connection active" /> : <span className="w-2 h-2 rounded-full bg-error" title="Offline" />}
+            </h3>
+            {[
+              { icon: 'public', label: 'All Discussions', active: activeCategory === 'all', id: 'all' },
+              { icon: 'help_outline', label: 'Doubts', active: activeCategory === 'doubt', id: 'doubt' },
+              { icon: 'code', label: 'Challenges', active: activeCategory === 'challenge', id: 'challenge' },
+              { icon: 'groups', label: 'Study Groups', active: activeCategory === 'study-group', id: 'study-group' },
+            ].map(item => (
+              <button 
+                key={item.id}
+                onClick={() => setActiveCategory(item.id)}
+                className={`flex items-center justify-between w-full text-left px-sm py-sm rounded-lg transition-colors group border ${item.active ? 'bg-surface-container border-outline-variant/60 text-on-surface' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low border-transparent'}`}
+              >
+                <div className="flex items-center gap-sm">
+                  <span className={`material-symbols-outlined ${item.active ? 'text-primary' : ''}`}>{item.icon}</span>
+                  <span className="font-label-md text-label-md">{item.label}</span>
+                </div>
+                {item.id === 'all' && <span className="font-label-sm text-label-sm text-on-surface-variant bg-surface-container-high px-2 rounded-full">New</span>}
+              </button>
+            ))}
+          </section>
 
-        {/* ── Header ── */}
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div>
-            <h2 className="text-2xl font-bold text-foreground text-balance">Community</h2>
-            <p className="text-muted-foreground text-sm mt-0.5 flex items-center gap-1.5">
-              Connect, collaborate, and learn together
-              <span className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full border ${realtimeOk ? 'bg-chart-3/10 text-chart-3 border-chart-3/30' : 'bg-muted text-muted-foreground border-border'}`}>
-                <Wifi className="w-2.5 h-2.5" />
-                {realtimeOk ? 'Live' : 'Connecting…'}
-              </span>
-            </p>
-          </div>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                <Plus className="w-4 h-4 mr-2" /> New Post
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="bg-card border-border max-w-[calc(100%-2rem)] md:max-w-lg">
-              <DialogHeader>
-                <DialogTitle className="text-foreground">Start a Discussion</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handlePost} className="space-y-4 mt-2">
-                <Input
-                  placeholder="Title (5–300 characters)"
-                  className="bg-input border-border text-foreground"
+          <section className="flex flex-col gap-sm">
+            <div className="flex items-center justify-between px-sm mb-xs">
+              <h3 className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Joined Groups</h3>
+              <button className="text-primary hover:text-primary-fixed-dim transition-colors"><span className="material-symbols-outlined text-[18px]">add</span></button>
+            </div>
+            {[
+              { color: 'text-[#61DAFB]', icon: 'code_blocks', name: 'React Masters', badge: true },
+              { color: 'text-[#DEA584]', icon: 'settings_b_roll', name: 'Rustaceans' },
+              { color: 'text-secondary', icon: 'psychology', name: 'AI Engineers' },
+              { color: 'text-on-surface', icon: 'terminal', name: 'System Design' },
+            ].map((group, i) => (
+              <a key={i} href="#" className="flex items-center gap-sm px-sm py-sm rounded-lg hover:bg-surface-container-low transition-colors group">
+                <div className={`w-8 h-8 rounded bg-surface-container-high border border-outline-variant/60 flex items-center justify-center ${group.color}`}>
+                  <span className="material-symbols-outlined text-[18px]">{group.icon}</span>
+                </div>
+                <span className="font-label-md text-label-md text-on-surface-variant group-hover:text-on-surface flex-1 truncate">{group.name}</span>
+                {group.badge && <div className="w-2 h-2 rounded-full bg-primary"></div>}
+              </a>
+            ))}
+          </section>
+        </div>
+
+        {/* Center Column: Discussion Feed */}
+        <div className="col-span-1 lg:col-span-6 flex flex-col gap-md">
+          {/* Command Bar / Create Post */}
+          <div className="bg-surface-container-low border border-outline-variant/60 rounded-xl p-md flex flex-col gap-md shadow-sm transition-all focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/50">
+            {isComposerOpen ? (
+              <form onSubmit={handlePost} className="flex flex-col gap-sm">
+                <input 
+                  type="text" 
+                  placeholder="Title of your discussion..." 
+                  className="bg-surface border border-outline-variant/60 rounded-md p-sm text-body-md text-on-surface focus:outline-none focus:border-primary"
                   value={newTitle}
                   onChange={e => setNewTitle(e.target.value)}
-                  required minLength={5} maxLength={300}
+                  required minLength={5}
                 />
-                <Select value={newCategory} onValueChange={setNewCategory}>
-                  <SelectTrigger className="bg-input border-border text-foreground">
-                    <SelectValue placeholder="Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="general">General</SelectItem>
-                    <SelectItem value="doubt">Doubt</SelectItem>
-                    <SelectItem value="challenge">Challenge</SelectItem>
-                    <SelectItem value="study-group">Study Group</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Textarea
-                  placeholder="Share your thoughts, questions, or insights…"
-                  className="bg-input border-border text-foreground resize-none"
-                  rows={4}
+                <select 
+                  className="bg-surface border border-outline-variant/60 rounded-md p-sm text-body-md text-on-surface focus:outline-none focus:border-primary"
+                  value={newCategory}
+                  onChange={e => setNewCategory(e.target.value)}
+                >
+                  <option value="general">General</option>
+                  <option value="doubt">Doubt</option>
+                  <option value="challenge">Challenge</option>
+                  <option value="study-group">Study Group</option>
+                </select>
+                <textarea 
+                  placeholder="Share your thoughts, ask a question, or provide details..." 
+                  className="bg-surface border border-outline-variant/60 rounded-md p-sm text-body-md text-on-surface focus:outline-none focus:border-primary min-h-[100px] resize-y"
                   value={newContent}
                   onChange={e => setNewContent(e.target.value)}
-                  required minLength={10} maxLength={10000}
+                  required minLength={10}
                 />
-                <div className="flex gap-3 justify-end">
-                  <Button type="button" variant="ghost" onClick={() => setDialogOpen(false)}
-                    className="border border-border text-foreground hover:bg-accent">
-                    <X className="w-4 h-4 mr-1.5" /> Cancel
-                  </Button>
-                  <Button type="submit" disabled={posting} className="bg-primary text-primary-foreground hover:bg-primary/90">
-                    {posting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Posting…</> : 'Post'}
-                  </Button>
+                <div className="flex justify-end gap-sm mt-2">
+                  <button type="button" onClick={() => setIsComposerOpen(false)} className="px-md py-sm text-on-surface-variant hover:text-on-surface font-label-md">Cancel</button>
+                  <button type="submit" disabled={posting} className="bg-primary text-on-primary-container px-md py-sm rounded-lg font-label-md font-bold hover:brightness-110 disabled:opacity-50 flex items-center gap-2">
+                    {posting ? <span className="material-symbols-outlined text-[18px] animate-spin">autorenew</span> : <span className="material-symbols-outlined text-[18px]">send</span>}
+                    Post
+                  </button>
                 </div>
               </form>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {/* ── Stats ── */}
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { icon: MessageSquare, label: 'Discussions',   value: posts.length,                                                              color: 'text-primary',  bg: 'bg-primary/10' },
-            { icon: ThumbsUp,      label: 'Total Upvotes', value: posts.reduce((s, p) => s + p.upvotes, 0),                                  color: 'text-chart-2',  bg: 'bg-chart-2/10' },
-            { icon: Flame,         label: 'This Month',    value: posts.filter(p => new Date(p.created_at) > new Date(Date.now() - 30*86400000)).length, color: 'text-chart-4', bg: 'bg-chart-4/10' },
-          ].map(s => (
-            <Card key={s.label} className="bg-card border-border h-full">
-              <CardContent className="p-3 flex items-center gap-2.5">
-                <div className={`w-8 h-8 rounded-lg ${s.bg} flex items-center justify-center shrink-0`}>
-                  <s.icon className={`w-4 h-4 ${s.color}`} />
+            ) : (
+              <div className="flex items-center gap-md cursor-text" onClick={() => setIsComposerOpen(true)}>
+                <div className="w-10 h-10 rounded-full bg-surface border border-outline-variant/60 flex items-center justify-center shrink-0">
+                   <span className="material-symbols-outlined text-outline">person</span>
                 </div>
-                <div className="min-w-0">
-                  <div className="text-base font-bold text-foreground">{loading ? '—' : s.value}</div>
-                  <div className="text-[10px] text-muted-foreground">{s.label}</div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* ── Filter bar ── */}
-        <div className="flex flex-col md:flex-row gap-3">
-          <div className="relative flex-1 min-w-0">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search discussions…"
-              className="pl-10 bg-input border-border text-foreground"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
+                <div className="flex-1 bg-transparent border-none font-body-md text-on-surface-variant">Start a discussion, ask a question, or share an update...</div>
+                <button className="bg-primary text-on-primary-container px-md py-sm rounded-lg font-label-md font-bold hover:brightness-110 ml-xs shadow-sm" onClick={(e) => {e.stopPropagation(); setIsComposerOpen(true);}}>
+                    Post
+                </button>
+              </div>
+            )}
           </div>
-          <Select value={activeCategory} onValueChange={setActiveCategory}>
-            <SelectTrigger className="w-full md:w-44 bg-input border-border text-foreground">
-              <SelectValue placeholder="All categories" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="general">General</SelectItem>
-              <SelectItem value="doubt">Doubt</SelectItem>
-              <SelectItem value="challenge">Challenge</SelectItem>
-              <SelectItem value="study-group">Study Group</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
 
-        {/* ── Error ── */}
-        {error && (
-          <div className="rounded-lg bg-destructive/10 border border-destructive/30 p-4 flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-destructive shrink-0" />
-            <span className="text-sm text-destructive">{error}</span>
-          </div>
-        )}
-
-        {/* ── Posts list ── */}
-        <div className="space-y-3">
-          {loading ? (
-            Array.from({ length: 4 }).map((_, i) => (
-              <Card key={i} className="bg-card border-border">
-                <CardContent className="p-4">
-                  <div className="flex gap-4">
-                    <Skeleton className="w-9 h-9 rounded-full bg-muted shrink-0" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-3/4 bg-muted" />
-                      <Skeleton className="h-3 w-full bg-muted" />
-                      <Skeleton className="h-3 w-1/2 bg-muted" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          ) : filtered.length === 0 ? (
-            <div className="text-center py-16 text-muted-foreground">
-              <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p className="font-medium text-foreground text-balance">No discussions found</p>
-              <p className="text-sm mt-1 text-pretty">
-                {search ? 'Try a different search term.' : 'Be the first to start a conversation!'}
-              </p>
+          {/* Feed Filters */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-sm border-b border-outline-variant/40 pb-sm mb-xs">
+            <div className="flex items-center gap-sm">
+              <button className="flex items-center gap-xs px-sm py-xs text-on-surface font-label-sm font-bold border-b-2 border-primary -mb-[calc(0.5rem+2px)]">
+                <span className="material-symbols-outlined text-[18px]">fiber_new</span> New
+              </button>
+              <button className="flex items-center gap-xs px-sm py-xs text-on-surface-variant hover:text-on-surface font-label-sm transition-colors">
+                <span className="material-symbols-outlined text-[18px]">moving</span> Trending
+              </button>
+              <button className="flex items-center gap-xs px-sm py-xs text-on-surface-variant hover:text-on-surface font-label-sm transition-colors">
+                <span className="material-symbols-outlined text-[18px]">verified</span> Top
+              </button>
             </div>
-          ) : (
-            filtered.map(post => (
-              <PostCard
-                key={post.id}
-                post={post}
-                onVote={handleVote}
-                onReplyCountChange={handleReplyCountChange}
-                currentUserId={user?.id}
+            
+            <div className="relative w-full sm:w-48">
+              <span className="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+              <input 
+                type="text" 
+                placeholder="Search..." 
+                className="w-full bg-surface-container rounded-full py-1 pl-8 pr-3 border border-outline-variant/60 text-body-sm text-on-surface focus:outline-none focus:border-primary"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
               />
-            ))
+            </div>
+          </div>
+
+          {/* Discussion Cards */}
+          {error && (
+            <div className="p-md rounded-lg bg-error/10 border border-error/30 text-error flex items-start gap-2">
+              <span className="material-symbols-outlined mt-0.5">error</span>
+              <p>{error}</p>
+            </div>
           )}
+
+          <div className="space-y-md">
+            {loading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="bg-surface border border-outline-variant/60 rounded-xl p-md flex gap-4">
+                  <Skeleton className="w-10 h-10 rounded-full shrink-0 bg-surface-container" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-1/4 bg-surface-container" />
+                    <Skeleton className="h-6 w-3/4 bg-surface-container" />
+                    <Skeleton className="h-4 w-full bg-surface-container" />
+                  </div>
+                </div>
+              ))
+            ) : filtered.length === 0 ? (
+              <div className="text-center py-xl border border-outline-variant/60 rounded-xl bg-surface-container-low border-dashed">
+                <span className="material-symbols-outlined text-[48px] text-outline opacity-40 mb-3">forum</span>
+                <p className="font-headline-sm text-on-surface">No discussions found</p>
+                <p className="font-body-sm text-on-surface-variant mt-1">Try a different search term or start a new post.</p>
+              </div>
+            ) : (
+              filtered.map(post => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onVote={handleVote}
+                  onReplyCountChange={handleReplyCountChange}
+                  currentUserId={user?.id}
+                />
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Right Column: Widgets */}
+        <div className="col-span-1 lg:col-span-3 flex flex-col gap-lg lg:sticky lg:top-24">
+          {/* Trending Topics */}
+          <div className="bg-surface border border-outline-variant/60 rounded-xl p-md">
+            <h3 className="font-label-md text-label-md font-bold text-on-surface mb-md flex items-center gap-xs">
+              <span className="material-symbols-outlined text-tertiary text-[18px]">trending_up</span> Trending Topics
+            </h3>
+            <div className="flex flex-col gap-sm">
+              {[
+                { topic: '#machine-learning', desc: 'Trending in AI Engineers', posts: '2.4k' },
+                { topic: '#system-design', desc: 'Trending globally', posts: '1.8k' },
+                { topic: '#career-advice', desc: 'Trending in General', posts: '956' },
+              ].map((t, i) => (
+                <a key={i} href="#" className="flex justify-between items-center group">
+                  <div className="flex flex-col">
+                    <span className="font-label-sm text-label-sm font-mono text-on-surface group-hover:text-primary transition-colors">{t.topic}</span>
+                    <span className="text-xs text-on-surface-variant">{t.desc}</span>
+                  </div>
+                  <span className="font-label-sm text-[10px] text-on-surface-variant bg-surface-container px-xs py-[2px] rounded">{t.posts} posts</span>
+                </a>
+              ))}
+            </div>
+            <button className="w-full text-center mt-md font-label-sm text-label-sm text-primary hover:text-primary-fixed-dim transition-colors">Show all trends</button>
+          </div>
+
+          {/* Top Contributors */}
+          <div className="bg-surface border border-outline-variant/60 rounded-xl p-md">
+            <h3 className="font-label-md text-label-md font-bold text-on-surface mb-md flex items-center gap-xs">
+              <span className="material-symbols-outlined text-secondary text-[18px]">workspace_premium</span> Top Contributors
+            </h3>
+            <div className="flex flex-col gap-sm">
+              {[
+                { name: 'Elena Rostova', pts: '14.2k', rank: 1, color: 'text-tertiary' },
+                { name: 'Marcus Johnson', pts: '12.8k', rank: 2, color: 'text-on-surface-variant' },
+                { name: 'Sarah Jenkins', pts: '9.4k', rank: 3, color: 'text-on-surface-variant' },
+              ].map((c, i) => (
+                <div key={i} className="flex items-center gap-sm">
+                  <div className={`w-6 text-center font-label-sm text-label-sm font-bold ${c.color}`}>{c.rank}</div>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${c.rank === 1 ? 'border border-tertiary/50 bg-tertiary/10 text-tertiary' : 'bg-surface-container-high border border-outline-variant/40 text-on-surface'}`}>
+                    {initials(c.name)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-label-sm text-label-sm text-on-surface truncate">{c.name}</p>
+                  </div>
+                  <span className="font-label-sm text-[10px] text-on-surface-variant font-mono">{c.pts} pts</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Guidelines Card */}
+          <div className="bg-surface-container-low border border-outline-variant/40 rounded-xl p-md">
+            <h3 className="font-label-md text-label-md font-bold text-on-surface mb-xs flex items-center gap-xs">
+              <span className="material-symbols-outlined text-[18px]">gavel</span> Community Guidelines
+            </h3>
+            <p className="font-body-sm text-[13px] text-on-surface-variant mb-sm">
+              Keep discussions respectful, technical, and constructive. No spam, self-promotion outside designated channels, or toxic behavior.
+            </p>
+            <a href="#" className="font-label-sm text-label-sm text-primary hover:underline">Read full rules &rarr;</a>
+          </div>
         </div>
       </div>
     </AppLayout>

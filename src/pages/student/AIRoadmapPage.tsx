@@ -1,15 +1,7 @@
 import { useState } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Target, ChevronRight, CheckCircle, BookOpen, Video, Code2,
-  Zap, Calendar, ArrowRight, RefreshCw, Globe, BarChart3, Cpu, Shield,
-  Book, Award, HelpCircle, AlertCircle, Play, Trophy
-} from 'lucide-react';
 import { supabase } from '@/db/supabase';
 import { toast } from 'sonner';
 import type { RoadmapDomain } from '@/types/types';
@@ -45,11 +37,11 @@ interface GeneratedRoadmap {
 }
 
 const domainOptions = [
-  { id: 'data-science' as RoadmapDomain, label: 'Data Science', icon: BarChart3, color: 'from-primary/20 to-primary/5', border: 'border-primary/40', iconColor: 'text-primary', weeks: 12 },
-  { id: 'web-development' as RoadmapDomain, label: 'Web Development', icon: Globe, color: 'from-chart-2/20 to-chart-2/5', border: 'border-chart-2/40', iconColor: 'text-chart-2', weeks: 16 },
-  { id: 'ai-ml' as RoadmapDomain, label: 'AI / ML', icon: Cpu, color: 'from-chart-3/20 to-chart-3/5', border: 'border-chart-3/40', iconColor: 'text-chart-3', weeks: 20 },
-  { id: 'cybersecurity' as RoadmapDomain, label: 'Cybersecurity', icon: Shield, color: 'from-chart-4/20 to-chart-4/5', border: 'border-chart-4/40', iconColor: 'text-chart-4', weeks: 14 },
-  { id: 'dsa' as RoadmapDomain, label: 'DSA', icon: Code2, color: 'from-chart-5/20 to-chart-5/5', border: 'border-chart-5/40', iconColor: 'text-chart-5', weeks: 18 },
+  { id: 'data-science' as RoadmapDomain, label: 'Data Science', icon: 'bar_chart', color: 'from-primary/20 to-primary/5', border: 'border-primary/40', iconColor: 'text-primary', weeks: 12 },
+  { id: 'web-development' as RoadmapDomain, label: 'Web Development', icon: 'globe', color: 'from-secondary/20 to-secondary/5', border: 'border-secondary/40', iconColor: 'text-secondary', weeks: 16 },
+  { id: 'ai-ml' as RoadmapDomain, label: 'AI / ML', icon: 'memory', color: 'from-tertiary/20 to-tertiary/5', border: 'border-tertiary/40', iconColor: 'text-tertiary', weeks: 20 },
+  { id: 'cybersecurity' as RoadmapDomain, label: 'Cybersecurity', icon: 'shield', color: 'from-error/20 to-error/5', border: 'border-error/40', iconColor: 'text-error', weeks: 14 },
+  { id: 'dsa' as RoadmapDomain, label: 'DSA', icon: 'code', color: 'from-primary-container/20 to-primary-container/5', border: 'border-primary-container/40', iconColor: 'text-primary-container', weeks: 18 },
 ];
 
 export default function AIRoadmapPage() {
@@ -122,15 +114,10 @@ export default function AIRoadmapPage() {
 
   const resourceIcon = (type: string) => {
     switch (type) {
-      case 'video':
-        return <Video className="w-3.5 h-3.5 text-primary" />;
-      case 'practice':
-      case 'project':
-        return <Code2 className="w-3.5 h-3.5 text-chart-3" />;
-      case 'book':
-        return <Book className="w-3.5 h-3.5 text-chart-4" />;
-      default:
-        return <BookOpen className="w-3.5 h-3.5 text-chart-2" />;
+      case 'video': return 'play_circle';
+      case 'practice': case 'project': return 'code';
+      case 'book': return 'book';
+      default: return 'article';
     }
   };
 
@@ -162,244 +149,333 @@ export default function AIRoadmapPage() {
   };
 
   const activePhase = roadmap?.phases[activePhaseIndex];
+  
+  const handleNextPhase = () => {
+    if (roadmap && activePhaseIndex < roadmap.phases.length - 1) {
+      setActivePhaseIndex(activePhaseIndex + 1);
+    }
+  };
 
   return (
     <AppLayout title="AI Learning Roadmap">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground text-balance">AI Learning Roadmap Generator</h2>
-          <p className="text-sm text-muted-foreground mt-1">Get a structured, personalized week-by-week learning plan and verify your skills</p>
-        </div>
-
+      <div className="max-w-[1440px] mx-auto space-y-2xl">
+        
         {!generated ? (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="space-y-xl">
+            <div>
+              <h1 className="font-display text-display text-on-surface mb-xs">AI Learning Roadmap Generator</h1>
+              <p className="font-body-md text-body-md text-on-surface-variant">Get a structured, personalized week-by-week learning plan and verify your skills</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md md:gap-lg">
               {domainOptions.map(domain => (
                 <button
                   key={domain.id}
                   onClick={() => setSelectedDomain(domain.id)}
-                  className={`text-left p-5 rounded-xl border-2 transition-all bg-gradient-to-br ${domain.color} ${selectedDomain === domain.id ? domain.border + ' scale-[1.01] shadow-md shadow-primary/5' : 'border-border bg-card hover:border-primary/30'}`}
+                  className={`text-left p-xl rounded-xl border-2 transition-all bg-gradient-to-br ${domain.color} ${selectedDomain === domain.id ? domain.border + ' scale-[1.02] shadow-[0_0_15px_rgba(192,193,255,0.15)]' : 'border-outline-variant/40 bg-surface-container-low hover:border-primary/30'}`}
                 >
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-lg bg-background/55 flex items-center justify-center border border-border/20 shadow-sm">
-                      <domain.icon className={`w-5 h-5 ${domain.iconColor}`} />
+                  <div className="flex items-center gap-md mb-md">
+                    <div className="w-12 h-12 rounded-lg bg-background/50 flex items-center justify-center border border-outline-variant/30 shadow-sm">
+                      <span className={`material-symbols-outlined text-[24px] ${domain.iconColor}`}>{domain.icon}</span>
                     </div>
-                    {selectedDomain === domain.id && <CheckCircle className="w-5 h-5 text-primary ml-auto" />}
+                    {selectedDomain === domain.id && <span className="material-symbols-outlined text-[24px] text-primary ml-auto">check_circle</span>}
                   </div>
-                  <h3 className="font-semibold text-foreground text-sm">{domain.label}</h3>
-                  <p className="text-xs text-muted-foreground mt-1">{domain.weeks}-week curriculum plan</p>
+                  <h3 className="font-headline-md text-headline-md text-on-surface mb-1">{domain.label}</h3>
+                  <p className="font-body-sm text-body-sm text-on-surface-variant">{domain.weeks}-week curriculum plan</p>
                 </button>
               ))}
             </div>
 
-            <Card className="bg-card border-border">
-              <CardContent className="p-6 flex flex-col md:flex-row items-center gap-6">
-                <div className="w-16 h-16 rounded-2xl bg-primary/15 flex items-center justify-center shrink-0 border border-primary/20">
-                  <Target className="w-8 h-8 text-primary" />
+            <div className="bg-surface-container p-xl rounded-xl border border-outline-variant/60">
+              <div className="flex flex-col md:flex-row items-center gap-lg">
+                <div className="w-20 h-20 rounded-2xl bg-primary/15 flex items-center justify-center shrink-0 border border-primary/20">
+                  <span className="material-symbols-outlined text-[40px] text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
                 </div>
                 <div className="flex-1 min-w-0 text-center md:text-left">
-                  <h3 className="font-bold text-foreground text-lg text-balance">
+                  <h3 className="font-headline-md text-headline-md text-on-surface text-balance mb-2">
                     {selectedDomain ? `Generate ${domainOptions.find(d => d.id === selectedDomain)?.label} Roadmap` : 'Select a Domain to Begin'}
                   </h3>
-                  <p className="text-sm text-muted-foreground mt-1 text-pretty">
+                  <p className="font-body-md text-body-md text-on-surface-variant text-pretty">
                     Our AI will map out structured modules, curate top resources, outline milestones, and generate custom placement prep quiz questions.
                   </p>
                 </div>
-                <Button
+                <button
                   onClick={handleGenerate}
                   disabled={!selectedDomain || generating}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8 shrink-0 shadow-lg shadow-primary/20 disabled:opacity-50"
+                  className="bg-primary text-on-primary-container px-xl py-sm rounded-lg font-label-md text-label-md hover:brightness-110 transition-all shrink-0 shadow-[0_0_15px_rgba(192,193,255,0.2)] disabled:opacity-50 flex items-center gap-2 h-12"
                 >
                   {generating ? (
-                    <><RefreshCw className="w-4 h-4 mr-2 animate-spin" /> Customizing...</>
+                    <><span className="material-symbols-outlined text-[20px] animate-spin">autorenew</span> Customizing...</>
                   ) : (
-                    <>Generate Roadmap <ArrowRight className="w-4 h-4 ml-2" /></>
+                    <>Generate Roadmap <span className="material-symbols-outlined text-[20px]">arrow_forward</span></>
                   )}
-                </Button>
-              </CardContent>
-            </Card>
+                </button>
+              </div>
+            </div>
           </div>
         ) : (
           roadmap && (
-            <div className="space-y-6">
-              {/* Roadmap Header */}
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-5">
+            <div className="space-y-2xl">
+              {/* Header Section */}
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-md">
                 <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <Badge className="bg-primary/15 text-primary border-primary/30 text-xs">AI Generated</Badge>
-                    <Badge variant="outline" className="border-border text-muted-foreground text-xs">{roadmap.estimated_weeks} Weeks Total</Badge>
-                  </div>
-                  <h3 className="text-2xl font-bold text-foreground text-balance">{roadmap.title}</h3>
-                  <p className="text-sm text-muted-foreground mt-1 max-w-2xl">{roadmap.description}</p>
+                  <h1 className="font-display text-display text-on-surface mb-xs leading-tight">{roadmap.title}</h1>
+                  <p className="font-body-md text-body-md text-on-surface-variant max-w-3xl">{roadmap.description}</p>
                 </div>
-                <Button
-                  onClick={() => { setGenerated(false); setSelectedDomain(null); }}
-                  variant="ghost"
-                  className="border border-border text-foreground hover:bg-accent shrink-0"
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" /> Change Domain
-                </Button>
+                <div className="flex items-center gap-md font-label-md text-label-md shrink-0">
+                  <div className="bg-surface-container-high px-4 py-2 rounded-full border border-outline-variant flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                    <span className="text-on-surface">Target Mastery: 95%</span>
+                  </div>
+                  <button
+                    onClick={() => { setGenerated(false); setSelectedDomain(null); }}
+                    className="p-2 rounded-full hover:bg-surface-variant text-on-surface-variant transition-colors border border-outline-variant/60"
+                    title="Change Domain"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">refresh</span>
+                  </button>
+                </div>
               </div>
 
-              {/* Phase Navigation */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-                <div className="lg:col-span-1 space-y-3">
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">Curriculum Phases</h4>
-                  <div className="space-y-2">
-                    {roadmap.phases.map((phase, idx) => (
-                      <button
-                        key={phase.phase}
-                        onClick={() => setActivePhaseIndex(idx)}
-                        className={`w-full flex items-start gap-4 p-4 rounded-xl text-left border transition-all ${activePhaseIndex === idx ? 'bg-primary/10 border-primary/40 shadow-sm' : 'border-border bg-card hover:border-primary/25 hover:bg-muted/40'}`}
-                      >
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${activePhaseIndex === idx ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
-                          {phase.phase}
+              {/* Bento Layout */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-md md:gap-lg">
+                
+                {/* Main Tree View (Takes up 2 columns) */}
+                <div className="lg:col-span-2 bg-surface-container-lowest rounded-xl border border-outline-variant/60 p-md md:p-xl relative overflow-hidden flex flex-col min-h-[600px]">
+                  <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: "radial-gradient(circle at 50% 50%, var(--primary) 0%, transparent 50%)" }}></div>
+                  <div className="flex justify-between items-center mb-xl z-10">
+                    <h2 className="font-headline-md text-headline-md text-on-surface">Dynamic Pathway</h2>
+                  </div>
+                  
+                  {/* Simplified Tree Representation */}
+                  <div className="flex-grow flex flex-col items-center justify-center relative z-10 py-xl">
+                    
+                    {/* Node 1: Mastered (Previous Phase) */}
+                    {activePhaseIndex > 0 && (
+                      <div className="relative w-full max-w-md">
+                        <div 
+                          className="bg-surface-container p-md rounded-lg border border-primary flex items-center justify-between mb-xl relative z-10 cursor-pointer hover:scale-105 transition-all duration-300"
+                          onClick={() => setActivePhaseIndex(activePhaseIndex - 1)}
+                        >
+                          <div className="flex items-center gap-md">
+                            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                              <span className="material-symbols-outlined text-[20px]">check_circle</span>
+                            </div>
+                            <div>
+                              <div className="font-label-md text-label-md text-primary">Mastered</div>
+                              <div className="font-headline-sm text-headline-sm text-on-surface">{roadmap.phases[activePhaseIndex - 1].title}</div>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-foreground leading-snug line-clamp-1">{phase.title}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">{phase.duration_weeks} week{phase.duration_weeks > 1 ? 's' : ''} • {phase.topics.length} topics</p>
+                        {/* Connector */}
+                        <div className="absolute left-1/2 bottom-0 transform -translate-x-1/2 translate-y-full w-1 h-xl bg-primary" style={{ boxShadow: '0 0 8px var(--primary)' }}></div>
+                      </div>
+                    )}
+                    
+                    {/* Node 2: Current Focus */}
+                    {activePhase && (
+                      <div className={`relative w-full max-w-md ${activePhaseIndex > 0 ? 'mt-xl' : ''}`}>
+                        <div className="bg-surface p-md rounded-lg border-2 border-primary shadow-[0_0_15px_rgba(192,193,255,0.15)] flex flex-col gap-sm relative z-10 transform scale-105">
+                          <div className="flex justify-between items-start">
+                            <div className="flex items-center gap-md">
+                              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary animate-pulse">
+                                <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
+                              </div>
+                              <div>
+                                <div className="font-label-md text-label-md text-primary animate-pulse">Current Focus: Phase {activePhase.phase}</div>
+                                <div className="font-headline-sm text-headline-sm text-on-surface">{activePhase.title}</div>
+                              </div>
+                            </div>
+                            <span className="bg-surface-container-high px-2 py-1 rounded text-xs font-label-sm text-on-surface-variant border border-outline-variant">
+                              Est. {activePhase.duration_weeks}w
+                            </span>
+                          </div>
+                          
+                          {/* Phase Content Preview */}
+                          <div className="mt-4 pt-4 border-t border-outline-variant/40">
+                            <div className="flex flex-wrap gap-2 mb-4">
+                              {activePhase.topics.map((topic, i) => (
+                                <span key={i} className="px-2 py-1 bg-surface-container-high rounded text-[11px] font-label-sm text-on-surface-variant border border-outline-variant/40">
+                                  {topic}
+                                </span>
+                              ))}
+                            </div>
+                            <div className="space-y-2">
+                              {activePhase.resources.slice(0, 2).map((res, i) => (
+                                <a key={i} href={res.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-xs text-on-surface-variant hover:text-primary transition-colors">
+                                  <span className="material-symbols-outlined text-[14px]">{resourceIcon(res.type)}</span>
+                                  <span className="truncate">{res.title}</span>
+                                </a>
+                              ))}
+                            </div>
+                          </div>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-muted-foreground self-center shrink-0" />
-                      </button>
-                    ))}
+                        {/* Connector to Next */}
+                        {activePhaseIndex < roadmap.phases.length - 1 && (
+                          <div className="absolute left-1/2 bottom-0 transform -translate-x-1/2 translate-y-full w-1 h-xl bg-outline-variant border-dashed border-l-2"></div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Node 3: Next Up Option */}
+                    {activePhaseIndex < roadmap.phases.length - 1 && (
+                      <div className="flex justify-center gap-xl mt-xl pt-xl relative w-full max-w-2xl">
+                        <div 
+                          className="flex-1 bg-surface-container-high p-md rounded-lg border border-outline-variant/60 opacity-70 hover:opacity-100 transition-all relative z-10 cursor-pointer hover:border-primary hover:scale-[1.02]"
+                          onClick={handleNextPhase}
+                        >
+                          <div className="font-label-md text-label-md text-on-surface-variant mb-1">Next Up: Phase {roadmap.phases[activePhaseIndex + 1].phase}</div>
+                          <div className="font-headline-sm text-headline-sm text-on-surface mb-2 truncate">{roadmap.phases[activePhaseIndex + 1].title}</div>
+                          <button className="w-full py-1.5 rounded bg-surface border border-outline-variant text-on-surface-variant font-label-sm text-label-sm hover:text-primary hover:border-primary transition-colors">
+                            View Details
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Phase Details */}
-                <div className="lg:col-span-2">
-                  {activePhase && (
-                    <Card className="bg-card border-border h-full shadow-sm">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between gap-2 flex-wrap">
-                          <Badge className="bg-primary/10 text-primary border border-primary/20 text-xs">Phase {activePhase.phase}</Badge>
-                          <span className="text-xs text-muted-foreground font-medium">{activePhase.duration_weeks} week{activePhase.duration_weeks > 1 ? 's' : ''} duration</span>
+                {/* AI Sidebar (Takes 1 column) */}
+                <div className="flex flex-col gap-md md:gap-lg">
+                  
+                  {/* AI Mentor Insights */}
+                  <div className="bg-surface-container p-md md:p-lg rounded-xl border border-secondary/30 relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-secondary to-primary"></div>
+                    <div className="flex items-center gap-2 mb-md">
+                      <span className="material-symbols-outlined text-secondary text-[24px]" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+                      <h3 className="font-headline-md text-headline-md text-on-surface text-lg">AI Mentor Insights</h3>
+                    </div>
+                    <div className="space-y-4 font-body-md text-body-md text-on-surface-variant">
+                      <p>I have structured this roadmap into <strong>{roadmap.phases.length} phases</strong> to help you achieve your goals.</p>
+                      
+                      {activePhase && (
+                        <div className="bg-surface p-3 rounded border border-outline-variant/40">
+                          <div className="font-label-sm text-label-sm text-primary mb-1 uppercase tracking-wider">Current Milestone</div>
+                          <p className="text-sm text-on-surface">{activePhase.milestone}</p>
                         </div>
-                        <CardTitle className="text-lg text-foreground text-balance mt-2">{activePhase.title}</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-5">
-                        {/* Topics */}
-                        <div>
-                          <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-3">Core Topics Covered</h4>
-                          <div className="flex flex-wrap gap-2">
-                            {activePhase.topics.map((topic, i) => (
-                              <Badge key={i} variant="secondary" className="text-xs py-1 px-2.5 bg-muted border border-border">
-                                {topic}
-                              </Badge>
-                            ))}
-                          </div>
+                      )}
+                      
+                      <p className="text-sm">Complete each phase sequentially and take the practice quiz at the end to verify your understanding.</p>
+                    </div>
+                  </div>
+                  
+                  {/* Technical Stats */}
+                  <div className="bg-surface-container p-md md:p-lg rounded-xl border border-outline-variant/60 flex-grow">
+                    <h3 className="font-headline-md text-headline-md text-on-surface text-lg mb-md">Path Telemetry</h3>
+                    <div className="space-y-sm">
+                      <div className="p-3 rounded-lg bg-surface-lowest border border-outline-variant/40 flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-on-surface-variant">
+                          <span className="material-symbols-outlined text-[18px]">schedule</span>
+                          <span className="font-label-md text-label-md">Estimated Time</span>
                         </div>
-
-                        {/* Resources */}
-                        <div>
-                          <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-3">Recommended Resources</h4>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {activePhase.resources.map((res, i) => (
-                              <a
-                                key={i}
-                                href={res.url && res.url !== '#' ? res.url : undefined}
-                                target={res.url && res.url !== '#' ? '_blank' : undefined}
-                                rel="noopener noreferrer"
-                                className={`flex items-center gap-3 p-3 rounded-lg bg-muted/40 hover:bg-muted/70 transition-all border border-border/40 group ${res.url && res.url !== '#' ? 'cursor-pointer' : 'cursor-default pointer-events-none'}`}
-                              >
-                                <div className="w-7 h-7 rounded bg-background flex items-center justify-center shrink-0 border border-border/20 shadow-sm">
-                                  {resourceIcon(res.type)}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-xs font-medium text-foreground truncate group-hover:text-primary transition-colors">{res.title}</p>
-                                  <p className="text-[10px] text-muted-foreground capitalize mt-0.5">{res.type}</p>
-                                </div>
-                                {res.url && res.url !== '#' && <ChevronRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />}
-                              </a>
-                            ))}
-                          </div>
+                        <span className="font-label-md text-label-md text-on-surface">{roadmap.estimated_weeks} Weeks</span>
+                      </div>
+                      <div className="p-3 rounded-lg bg-surface-lowest border border-outline-variant/40 flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-on-surface-variant">
+                          <span className="material-symbols-outlined text-[18px]">military_tech</span>
+                          <span className="font-label-md text-label-md">Projected Tier</span>
                         </div>
-
-                        {/* Milestone */}
-                        <div className="p-4 rounded-xl bg-chart-3/5 border border-chart-3/15">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Zap className="w-4 h-4 text-chart-3" />
-                            <span className="text-xs font-bold text-chart-3 uppercase tracking-wide">Phase Milestone Goal</span>
-                          </div>
-                          <p className="text-sm text-foreground/90 mt-1 leading-relaxed">{activePhase.milestone}</p>
+                        <span className="font-label-md text-label-md text-tertiary">Gold (Top 10%)</span>
+                      </div>
+                      <div className="p-3 rounded-lg bg-surface-lowest border border-outline-variant/40 flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-on-surface-variant">
+                          <span className="material-symbols-outlined text-[18px]">route</span>
+                          <span className="font-label-md text-label-md">Nodes Remaining</span>
                         </div>
-                      </CardContent>
-                    </Card>
-                  )}
+                        <span className="font-label-md text-label-md text-on-surface">{roadmap.phases.length - activePhaseIndex - 1}</span>
+                      </div>
+                    </div>
+                    
+                    {roadmap.quiz_questions && roadmap.quiz_questions.length > 0 && (
+                      <button 
+                        onClick={() => {
+                          const el = document.getElementById('quiz-section');
+                          if (el) el.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        className="w-full mt-xl py-3 rounded-lg bg-primary text-on-primary-container font-label-md text-label-md font-bold hover:brightness-110 transition-all active:scale-95 duration-100 flex justify-center items-center gap-2"
+                      >
+                        <span className="material-symbols-outlined text-[20px]">quiz</span> Jump to Practice Quiz
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 
               {/* Practice Quiz Section */}
               {roadmap.quiz_questions && roadmap.quiz_questions.length > 0 && (
-                <Card className="bg-card border-border shadow-sm pt-4">
-                  <CardHeader className="border-b border-border/40 pb-3">
-                    <CardTitle className="text-base text-foreground flex items-center gap-2">
-                      <HelpCircle className="w-4 h-4 text-primary" /> Placement Practice Quiz
-                    </CardTitle>
-                    <p className="text-xs text-muted-foreground mt-0.5">Test your domain mastery with questions generated specifically for your career roadmap</p>
-                  </CardHeader>
-                  <CardContent className="p-6">
+                <div id="quiz-section" className="bg-surface-container-lowest rounded-xl border border-outline-variant/60 p-md md:p-xl relative overflow-hidden pt-xl">
+                  <div className="border-b border-outline-variant/40 pb-4 mb-xl">
+                    <h2 className="font-headline-md text-headline-md text-on-surface flex items-center gap-2">
+                      <span className="material-symbols-outlined text-primary text-[24px]">help</span> Placement Practice Quiz
+                    </h2>
+                    <p className="font-body-md text-body-md text-on-surface-variant mt-1">Test your domain mastery with questions generated specifically for your career roadmap</p>
+                  </div>
+                  
+                  <div>
                     {!quizStarted && !quizSubmitted ? (
-                      <div className="text-center py-6 max-w-sm mx-auto space-y-4">
-                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-primary">
-                          <Award className="w-6 h-6" />
+                      <div className="text-center py-xl max-w-md mx-auto space-y-md">
+                        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-primary border border-primary/20">
+                          <span className="material-symbols-outlined text-[32px]">emoji_events</span>
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-foreground">Ready to test your knowledge?</p>
-                          <p className="text-xs text-muted-foreground mt-1">Answer {roadmap.quiz_questions.length} conceptual placement questions covering this domain.</p>
+                          <p className="font-headline-sm text-headline-sm text-on-surface mb-2">Ready to test your knowledge?</p>
+                          <p className="font-body-sm text-body-sm text-on-surface-variant">Answer {roadmap.quiz_questions.length} conceptual placement questions covering this domain.</p>
                         </div>
-                        <Button onClick={startQuiz} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 text-sm">
+                        <button onClick={startQuiz} className="w-full bg-primary text-on-primary-container hover:brightness-110 py-3 rounded-lg font-label-md text-label-md font-bold transition-all shadow-sm mt-4">
                           Start Practice Quiz
-                        </Button>
+                        </button>
                       </div>
                     ) : quizSubmitted ? (
-                      <div className="space-y-6">
-                        <div className="text-center max-w-sm mx-auto space-y-3 pb-4 border-b border-border/40">
-                          <div className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto ${quizScore >= (roadmap.quiz_questions.length * 0.6) ? 'bg-chart-3/15 text-chart-3' : 'bg-destructive/15 text-destructive'}`}>
-                            <Trophy className="w-7 h-7" />
+                      <div className="space-y-xl">
+                        <div className="text-center max-w-md mx-auto space-y-4 pb-md border-b border-outline-variant/40">
+                          <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto border ${quizScore >= (roadmap.quiz_questions.length * 0.6) ? 'bg-primary/10 text-primary border-primary/30' : 'bg-error/10 text-error border-error/30'}`}>
+                            <span className="material-symbols-outlined text-[40px]">{quizScore >= (roadmap.quiz_questions.length * 0.6) ? 'emoji_events' : 'sentiment_dissatisfied'}</span>
                           </div>
                           <div>
-                            <h4 className="text-lg font-bold text-foreground">Practice Completed!</h4>
-                            <p className="text-sm text-muted-foreground mt-0.5">You scored {quizScore} out of {roadmap.quiz_questions.length} ({Math.round((quizScore / roadmap.quiz_questions.length) * 100)}%)</p>
+                            <h4 className="font-headline-md text-headline-md text-on-surface">Practice Completed!</h4>
+                            <p className="font-body-md text-body-md text-on-surface-variant mt-1">You scored {quizScore} out of {roadmap.quiz_questions.length} ({Math.round((quizScore / roadmap.quiz_questions.length) * 100)}%)</p>
                           </div>
-                          <Progress value={(quizScore / roadmap.quiz_questions.length) * 100} className="h-2 mt-2" />
-                          <Button onClick={startQuiz} variant="outline" size="sm" className="mt-4">
+                          <div className="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden mt-4">
+                            <div className={`h-full rounded-full ${quizScore >= (roadmap.quiz_questions.length * 0.6) ? 'bg-primary' : 'bg-error'}`} style={{ width: `${(quizScore / roadmap.quiz_questions.length) * 100}%` }}></div>
+                          </div>
+                          <button onClick={startQuiz} className="mt-6 px-6 py-2 border border-outline-variant/60 rounded-lg text-on-surface font-label-md text-label-md hover:bg-surface-variant transition-colors">
                             Retake Quiz
-                          </Button>
+                          </button>
                         </div>
 
                         {/* Detailed question review */}
-                        <div className="space-y-4">
-                          <h5 className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Question Review</h5>
+                        <div className="space-y-md">
+                          <h5 className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Question Review</h5>
                           {roadmap.quiz_questions.map((q, qidx) => {
                             const isCorrect = quizAnswers[qidx] === q.correct_index;
                             return (
-                              <div key={qidx} className={`p-4 rounded-xl border ${isCorrect ? 'bg-chart-3/5 border-chart-3/15' : 'bg-destructive/5 border-destructive/15'} space-y-3`}>
-                                <div className="flex items-start gap-2.5">
+                              <div key={qidx} className={`p-md rounded-xl border ${isCorrect ? 'bg-primary/5 border-primary/30' : 'bg-error/5 border-error/30'} space-y-4`}>
+                                <div className="flex items-start gap-3">
                                   {isCorrect ? (
-                                    <CheckCircle className="w-4 h-4 text-chart-3 shrink-0 mt-0.5" />
+                                    <span className="material-symbols-outlined text-[20px] text-primary shrink-0 mt-0.5">check_circle</span>
                                   ) : (
-                                    <AlertCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                                    <span className="material-symbols-outlined text-[20px] text-error shrink-0 mt-0.5">cancel</span>
                                   )}
-                                  <p className="text-sm font-semibold text-foreground leading-relaxed">{q.question}</p>
+                                  <p className="font-body-md text-body-md text-on-surface leading-relaxed">{q.question}</p>
                                 </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-8">
                                   {q.options.map((opt, oidx) => {
                                     const isSelected = quizAnswers[qidx] === oidx;
                                     const isCorrectOpt = q.correct_index === oidx;
                                     return (
                                       <div
                                         key={oidx}
-                                        className={`p-2.5 rounded-lg border text-xs leading-normal ${isCorrectOpt ? 'bg-chart-3/10 border-chart-3/30 text-foreground font-medium' : isSelected ? 'bg-destructive/10 border-destructive/30 text-foreground' : 'border-border bg-muted/20 text-muted-foreground'}`}
+                                        className={`p-3 rounded-lg border font-body-sm text-body-sm leading-normal flex items-start gap-2 ${isCorrectOpt ? 'bg-primary/10 border-primary/40 text-on-surface font-semibold' : isSelected ? 'bg-error/10 border-error/40 text-on-surface' : 'border-outline-variant/40 bg-surface-container-high text-on-surface-variant'}`}
                                       >
-                                        <span className="font-bold mr-1.5">{String.fromCharCode(65 + oidx)}.</span>
-                                        {opt}
+                                        <span className="font-bold">{String.fromCharCode(65 + oidx)}.</span>
+                                        <span>{opt}</span>
                                       </div>
                                     );
                                   })}
                                 </div>
-                                <div className="pl-6 border-l-2 border-muted mt-2 pt-1">
-                                  <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Explanation:</p>
-                                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{q.explanation}</p>
+                                <div className="pl-8 border-l-2 border-outline-variant/60 mt-4 pt-1 ml-[11px]">
+                                  <p className="font-label-sm text-[11px] text-on-surface-variant uppercase tracking-wider mb-1">Explanation</p>
+                                  <p className="font-body-sm text-body-sm text-on-surface/90 leading-relaxed">{q.explanation}</p>
                                 </div>
                               </div>
                             );
@@ -407,56 +483,57 @@ export default function AIRoadmapPage() {
                         </div>
                       </div>
                     ) : (
-                      <div className="space-y-5 max-w-2xl mx-auto">
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <div className="space-y-lg max-w-3xl mx-auto">
+                        <div className="flex items-center justify-between font-label-sm text-label-sm text-on-surface-variant">
                           <span>Question {quizCurrent + 1} of {roadmap.quiz_questions.length}</span>
                           <span>Score: {quizAnswers.slice(0, quizCurrent).filter((ans, idx) => ans === roadmap.quiz_questions[idx].correct_index).length}</span>
                         </div>
-                        <Progress value={((quizCurrent + 1) / roadmap.quiz_questions.length) * 100} className="h-1.5" />
+                        <div className="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+                          <div className="h-full bg-primary rounded-full" style={{ width: `${((quizCurrent + 1) / roadmap.quiz_questions.length) * 100}%` }}></div>
+                        </div>
 
                         {roadmap.quiz_questions[quizCurrent] && (
-                          <div className="space-y-4">
-                            <h4 className="text-sm font-semibold text-foreground leading-relaxed">
+                          <div className="space-y-md mt-lg">
+                            <h4 className="font-headline-sm text-headline-sm text-on-surface leading-relaxed">
                               {roadmap.quiz_questions[quizCurrent].question}
                             </h4>
-                            <div className="space-y-2">
+                            <div className="space-y-3 mt-md">
                               {roadmap.quiz_questions[quizCurrent].options.map((opt, oidx) => (
                                 <button
                                   key={oidx}
                                   onClick={() => setQuizSelectedOpt(oidx)}
-                                  className={`w-full flex items-center gap-3 p-3.5 rounded-xl border text-left text-xs transition-all ${quizSelectedOpt === oidx ? 'border-primary bg-primary/5 text-foreground font-medium' : 'border-border hover:border-primary/30 hover:bg-muted/40 text-foreground'}`}
+                                  className={`w-full flex items-center gap-4 p-4 rounded-xl border text-left transition-all ${quizSelectedOpt === oidx ? 'border-primary bg-primary/10 text-on-surface shadow-[0_0_10px_rgba(192,193,255,0.1)]' : 'border-outline-variant/60 hover:border-primary/40 hover:bg-surface-container-high text-on-surface-variant'}`}
                                 >
-                                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 text-[10px] font-bold ${quizSelectedOpt === oidx ? 'border-primary bg-primary text-primary-foreground' : 'border-border text-muted-foreground'}`}>
+                                  <div className={`w-6 h-6 rounded-full border flex items-center justify-center shrink-0 font-label-sm text-[12px] font-bold ${quizSelectedOpt === oidx ? 'border-primary bg-primary text-on-primary-container' : 'border-outline-variant/60 text-on-surface-variant'}`}>
                                     {String.fromCharCode(65 + oidx)}
                                   </div>
-                                  <span>{opt}</span>
+                                  <span className="font-body-md text-body-md">{opt}</span>
                                 </button>
                               ))}
                             </div>
                           </div>
                         )}
 
-                        <div className="flex justify-between items-center pt-2">
-                          <Button
+                        <div className="flex justify-between items-center pt-md mt-xl border-t border-outline-variant/40">
+                          <button
                             onClick={() => { setQuizCurrent(quizCurrent - 1); setQuizSelectedOpt(quizAnswers[quizCurrent - 1] ?? null); }}
                             disabled={quizCurrent === 0}
-                            variant="ghost"
-                            className="text-xs border border-border text-foreground hover:bg-accent disabled:opacity-40"
+                            className="px-4 py-2 font-label-md text-label-md border border-outline-variant/60 rounded-lg text-on-surface hover:bg-surface-variant disabled:opacity-30 transition-colors"
                           >
                             Previous
-                          </Button>
-                          <Button
+                          </button>
+                          <button
                             onClick={handleQuizNext}
                             disabled={quizSelectedOpt === null}
-                            className="bg-primary text-primary-foreground hover:bg-primary/90 text-xs px-6"
+                            className="bg-primary text-on-primary-container px-6 py-2 rounded-lg font-label-md text-label-md font-bold hover:brightness-110 transition-all disabled:opacity-50"
                           >
-                            {quizCurrent === roadmap.quiz_questions.length - 1 ? 'Finish Quiz' : 'Next'}
-                          </Button>
+                            {quizCurrent === roadmap.quiz_questions.length - 1 ? 'Finish Quiz' : 'Next Question'}
+                          </button>
                         </div>
                       </div>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               )}
             </div>
           )

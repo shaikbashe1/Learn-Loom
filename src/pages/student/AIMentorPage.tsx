@@ -1,15 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Brain, Send, Sparkles, BookOpen, Code2, Target, RefreshCw,
-  GraduationCap, ChevronRight,
-} from 'lucide-react';
 import { createParser } from 'eventsource-parser';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -53,8 +45,6 @@ function TypingIndicator() {
 }
 
 // ── Markdown renderer ─────────────────────────────────────────────────────────
-// Handles: **bold**, `inline code`, ```code blocks```, bullet/numbered lists,
-// blank lines as spacers, and plain text.
 
 function MarkdownMessage({ content }: { content: string }) {
   if (!content) return <TypingIndicator />;
@@ -65,7 +55,7 @@ function MarkdownMessage({ content }: { content: string }) {
   while (i < lines.length) {
     const line = lines[i];
 
-    // ── Fenced code block ──
+    // Fenced code block
     if (line.startsWith('```')) {
       const lang = line.slice(3).trim();
       const codeLines: string[] = [];
@@ -75,83 +65,87 @@ function MarkdownMessage({ content }: { content: string }) {
         i++;
       }
       nodes.push(
-        <div key={i} className="my-2 rounded-lg overflow-hidden border border-border bg-[hsl(var(--background))]">
+        <div key={i} className="my-4 rounded-xl bg-[#0d0d0f] border border-outline-variant/40 overflow-hidden shadow-sm">
           {lang && (
-            <div className="px-3 py-1 text-[10px] font-mono text-muted-foreground bg-muted border-b border-border">
-              {lang}
+            <div className="flex justify-between items-center px-4 py-2 bg-surface-container border-b border-outline-variant/40">
+              <span className="font-label-sm text-label-sm text-on-surface-variant">{lang}</span>
+              <button onClick={() => navigator.clipboard.writeText(codeLines.join('\n'))} className="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1">
+                <span className="material-symbols-outlined text-[14px]">content_copy</span>
+                <span className="font-label-sm text-label-sm">Copy</span>
+              </button>
             </div>
           )}
-          <pre className="p-3 text-xs font-mono leading-relaxed overflow-x-auto text-foreground whitespace-pre">
-            {codeLines.join('\n')}
-          </pre>
+          <div className="p-4 overflow-x-auto">
+            <pre className="font-label-md text-label-md leading-relaxed text-on-surface/80 whitespace-pre">
+              {codeLines.join('\n')}
+            </pre>
+          </div>
         </div>
       );
       i++;
       continue;
     }
 
-    // ── Heading (### or ##) ──
+    // Heading
     const headingMatch = line.match(/^(#{1,3})\s+(.+)/);
     if (headingMatch) {
       nodes.push(
-        <p key={i} className="font-semibold text-foreground mt-3 mb-1 text-sm">
+        <p key={i} className="font-headline-sm text-headline-sm font-semibold text-on-surface mt-4 mb-2">
           {renderInline(headingMatch[2])}
         </p>
       );
       i++; continue;
     }
 
-    // ── Bullet list item ──
+    // Bullet list item
     if (line.match(/^[-*•]\s+/) || line.startsWith('• ')) {
       const text = line.replace(/^[-*•]\s+/, '').replace(/^•\s+/, '');
       nodes.push(
-        <div key={i} className="flex items-start gap-2 text-sm leading-relaxed pl-1">
-          <span className="text-primary mt-[3px] shrink-0 text-xs">•</span>
+        <div key={i} className="flex items-start gap-2 leading-relaxed font-body-md text-body-md text-on-surface/90">
+          <span className="text-primary mt-1 shrink-0 text-[10px]">●</span>
           <span>{renderInline(text)}</span>
         </div>
       );
       i++; continue;
     }
 
-    // ── Numbered list ──
+    // Numbered list
     const numMatch = line.match(/^(\d+)\.\s+(.+)/);
     if (numMatch) {
       nodes.push(
-        <div key={i} className="flex items-start gap-2 text-sm leading-relaxed pl-1">
-          <span className="text-primary shrink-0 font-medium min-w-[1rem]">{numMatch[1]}.</span>
+        <div key={i} className="flex items-start gap-2 leading-relaxed font-body-md text-body-md text-on-surface/90">
+          <span className="text-primary shrink-0 font-bold min-w-[1.2rem]">{numMatch[1]}.</span>
           <span>{renderInline(numMatch[2])}</span>
         </div>
       );
       i++; continue;
     }
 
-    // ── Blank line spacer ──
+    // Blank line
     if (!line.trim()) {
-      nodes.push(<div key={i} className="h-2" />);
+      nodes.push(<div key={i} className="h-4" />);
       i++; continue;
     }
 
-    // ── Default paragraph ──
+    // Default paragraph
     nodes.push(
-      <p key={i} className="text-sm leading-relaxed">{renderInline(line)}</p>
+      <p key={i} className="leading-relaxed font-body-md text-body-md text-on-surface/90">{renderInline(line)}</p>
     );
     i++;
   }
 
-  return <div className="space-y-0.5">{nodes}</div>;
+  return <div className="space-y-1">{nodes}</div>;
 }
 
-/** Renders inline markdown: **bold**, `code`, plain text */
 function renderInline(text: string): React.ReactNode {
-  // Split on **bold** and `code`
   const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
   return parts.map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={i} className="font-semibold text-foreground">{part.slice(2, -2)}</strong>;
+      return <strong key={i} className="font-bold text-on-surface">{part.slice(2, -2)}</strong>;
     }
     if (part.startsWith('`') && part.endsWith('`')) {
       return (
-        <code key={i} className="px-1 py-0.5 rounded bg-muted text-[11px] font-mono text-foreground border border-border">
+        <code key={i} className="px-1.5 py-0.5 rounded bg-surface-container-high text-[13px] font-label-md text-secondary border border-outline-variant/40">
           {part.slice(1, -1)}
         </code>
       );
@@ -180,12 +174,10 @@ export default function AIMentorPage() {
   const abortRef = useRef<AbortController | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-scroll on new content
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Load enrolled courses for context injection
   useEffect(() => {
     if (!user) return;
     supabase
@@ -208,7 +200,6 @@ export default function AIMentorPage() {
       });
   }, [user]);
 
-  // Build dynamic system prompt with full user context
   const buildSystemPrompt = useCallback(() => {
     const userName = profile?.full_name ?? 'the student';
     const skillLevel = enrolledCourses.length === 0
@@ -225,7 +216,7 @@ export default function AIMentorPage() {
 
     const inProgressCourse = enrolledCourses.find(c => c.progress_percent > 0 && c.progress_percent < 100);
 
-    return `You are LearnLoom AI Mentor — an expert computer science and software engineering tutor on the LearnLoom platform.
+    return `You are Loomie, the AI Learning Mentor on the LearnLoom platform.
 
 STUDENT PROFILE:
 - Name: ${userName}
@@ -235,13 +226,13 @@ ${courseContext}
 ${inProgressCourse ? `- Currently working on: "${inProgressCourse.title}" (${inProgressCourse.progress_percent}% done)` : ''}
 
 YOUR ROLE:
-- Answer technical questions clearly with examples and code snippets when helpful
-- Create personalized study plans tailored to the student's enrolled courses and skill level
-- Help with interview preparation (DSA, system design, behavioural)
-- When the student asks about a topic covered in one of their enrolled courses, reference that course specifically
-- Format responses with markdown: **bold** for key terms, bullet points, numbered lists, and fenced code blocks (with language tag)
-- Use inline code for function names, variables, and short snippets
-- Keep responses focused and concise — avoid unnecessary preamble
+- Answer technical questions clearly with examples and code snippets when helpful.
+- Create personalized study plans tailored to the student's enrolled courses and skill level.
+- Help with interview preparation (DSA, system design, behavioural).
+- When the student asks about a topic covered in one of their enrolled courses, reference that course specifically.
+- Format responses with markdown: **bold** for key terms, bullet points, numbered lists, and fenced code blocks (with language tag).
+- Use inline code for function names, variables, and short snippets.
+- Keep responses focused and concise — avoid unnecessary preamble.
 - Be encouraging and mentor-like. This platform targets Indian college students (18–24) preparing for placements.`;
   }, [profile, enrolledCourses]);
 
@@ -267,15 +258,12 @@ YOUR ROLE:
     setInput('');
     setStreaming(true);
 
-    // Cap history at last MAX_HISTORY turns (excluding welcome msg)
     const historyBase = [...messages.filter(m => m.id !== 'welcome'), userMsg];
     const recentHistory = historyBase.slice(-MAX_HISTORY);
 
-    // Build Gemini contents array: system prompt framed as user/model exchange,
-    // followed by the capped conversation history
     const contents = [
       { role: 'user', parts: [{ text: buildSystemPrompt() }] },
-      { role: 'model', parts: [{ text: `Understood. I'm LearnLoom AI Mentor. I have the student's context loaded and am ready to help.` }] },
+      { role: 'model', parts: [{ text: `Understood. I'm Loomie, the AI Mentor. I have the student's context loaded and am ready to help.` }] },
       ...recentHistory.map(m => ({
         role: m.role === 'assistant' ? 'model' : 'user',
         parts: [{ text: m.content }],
@@ -327,7 +315,7 @@ YOUR ROLE:
               );
             }
           } catch {
-            // incomplete JSON chunk — skip silently
+            // skip
           }
         },
       });
@@ -360,209 +348,170 @@ YOUR ROLE:
     }
   };
 
+  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 128)}px`;
+    }
+  };
+
   return (
     <AppLayout title="AI Mentor">
-      <div className="max-w-5xl mx-auto h-[calc(100vh-8rem)] flex flex-col gap-3">
-
-        {/* ── Header ── */}
-        <div className="flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
-              <Brain className="w-5 h-5 text-primary" />
+      <div className="flex-1 flex flex-col md:flex-row h-[calc(100vh-80px)] overflow-hidden w-full relative">
+        
+        {/* Messages Canvas */}
+        <div className="flex-1 overflow-y-auto px-md md:px-xl py-xl space-y-8 scroll-smooth pb-48 relative">
+          
+          <div className="flex items-center justify-between max-w-3xl mx-auto mb-8">
+            <div className="flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full ${streaming ? 'bg-primary animate-pulse' : 'bg-primary/50'}`} />
+              <span className="text-xs text-on-surface-variant font-label-sm">
+                {streaming ? 'Loomie is generating response...' : 'Loomie is online'}
+              </span>
             </div>
-            <div>
-              <h2 className="font-bold text-foreground text-balance">AI Learning Mentor</h2>
-              <div className="flex items-center gap-2">
-                <span className={`w-2 h-2 rounded-full ${streaming ? 'bg-chart-4 animate-pulse' : 'bg-chart-3'}`} />
-                <span className="text-xs text-muted-foreground">
-                  {streaming ? 'Generating response…' : 'Online · Gemini 2.5 Flash · Context-aware'}
-                </span>
+            <div className="flex gap-2">
+              {streaming && (
+                <button onClick={handleStop} className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-error/40 text-error hover:bg-error/10 font-label-sm text-label-sm transition-colors">
+                  <span className="material-symbols-outlined text-[14px]">stop_circle</span> Stop
+                </button>
+              )}
+              <button onClick={handleReset} className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-outline-variant/60 text-on-surface hover:bg-surface-variant/50 font-label-sm text-label-sm transition-colors">
+                <span className="material-symbols-outlined text-[14px]">refresh</span> New Chat
+              </button>
+            </div>
+          </div>
+
+          {messages.map(msg => (
+            <div key={msg.id} className="max-w-3xl mx-auto flex gap-4">
+              {msg.role === 'assistant' ? (
+                <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0 border border-primary/30 mt-1">
+                  <span className="material-symbols-outlined text-[18px] text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>smart_toy</span>
+                </div>
+              ) : (
+                <div className="w-8 h-8 rounded-lg bg-surface-variant flex items-center justify-center shrink-0 border border-outline-variant/60 mt-1 overflow-hidden">
+                  {profile?.avatar_url ? <img src={profile.avatar_url} alt="User" className="w-full h-full object-cover" /> : <span className="material-symbols-outlined text-[18px] text-on-surface">person</span>}
+                </div>
+              )}
+              <div className="flex-1 space-y-2 min-w-0">
+                <div className="flex items-baseline gap-2">
+                  <span className="font-label-md text-label-md font-semibold text-on-surface">{msg.role === 'assistant' ? 'Loomie' : 'You'}</span>
+                  <span className="font-label-sm text-label-sm text-on-surface-variant">
+                    {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+                <div className="font-body-md text-body-md text-on-surface/90 leading-relaxed">
+                  {msg.role === 'assistant' ? <MarkdownMessage content={msg.content} /> : <p className="whitespace-pre-wrap">{msg.content}</p>}
+                </div>
               </div>
             </div>
-          </div>
-          <div className="flex gap-2">
-            {streaming && (
-              <Button onClick={handleStop} variant="ghost" size="sm"
-                className="border border-destructive/40 text-destructive hover:bg-destructive/10">
-                Stop
-              </Button>
-            )}
-            <Button onClick={handleReset} variant="ghost" size="sm"
-              className="border border-border text-foreground hover:bg-accent">
-              <RefreshCw className="w-4 h-4 mr-1.5" /> New Chat
-            </Button>
-          </div>
+          ))}
+          <div ref={bottomRef} />
         </div>
 
-        <div className="flex gap-4 flex-1 min-h-0">
-
-          {/* ── Chat area ── */}
-          <div className="flex-1 min-w-0 flex flex-col bg-card border border-border rounded-xl overflow-hidden">
-
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.map(msg => (
-                <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                  <Avatar className="w-8 h-8 shrink-0 mt-0.5">
-                    <AvatarFallback className={`text-xs font-bold ${msg.role === 'assistant' ? 'bg-primary/20 text-primary' : 'bg-chart-2/20 text-chart-2'}`}>
-                      {msg.role === 'assistant' ? <Brain className="w-4 h-4" /> : 'ME'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className={`max-w-[82%] rounded-xl px-3 py-2.5 ${msg.role === 'assistant' ? 'bg-muted text-foreground' : 'bg-primary text-primary-foreground'}`}>
-                    {msg.role === 'assistant'
-                      ? <MarkdownMessage content={msg.content} />
-                      : <p className="text-sm leading-relaxed">{msg.content}</p>
-                    }
-                    <p className={`text-[10px] mt-1.5 ${msg.role === 'assistant' ? 'text-muted-foreground' : 'text-primary-foreground/70'}`}>
-                      {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                  </div>
-                </div>
-              ))}
-              <div ref={bottomRef} />
-            </div>
-
-            {/* Suggested prompts — show only before first user message */}
-            {messages.length === 1 && (
-              <div className="px-4 pb-3 flex flex-wrap gap-2">
+        {/* Input Area (Fixed at bottom of Center column) */}
+        <div className="absolute bottom-0 left-0 md:right-[320px] lg:right-[320px] right-0 p-4 md:p-md bg-gradient-to-t from-background via-background/90 to-transparent pt-12">
+          <div className="max-w-3xl mx-auto space-y-4">
+            
+            {/* Quick Actions / Suggestions */}
+            {messages.length <= 2 && (
+              <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
                 {SUGGESTED_PROMPTS.slice(0, 4).map(p => (
-                  <button key={p} onClick={() => sendMessage(p)}
-                    className="text-xs text-primary bg-primary/10 border border-primary/25 px-3 py-1.5 rounded-full hover:bg-primary/20 transition-colors text-left">
+                  <button key={p} onClick={() => sendMessage(p)} disabled={streaming}
+                    className="whitespace-nowrap px-4 py-1.5 rounded-full border border-outline-variant/60 bg-surface-container/50 text-on-surface-variant font-label-sm text-label-sm hover:border-primary/50 hover:text-primary transition-colors hover:bg-primary/5 disabled:opacity-50">
                     {p}
                   </button>
                 ))}
               </div>
             )}
-
-            {/* Input */}
-            <div className="border-t border-border p-3">
-              <div className="flex gap-2 items-end">
-                <Textarea
-                  ref={textareaRef}
-                  placeholder="Ask anything — doubts, concepts, interview prep… (Shift+Enter for new line)"
-                  value={input}
-                  onChange={e => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  rows={1}
-                  className="flex-1 bg-input border-border text-foreground resize-none min-h-[40px] max-h-[120px] text-sm py-2"
-                  disabled={streaming}
-                />
-                <Button
-                  onClick={() => sendMessage(input)}
-                  disabled={!input.trim() || streaming}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 shrink-0 h-10 px-3 disabled:opacity-50"
-                >
-                  <Send className="w-4 h-4" />
-                </Button>
-              </div>
-              <p className="text-[10px] text-muted-foreground mt-1.5 px-1">
-                Context-aware · last {MAX_HISTORY} messages sent · Enter to send · Shift+Enter for newline
-              </p>
-            </div>
-          </div>
-
-          {/* ── Sidebar ── */}
-          <div className="hidden lg:flex flex-col w-56 shrink-0 gap-4">
-
-            {/* Enrolled courses */}
-            <Card className="bg-card border-border">
-              <CardHeader className="pb-2 pt-4 px-4">
-                <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-                  <GraduationCap className="w-3.5 h-3.5" /> My Courses
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 pb-4 space-y-2">
-                {loadingCourses
-                  ? [1, 2, 3].map(n => <Skeleton key={n} className="h-8 w-full bg-muted rounded-lg" />)
-                  : enrolledCourses.length === 0
-                    ? <p className="text-xs text-muted-foreground">No enrolled courses yet.</p>
-                    : enrolledCourses.map(c => (
-                        <button key={c.id}
-                          onClick={() => sendMessage(`I'm currently studying "${c.title}". Can you help me with a key concept from this course?`)}
-                          disabled={streaming}
-                          className="w-full text-left p-2 rounded-lg bg-muted/50 hover:bg-primary/10 transition-all group disabled:opacity-50">
-                          <div className="flex items-center justify-between gap-1">
-                            <p className="text-xs text-foreground font-medium leading-snug line-clamp-1 flex-1">{c.title}</p>
-                            <ChevronRight className="w-3 h-3 text-muted-foreground group-hover:text-primary shrink-0" />
-                          </div>
-                          <div className="mt-1 h-1 rounded-full bg-border overflow-hidden">
-                            <div className="h-full bg-primary rounded-full" style={{ width: `${c.progress_percent}%` }} />
-                          </div>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">{c.progress_percent}% complete</p>
-                        </button>
-                      ))
-                }
-              </CardContent>
-            </Card>
-
-            {/* Quick prompts */}
-            <Card className="bg-card border-border">
-              <CardHeader className="pb-2 pt-4 px-4">
-                <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Quick Prompts</CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 pb-4 space-y-2">
-                {SUGGESTED_PROMPTS.map(prompt => (
-                  <button key={prompt} onClick={() => sendMessage(prompt)} disabled={streaming}
-                    className="w-full text-left text-xs text-foreground p-2 rounded-lg bg-muted/50 hover:bg-primary/10 hover:text-primary transition-all disabled:opacity-50">
-                    {prompt}
+            
+            {/* Chat Input Box */}
+            <div className="relative bg-surface-container-low border border-outline-variant/60 rounded-xl shadow-sm focus-within:ring-1 focus-within:ring-primary focus-within:border-primary transition-all flex flex-col">
+              <textarea 
+                ref={textareaRef}
+                className="w-full bg-transparent border-none resize-none py-3 px-4 font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant/50 focus:ring-0 max-h-32 min-h-[52px]" 
+                placeholder="Message Loomie or share code... (Shift+Enter for new line)" 
+                rows={1} 
+                style={{ scrollbarWidth: 'thin' }}
+                value={input}
+                onChange={handleInput}
+                onKeyDown={handleKeyDown}
+                disabled={streaming}
+              />
+              <div className="flex justify-between items-center px-3 py-2 border-t border-outline-variant/20">
+                <div className="flex items-center gap-1">
+                  <button className="p-1.5 rounded-md text-on-surface-variant hover:bg-surface-variant/50 hover:text-on-surface transition-colors disabled:opacity-50" title="Attach file or code" disabled={streaming}>
+                    <span className="material-symbols-outlined text-[20px]">attach_file</span>
                   </button>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Capabilities */}
-            <Card className="bg-card border-border">
-              <CardContent className="p-4 space-y-3">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">I Can Help With</p>
-                {[
-                  { icon: BookOpen, label: 'Concept Doubts', color: 'text-primary' },
-                  { icon: Target, label: 'Study Plans', color: 'text-chart-2' },
-                  { icon: Code2, label: 'Coding Help', color: 'text-chart-3' },
-                  { icon: Sparkles, label: 'Interview Prep', color: 'text-chart-4' },
-                ].map(item => (
-                  <div key={item.label} className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <item.icon className={`w-3.5 h-3.5 ${item.color}`} />
-                    {item.label}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Context badge */}
-            {enrolledCourses.length > 0 && (
-              <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
-                <p className="text-[11px] text-primary font-medium mb-1">✦ Context active</p>
-                <p className="text-[10px] text-muted-foreground leading-relaxed">
-                  Your {enrolledCourses.length} enrolled courses are injected into every message so answers are personalised to your learning.
-                </p>
+                  <button className="p-1.5 rounded-md text-on-surface-variant hover:bg-surface-variant/50 hover:text-on-surface transition-colors disabled:opacity-50" title="Add code snippet" disabled={streaming}>
+                    <span className="material-symbols-outlined text-[20px]">data_object</span>
+                  </button>
+                </div>
+                <button onClick={() => sendMessage(input)} disabled={!input.trim() || streaming} className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-on-primary hover:brightness-110 transition-all shadow-sm disabled:opacity-50">
+                  <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>arrow_upward</span>
+                </button>
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* ── Mobile quick prompts ── */}
-        <div className="lg:hidden flex gap-2 overflow-x-auto pb-1 shrink-0">
-          {SUGGESTED_PROMPTS.slice(0, 4).map(p => (
-            <button key={p} onClick={() => sendMessage(p)} disabled={streaming}
-              className="shrink-0 text-xs text-primary bg-primary/10 border border-primary/30 px-3 py-1.5 rounded-full hover:bg-primary/20 whitespace-nowrap disabled:opacity-50">
-              {p}
-            </button>
-          ))}
-        </div>
-
-        {/* Context pills (mobile) */}
-        {enrolledCourses.length > 0 && (
-          <div className="lg:hidden flex items-center gap-2 shrink-0">
-            <span className="text-[10px] text-muted-foreground shrink-0">Context:</span>
-            <div className="flex gap-1.5 overflow-x-auto">
-              {enrolledCourses.slice(0, 3).map(c => (
-                <Badge key={c.id} variant="secondary" className="text-[10px] shrink-0 whitespace-nowrap">
-                  {c.title}
-                </Badge>
-              ))}
+            </div>
+            
+            <div className="text-center hidden sm:block">
+              <span className="font-label-sm text-label-sm text-on-surface-variant/50">Loomie can make mistakes. Verify critical code.</span>
             </div>
           </div>
-        )}
+        </div>
+
+        {/* Right Sidebar: Context & Resources */}
+        <aside className="w-80 border-l border-outline-variant/60 bg-surface-container-lowest overflow-y-auto p-md hidden lg:block shrink-0 space-y-xl z-10 h-full pb-24">
+          {/* Current Context */}
+          {enrolledCourses.length > 0 && (
+            <div className="space-y-sm">
+              <h3 className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Current Context</h3>
+              <div className="space-y-2">
+                {loadingCourses
+                  ? [1, 2].map(n => <Skeleton key={n} className="h-20 w-full bg-surface-variant rounded-xl" />)
+                  : enrolledCourses.slice(0, 3).map(c => (
+                      <div key={c.id} onClick={() => sendMessage(`I'm currently studying "${c.title}". Can you help me with a key concept from this course?`)} className="p-4 rounded-xl bg-card border border-border/60 hover:border-primary/50 transition-colors group cursor-pointer">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded bg-secondary/10 flex items-center justify-center shrink-0">
+                            <span className="material-symbols-outlined text-secondary">terminal</span>
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className="font-label-md text-label-md text-on-surface group-hover:text-primary transition-colors truncate">{c.title}</h4>
+                            <p className="font-body-sm text-body-sm text-on-surface-variant mt-1 truncate">{c.category}</p>
+                          </div>
+                        </div>
+                        <div className="mt-4 flex items-center gap-2">
+                          <div className="h-1.5 flex-1 bg-surface-variant rounded-full overflow-hidden">
+                            <div className="h-full bg-secondary rounded-full" style={{ width: `${c.progress_percent}%` }}></div>
+                          </div>
+                          <span className="font-label-sm text-label-sm text-on-surface-variant">{c.progress_percent}%</span>
+                        </div>
+                      </div>
+                    ))
+                }
+              </div>
+            </div>
+          )}
+
+          {/* Mentor Capabilities */}
+          <div className="space-y-sm">
+            <h3 className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Loomie Capabilities</h3>
+            <div className="p-4 rounded-xl border border-outline-variant/40 bg-surface-container-low/50 space-y-3">
+              <div className="flex items-start gap-2">
+                <span className="material-symbols-outlined text-[16px] text-primary mt-0.5">check_circle</span>
+                <span className="font-body-sm text-body-sm text-on-surface-variant">Analyze & refactor specific code blocks</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="material-symbols-outlined text-[16px] text-primary mt-0.5">check_circle</span>
+                <span className="font-body-sm text-body-sm text-on-surface-variant">Explain complex architectural concepts</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="material-symbols-outlined text-[16px] text-primary mt-0.5">check_circle</span>
+                <span className="font-body-sm text-body-sm text-on-surface-variant">Generate tailored practice exercises</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+
       </div>
     </AppLayout>
   );

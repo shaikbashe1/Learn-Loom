@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Certificate Verification - LearnLoom</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed": "#f0dbff",
+                        "surface-bright": "#39393b",
+                        "on-primary-container": "#0d0096",
+                        "surface-container": "#201f22",
+                        "on-tertiary": "#4f2500",
+                        "surface-low": "#1c1b1d",
+                        "on-surface-variant": "#c7c4d7",
+                        "inverse-on-surface": "#313032",
+                        "inverse-surface": "#e5e1e4",
+                        "on-surface": "#e5e1e4",
+                        "on-secondary-fixed": "#2c0051",
+                        "on-error": "#690005",
+                        "outline-muted": "#464554",
+                        "surface": "#131315",
+                        "surface-variant": "#353437",
+                        "surface-container-high": "#2a2a2c",
+                        "secondary": "#ddb7ff",
+                        "outline": "#908fa0",
+                        "outline-variant": "#464554",
+                        "on-error-container": "#ffdad6",
+                        "inverse-primary": "#494bd6",
+                        "on-tertiary-fixed-variant": "#713700",
+                        "on-primary-fixed-variant": "#2f2ebe",
+                        "on-background": "#e5e1e4",
+                        "tertiary": "#ffb783",
+                        "primary": "#c0c1ff",
+                        "secondary-container": "#6f00be",
+                        "on-secondary": "#490080",
+                        "surface-container-low": "#1c1b1d",
+                        "on-primary-fixed": "#07006c",
+                        "on-secondary-container": "#d6a9ff",
+                        "surface-container-highest": "#353437",
+                        "surface-container-lowest": "#0e0e10",
+                        "surface-lowest": "#0e0e10",
+                        "gold-tier": "#ffb783",
+                        "tertiary-container": "#d97721",
+                        "on-primary": "#1000a9",
+                        "on-secondary-fixed-variant": "#6900b3",
+                        "tertiary-fixed": "#ffdcc5",
+                        "surface-tint": "#c0c1ff",
+                        "primary-fixed": "#e1e0ff",
+                        "surface-dim": "#131315",
+                        "primary-fixed-dim": "#c0c1ff",
+                        "primary-container": "#8083ff",
+                        "on-tertiary-container": "#451f00",
+                        "error-container": "#93000a",
+                        "tertiary-fixed-dim": "#ffb783",
+                        "background": "#131315",
+                        "secondary-fixed-dim": "#ddb7ff",
+                        "on-tertiary-fixed": "#301400",
+                        "error": "#ffb4ab"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "2xl": "3rem",
+                        "sm": "0.5rem",
+                        "md": "1rem",
+                        "xl": "2rem",
+                        "xs": "0.25rem",
+                        "margin": "2rem",
+                        "lg": "1.5rem",
+                        "gutter": "1.5rem"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Geist"],
+                        "body-md": ["Geist"],
+                        "headline-lg-mobile": ["Geist"],
+                        "label-md": ["JetBrains Mono"],
+                        "display": ["Geist"],
+                        "body-lg": ["Geist"],
+                        "label-sm": ["JetBrains Mono"],
+                        "headline-lg": ["Geist"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "label-md": ["14px", { "lineHeight": "1.2", "fontWeight": "500" }],
+                        "display": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.05em", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "1.2", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(28, 27, 29, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(70, 69, 84, 0.6);
+        }
+        .cert-glow {
+            box-shadow: 0 0 32px rgba(192, 193, 255, 0.15);
+        }
+        .verified-badge-glow {
+            box-shadow: 0 0 16px rgba(192, 193, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen font-body-md antialiased overflow-x-hidden flex flex-col">
+<!-- TopNavBar (Suppressed due to linear/transactional intent of a public verification page, prioritizing canvas content) -->
+<!-- Main Content Canvas -->
+<main class="flex-grow flex items-center justify-center p-md md:p-xl lg:p-2xl w-full max-w-[1440px] mx-auto relative z-10 pt-16 md:pt-2xl">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-xl lg:gap-2xl w-full max-w-6xl items-start">
+<!-- Left Column: Certificate Preview (Digital Twin) -->
+<div class="lg:col-span-7 flex flex-col gap-md lg:gap-xl order-2 lg:order-1">
+<div class="glass-panel rounded-xl overflow-hidden cert-glow relative group cursor-pointer transition-transform duration-300 hover:scale-[1.01]">
+<!-- Placeholder for the actual certificate image -->
+<div class="w-full aspect-[1.414/1] bg-surface-container-lowest relative flex items-center justify-center p-md">
+<img alt="Certificate Document" class="w-full h-full object-cover rounded shadow-lg opacity-80 mix-blend-luminosity group-hover:mix-blend-normal transition-all duration-500" data-alt="A highly detailed, professional digital certificate or diploma displayed against a dark, minimalist background. The document features sophisticated typography, geometric security patterns, and a prominent metallic or glowing holographic seal indicating authenticity. The lighting is dramatic, emphasizing the texture of the digital paper and highlighting the technological, premium EdTech aesthetic of the LearnLoom brand in deep tech dark mode." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAh4OeEfSwTp6V2Tt8-1wjaovVor9GHxLfSNfv9sxtSsim_dVXjYK9TMlPZqBUBFe7ND8YUX2omuA9lFMxInr5rRVIPxY-U-D4tbcnt80u3Ei6RuaK8prfNHR5rsdV8dGza3CmZN2ZJszvNDDLCC5HwHOkxOjP4vZWVI5k1C14A93BHOZEQ0jwJPTSzVI8oX47uFUjEL_u6kNU1m6S_4QAtPOzB8-2Jtwoe1FlKnrSFgKNVKr8u5UwXQKBt33b7oZuCugjZLznaGmE"/>
+<!-- Overlay to mimic digital twin scanning -->
+<div class="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-primary/10 pointer-events-none"></div>
+<div class="absolute top-0 left-0 w-full h-1 bg-primary/30 animate-[scan_3s_ease-in-out_infinite]"></div>
+</div>
+</div>
+<div class="flex justify-between items-center px-sm">
+<button class="flex items-center gap-sm text-primary hover:text-primary-fixed transition-colors font-label-md text-label-md">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                        Download PDF
+                    </button>
+<button class="flex items-center gap-sm text-on-surface-variant hover:text-on-surface transition-colors font-label-md text-label-md">
+<span class="material-symbols-outlined text-[18px]">share</span>
+                        Share Link
+                    </button>
+</div>
+</div>
+<!-- Right Column: Verification Details & Module Grid -->
+<div class="lg:col-span-5 flex flex-col gap-xl order-1 lg:order-2">
+<!-- Verification Status Header -->
+<div class="flex flex-col gap-md">
+<div class="inline-flex items-center gap-sm bg-primary/10 border border-primary/30 px-md py-sm rounded-full w-fit verified-badge-glow">
+<span class="material-symbols-outlined text-primary text-[20px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="font-label-md text-label-md text-primary tracking-wide uppercase">Authenticity Verified</span>
+</div>
+<h1 class="font-display text-display text-on-surface mt-sm">
+                        Advanced React Architecture
+                    </h1>
+<div class="flex items-center gap-md text-on-surface-variant border-b border-outline-variant/60 pb-md">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-[20px]">person</span>
+<span class="font-body-lg text-body-lg text-on-surface">Alex Mercer</span>
+</div>
+<span class="w-1 h-1 rounded-full bg-outline-muted"></span>
+<div class="flex items-center gap-sm font-label-md text-label-md">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+                            Issued: Oct 24, 2023
+                        </div>
+</div>
+</div>
+<!-- Web3 Details Bento -->
+<div class="glass-panel p-md rounded-xl flex flex-col gap-md">
+<h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary">database</span>
+                        Ledger Record
+                    </h3>
+<div class="grid grid-cols-2 gap-md">
+<div class="flex flex-col gap-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Credential ID</span>
+<span class="font-label-md text-label-md text-on-surface font-mono bg-surface-container px-2 py-1 rounded w-fit">LL-8X9A-4M2P</span>
+</div>
+<div class="flex flex-col gap-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Network</span>
+<span class="font-label-md text-label-md text-on-surface flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                                Ethereum Mainnet
+                            </span>
+</div>
+<div class="flex flex-col gap-xs col-span-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Transaction Hash</span>
+<div class="font-label-md text-label-md text-on-surface font-mono bg-surface-container px-2 py-1 rounded truncate flex items-center justify-between group cursor-pointer hover:bg-surface-container-high transition-colors">
+<span class="truncate">0x7a8b9c...3d4e5f</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant group-hover:text-primary">content_copy</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Validation Data Grid (Modules Completed) -->
+<div class="flex flex-col gap-md mt-sm">
+<h3 class="font-headline-md text-headline-md text-on-surface">Validated Competencies</h3>
+<div class="flex flex-col gap-sm">
+<!-- Module Item -->
+<div class="glass-panel p-sm px-md rounded-lg flex items-center justify-between hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-body-md text-body-md text-on-surface">State Management Patterns</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container px-2 py-1 rounded">100% Score</span>
+</div>
+<!-- Module Item -->
+<div class="glass-panel p-sm px-md rounded-lg flex items-center justify-between hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-body-md text-body-md text-on-surface">Performance Optimization</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container px-2 py-1 rounded">Pass</span>
+</div>
+<!-- Module Item -->
+<div class="glass-panel p-sm px-md rounded-lg flex items-center justify-between hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-body-md text-body-md text-on-surface">Server-Side Rendering (SSR)</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container px-2 py-1 rounded">Honors</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Ambient Background Elements -->
+<div class="fixed top-0 left-1/4 w-[50vw] h-[50vw] bg-primary/5 rounded-full blur-[120px] pointer-events-none -z-10 mix-blend-screen"></div>
+<div class="fixed bottom-0 right-1/4 w-[40vw] h-[40vw] bg-secondary/5 rounded-full blur-[100px] pointer-events-none -z-10 mix-blend-screen"></div>
+<style>
+        @keyframes scan {
+            0% { transform: translateY(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(100%); opacity: 0; }
+        }
+    </style>
+</body></html>

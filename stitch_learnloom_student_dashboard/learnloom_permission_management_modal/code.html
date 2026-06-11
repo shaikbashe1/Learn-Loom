@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Manage Permissions: GitHub - LearnLoom</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                            "primary-fixed-dim": "#c0c1ff",
+                            "background": "#131315",
+                            "outline": "#908fa0",
+                            "on-tertiary": "#4f2500",
+                            "surface-variant": "#353437",
+                            "outline-variant": "#464554",
+                            "inverse-on-surface": "#313032",
+                            "on-primary-fixed-variant": "#2f2ebe",
+                            "secondary": "#ddb7ff",
+                            "error": "#ffb4ab",
+                            "surface-container-low": "#1c1b1d",
+                            "on-primary": "#1000a9",
+                            "error-container": "#93000a",
+                            "tertiary": "#ffb783",
+                            "surface-container-high": "#2a2a2c",
+                            "surface-container-highest": "#353437",
+                            "secondary-fixed-dim": "#ddb7ff",
+                            "on-secondary-container": "#d6a9ff",
+                            "surface-bright": "#39393b",
+                            "primary-container": "#8083ff",
+                            "primary": "#c0c1ff",
+                            "on-background": "#e5e1e4",
+                            "on-secondary-fixed": "#2c0051",
+                            "inverse-primary": "#494bd6",
+                            "tertiary-container": "#d97721",
+                            "on-surface": "#e5e1e4",
+                            "tertiary-fixed-dim": "#ffb783",
+                            "secondary-container": "#6f00be",
+                            "secondary-fixed": "#f0dbff",
+                            "on-primary-fixed": "#07006c",
+                            "on-tertiary-container": "#452000",
+                            "tertiary-fixed": "#ffdcc5",
+                            "surface-container-lowest": "#0e0e10",
+                            "on-error": "#690005",
+                            "surface": "#131315",
+                            "surface-tint": "#c0c1ff",
+                            "on-secondary": "#490080",
+                            "on-tertiary-fixed-variant": "#703700",
+                            "on-tertiary-fixed": "#301400",
+                            "on-secondary-fixed-variant": "#6900b3",
+                            "primary-fixed": "#e1e0ff",
+                            "on-surface-variant": "#c7c4d7",
+                            "on-error-container": "#ffdad6",
+                            "on-primary-container": "#0d0096",
+                            "surface-dim": "#131315",
+                            "surface-container": "#201f22",
+                            "inverse-surface": "#e5e1e4"
+                    },
+                    "borderRadius": {
+                            "DEFAULT": "0.25rem",
+                            "lg": "0.5rem",
+                            "xl": "0.75rem",
+                            "full": "9999px"
+                    },
+                    "spacing": {
+                            "lg": "1.5rem",
+                            "gutter": "1.5rem",
+                            "base": "4px",
+                            "sm": "0.5rem",
+                            "md": "1rem",
+                            "xs": "0.25rem",
+                            "xl": "2rem",
+                            "margin": "2rem",
+                            "2xl": "3rem"
+                    },
+                    "fontFamily": {
+                            "body-sm": [
+                                    "Geist"
+                            ],
+                            "headline-md": [
+                                    "Geist"
+                            ],
+                            "label-md": [
+                                    "JetBrains Mono"
+                            ],
+                            "display": [
+                                    "Geist"
+                            ],
+                            "body-lg": [
+                                    "Geist"
+                            ],
+                            "headline-lg": [
+                                    "Geist"
+                            ],
+                            "headline-lg-mobile": [
+                                    "Geist"
+                            ],
+                            "label-sm": [
+                                    "JetBrains Mono"
+                            ],
+                            "body-md": [
+                                    "Geist"
+                            ]
+                    },
+                    "fontSize": {
+                            "body-sm": [
+                                    "14px",
+                                    {
+                                            "lineHeight": "1.5",
+                                            "fontWeight": "400"
+                                    }
+                            ],
+                            "headline-md": [
+                                    "24px",
+                                    {
+                                            "lineHeight": "1.3",
+                                            "fontWeight": "600"
+                                    }
+                            ],
+                            "label-md": [
+                                    "14px",
+                                    {
+                                            "lineHeight": "1.2",
+                                            "fontWeight": "500"
+                                    }
+                            ],
+                            "display": [
+                                    "48px",
+                                    {
+                                            "lineHeight": "1.1",
+                                            "letterSpacing": "-0.05em",
+                                            "fontWeight": "700"
+                                    }
+                            ],
+                            "body-lg": [
+                                    "18px",
+                                    {
+                                            "lineHeight": "1.6",
+                                            "fontWeight": "400"
+                                    }
+                            ],
+                            "headline-lg": [
+                                    "32px",
+                                    {
+                                            "lineHeight": "1.2",
+                                            "letterSpacing": "-0.02em",
+                                            "fontWeight": "600"
+                                    }
+                            ],
+                            "headline-lg-mobile": [
+                                    "24px",
+                                    {
+                                            "lineHeight": "1.2",
+                                            "fontWeight": "600"
+                                    }
+                            ],
+                            "label-sm": [
+                                    "12px",
+                                    {
+                                            "lineHeight": "1.2",
+                                            "fontWeight": "500"
+                                    }
+                            ],
+                            "body-md": [
+                                    "16px",
+                                    {
+                                            "lineHeight": "1.6",
+                                            "fontWeight": "400"
+                                    }
+                            ]
+                    }
+            },
+                },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for inner modal content */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: theme('colors.surface-variant');
+            border-radius: theme('borderRadius.full');
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased overflow-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- Background App (Simulated screenshot context) -->
+<div class="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-40 blur-sm grayscale-[50%]" data-alt="A dark-themed developer dashboard interface showing connected applications. The screen features subtle dark gray panels with icons representing various development tools like GitHub, Slack, and Jira. The aesthetic is clean, minimalist, and highly technical. The lighting is low-key, emphasizing data density and focus." style="background-image: url('https://lh3.googleusercontent.com/aida/AP1WRLt_eV3Xidxa3nMEdfSMcTVAh3DgfOuWHaAmqEbynrF3SuRVwYMdp31rdOuDy_ZHnVP1dDr3oRgy2pDfl7FdwHCYBUn87LjzuIkytswCSkM21I4HWRbq3Ddbgtecc3U5BQBlXBFq7wDQ0qAN47LNVd8lrvexP6ccavKKu9c9kZwbrjoRCPFjI8EVHeZ2VFEBa_CEdArKykNy8rj-Z5n8wl7jvJMCFBL3XeVpG9r_7xX12xq1s9Ns6QgZKOc');"></div>
+<!-- Modal Overlay Backdrop -->
+<div class="fixed inset-0 z-40 bg-background/80 backdrop-blur-md transition-opacity duration-300" id="modal-backdrop"></div>
+<!-- Modal Container -->
+<div aria-labelledby="modal-title" aria-modal="true" class="fixed inset-0 z-50 flex items-center justify-center p-md sm:p-gutter" role="dialog">
+<!-- Modal Content Box -->
+<div class="w-full max-w-2xl bg-surface-container-low border border-outline-variant/60 rounded-xl shadow-2xl overflow-hidden flex flex-col transform transition-all duration-300 scale-100 opacity-100">
+<!-- Header -->
+<div class="p-gutter border-b border-outline-variant/60 flex items-start gap-md">
+<div class="flex-shrink-0 w-12 h-12 bg-surface-container-high rounded-lg flex items-center justify-center border border-outline-variant">
+<span class="material-symbols-outlined text-on-surface" style="font-size: 28px;">code</span>
+</div>
+<div class="flex-1">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-xs" id="modal-title">Manage Permissions: GitHub</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Review and update granular access for your GitHub account.</p>
+</div>
+<button aria-label="Close modal" class="text-on-surface-variant hover:text-on-surface transition-colors p-sm rounded-lg hover:bg-surface-variant focus:outline-none focus:ring-2 focus:ring-primary">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Body (Scrollable) -->
+<div class="p-gutter overflow-y-auto custom-scrollbar flex-1 max-h-[614px] space-y-xl">
+<!-- Permissions List Section -->
+<div>
+<h3 class="font-label-md text-label-md text-on-surface uppercase tracking-wider mb-md text-on-surface-variant">Active Scopes</h3>
+<div class="space-y-sm">
+<!-- Scope Item 1 -->
+<div class="flex items-start justify-between gap-md p-md bg-surface border border-outline-variant/40 rounded-lg hover:border-outline-variant transition-colors group">
+<div class="flex-1">
+<div class="flex items-center gap-sm mb-xs">
+<span class="font-label-md text-label-md text-primary bg-primary/10 px-2 py-1 rounded">repo:read</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Read access to public and private repositories.</p>
+</div>
+<!-- Toggle Switch -->
+<label class="relative inline-flex items-center cursor-pointer mt-1">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-surface after:border-outline-variant after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<!-- Scope Item 2 -->
+<div class="flex items-start justify-between gap-md p-md bg-surface border border-outline-variant/40 rounded-lg hover:border-outline-variant transition-colors group">
+<div class="flex-1">
+<div class="flex items-center gap-sm mb-xs">
+<span class="font-label-md text-label-md text-primary bg-primary/10 px-2 py-1 rounded">user:email</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Access to primary email address.</p>
+</div>
+<!-- Toggle Switch -->
+<label class="relative inline-flex items-center cursor-pointer mt-1">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-surface after:border-outline-variant after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<!-- Scope Item 3 -->
+<div class="flex items-start justify-between gap-md p-md bg-surface border border-outline-variant/40 rounded-lg hover:border-outline-variant transition-colors group">
+<div class="flex-1">
+<div class="flex items-center gap-sm mb-xs">
+<span class="font-label-md text-label-md text-primary bg-primary/10 px-2 py-1 rounded">read:org</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Read-only access to organization membership.</p>
+</div>
+<!-- Toggle Switch -->
+<label class="relative inline-flex items-center cursor-pointer mt-1">
+<input class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-surface after:border-outline-variant after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<!-- Scope Item 4 -->
+<div class="flex items-start justify-between gap-md p-md bg-surface border border-outline-variant/40 rounded-lg hover:border-outline-variant transition-colors group">
+<div class="flex-1">
+<div class="flex items-center gap-sm mb-xs">
+<span class="font-label-md text-label-md text-primary bg-primary/10 px-2 py-1 rounded">workflow</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Update GitHub Action workflows.</p>
+</div>
+<!-- Toggle Switch -->
+<label class="relative inline-flex items-center cursor-pointer mt-1">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-surface after:border-outline-variant after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</div>
+<!-- Danger Zone Section -->
+<div class="border border-error/20 bg-error/5 rounded-lg p-md">
+<h3 class="font-label-md text-label-md text-error uppercase tracking-wider mb-xs">Danger Zone</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-md">This action will immediately remove all access LearnLoom has to your GitHub account.</p>
+<button class="font-label-md text-label-md text-error border border-error/50 hover:bg-error/10 px-md py-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-error flex items-center gap-sm">
+<span class="material-symbols-outlined text-[18px]">link_off</span>
+                        Disconnect App
+                    </button>
+</div>
+</div>
+<!-- Footer -->
+<div class="p-gutter border-t border-outline-variant/60 bg-surface-container-high flex justify-end gap-md">
+<button class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface px-md py-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-outline-variant">
+                    Cancel
+                </button>
+<button class="font-label-md text-label-md bg-primary text-on-primary hover:bg-primary/90 px-lg py-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary shadow-sm hover:shadow-md">
+                    Save Changes
+                </button>
+</div>
+</div>
+</div>
+</body></html>

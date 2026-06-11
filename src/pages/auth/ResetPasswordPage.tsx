@@ -1,10 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent } from '@/components/ui/card';
-import { Zap, Lock, Eye, EyeOff, CheckCircle, Loader2 } from 'lucide-react';
 import { supabase } from '@/db/supabase';
 import { toast } from 'sonner';
 
@@ -50,114 +45,101 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Left panel */}
-      <div className="hidden lg:flex lg:w-2/5 bg-secondary flex-col items-center justify-center p-12 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary rounded-full blur-3xl" />
-        </div>
-        <div className="relative z-10 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center mx-auto mb-6 shadow-lg">
-            <Zap className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-white mb-3">LearnLoom</h1>
-          <p className="text-slate-300 text-sm leading-relaxed max-w-xs text-pretty">
-            Choose a strong, unique password to keep your account secure.
-          </p>
-        </div>
-      </div>
+    <div className="bg-background text-on-surface font-body-md min-h-screen flex items-center justify-center p-gutter relative overflow-hidden">
+      {/* Abstract Background */}
+      <div className="fixed top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(192,193,255,0.05)_0%,rgba(19,19,21,1)_70%)] -z-20 pointer-events-none"></div>
+      
+      {/* Nebula Blobs */}
+      <div className="fixed rounded-full blur-[100px] opacity-30 -z-10 animate-[pulse_10s_ease-in-out_infinite_alternate]" style={{ top: '-10%', left: '20%', width: '40vw', height: '40vw', background: 'rgba(128, 131, 255, 0.15)' }}></div>
+      <div className="fixed rounded-full blur-[100px] opacity-30 -z-10 animate-[pulse_12s_ease-in-out_infinite_alternate_reverse]" style={{ bottom: '-10%', right: '10%', width: '50vw', height: '50vw', background: 'rgba(221, 183, 255, 0.1)' }}></div>
 
-      {/* Right panel */}
-      <div className="flex-1 flex items-center justify-center p-6 bg-background">
-        <div className="w-full max-w-sm">
-          <div className="lg:hidden flex items-center justify-center gap-2 mb-8">
-            <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
-              <Zap className="w-5 h-5 text-white" />
+      <main className="w-full max-w-md relative z-10 py-2xl">
+        {/* Brand Header */}
+        <div className="text-center mb-2xl">
+          <h1 className="font-display text-display text-primary tracking-tight mb-sm">LearnLoom</h1>
+          <p className="font-body-lg text-body-lg text-on-surface-variant">Engineer your potential.</p>
+        </div>
+
+        <div className="bg-surface-container-lowest/80 backdrop-blur-xl border border-outline-variant/60 rounded-xl p-xl sm:p-2xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] relative group transition-all duration-300 hover:border-outline-variant">
+          {done ? (
+            <div className="text-center py-sm space-y-md">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-md">
+                <span className="material-symbols-outlined text-[32px] text-primary">check_circle</span>
+              </div>
+              <h2 className="font-headline-md text-headline-md text-on-surface mb-xs">Password updated!</h2>
+              <p className="font-body-md text-body-md text-on-surface-variant text-pretty mb-xl">
+                Your password has been successfully updated. Redirecting you to sign in...
+              </p>
+              
+              <Link to="/login" className="block w-full bg-primary text-on-primary font-label-md text-label-md rounded-full py-md hover:bg-primary-fixed transition-colors shadow-[0_0_15px_rgba(192,193,255,0.2)]">
+                Go to Sign In
+              </Link>
             </div>
-            <span className="text-xl font-bold gradient-text">LearnLoom</span>
-          </div>
+          ) : (
+            <>
+              <div className="mb-xl text-center">
+                <h2 className="font-headline-md text-headline-md text-on-surface mb-xs">Set new password</h2>
+                <p className="font-body-md text-body-md text-on-surface-variant">
+                  Enter your new password below
+                </p>
+              </div>
 
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-foreground text-balance">
-              {done ? 'Password updated!' : 'Set new password'}
-            </h2>
-            <p className="text-muted-foreground text-sm mt-1">
-              {done ? 'Redirecting you to sign in…' : 'Enter your new password below'}
-            </p>
-          </div>
-
-          <Card className="bg-card border-border shadow-md">
-            <CardContent className="p-6">
-              {done ? (
-                <div className="text-center py-4 space-y-4">
-                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-                    <CheckCircle className="w-8 h-8 text-primary" />
+              <form onSubmit={handleSubmit} className="flex flex-col gap-lg">
+                {/* Password Field */}
+                <div>
+                  <label className="block font-label-md text-label-md text-on-surface-variant mb-sm" htmlFor="password">NEW_AUTH_KEY</label>
+                  <div className="relative">
+                    <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline-muted">lock</span>
+                    <input 
+                      id="password" 
+                      type={showPassword ? 'text' : 'password'} 
+                      required 
+                      minLength={6}
+                      placeholder="At least 6 characters"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      className="w-full bg-surface-container border border-outline-variant text-on-surface focus:border-primary focus:bg-surface-container-high focus:outline-none focus:ring-1 focus:ring-primary rounded-full py-md pl-[3.5rem] pr-12 font-body-md text-body-md placeholder:text-outline transition-all duration-200" 
+                    />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-md top-1/2 -translate-y-1/2 text-outline-muted hover:text-on-surface transition-colors flex items-center justify-center">
+                      <span className="material-symbols-outlined text-[20px]">{showPassword ? 'visibility_off' : 'visibility'}</span>
+                    </button>
                   </div>
-                  <p className="text-sm text-muted-foreground">Your password has been successfully updated.</p>
-                  <Link to="/login">
-                    <Button className="w-full bg-secondary text-white hover:bg-secondary/90 h-11">
-                      Go to Sign In
-                    </Button>
-                  </Link>
                 </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="password" className="text-sm font-normal text-foreground">New Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="password"
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="At least 6 characters"
-                        className="pl-10 pr-10 bg-background border-border text-foreground"
-                        value={password}
-                        onChange={e => setPassword(e.target.value)}
-                        required
-                        minLength={6}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(p => !p)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        aria-label={showPassword ? 'Hide password' : 'Show password'}
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
+
+                {/* Confirm Password Field */}
+                <div>
+                  <label className="block font-label-md text-label-md text-on-surface-variant mb-sm" htmlFor="confirm">VERIFY_NEW_AUTH_KEY</label>
+                  <div className="relative">
+                    <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline-muted">lock</span>
+                    <input 
+                      id="confirm" 
+                      type={showPassword ? 'text' : 'password'} 
+                      required 
+                      placeholder="Repeat your new password"
+                      value={confirmPassword}
+                      onChange={e => setConfirmPassword(e.target.value)}
+                      className={`w-full bg-surface-container border ${confirmPassword && password !== confirmPassword ? 'border-error focus:border-error focus:ring-error' : 'border-outline-variant focus:border-primary focus:ring-primary'} text-on-surface focus:bg-surface-container-high focus:outline-none focus:ring-1 rounded-full py-md pl-[3.5rem] pr-12 font-body-md text-body-md placeholder:text-outline transition-all duration-200`} 
+                    />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="confirm" className="text-sm font-normal text-foreground">Confirm Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="confirm"
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="Repeat your password"
-                        className="pl-10 bg-background border-border text-foreground"
-                        value={confirmPassword}
-                        onChange={e => setConfirmPassword(e.target.value)}
-                        required
-                      />
-                    </div>
-                    {confirmPassword && password !== confirmPassword && (
-                      <p className="text-xs text-destructive">Passwords do not match</p>
-                    )}
-                  </div>
-                  <Button
-                    type="submit"
-                    disabled={loading || !password || !confirmPassword}
-                    className="w-full bg-secondary text-white hover:bg-secondary/90 h-11 font-medium shadow-sm disabled:opacity-50"
-                  >
-                    {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    Update Password
-                  </Button>
-                </form>
-              )}
-            </CardContent>
-          </Card>
+                  {confirmPassword && password !== confirmPassword && (
+                    <p className="text-error font-label-sm mt-xs">Keys do not match</p>
+                  )}
+                </div>
+
+                {/* Primary Action */}
+                <button 
+                  type="submit" 
+                  disabled={loading || !password || !confirmPassword}
+                  className="w-full bg-primary text-on-primary font-headline-md text-headline-md rounded-full py-md mt-sm hover:bg-primary-fixed transition-all shadow-[0_0_15px_rgba(192,193,255,0.2)] hover:shadow-[0_0_20px_rgba(192,193,255,0.4)] active:scale-[0.98] disabled:opacity-70 disabled:pointer-events-none flex justify-center items-center gap-sm"
+                >
+                  {loading ? <span className="material-symbols-outlined animate-spin">sync</span> : null}
+                  Update Password
+                </button>
+              </form>
+            </>
+          )}
         </div>
-      </div>
+      </main>
     </div>
   );
 }

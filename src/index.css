@@ -1,7 +1,7 @@
 /* stylelint-disable */
 @import '@clerk/ui/themes/shadcn.css';
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -129,14 +129,14 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Geist', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply text-balance;
-    font-family: 'Poppins', 'Inter', system-ui, sans-serif;
+    font-family: 'Geist', system-ui, sans-serif;
     font-weight: 600;
   }
 
@@ -191,6 +191,15 @@
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255,255,255,0.10);
   }
+  .glass-panel {
+    background: rgba(42, 42, 44, 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(144, 143, 160, 0.2);
+  }
+  .podium-glow-1 { box-shadow: 0 0 40px rgba(192, 193, 255, 0.15); }
+  .podium-glow-2 { box-shadow: 0 0 30px rgba(214, 169, 255, 0.1); }
+  .podium-glow-3 { box-shadow: 0 0 20px rgba(255, 183, 131, 0.08); }
 
   .badge-success { background: hsl(160 84% 39% / 0.1); color: hsl(160 84% 30%); }
   .badge-warning { background: hsl(38 92% 50% / 0.1);  color: hsl(38 80% 38%);  }
