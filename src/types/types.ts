@@ -16,6 +16,8 @@ export interface Profile {
   linkedin_url?: string | null;
   created_at: string;
   updated_at?: string;
+  courses_completed?: number;
+  certificates_earned?: number;
 }
 
 export type DifficultyLevel = 'Beginner' | 'Intermediate' | 'Advanced';
