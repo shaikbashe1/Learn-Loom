@@ -316,128 +316,234 @@ export default function AdminCoursesPage() {
   // ── render ─────────────────────────────────────────────────────────────
   return (
     <AppLayout title="Course Management" isAdmin>
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-foreground text-balance">Course Management</h2>
-            <p className="text-sm text-muted-foreground mt-0.5">{courses.length} course{courses.length !== 1 ? 's' : ''} total</p>
+      <div className="max-w-[1440px] mx-auto w-full space-y-xl pb-xl">
+        
+        {/* Page Header Area */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-xl mb-2xl">
+          <div className="space-y-2">
+            <h1 className="font-display text-display text-on-surface">Course Management</h1>
+            <p className="text-on-surface-variant text-body-lg max-w-2xl">Manage your curriculum, monitor instructor performance, and track student enrollment trends across the LearnLoom ecosystem.</p>
           </div>
-          <Button onClick={openCreate} className="bg-primary text-primary-foreground hover:bg-primary/90">
-            <Plus className="w-4 h-4 mr-2" /> Create Course
-          </Button>
+          <div className="flex gap-md">
+            <button className="px-lg py-md rounded-xl bg-surface-container-high border border-outline-variant text-on-surface hover:bg-surface-variant transition-colors flex items-center gap-2 font-label-md">
+              <span className="material-symbols-outlined">file_download</span> Export CSV
+            </button>
+            <button onClick={openCreate} className="px-lg py-md rounded-xl bg-primary text-on-primary font-bold hover:opacity-90 transition-all flex items-center gap-2 shadow-[0_0_8px_rgba(192,193,255,0.3)]">
+              <span className="material-symbols-outlined">add</span> New Course
+            </button>
+          </div>
         </div>
 
-        {/* Course list */}
-        {loadingList ? (
-          <div className="space-y-3">
-            {[1, 2, 3].map(i => <Skeleton key={i} className="h-24 rounded-lg bg-muted" />)}
+        {/* Bento Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-lg mb-2xl">
+          <div className="glass-panel p-lg rounded-2xl">
+            <div className="flex justify-between items-start mb-md">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <span className="material-symbols-outlined text-primary">library_books</span>
+              </div>
+            </div>
+            <p className="text-on-surface-variant text-label-md mb-xs">Total Courses</p>
+            <h3 className="font-display text-headline-lg text-on-surface">{courses.length}</h3>
           </div>
-        ) : courses.length === 0 ? (
-          <Card className="bg-card border-border">
-            <CardContent className="flex flex-col items-center justify-center py-16 text-center gap-3">
-              <BookOpen className="w-12 h-12 text-muted-foreground/40" />
-              <p className="text-muted-foreground">No courses yet. Click <strong>Create Course</strong> to get started.</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-3">
-            {courses.map(course => (
-              <Card key={course.id} className="bg-card border-border h-full">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                      <BookOpen className="w-5 h-5 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2 flex-wrap">
-                        <div className="min-w-0">
-                          <h3 className="font-semibold text-foreground truncate">{course.title}</h3>
-                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 text-pretty">{course.description ?? 'No description'}</p>
+          <div className="glass-panel p-lg rounded-2xl">
+            <div className="flex justify-between items-start mb-md">
+              <div className="w-12 h-12 rounded-xl bg-secondary-container/20 flex items-center justify-center">
+                <span className="material-symbols-outlined text-secondary">group</span>
+              </div>
+            </div>
+            <p className="text-on-surface-variant text-label-md mb-xs">Active Students</p>
+            <h3 className="font-display text-headline-lg text-on-surface">
+              {courses.reduce((acc, c) => acc + (c.student_count ?? 0), 0).toLocaleString()}
+            </h3>
+          </div>
+          <div className="glass-panel p-lg rounded-2xl">
+            <div className="flex justify-between items-start mb-md">
+              <div className="w-12 h-12 rounded-xl bg-tertiary-container/20 flex items-center justify-center">
+                <span className="material-symbols-outlined text-tertiary">star</span>
+              </div>
+            </div>
+            <p className="text-on-surface-variant text-label-md mb-xs">Avg. Course Rating</p>
+            <h3 className="font-display text-headline-lg text-on-surface">4.82</h3>
+          </div>
+          <div className="glass-panel p-lg rounded-2xl overflow-hidden relative">
+            <div className="relative z-10">
+              <div className="flex justify-between items-start mb-md">
+                <div className="w-12 h-12 rounded-xl bg-outline-variant/30 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-on-surface">payments</span>
+                </div>
+              </div>
+              <p className="text-on-surface-variant text-label-md mb-xs">Monthly Revenue</p>
+              <h3 className="font-display text-headline-lg text-on-surface">$248.3k</h3>
+            </div>
+          </div>
+        </div>
+
+        {/* Table Container */}
+        <div className="glass-panel rounded-2xl overflow-hidden flex flex-col">
+          {/* Filters Bar */}
+          <div className="p-lg border-b border-outline-variant/60 flex flex-col lg:flex-row gap-lg items-center">
+            <div className="relative w-full lg:w-96 group">
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">search</span>
+              <input 
+                className="w-full bg-surface-container-low border border-outline-variant rounded-full py-3 pl-12 pr-6 text-on-surface focus:outline-none focus:border-primary transition-all font-body-md" 
+                placeholder="Search course title, ID or instructor..." 
+                type="text"
+              />
+            </div>
+            <div className="flex items-center gap-md w-full lg:w-auto overflow-x-auto no-scrollbar">
+              <button className="flex items-center gap-2 px-md py-2 rounded-lg bg-surface-container-high border border-outline-variant text-on-surface-variant whitespace-nowrap hover:bg-surface-variant transition-colors">
+                <span className="material-symbols-outlined text-sm">filter_list</span>
+                <span className="font-label-md">Category: All</span>
+              </button>
+              <button className="flex items-center gap-2 px-md py-2 rounded-lg bg-surface-container-high border border-outline-variant text-on-surface-variant whitespace-nowrap hover:bg-surface-variant transition-colors">
+                <span className="material-symbols-outlined text-sm">calendar_month</span>
+                <span className="font-label-md">Status: Active</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Table Content */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[800px]">
+              <thead>
+                <tr className="bg-surface-container-highest/50">
+                  <th className="px-lg py-md font-label-md text-on-surface-variant uppercase tracking-wider border-b border-outline-variant/60">
+                    <div className="flex items-center gap-2">Course Title</div>
+                  </th>
+                  <th className="px-lg py-md font-label-md text-on-surface-variant uppercase tracking-wider border-b border-outline-variant/60">Difficulty</th>
+                  <th className="px-lg py-md font-label-md text-on-surface-variant uppercase tracking-wider border-b border-outline-variant/60 text-right">Enrollment</th>
+                  <th className="px-lg py-md font-label-md text-on-surface-variant uppercase tracking-wider border-b border-outline-variant/60">Status</th>
+                  <th className="px-lg py-md font-label-md text-on-surface-variant uppercase tracking-wider border-b border-outline-variant/60 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-outline-variant/30">
+                {loadingList ? (
+                  [...Array(3)].map((_, i) => (
+                    <tr key={i}>
+                      <td colSpan={5} className="px-lg py-md"><Skeleton className="h-16 w-full bg-surface border border-outline-variant/30" /></td>
+                    </tr>
+                  ))
+                ) : courses.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-lg py-16 text-center text-on-surface-variant">
+                      No courses yet. Click <strong>New Course</strong> to get started.
+                    </td>
+                  </tr>
+                ) : (
+                  courses.map((course) => (
+                    <tr key={course.id} className="hover:bg-surface-variant/20 transition-colors group">
+                      <td className="px-lg py-lg">
+                        <div className="flex items-center gap-md">
+                          <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-highest">
+                            {course.thumbnail_url ? (
+                              <img src={course.thumbnail_url} alt={course.title} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-outline">
+                                <span className="material-symbols-outlined text-[32px]">image</span>
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-headline-md text-on-surface group-hover:text-primary transition-colors truncate max-w-xs">{course.title}</p>
+                            <p className="text-label-sm text-on-surface-variant opacity-60">ID: {course.id.split('-')[0]} • {course.category || 'No Category'}</p>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0 flex-wrap">
-                          <Badge variant="outline" className={`text-[11px] ${course.difficulty === 'Beginner' ? 'border-success/40 text-success' : course.difficulty === 'Intermediate' ? 'border-warning/40 text-warning' : 'border-destructive/40 text-destructive'}`}>
-                            {course.difficulty}
-                          </Badge>
-                          <Badge variant="outline" className={`text-[11px] ${course.is_published ? 'border-primary/40 text-primary' : 'border-muted-foreground/30 text-muted-foreground'}`}>
-                            {course.is_published ? '● Published' : '○ Draft'}
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 mt-3 flex-wrap">
-                        {course.youtube_url && (
-                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Video className="w-3 h-3" /> Video
+                      </td>
+                      <td className="px-lg py-lg">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${course.difficulty === 'Beginner' ? 'bg-success/10 text-success border-success/30' : course.difficulty === 'Intermediate' ? 'bg-warning/10 text-warning border-warning/30' : 'bg-destructive/10 text-destructive border-destructive/30'} border`}>
+                          {course.difficulty}
+                        </span>
+                      </td>
+                      <td className="px-lg py-lg text-right font-label-md text-on-surface">
+                        {(course.student_count ?? 0).toLocaleString()}
+                      </td>
+                      <td className="px-lg py-lg">
+                        {course.is_published ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary border border-primary/30">
+                            Active
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-tertiary-container/20 text-tertiary border border-tertiary-container/40">
+                            Drafting
                           </span>
                         )}
-                        {course.notes_url && (
-                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <FileText className="w-3 h-3" /> Notes
-                          </span>
-                        )}
-                        <div className="ml-auto flex gap-1.5">
-                          <Button size="sm" variant="ghost" onClick={() => togglePublish(course)}
-                            className="h-7 text-xs border border-border text-foreground hover:bg-accent px-2">
-                            {course.is_published ? <EyeOff className="w-3 h-3 mr-1" /> : <Globe className="w-3 h-3 mr-1" />}
-                            {course.is_published ? 'Unpublish' : 'Publish'}
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => openEdit(course)}
-                            className="h-7 text-xs border border-border text-foreground hover:bg-accent px-2">
-                            <Edit2 className="w-3 h-3 mr-1" /> Edit
-                          </Button>
-                          <Button size="sm" variant="ghost" disabled={deleting === course.id}
-                            onClick={() => deleteCourse(course.id)}
-                            className="h-7 w-7 border border-destructive/30 text-destructive hover:bg-destructive/10 p-0">
-                            {deleting === course.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
-                          </Button>
+                      </td>
+                      <td className="px-lg py-lg text-right">
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => togglePublish(course)} className="p-2 hover:bg-surface-variant rounded-lg transition-colors text-on-surface-variant" title={course.is_published ? 'Unpublish' : 'Publish'}>
+                            <span className="material-symbols-outlined text-[20px]">{course.is_published ? 'visibility_off' : 'visibility'}</span>
+                          </button>
+                          <button onClick={() => openEdit(course)} className="p-2 hover:bg-surface-variant rounded-lg transition-colors text-on-surface-variant" title="Edit">
+                            <span className="material-symbols-outlined text-[20px]">edit</span>
+                          </button>
+                          <button disabled={deleting === course.id} onClick={() => deleteCourse(course.id)} className="p-2 hover:bg-error/20 text-error rounded-lg transition-colors" title="Delete">
+                            {deleting === course.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <span className="material-symbols-outlined text-[20px]">delete</span>}
+                          </button>
                         </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
-        )}
+        </div>
+
+        {/* Contextual Insight Banner */}
+        <div className="glass-panel p-xl rounded-3xl relative overflow-hidden flex flex-col md:flex-row items-center gap-xl">
+          <div className="relative z-10 md:w-2/3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary-container/20 text-secondary text-label-sm border border-secondary/30 mb-md">
+              <span className="material-symbols-outlined text-[14px]">auto_awesome</span>
+              AI PERFORMANCE INSIGHT
+            </div>
+            <h2 className="font-display text-headline-lg text-on-surface mb-md">Course completion is up 22% in Cloud Computing</h2>
+            <p className="text-on-surface-variant text-body-md mb-xl">Students are progressing faster through modules with hands-on labs. Consider replicating this architecture for your upcoming drafts to maximize engagement.</p>
+            <button className="px-lg py-md rounded-xl bg-on-surface text-surface-lowest font-bold hover:opacity-90 transition-all">View Analytics Detail</button>
+          </div>
+          <div className="relative md:w-1/3 aspect-video w-full rounded-2xl overflow-hidden bg-primary/10 border border-primary/20 flex items-center justify-center">
+            <span className="material-symbols-outlined text-[64px] text-primary/50">monitoring</span>
+          </div>
+        </div>
+
       </div>
 
       {/* ── Create / Edit Dialog ──────────────────────────────────────────── */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="bg-card border-border max-w-[calc(100%-2rem)] md:max-w-2xl max-h-[90dvh] overflow-y-auto">
+        <DialogContent className="bg-surface-container border-outline-variant max-w-[calc(100%-2rem)] md:max-w-2xl max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-foreground text-balance">
+            <DialogTitle className="text-on-surface text-balance font-display text-headline-md">
               {editingCourse ? 'Edit Course' : 'Create New Course'}
             </DialogTitle>
           </DialogHeader>
 
           <form onSubmit={handleSave}>
             <Tabs defaultValue="info" className="w-full">
-              <TabsList className="grid grid-cols-4 w-full mb-4 bg-muted">
-                <TabsTrigger value="info" className="text-xs"><BookOpen className="w-3 h-3 mr-1 hidden sm:inline" />Info</TabsTrigger>
-                <TabsTrigger value="modules" className="text-xs"><Video className="w-3 h-3 mr-1 hidden sm:inline" />Modules</TabsTrigger>
-                <TabsTrigger value="assignment" className="text-xs"><ClipboardList className="w-3 h-3 mr-1 hidden sm:inline" />Assignment</TabsTrigger>
-                <TabsTrigger value="quiz" className="text-xs"><GraduationCap className="w-3 h-3 mr-1 hidden sm:inline" />Quiz</TabsTrigger>
+              <TabsList className="grid grid-cols-4 w-full mb-4 bg-surface-container-high border border-outline-variant">
+                <TabsTrigger value="info" className="text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary"><BookOpen className="w-3 h-3 mr-1 hidden sm:inline" />Info</TabsTrigger>
+                <TabsTrigger value="modules" className="text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary"><Video className="w-3 h-3 mr-1 hidden sm:inline" />Modules</TabsTrigger>
+                <TabsTrigger value="assignment" className="text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary"><ClipboardList className="w-3 h-3 mr-1 hidden sm:inline" />Assignment</TabsTrigger>
+                <TabsTrigger value="quiz" className="text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary"><GraduationCap className="w-3 h-3 mr-1 hidden sm:inline" />Quiz</TabsTrigger>
               </TabsList>
 
               {/* ── Tab: Course Info ──────────────────────────────────────── */}
               <TabsContent value="info" className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="c-title" className="text-sm font-normal text-foreground">Course Title *</Label>
-                  <Input id="c-title" placeholder="e.g., Python for Beginners" className="bg-input border-border text-foreground"
+                  <Label htmlFor="c-title" className="text-sm font-normal text-on-surface">Course Title *</Label>
+                  <Input id="c-title" placeholder="e.g., Python for Beginners" className="bg-surface-container-lowest border-outline-variant text-on-surface"
                     value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} required />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-sm font-normal text-foreground">Description</Label>
-                  <Textarea placeholder="What students will learn..." className="bg-input border-border text-foreground resize-none" rows={3}
+                  <Label className="text-sm font-normal text-on-surface">Description</Label>
+                  <Textarea placeholder="What students will learn..." className="bg-surface-container-lowest border-outline-variant text-on-surface resize-none" rows={3}
                     value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-sm font-normal text-foreground">Difficulty Level</Label>
+                  <Label className="text-sm font-normal text-on-surface">Difficulty Level</Label>
                   <Select value={form.difficulty} onValueChange={v => setForm(f => ({ ...f, difficulty: v as DifficultyLevel }))}>
-                    <SelectTrigger className="bg-input border-border text-foreground">
+                    <SelectTrigger className="bg-surface-container-lowest border-outline-variant text-on-surface">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-surface-container border-outline-variant text-on-surface">
                       <SelectItem value="Beginner">Beginner</SelectItem>
                       <SelectItem value="Intermediate">Intermediate</SelectItem>
                       <SelectItem value="Advanced">Advanced</SelectItem>
@@ -445,14 +551,14 @@ export default function AdminCoursesPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="c-yt" className="text-sm font-normal text-foreground">YouTube Video URL (intro / main)</Label>
+                  <Label htmlFor="c-yt" className="text-sm font-normal text-on-surface">YouTube Video URL (intro / main)</Label>
                   <div className="relative">
-                    <Video className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input id="c-yt" placeholder="https://www.youtube.com/watch?v=..." className="pl-10 bg-input border-border text-foreground"
+                    <Video className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
+                    <Input id="c-yt" placeholder="https://www.youtube.com/watch?v=..." className="pl-10 bg-surface-container-lowest border-outline-variant text-on-surface"
                       value={form.youtube_url} onChange={e => setForm(f => ({ ...f, youtube_url: e.target.value }))} />
                   </div>
                   {form.youtube_url && youtubeEmbedUrl(form.youtube_url) && (
-                    <div className="aspect-video rounded-lg overflow-hidden border border-border mt-2">
+                    <div className="aspect-video rounded-lg overflow-hidden border border-outline-variant mt-2">
                       <iframe src={youtubeEmbedUrl(form.youtube_url)!} className="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen title="preview" />
                     </div>
                   )}
@@ -468,35 +574,35 @@ export default function AdminCoursesPage() {
               {/* ── Tab: Modules ──────────────────────────────────────────── */}
               <TabsContent value="modules" className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">Add video modules / lessons to this course</p>
+                  <p className="text-sm text-on-surface-variant">Add video modules / lessons to this course</p>
                   <Button type="button" size="sm" variant="ghost" onClick={addModule}
-                    className="border border-border text-foreground hover:bg-accent h-8 text-xs">
+                    className="border border-outline-variant text-on-surface hover:bg-surface-variant h-8 text-xs">
                     <Plus className="w-3 h-3 mr-1" /> Add Module
                   </Button>
                 </div>
                 {modules.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground text-sm border border-dashed border-border rounded-lg">
+                  <div className="text-center py-8 text-on-surface-variant text-sm border border-dashed border-outline-variant rounded-lg">
                     No modules yet — click <strong>Add Module</strong> above
                   </div>
                 )}
                 {modules.map((m, i) => (
-                  <Card key={i} className="bg-muted/30 border-border">
+                  <Card key={i} className="bg-surface-container-lowest border-outline-variant">
                     <CardHeader className="pb-2 pt-3 px-4 flex flex-row items-center justify-between">
-                      <CardTitle className="text-sm text-foreground">Module {i + 1}</CardTitle>
+                      <CardTitle className="text-sm text-on-surface">Module {i + 1}</CardTitle>
                       <Button type="button" size="sm" variant="ghost" onClick={() => removeModule(i)}
-                        className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10">
+                        className="h-6 w-6 p-0 text-error hover:bg-error/10">
                         <X className="w-3 h-3" />
                       </Button>
                     </CardHeader>
                     <CardContent className="px-4 pb-4 space-y-3">
                       <div className="space-y-1">
-                        <Label className="text-xs font-normal text-foreground">Module Title *</Label>
-                        <Input placeholder="e.g., Intro to Variables" className="bg-input border-border text-foreground h-8 text-sm"
+                        <Label className="text-xs font-normal text-on-surface">Module Title *</Label>
+                        <Input placeholder="e.g., Intro to Variables" className="bg-surface border-outline-variant text-on-surface h-8 text-sm"
                           value={m.title} onChange={e => updateModule(i, 'title', e.target.value)} required />
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-xs font-normal text-foreground">YouTube / Content URL</Label>
-                        <Input placeholder="https://youtube.com/watch?v=..." className="bg-input border-border text-foreground h-8 text-sm"
+                        <Label className="text-xs font-normal text-on-surface">YouTube / Content URL</Label>
+                        <Input placeholder="https://youtube.com/watch?v=..." className="bg-surface border-outline-variant text-on-surface h-8 text-sm"
                           value={m.content_url ?? ''} onChange={e => updateModule(i, 'content_url', e.target.value)} />
                       </div>
                       <PdfUploadField
@@ -512,20 +618,20 @@ export default function AdminCoursesPage() {
 
               {/* ── Tab: Assignment ──────────────────────────────────────── */}
               <TabsContent value="assignment" className="space-y-4">
-                <p className="text-sm text-muted-foreground">Attach one assignment to this course</p>
+                <p className="text-sm text-on-surface-variant">Attach one assignment to this course</p>
                 <div className="space-y-2">
-                  <Label className="text-sm font-normal text-foreground">Assignment Title</Label>
-                  <Input placeholder="e.g., Build a Calculator App" className="bg-input border-border text-foreground"
+                  <Label className="text-sm font-normal text-on-surface">Assignment Title</Label>
+                  <Input placeholder="e.g., Build a Calculator App" className="bg-surface-container-lowest border-outline-variant text-on-surface"
                     value={assignment.title} onChange={e => setAssignment(a => ({ ...a, title: e.target.value }))} />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-sm font-normal text-foreground">Instructions</Label>
-                  <Textarea placeholder="Describe what students need to submit..." className="bg-input border-border text-foreground resize-none" rows={5}
+                  <Label className="text-sm font-normal text-on-surface">Instructions</Label>
+                  <Textarea placeholder="Describe what students need to submit..." className="bg-surface-container-lowest border-outline-variant text-on-surface resize-none" rows={5}
                     value={assignment.instructions} onChange={e => setAssignment(a => ({ ...a, instructions: e.target.value }))} />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-sm font-normal text-foreground">Due Days (from enrollment)</Label>
-                  <Input type="number" min={1} max={365} className="bg-input border-border text-foreground w-32"
+                  <Label className="text-sm font-normal text-on-surface">Due Days (from enrollment)</Label>
+                  <Input type="number" min={1} max={365} className="bg-surface-container-lowest border-outline-variant text-on-surface w-32"
                     value={assignment.due_days} onChange={e => setAssignment(a => ({ ...a, due_days: Number(e.target.value) }))} />
                 </div>
               </TabsContent>
@@ -533,49 +639,49 @@ export default function AdminCoursesPage() {
               {/* ── Tab: Quiz ─────────────────────────────────────────────── */}
               <TabsContent value="quiz" className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="text-sm font-normal text-foreground">Quiz Title</Label>
-                  <Input placeholder="e.g., Python Basics Quiz" className="bg-input border-border text-foreground"
+                  <Label className="text-sm font-normal text-on-surface">Quiz Title</Label>
+                  <Input placeholder="e.g., Python Basics Quiz" className="bg-surface-container-lowest border-outline-variant text-on-surface"
                     value={quiz.title} onChange={e => setQuiz(q => ({ ...q, title: e.target.value }))} />
                 </div>
                 <div className="flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">{questions.length} question{questions.length !== 1 ? 's' : ''}</p>
+                  <p className="text-sm text-on-surface-variant">{questions.length} question{questions.length !== 1 ? 's' : ''}</p>
                   <Button type="button" size="sm" variant="ghost" onClick={addQuestion}
-                    className="border border-border text-foreground hover:bg-accent h-8 text-xs">
+                    className="border border-outline-variant text-on-surface hover:bg-surface-variant h-8 text-xs">
                     <Plus className="w-3 h-3 mr-1" /> Add Question
                   </Button>
                 </div>
                 {questions.map((q, qi) => (
-                  <Card key={qi} className="bg-muted/30 border-border">
+                  <Card key={qi} className="bg-surface-container-lowest border-outline-variant">
                     <CardHeader className="pb-2 pt-3 px-4 flex flex-row items-center justify-between">
-                      <CardTitle className="text-sm text-foreground">Q{qi + 1}</CardTitle>
+                      <CardTitle className="text-sm text-on-surface">Q{qi + 1}</CardTitle>
                       {questions.length > 1 && (
                         <Button type="button" size="sm" variant="ghost" onClick={() => removeQuestion(qi)}
-                          className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10">
+                          className="h-6 w-6 p-0 text-error hover:bg-error/10">
                           <X className="w-3 h-3" />
                         </Button>
                       )}
                     </CardHeader>
                     <CardContent className="px-4 pb-4 space-y-3">
                       <div className="space-y-1">
-                        <Label className="text-xs font-normal text-foreground">Question *</Label>
-                        <Textarea placeholder="Type the question..." className="bg-input border-border text-foreground resize-none text-sm" rows={2}
+                        <Label className="text-xs font-normal text-on-surface">Question *</Label>
+                        <Textarea placeholder="Type the question..." className="bg-surface border-outline-variant text-on-surface resize-none text-sm" rows={2}
                           value={q.question} onChange={e => updateQuestion(qi, 'question', e.target.value)} />
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-xs font-normal text-foreground">Answer Options (select correct one)</Label>
+                        <Label className="text-xs font-normal text-on-surface">Answer Options (select correct one)</Label>
                         {q.options.map((opt, oi) => (
                           <div key={oi} className="flex items-center gap-2">
                             <input type="radio" name={`q${qi}-answer`} checked={q.answer_index === oi}
                               onChange={() => updateQuestion(qi, 'answer_index', oi)}
                               className="shrink-0 accent-primary" />
-                            <Input placeholder={`Option ${oi + 1}`} className="bg-input border-border text-foreground h-7 text-xs flex-1"
+                            <Input placeholder={`Option ${oi + 1}`} className="bg-surface border-outline-variant text-on-surface h-7 text-xs flex-1"
                               value={opt} onChange={e => {
                                 const opts = [...q.options]; opts[oi] = e.target.value;
                                 updateQuestion(qi, 'options', opts);
                               }} />
                           </div>
                         ))}
-                        <p className="text-[10px] text-muted-foreground">Select the radio button next to the correct answer</p>
+                        <p className="text-[10px] text-on-surface-variant">Select the radio button next to the correct answer</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -584,13 +690,13 @@ export default function AdminCoursesPage() {
             </Tabs>
 
             {/* Footer buttons */}
-            <div className="flex gap-3 mt-6 pt-4 border-t border-border">
+            <div className="flex gap-3 mt-6 pt-4 border-t border-outline-variant/60">
               <Button type="button" variant="ghost" onClick={() => setDialogOpen(false)}
-                className="flex-1 border border-border text-foreground hover:bg-accent">
+                className="flex-1 border border-outline-variant text-on-surface hover:bg-surface-variant">
                 Cancel
               </Button>
               <Button type="submit" disabled={saving}
-                className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">
+                className="flex-1 bg-primary text-on-primary font-bold hover:opacity-90">
                 {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 {editingCourse ? 'Save Changes' : 'Save as Draft'}
               </Button>

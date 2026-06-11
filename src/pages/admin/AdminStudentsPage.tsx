@@ -80,154 +80,208 @@ export default function AdminStudentsPage() {
 
   return (
     <AppLayout title="Student Management" isAdmin>
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <h2 className="text-2xl font-bold text-foreground text-balance">Student Management</h2>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={fetchStudents} className="border border-border text-foreground hover:bg-accent h-9">
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+      <div className="max-w-[1440px] mx-auto w-full space-y-xl pb-xl">
+        {/* Page Header Area */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-xl mb-2xl">
+          <div className="space-y-2">
+            <h1 className="font-display text-display text-on-surface">Student Directory</h1>
+            <p className="text-on-surface-variant text-body-lg max-w-2xl">Manage your learner ecosystem. Monitor engagement levels, track curriculum progress, and manage administrative permissions across your technical community.</p>
+          </div>
+          <div className="flex gap-md items-center">
+            <Button variant="ghost" size="sm" onClick={fetchStudents} className="border border-outline-variant text-on-surface hover:bg-surface-variant h-11 w-11 rounded-xl">
+              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
             </Button>
-            <span className="text-sm text-muted-foreground">{students.length} total students</span>
+            <button className="px-lg py-md rounded-xl bg-surface-container-high border border-outline-variant text-on-surface hover:bg-surface-variant transition-colors flex items-center gap-2 font-label-md">
+              <span className="material-symbols-outlined text-[18px]">download</span> Export CSV
+            </button>
+            <button className="px-lg py-md rounded-xl bg-primary text-on-primary font-bold hover:opacity-90 transition-all flex items-center gap-2 shadow-[0_0_8px_rgba(192,193,255,0.3)]">
+              <span className="material-symbols-outlined text-[18px]">person_add</span> Invite Student
+            </button>
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { label: 'Total Students', value: students.length, color: 'text-chart-3', bg: 'bg-chart-3/10', icon: Users },
-            { label: 'Avg. Credits', value: avgCredits, color: 'text-chart-4', bg: 'bg-chart-4/10', icon: Zap },
-            { label: 'Active (7d)', value: recentlyActive, color: 'text-chart-5', bg: 'bg-chart-5/10', icon: Flame },
-            { label: 'Total Enrollments', value: totalEnrollments, color: 'text-primary', bg: 'bg-primary/10', icon: BookOpen },
-          ].map(stat => (
-            <Card key={stat.label} className="bg-card border-border h-full">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className={`w-9 h-9 rounded-lg ${stat.bg} flex items-center justify-center shrink-0`}>
-                  <stat.icon className={`w-4 h-4 ${stat.color}`} />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-lg font-bold text-foreground">{loading ? '—' : stat.value}</div>
-                  <div className="text-xs text-muted-foreground">{stat.label}</div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Search by name or email…" className="pl-10 bg-input border-border text-foreground" value={search} onChange={e => setSearch(e.target.value)} />
-        </div>
-
-        <Card className="bg-card border-border">
-          <CardContent className="px-0 pb-0">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border">
-                    {['Student', 'Credits', 'Streak', 'Enrollments', 'Last Active', 'Actions'].map(h => (
-                      <th key={h} className="text-left text-xs font-semibold text-muted-foreground px-4 py-3 whitespace-nowrap">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {loading
-                    ? Array.from({ length: 6 }).map((_, i) => (
-                        <tr key={i}><td colSpan={6} className="px-4 py-3"><Skeleton className="h-10 w-full bg-muted" /></td></tr>
-                      ))
-                    : filtered.length === 0
-                      ? <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-muted-foreground">No students found</td></tr>
-                      : filtered.map(s => {
-                          const name = s.full_name ?? 'Unknown';
-                          const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
-                          return (
-                            <tr key={s.id} className="border-b border-border hover:bg-muted/20 transition-colors">
-                              <td className="px-4 py-3 whitespace-nowrap">
-                                <div className="flex items-center gap-3">
-                                  <Avatar className="w-8 h-8 shrink-0">
-                                    <AvatarFallback className="bg-primary/20 text-primary text-xs font-bold">{initials}</AvatarFallback>
-                                  </Avatar>
-                                  <div className="min-w-0 flex items-center gap-2">
-                                    <div>
-                                      <p className="text-sm font-medium text-foreground">{name}</p>
-                                      <p className="text-xs text-muted-foreground">{s.email ?? '—'}</p>
-                                    </div>
-                                    {s.is_suspended && <Badge variant="destructive" className="h-5 text-[10px]">Suspended</Badge>}
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-4 py-3 whitespace-nowrap">
-                                <div className="flex items-center gap-1">
-                                  <Zap className="w-3 h-3 text-chart-4" />
-                                  <span className="text-sm text-foreground">{s.credits}</span>
-                                </div>
-                              </td>
-                              <td className="px-4 py-3 whitespace-nowrap">
-                                <div className="flex items-center gap-1">
-                                  <Flame className="w-3 h-3 text-chart-5" />
-                                  <span className="text-sm text-foreground">{s.streak_days}d</span>
-                                </div>
-                              </td>
-                              <td className="px-4 py-3 whitespace-nowrap text-sm text-foreground">{s.enrollments_count}</td>
-                              <td className="px-4 py-3 whitespace-nowrap text-sm text-muted-foreground">
-                                {s.last_activity_date ? formatDistanceToNow(new Date(s.last_activity_date), { addSuffix: true }) : 'Never'}
-                              </td>
-                              <td className="px-4 py-3 whitespace-nowrap">
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" className="h-8 w-8 p-0">
-                                      <MoreVertical className="h-4 w-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => { setSelectedStudent(s); setDetailOpen(true); }}>
-                                      <Info className="w-4 h-4 mr-2" /> View Details
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={() => toggleSuspend(s)} className={s.is_suspended ? 'text-green-600' : 'text-destructive'}>
-                                      <ShieldBan className="w-4 h-4 mr-2" /> {s.is_suspended ? 'Unsuspend Student' : 'Suspend Student'}
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </td>
-                            </tr>
-                          );
-                        })
-                  }
-                </tbody>
-              </table>
+        {/* Bento Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-lg mb-2xl">
+          <div className="glass-panel p-lg rounded-xl flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+              <span className="material-symbols-outlined">group</span>
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Total Active</p>
+              <h3 className="font-headline-md text-headline-md text-on-surface">{loading ? '—' : students.length}</h3>
+            </div>
+          </div>
+          <div className="glass-panel p-lg rounded-xl flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+              <span className="material-symbols-outlined">bolt</span>
+            </div>
+            <div>
+              <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Avg Credits</p>
+              <h3 className="font-headline-md text-headline-md text-on-surface">{loading ? '—' : avgCredits}</h3>
+            </div>
+          </div>
+          <div className="glass-panel p-lg rounded-xl flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-tertiary/10 flex items-center justify-center text-tertiary">
+              <span className="material-symbols-outlined">local_fire_department</span>
+            </div>
+            <div>
+              <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Active (7d)</p>
+              <h3 className="font-headline-md text-headline-md text-on-surface">{loading ? '—' : recentlyActive}</h3>
+            </div>
+          </div>
+          <div className="glass-panel p-lg rounded-xl flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-error/10 flex items-center justify-center text-error">
+              <span className="material-symbols-outlined">library_books</span>
+            </div>
+            <div>
+              <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Total Enrollments</p>
+              <h3 className="font-headline-md text-headline-md text-on-surface">{loading ? '—' : totalEnrollments}</h3>
+            </div>
+          </div>
+        </div>
+
+        {/* Directory Table */}
+        <div className="glass-panel rounded-xl overflow-hidden flex flex-col">
+          {/* Table Filter Bar */}
+          <div className="p-lg border-b border-outline-variant/60 flex flex-col lg:flex-row gap-lg justify-between items-center bg-surface-container-low/40">
+            <div className="relative w-full lg:w-[400px]">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
+              <input 
+                className="w-full bg-surface-container-high/50 border border-outline-variant/40 rounded-lg pl-10 pr-4 py-2.5 text-body-md text-on-surface focus:outline-none focus:border-primary transition-all" 
+                placeholder="Filter by name, email..." 
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center gap-md w-full lg:w-auto overflow-x-auto no-scrollbar">
+              <select className="bg-surface-container-high/50 border border-outline-variant/40 rounded-lg px-4 py-2.5 text-label-md text-on-surface focus:outline-none focus:border-primary flex-1 lg:flex-none">
+                <option>Status: All</option>
+                <option>Active</option>
+                <option>Suspended</option>
+              </select>
+              <button className="bg-surface-container-high/50 border border-outline-variant/40 text-on-surface-variant px-md py-2.5 rounded-lg flex items-center justify-center hover:bg-surface-variant transition-colors">
+                <span className="material-symbols-outlined text-[20px]">filter_list</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Table Content */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[1000px]">
+              <thead>
+                <tr className="bg-surface-container-high/30 border-b border-outline-variant/40">
+                  <th className="px-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Student</th>
+                  <th className="px-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Credits</th>
+                  <th className="px-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Streak</th>
+                  <th className="px-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Enrollments</th>
+                  <th className="px-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Last Active</th>
+                  <th className="px-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-outline-variant/20">
+                {loading ? (
+                  Array.from({ length: 6 }).map((_, i) => (
+                    <tr key={i}>
+                      <td colSpan={6} className="px-lg py-4"><Skeleton className="h-10 w-full bg-surface border border-outline-variant/40" /></td>
+                    </tr>
+                  ))
+                ) : filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-lg py-16 text-center text-sm text-on-surface-variant">No students found</td>
+                  </tr>
+                ) : (
+                  filtered.map(s => {
+                    const name = s.full_name ?? 'Unknown';
+                    const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+                    return (
+                      <tr key={s.id} className="hover:bg-surface-variant/20 transition-colors group">
+                        <td className="px-lg py-4">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-10 h-10 shrink-0 border border-outline-variant/40">
+                              <AvatarFallback className="bg-primary/20 text-primary text-xs font-bold">{initials}</AvatarFallback>
+                            </Avatar>
+                            <div className="min-w-0 flex flex-col justify-center">
+                              <div className="flex items-center gap-2">
+                                <p className="font-body-md text-body-md font-bold text-on-surface truncate">{name}</p>
+                                {s.is_suspended && <span className="bg-error/10 text-error border border-error/30 text-[10px] px-2 py-0.5 rounded-full font-bold">Suspended</span>}
+                              </div>
+                              <p className="font-label-sm text-label-sm text-on-surface-variant truncate">{s.email ?? '—'}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-lg py-4">
+                          <div className="flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[16px] text-chart-4">bolt</span>
+                            <span className="text-body-md font-medium text-on-surface">{s.credits.toLocaleString()}</span>
+                          </div>
+                        </td>
+                        <td className="px-lg py-4">
+                          <div className="flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[16px] text-chart-5 text-[#ffb783]">local_fire_department</span>
+                            <span className="text-body-md font-medium text-on-surface">{s.streak_days} days</span>
+                          </div>
+                        </td>
+                        <td className="px-lg py-4">
+                          <span className="text-body-md font-medium text-on-surface">{s.enrollments_count}</span>
+                        </td>
+                        <td className="px-lg py-4">
+                          <p className="text-label-md text-on-surface-variant">
+                            {s.last_activity_date ? formatDistanceToNow(new Date(s.last_activity_date), { addSuffix: true }) : 'Never'}
+                          </p>
+                        </td>
+                        <td className="px-lg py-4 text-right">
+                          <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => { setSelectedStudent(s); setDetailOpen(true); }} className="p-2 rounded-lg text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-all" title="View Details">
+                              <span className="material-symbols-outlined text-[20px]">info</span>
+                            </button>
+                            <button onClick={() => toggleSuspend(s)} className={`p-2 rounded-lg transition-all ${s.is_suspended ? 'text-success hover:bg-success/10' : 'text-on-surface-variant hover:text-error hover:bg-error/10'}`} title={s.is_suspended ? 'Unsuspend' : 'Suspend'}>
+                              <span className="material-symbols-outlined text-[20px]">{s.is_suspended ? 'how_to_reg' : 'person_off'}</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
         <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-          <DialogContent>
+          <DialogContent className="bg-surface-container border-outline-variant text-on-surface">
             <DialogHeader>
-              <DialogTitle>Student Details</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="font-display text-headline-md text-on-surface">Student Details</DialogTitle>
+              <DialogDescription className="text-on-surface-variant">
                 {selectedStudent?.full_name} ({selectedStudent?.email})
               </DialogDescription>
             </DialogHeader>
             {selectedStudent && (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Joined</p>
-                    <p className="text-sm font-medium">{new Date(selectedStudent.created_at).toLocaleDateString()}</p>
+                  <div className="glass-panel p-4 rounded-xl space-y-1">
+                    <p className="text-sm text-on-surface-variant">Joined</p>
+                    <p className="text-lg font-medium text-on-surface">{new Date(selectedStudent.created_at).toLocaleDateString()}</p>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Status</p>
-                    <Badge variant={selectedStudent.is_suspended ? 'destructive' : 'default'}>
-                      {selectedStudent.is_suspended ? 'Suspended' : 'Active'}
-                    </Badge>
+                  <div className="glass-panel p-4 rounded-xl space-y-1">
+                    <p className="text-sm text-on-surface-variant">Status</p>
+                    {selectedStudent.is_suspended ? (
+                       <Badge variant="destructive" className="bg-error/20 text-error border border-error/30">Suspended</Badge>
+                    ) : (
+                       <Badge className="bg-primary/20 text-primary border border-primary/30">Active</Badge>
+                    )}
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Credits</p>
-                    <p className="text-sm font-medium">{selectedStudent.credits}</p>
+                  <div className="glass-panel p-4 rounded-xl space-y-1">
+                    <p className="text-sm text-on-surface-variant">Credits</p>
+                    <p className="text-lg font-medium text-on-surface flex items-center gap-1">
+                      <span className="material-symbols-outlined text-chart-4 text-[20px]">bolt</span>
+                      {selectedStudent.credits}
+                    </p>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Total Enrollments</p>
-                    <p className="text-sm font-medium">{selectedStudent.enrollments_count}</p>
+                  <div className="glass-panel p-4 rounded-xl space-y-1">
+                    <p className="text-sm text-on-surface-variant">Total Enrollments</p>
+                    <p className="text-lg font-medium text-on-surface">{selectedStudent.enrollments_count}</p>
                   </div>
                 </div>
               </div>

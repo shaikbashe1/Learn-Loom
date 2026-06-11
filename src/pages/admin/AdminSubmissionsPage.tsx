@@ -92,114 +92,200 @@ export default function AdminSubmissionsPage() {
 
   return (
     <AppLayout title="Assignment Submissions" isAdmin>
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-foreground">Submissions Review</h2>
-          <Button variant="ghost" size="sm" onClick={fetchSubmissions} className="border border-border">
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
+      <div className="max-w-[1440px] mx-auto w-full space-y-xl pb-xl">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-md mb-2xl">
+          <div>
+            <h1 className="font-display text-headline-lg text-on-surface">Submissions Queue</h1>
+            <p className="text-on-surface-variant font-body-md mt-2 max-w-2xl">Manage and grade high-performance student contributions across all courses.</p>
+          </div>
+          <div className="flex gap-sm">
+            <Button variant="ghost" size="sm" onClick={fetchSubmissions} className="border border-outline-variant text-on-surface hover:bg-surface-variant h-11 w-11 rounded-xl">
+              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+            </Button>
+            <div className="bg-surface-container-high px-4 py-2 rounded-xl border border-outline-variant flex items-center gap-2 h-11">
+              <span className="text-primary font-bold">{submissions.filter(s => s.status === 'submitted').length}</span>
+              <span className="text-label-sm text-outline">Pending</span>
+            </div>
+            <div className="bg-surface-container-high px-4 py-2 rounded-xl border border-outline-variant flex items-center gap-2 h-11">
+              <span className="text-tertiary font-bold">{submissions.filter(s => s.status === 'graded').length}</span>
+              <span className="text-label-sm text-outline">Graded</span>
+            </div>
+          </div>
         </div>
 
-        <Card className="bg-card border-border">
-          <CardContent className="px-0 pb-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Student</th>
-                    <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Assignment</th>
-                    <th className="text-center px-4 py-3 font-semibold text-muted-foreground">Status</th>
-                    <th className="text-center px-4 py-3 font-semibold text-muted-foreground">Score</th>
-                    <th className="text-right px-4 py-3 font-semibold text-muted-foreground">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {loading ? (
-                    Array.from({ length: 5 }).map((_, i) => (
-                      <tr key={i}><td colSpan={5} className="px-4 py-3"><Skeleton className="h-10 w-full bg-muted" /></td></tr>
-                    ))
-                  ) : submissions.length === 0 ? (
-                    <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No submissions found</td></tr>
-                  ) : (
-                    submissions.map(s => {
-                      const studentName = Array.isArray(s.profiles) ? s.profiles[0]?.full_name : s.profiles?.full_name;
-                      const assignmentTitle = Array.isArray(s.assignments) ? s.assignments[0]?.title : s.assignments?.title;
-                      const maxScore = Array.isArray(s.assignments) ? s.assignments[0]?.max_score : s.assignments?.max_score;
-
-                      return (
-                        <tr key={s.id} className="border-b border-border hover:bg-muted/10 transition-colors">
-                          <td className="px-4 py-3 font-medium text-foreground">{studentName ?? 'Unknown'}</td>
-                          <td className="px-4 py-3 text-muted-foreground">{assignmentTitle ?? 'Unknown'}</td>
-                          <td className="px-4 py-3 text-center">
-                            <Badge variant={s.status === 'graded' ? 'default' : 'outline'} className={s.status === 'graded' ? 'bg-green-500/10 text-green-600 border-0' : 'text-amber-500'}>
-                              {s.status}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3 text-center font-medium">
-                            {s.score !== null ? `${s.score} / ${maxScore ?? 100}` : '—'}
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <Button size="sm" variant={s.status === 'graded' ? 'ghost' : 'default'} onClick={() => openGradeModal(s)}>
-                              {s.status === 'graded' ? <CheckCircle className="w-4 h-4 mr-2 text-green-600" /> : <FileText className="w-4 h-4 mr-2" />}
-                              {s.status === 'graded' ? 'Update Grade' : 'Review & Grade'}
-                            </Button>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
+        {/* Quick Stats Bento */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-lg mb-2xl">
+          <div className="glass-panel p-lg rounded-2xl flex items-center gap-md h-32 hover:border-primary transition-all group">
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+              <span className="material-symbols-outlined text-[32px]">assignment</span>
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <p className="text-label-sm text-outline">Total Submissions</p>
+              <p className="text-headline-md font-bold text-on-surface">{loading ? '—' : submissions.length}</p>
+            </div>
+          </div>
+          <div className="glass-panel p-lg rounded-2xl flex items-center gap-md h-32 hover:border-tertiary transition-all group">
+            <div className="w-12 h-12 rounded-xl bg-tertiary/10 flex items-center justify-center text-tertiary group-hover:scale-110 transition-transform">
+              <span className="material-symbols-outlined text-[32px]">task_alt</span>
+            </div>
+            <div>
+              <p className="text-label-sm text-outline">Graded Today</p>
+              <p className="text-headline-md font-bold text-on-surface">
+                {loading ? '—' : submissions.filter(s => s.status === 'graded' && new Date(s.submitted_at) > new Date(Date.now() - 86400000)).length}
+              </p>
+            </div>
+          </div>
+          <div className="glass-panel p-lg rounded-2xl flex items-center gap-md h-32 hover:border-secondary transition-all overflow-hidden relative group">
+            <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary relative z-10 group-hover:scale-110 transition-transform">
+              <span className="material-symbols-outlined text-[32px]">trending_up</span>
+            </div>
+            <div className="relative z-10">
+              <p className="text-label-sm text-outline">Throughput</p>
+              <p className="text-headline-md font-bold text-secondary">+12.5%</p>
+            </div>
+          </div>
+        </div>
 
+        {/* Submissions Table */}
+        <div className="glass-panel rounded-xl overflow-hidden flex flex-col">
+          <div className="p-lg border-b border-outline-variant/60 flex items-center bg-surface-container-low/40">
+            <h3 className="font-headline-md text-on-surface">Recent Submissions</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[1000px]">
+              <thead>
+                <tr className="bg-surface-container-high/30">
+                  <th className="px-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Student</th>
+                  <th className="px-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Assignment</th>
+                  <th className="px-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-center">Status</th>
+                  <th className="px-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-center">Score</th>
+                  <th className="px-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-outline-variant/20">
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={i}><td colSpan={5} className="px-lg py-4"><Skeleton className="h-10 w-full bg-surface-container" /></td></tr>
+                  ))
+                ) : submissions.length === 0 ? (
+                  <tr><td colSpan={5} className="px-lg py-16 text-center text-sm text-on-surface-variant">No submissions found</td></tr>
+                ) : (
+                  submissions.map(s => {
+                    const studentName = Array.isArray(s.profiles) ? s.profiles[0]?.full_name : s.profiles?.full_name;
+                    const assignmentTitle = Array.isArray(s.assignments) ? s.assignments[0]?.title : s.assignments?.title;
+                    const maxScore = Array.isArray(s.assignments) ? s.assignments[0]?.max_score : s.assignments?.max_score;
+
+                    return (
+                      <tr key={s.id} className="hover:bg-surface-variant/20 transition-colors group">
+                        <td className="px-lg py-4 font-body-md font-semibold text-on-surface">{studentName ?? 'Unknown'}</td>
+                        <td className="px-lg py-4 text-on-surface-variant">{assignmentTitle ?? 'Unknown'}</td>
+                        <td className="px-lg py-4 text-center">
+                          {s.status === 'graded' ? (
+                            <span className="px-3 py-1 rounded-full bg-success/10 text-success text-label-sm border border-success/30 font-bold">GRADED</span>
+                          ) : (
+                            <span className="px-3 py-1 rounded-full bg-warning/10 text-warning text-label-sm border border-warning/30 font-bold">PENDING</span>
+                          )}
+                        </td>
+                        <td className="px-lg py-4 text-center font-label-md text-on-surface">
+                          {s.score !== null ? `${s.score} / ${maxScore ?? 100}` : '—'}
+                        </td>
+                        <td className="px-lg py-4 text-right">
+                          <button 
+                            onClick={() => openGradeModal(s)}
+                            className={`flex items-center gap-2 px-4 py-2 ml-auto rounded-lg text-label-md transition-all ${
+                              s.status === 'graded' 
+                                ? 'bg-surface-container-high border border-outline-variant text-on-surface hover:bg-surface-variant' 
+                                : 'bg-primary text-on-primary font-bold hover:opacity-90 shadow-[0_0_8px_rgba(192,193,255,0.3)]'
+                            }`}
+                          >
+                            <span className="material-symbols-outlined text-[18px]">
+                              {s.status === 'graded' ? 'edit' : 'grading'}
+                            </span>
+                            {s.status === 'graded' ? 'Update Grade' : 'Review & Grade'}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Grading Dialog (Restyled to match design system) */}
         <Dialog open={gradingOpen} onOpenChange={setGradingOpen}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Review Submission</DialogTitle>
-            </DialogHeader>
+          <DialogContent className="bg-surface-container border-outline-variant text-on-surface sm:max-w-[800px] p-0 overflow-hidden">
+            <div className="bg-surface-container-high p-4 flex items-center justify-between border-b border-outline-variant">
+              <div className="flex items-center gap-md">
+                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-primary">code</span>
+                </div>
+                <div>
+                  <h2 className="font-bold text-on-surface font-display text-headline-md">Review Submission</h2>
+                  <p className="text-label-sm text-outline">Submission ID: {selectedSub?.id.split('-')[0]}</p>
+                </div>
+              </div>
+            </div>
+
             {selectedSub && (
-              <div className="space-y-4 py-2">
-                <div className="p-4 rounded-md bg-muted/30 border border-border text-sm">
-                  <p className="font-semibold mb-2 text-foreground">Student Answer:</p>
-                  <p className="whitespace-pre-wrap text-muted-foreground">{selectedSub.answer_text}</p>
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-0 max-h-[70vh] overflow-hidden">
+                {/* Answer / File Area */}
+                <div className="md:col-span-3 bg-surface-lowest p-6 font-label-md text-label-md overflow-y-auto max-h-[70vh]">
+                  <p className="text-primary mb-2 font-bold uppercase tracking-wider text-xs">Student Answer</p>
+                  <pre className="text-on-surface-variant whitespace-pre-wrap font-body-md leading-relaxed">{selectedSub.answer_text}</pre>
+                  
                   {selectedSub.file_url && (
-                    <a href={selectedSub.file_url} target="_blank" rel="noreferrer" className="text-primary hover:underline block mt-4 font-medium">
-                      View Attached File →
+                    <a href={selectedSub.file_url} target="_blank" rel="noreferrer" className="mt-8 flex items-center gap-2 p-4 rounded-xl border border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 transition-colors w-fit">
+                      <span className="material-symbols-outlined">description</span>
+                      <span className="font-bold">View Attached File</span>
+                      <span className="material-symbols-outlined text-[16px] ml-2">open_in_new</span>
                     </a>
                   )}
                 </div>
 
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="score" className="text-right">Score</Label>
-                  <Input
-                    id="score"
-                    type="number"
-                    value={scoreInput}
-                    onChange={(e) => setScoreInput(e.target.value)}
-                    className="col-span-3"
-                    placeholder="Enter score (0-100)"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-4 items-start gap-4">
-                  <Label htmlFor="feedback" className="text-right mt-2">Feedback</Label>
-                  <Textarea
-                    id="feedback"
-                    value={feedbackInput}
-                    onChange={(e) => setFeedbackInput(e.target.value)}
-                    className="col-span-3 min-h-[100px]"
-                    placeholder="Provide constructive feedback to the student..."
-                  />
+                {/* Grading Sidebar */}
+                <div className="md:col-span-2 bg-surface-container border-l border-outline-variant p-6 flex flex-col gap-lg overflow-y-auto">
+                  <section>
+                    <h3 className="text-label-md font-bold text-outline uppercase mb-4 tracking-tighter">Grading</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="score" className="text-label-sm text-on-surface-variant block mb-2">Score (0 - {(Array.isArray(selectedSub.assignments) ? selectedSub.assignments[0]?.max_score : selectedSub.assignments?.max_score) ?? 100})</Label>
+                        <Input
+                          id="score"
+                          type="number"
+                          value={scoreInput}
+                          onChange={(e) => setScoreInput(e.target.value)}
+                          className="bg-surface-lowest border-outline-variant text-on-surface font-label-md focus:border-primary"
+                          placeholder="Enter score..."
+                        />
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className="flex-1 flex flex-col">
+                    <h3 className="text-label-md font-bold text-outline uppercase mb-4 tracking-tighter">Feedback</h3>
+                    <Textarea
+                      id="feedback"
+                      value={feedbackInput}
+                      onChange={(e) => setFeedbackInput(e.target.value)}
+                      className="flex-1 min-h-[150px] bg-surface-lowest border-outline-variant rounded-xl p-3 text-body-md text-on-surface focus:border-primary outline-none resize-none mb-3 transition-all"
+                      placeholder="Add private feedback to student..."
+                    />
+                  </section>
+
+                  <div className="space-y-3 mt-auto pt-4">
+                    <button onClick={submitGrade} className="w-full py-3 bg-primary text-on-primary rounded-xl font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_0_15px_rgba(192,193,255,0.2)]">
+                      {selectedSub.status === 'graded' ? 'Update Grade' : 'Submit Grade'}
+                    </button>
+                    <button onClick={() => setGradingOpen(false)} className="w-full py-3 bg-surface-container-high text-on-surface border border-outline-variant rounded-xl font-bold hover:bg-surface-variant transition-all">
+                      Cancel
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setGradingOpen(false)}>Cancel</Button>
-              <Button onClick={submitGrade}>Save Grade</Button>
-            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
