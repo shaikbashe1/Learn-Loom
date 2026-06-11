@@ -1,12 +1,5 @@
 {
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
 
-      ]
-    }
-  ],
   "rewrites": [
     { "source": "/((?!api/.*).*)", "destination": "/index.html" }
   ]
