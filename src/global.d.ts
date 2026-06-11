@@ -1,0 +1,1 @@
+// LearnLoom global type declarations

@@ -1,0 +1,88 @@
+import { lazy, type ReactNode, type ComponentType } from 'react';
+
+// Lazy-loaded public pages
+const LandingPage         = lazy(() => import('./pages/LandingPage'));
+const LoginPage           = lazy(() => import('./pages/auth/LoginPage'));
+const SignupPage          = lazy(() => import('./pages/auth/SignupPage'));
+const ForgotPasswordPage  = lazy(() => import('./pages/auth/ForgotPasswordPage'));
+const ResetPasswordPage   = lazy(() => import('./pages/auth/ResetPasswordPage'));
+const EmailVerificationPage = lazy(() => import('./pages/auth/EmailVerificationPage'));
+const ProfileSetupPage    = lazy(() => import('./pages/auth/ProfileSetupPage'));
+const AuthCallbackPage    = lazy(() => import('./pages/auth/AuthCallbackPage'));
+const CertVerifyPage      = lazy(() => import('./pages/student/CertVerifyPage'));
+
+// Lazy-loaded student pages
+const StudentDashboard    = lazy(() => import('./pages/student/StudentDashboard'));
+const CourseCatalogPage   = lazy(() => import('./pages/student/CourseCatalogPage'));
+const CourseDetailPage    = lazy(() => import('./pages/student/CourseDetailPage'));
+const CoursePlayerPage    = lazy(() => import('./pages/student/CoursePlayerPage'));
+const AIRoadmapPage       = lazy(() => import('./pages/student/AIRoadmapPage'));
+const AIMentorPage        = lazy(() => import('./pages/student/AIMentorPage'));
+const CodingPracticePage  = lazy(() => import('./pages/student/CodingPracticePage'));
+const QuizPage            = lazy(() => import('./pages/student/QuizPage'));
+const AssignmentPage      = lazy(() => import('./pages/student/AssignmentPage'));
+const LeaderboardPage     = lazy(() => import('./pages/student/LeaderboardPage'));
+const CommunityPage       = lazy(() => import('./pages/student/CommunityPage'));
+const GrandTestPage       = lazy(() => import('./pages/student/GrandTestPage'));
+const CertificatePage     = lazy(() => import('./pages/student/CertificatePage'));
+const ProfilePage         = lazy(() => import('./pages/student/ProfilePage'));
+const PricingPage         = lazy(() => import('./pages/student/PricingPage'));
+const PaymentHistoryPage  = lazy(() => import('./pages/student/PaymentHistoryPage'));
+
+// Lazy-loaded admin pages
+const AdminDashboard      = lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminCoursesPage    = lazy(() => import('./pages/admin/AdminCoursesPage'));
+const AdminStudentsPage   = lazy(() => import('./pages/admin/AdminStudentsPage'));
+const AdminCertsPage      = lazy(() => import('./pages/admin/AdminCertificatesPage'));
+const AdminReportsPage    = lazy(() => import('./pages/admin/AdminReportsPage'));
+const AdminCommunityPage  = lazy(() => import('./pages/admin/AdminCommunityPage'));
+const AdminSubmissionsPage = lazy(() => import('./pages/admin/AdminSubmissionsPage'));
+
+export interface RouteConfig {
+  name: string;
+  path: string;
+  component: ComponentType;
+  element?: ReactNode;
+  public?: boolean;
+}
+
+export const routes: RouteConfig[] = [
+  // ── Public ──────────────────────────────────────────────────────────
+  { name: 'Landing',              path: '/',                  component: LandingPage,           public: true },
+  { name: 'Login',                path: '/login',             component: LoginPage,             public: true },
+  { name: 'Signup',               path: '/signup',            component: SignupPage,            public: true },
+  { name: 'Forgot Password',      path: '/forgot-password',   component: ForgotPasswordPage,    public: true },
+  { name: 'Reset Password',       path: '/reset-password',    component: ResetPasswordPage,     public: true },
+  { name: 'Email Verification',   path: '/verify-email',      component: EmailVerificationPage, public: true },
+  { name: 'Profile Setup',        path: '/profile-setup',     component: ProfileSetupPage,      public: true },
+  { name: 'Auth Callback',        path: '/auth/callback',     component: AuthCallbackPage,      public: true },
+  { name: 'Cert Verify',          path: '/verify/:code',      component: CertVerifyPage,        public: true },
+
+  // ── Student ──────────────────────────────────────────────────────────
+  { name: 'Dashboard',            path: '/dashboard',               component: StudentDashboard },
+  { name: 'Course Catalog',       path: '/courses',                 component: CourseCatalogPage },
+  { name: 'Course Detail',        path: '/courses/:id',             component: CourseDetailPage },
+  { name: 'Course Player',        path: '/courses/:id/learn/:moduleId', component: CoursePlayerPage },
+  { name: 'AI Roadmap',           path: '/ai-roadmap',              component: AIRoadmapPage },
+  { name: 'AI Mentor',            path: '/ai-mentor',               component: AIMentorPage },
+  { name: 'Coding Practice',      path: '/coding',                  component: CodingPracticePage },
+  { name: 'Quiz',                 path: '/quiz/:id',                component: QuizPage },
+  { name: 'Assignment',           path: '/assignments/:id',         component: AssignmentPage },
+  { name: 'Assignments',          path: '/assignments',             component: AssignmentPage },
+  { name: 'Leaderboard',          path: '/leaderboard',             component: LeaderboardPage },
+  { name: 'Community',            path: '/community',               component: CommunityPage },
+  { name: 'Grand Test',           path: '/grand-test',              component: GrandTestPage },
+  { name: 'Certificates',         path: '/certificates',            component: CertificatePage },
+  { name: 'Profile',              path: '/profile',                 component: ProfilePage },
+  { name: 'Pricing',              path: '/pricing',                 component: PricingPage,       public: true },
+  { name: 'Payment History',      path: '/payment-history',         component: PaymentHistoryPage },
+
+  // ── Admin ─────────────────────────────────────────────────────────────
+  { name: 'Admin Dashboard',      path: '/admin',                   component: AdminDashboard },
+  { name: 'Admin Courses',        path: '/admin/courses',           component: AdminCoursesPage },
+  { name: 'Admin Students',       path: '/admin/students',          component: AdminStudentsPage },
+  { name: 'Admin Certificates',   path: '/admin/certificates',      component: AdminCertsPage },
+  { name: 'Admin Reports',        path: '/admin/reports',           component: AdminReportsPage },
+  { name: 'Admin Community',      path: '/admin/community',         component: AdminCommunityPage },
+  { name: 'Admin Submissions',    path: '/admin/submissions',       component: AdminSubmissionsPage },
+];
