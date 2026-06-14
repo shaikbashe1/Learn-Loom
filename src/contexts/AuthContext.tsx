@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { supabase } from '@/db/supabase';
 import type { Profile } from '@/types/types';
 import { toast } from 'sonner';
-import { useUser, useSignIn, useSignUp, useClerk } from '@clerk/clerk-react';
+import { useUser, useSignIn, useSignUp, useClerk, useSession } from '@clerk/clerk-react';
 
 export async function getProfile(userId: string): Promise<Profile | null> {
   const { data, error } = await supabase
@@ -58,8 +58,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { isLoaded: signInLoaded, signIn, setActive } = useSignIn();
   const { isLoaded: signUpLoaded, signUp } = useSignUp();
   const clerk = useClerk();
+  const { session } = useSession();
 
   const [profile, setProfile] = useState<Profile | null>(null);
+
+  // Sync Clerk session to Supabase client
+  useEffect(() => {
+    if (!session) {
+      supabase.auth.signOut();
+      return;
+    }
+
+    const syncSupabaseToken = async () => {
+      try {
+        const token = await session.getToken({ template: 'supabase' });
+        if (token) {
+          await supabase.auth.setSession({
+            access_token: token,
+            refresh_token: '',
+          });
+          console.log('[Auth] Supabase session synced with Clerk');
+        }
+      } catch (err) {
+        console.error('[Auth] Failed to sync Clerk token to Supabase:', err);
+      }
+    };
+
+    syncSupabaseToken();
+  }, [session]);
   const [loadingProfile, setLoadingProfile] = useState(true); // default to true initially to prevent flash
 
   const refreshProfile = async () => {

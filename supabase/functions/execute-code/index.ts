@@ -1,10 +1,33 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
+import { jwtVerify, createRemoteJWKSet } from 'https://deno.land/x/jose@v5.2.0/index.ts';
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 );
+
+const JWKS = createRemoteJWKSet(new URL('https://wealthy-skink-27.clerk.accounts.dev/.well-known/jwks.json'));
+
+async function verifyToken(token: string) {
+  try {
+    const jwtSecret = Deno.env.get('SUPABASE_JWT_SECRET');
+    if (jwtSecret) {
+      const secret = new TextEncoder().encode(jwtSecret);
+      const { payload } = await jwtVerify(token, secret);
+      return { id: payload.sub as string };
+    }
+  } catch (err) {
+    // Ignore and try Clerk JWKS
+  }
+  try {
+    const { payload } = await jwtVerify(token, JWKS);
+    return { id: payload.sub as string };
+  } catch (err2) {
+    console.error('JWT verification failed:', err2);
+    return null;
+  }
+}
 
 // Piston language mapping
 const LANG_MAP: Record<string, string> = {
@@ -72,11 +95,11 @@ Deno.serve(async (req) => {
 
   try {
     // Auth
-    const authHeader = req.headers.get('Authorization') ?? '';
-    const { data: { user }, error: authErr } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
-    if (authErr || !user) return json({ error: 'Unauthorized' }, 401);
+    const clerkHeader = req.headers.get('X-Clerk-Token');
+    const authHeader = clerkHeader || req.headers.get('Authorization') || '';
+    const token = authHeader.replace('Bearer ', '');
+    const user = await verifyToken(token);
+    if (!user || !user.id) return json({ error: 'Unauthorized' }, 401);
 
     const { problem_id, source_code, language, run_only, stdin } = await req.json();
     if (!source_code || !language)

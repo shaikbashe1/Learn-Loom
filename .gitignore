@@ -42,3 +42,6 @@ learnloom-production-ready.zip
 
 # MCP Config
 mcp.json
+.vercel
+
+piston-deploy/

@@ -20,4 +20,13 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    proxy: {
+      '/api/piston': {
+        target: 'http://20.193.241.97:2000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/piston/, '/api/v2'),
+      },
+    },
+  },
 });

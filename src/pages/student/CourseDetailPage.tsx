@@ -557,7 +557,7 @@ export default function CourseDetailPage() {
                 {previewModule?.youtube_url ? (
                   isEnrolled ? (
                     <iframe 
-                      src={buildYouTubeEmbedUrl(previewModule.youtube_url ?? undefined)} 
+                      src={buildYouTubeEmbedUrl(previewModule.youtube_url ?? undefined) ?? undefined} 
                       title={previewModule.title}
                       className="w-full h-full" 
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

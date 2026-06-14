@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSession } from '@clerk/clerk-react';
 import { toast } from 'sonner';
 
 type Lang = 'python' | 'javascript' | 'java' | 'cpp' | 'c';
@@ -40,7 +41,15 @@ interface JudgeResponse {
   creditsAwarded: number;
   passedCount: number;
   totalCount: number;
+  run_only?: boolean;
+  stdout?: string;
+  stderr?: string;
 }
+
+const PISTON_URL = '/api/piston/execute';
+const LANG_MAP: Record<Lang, string> = {
+  python: 'python', javascript: 'javascript', java: 'java', cpp: 'c++', c: 'c'
+};
 
 const LANG_LABELS: Record<Lang, string> = {
   python: 'Python', javascript: 'JavaScript', java: 'Java', cpp: 'C++', c: 'C'
@@ -63,6 +72,7 @@ const VERDICT_META: Record<string, { label: string; color: string; icon: string 
 
 export default function CodingPracticePage() {
   const { user } = useAuth();
+  const { session } = useSession();
   const [problems, setProblems]     = useState<Problem[]>([]);
   const [loadingP, setLoadingP]     = useState(true);
   const [idx, setIdx]               = useState(0);
@@ -114,32 +124,50 @@ export default function CodingPracticePage() {
     setResult(null);
     setActiveTab('output');
 
-    const { data, error } = await supabase.functions.invoke<JudgeResponse>('execute-code', {
-      body: {
-        source_code: code,
-        language,
+    try {
+      const res = await fetch(PISTON_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          language: LANG_MAP[language],
+          version: '*',
+          files: [{ content: code }],
+          stdin: useCustomInput ? customInput : '',
+        })
+      });
+
+      if (!res.ok) throw new Error(`Piston API Error: ${res.status}`);
+      const data = await res.json();
+      
+      let compileError = null;
+      if (data.compile && data.compile.code !== 0) {
+        compileError = data.compile.output || data.compile.stderr;
+      }
+
+      const runResponse: JudgeResponse = {
+        verdict: 'accepted',
+        testResults: [],
+        compileError,
+        time_ms: data.run?.cpu_time ?? 0,
+        memory_kb: data.run?.memory ? Math.round(data.run.memory / 1024) : 0,
+        creditsAwarded: 0,
+        passedCount: 0,
+        totalCount: 0,
         run_only: true,
-        stdin: useCustomInput ? customInput : ''
-      },
-    });
+        stdout: data.run?.stdout || '',
+        stderr: data.run?.stderr || '',
+      };
 
-    setRunning(false);
-
-    if (error) {
-      const msg = await error?.context?.text?.();
-      const parsed = msg ? (() => { try { return JSON.parse(msg); } catch { return null; } })() : null;
-      const errText = parsed?.error ?? msg ?? error.message;
-      toast.error('Execution failed', { description: errText });
-      return;
-    }
-
-    if (data) {
-      setResult(data);
-      if (data.compileError) {
+      setResult(runResponse);
+      if (compileError) {
         toast.error('Compilation Error');
       } else {
         toast.success('Execution finished');
       }
+    } catch (err: any) {
+      toast.error('Execution failed', { description: err.message });
+    } finally {
+      setRunning(false);
     }
   };
 
@@ -152,34 +180,84 @@ export default function CodingPracticePage() {
     setResult(null);
     setActiveTab('output');
 
-    const { data, error } = await supabase.functions.invoke<JudgeResponse>('execute-code', {
-      body: { problem_id: problem.id, source_code: code, language },
-    });
+    try {
+      const testCases = problem.test_cases || [];
+      const testResults: TestResult[] = [];
+      let compileError = null;
+      let overallVerdict = 'accepted';
+      let totalTimeMs = 0;
+      let maxMemory = 0;
 
-    setJudging(false);
-
-    if (error) {
-      const msg = await error?.context?.text?.();
-      const parsed = msg ? (() => { try { return JSON.parse(msg); } catch { return null; } })() : null;
-      const errText = parsed?.error ?? msg ?? error.message;
-      toast.error('Submission failed', { description: errText });
-      return;
-    }
-
-    setResult(data);
-
-    if (data?.verdict === 'accepted') {
-      if (data.creditsAwarded > 0) {
-        toast.success(`✅ Accepted! +${data.creditsAwarded} credits earned`, {
-          description: `All ${data.totalCount} test cases passed. Daily challenge complete!`,
+      for (let i = 0; i < testCases.length; i++) {
+        const tc = testCases[i];
+        const res = await fetch(PISTON_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            language: LANG_MAP[language],
+            version: '*',
+            files: [{ content: code }],
+            stdin: tc.input,
+          })
         });
-      } else {
-        toast.success(`✅ All ${data.totalCount} test cases passed!`);
+
+        if (!res.ok) throw new Error(`Piston API Error: ${res.status}`);
+        const data = await res.json();
+
+        if (data.compile && data.compile.code !== 0) {
+          compileError = data.compile.output || data.compile.stderr;
+          overallVerdict = 'compilation_error';
+          testResults.push({
+            case: i + 1, input: tc.input, expectedOutput: tc.expectedOutput,
+            actualOutput: compileError ?? '', verdict: 'compilation_error',
+            time: '0ms', memory: 0
+          });
+          break;
+        }
+
+        const runOutput = data.run?.output || '';
+        const actualOutputTrimmed = runOutput.trim();
+        const expectedOutputTrimmed = tc.expectedOutput.trim();
+        
+        let verdict = 'accepted';
+        if (data.run?.signal === 'SIGKILL') verdict = 'time_limit_exceeded';
+        else if (data.run?.code !== 0) verdict = 'runtime_error';
+        else if (actualOutputTrimmed !== expectedOutputTrimmed) verdict = 'wrong_answer';
+
+        testResults.push({
+          case: i + 1, input: tc.input, expectedOutput: tc.expectedOutput,
+          actualOutput: runOutput, verdict, time: `${data.run?.cpu_time ?? 0}ms`,
+          memory: data.run?.memory ? Math.round(data.run.memory / 1024) : 0
+        });
+
+        if (verdict !== 'accepted' && overallVerdict === 'accepted') overallVerdict = verdict;
       }
-    } else if (data?.verdict === 'compilation_error') {
-      toast.error('Compilation Error', { description: 'Fix the syntax errors and try again.' });
-    } else {
-      toast.error(`${VERDICT_META[data?.verdict ?? '']?.label ?? 'Failed'} — ${data?.passedCount}/${data?.totalCount} tests passed`);
+
+      const passedCount = testResults.filter(r => r.verdict === 'accepted').length;
+      const resultData: JudgeResponse = {
+        verdict: overallVerdict,
+        testResults,
+        compileError,
+        time_ms: totalTimeMs,
+        memory_kb: maxMemory,
+        creditsAwarded: 0,
+        passedCount,
+        totalCount: testResults.length
+      };
+
+      setResult(resultData);
+
+      if (overallVerdict === 'accepted') {
+        toast.success(`✅ All ${testResults.length} test cases passed!`);
+      } else if (overallVerdict === 'compilation_error') {
+        toast.error('Compilation Error', { description: 'Fix the syntax errors and try again.' });
+      } else {
+        toast.error(`${VERDICT_META[overallVerdict]?.label ?? 'Failed'} — ${passedCount}/${testResults.length} tests passed`);
+      }
+    } catch (err: any) {
+      toast.error('Submission failed', { description: err.message });
+    } finally {
+      setJudging(false);
     }
   };
 
