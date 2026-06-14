@@ -2,13 +2,13 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { supabase } from '@/db/supabase';
 import type { Profile } from '@/types/types';
 import { toast } from 'sonner';
-import { useUser, useSignIn, useSignUp, useClerk, useSession } from '@clerk/clerk-react';
 
-export async function getProfile(): Promise<Profile | null> {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .maybeSingle(); // RLS automatically filters to auth.uid()
+export async function getProfile(userId?: string): Promise<Profile | null> {
+  let query = supabase.from('profiles').select('*');
+  if (userId) {
+    query = query.eq('id', userId);
+  }
+  const { data, error } = await query.maybeSingle();
 
   if (error) {
     console.error('Failed to fetch profile:', error);
@@ -16,8 +16,6 @@ export async function getProfile(): Promise<Profile | null> {
   }
   return data;
 }
-
-// Frontend profile creation removed - handled securely by Clerk Webhook
 
 interface SignInResult {
   error: Error | null;
@@ -33,6 +31,7 @@ interface AuthContextType {
   signUpWithEmail: (email: string, password: string, fullName?: string) => Promise<SignInResult>;
   verifyEmailCode: (code: string) => Promise<SignInResult>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
+  signInWithGitHub: () => Promise<{ error: Error | null }>;
   resendVerificationEmail: (email: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -42,179 +41,151 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { user: clerkUser, isLoaded: clerkLoaded } = useUser();
-  const { isLoaded: signInLoaded, signIn, setActive } = useSignIn();
-  const { isLoaded: signUpLoaded, signUp } = useSignUp();
-  const clerk = useClerk();
-  const { session } = useSession();
-
+  const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Sync Clerk session to Supabase client
   useEffect(() => {
-    if (!session) {
-      supabase.auth.signOut();
-      return;
-    }
-
-    const syncSupabaseToken = async (retries = 3) => {
-      try {
-        const token = await session.getToken({ template: 'supabase' });
-        if (token) {
-          // Decode token lightly to ensure webhook has populated supabase_uuid
-          // if it's a new user. The clerk template sets `sub` to the uuid.
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          if (payload.sub && payload.sub.startsWith('user_') && retries > 0) {
-            console.log('[Auth] Webhook still processing, retrying token sync...');
-            setTimeout(() => syncSupabaseToken(retries - 1), 1500);
-            return;
-          }
-
-          await supabase.auth.setSession({
-            access_token: token,
-            refresh_token: '',
-          });
-          console.log('[Auth] Supabase session synced with Clerk');
-        }
-      } catch (err) {
-        console.error('[Auth] Failed to sync Clerk token to Supabase:', err);
+    // Initial session fetch
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        getProfile(session.user.id).then(data => {
+          setProfile(data);
+          setLoading(false);
+        });
+      } else {
+        setLoading(false);
       }
-    };
+    });
 
-    syncSupabaseToken();
-  }, [session]);
-  const [loadingProfile, setLoadingProfile] = useState(true); // default to true initially to prevent flash
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        setLoading(true);
+        getProfile(session.user.id).then(data => {
+          setProfile(data);
+          setLoading(false);
+        });
+      } else {
+        setProfile(null);
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const refreshProfile = async () => {
-    if (!clerkUser) { setProfile(null); return; }
-    const profileData = await getProfile(clerkUser.id);
+    if (!user) { setProfile(null); return; }
+    const profileData = await getProfile(user.id);
     setProfile(profileData);
   };
 
-  const clerkUserId = clerkUser?.id;
-
-  useEffect(() => {
-    if (!clerkLoaded) return;
-    
-    if (clerkUser && clerkUserId) {
-      setLoadingProfile(true);
-      // Wait a moment for Supabase session to sync if it's a fresh login
-      setTimeout(() => {
-        getProfile().then((data) => {
-          setProfile(data); // Will be null if webhook hasn't finished, which is fine, UI will just poll or refresh
-        }).finally(() => {
-          setLoadingProfile(false);
-        });
-      }, 500);
-    } else {
-      setProfile(null);
-      setLoadingProfile(false);
-    }
-  }, [clerkUserId, clerkLoaded, session]);
-
-  const loading = !clerkLoaded || loadingProfile;
-
   const signInWithGoogle = async (): Promise<{ error: Error | null }> => {
     try {
-      if (signIn) {
-        await signIn.authenticateWithRedirect({
-          strategy: 'oauth_google',
-          redirectUrl: `${window.location.origin}/auth/callback`,
-          redirectUrlComplete: `${window.location.origin}/dashboard`,
-        });
-      }
-      return { error: null };
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      return { error };
+    } catch (err) {
+      return { error: err as Error };
+    }
+  };
+
+  const signInWithGitHub = async (): Promise<{ error: Error | null }> => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      return { error };
     } catch (err) {
       return { error: err as Error };
     }
   };
 
   const signInWithEmail = async (email: string, password: string): Promise<SignInResult> => {
-    if (!signInLoaded) return { error: new Error('Not loaded') };
     try {
-      const res = await signIn.create({
-        identifier: email,
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
         password,
       });
-      if (res.status === 'complete') {
-        await setActive({ session: res.createdSessionId });
-        const activeSession = clerk.client.sessions.find(s => s.id === res.createdSessionId);
-        return { error: null, userId: activeSession?.user?.id };
-      } else {
-        return { error: new Error('Email not confirmed'), needsVerification: true };
-      }
-    } catch (err: any) {
-      const code = err.errors?.[0]?.code;
-      if (code === 'form_identifier_not_found' || code === 'form_password_incorrect') {
+      
+      if (error) {
+        if (error.message.toLowerCase().includes('email not confirmed')) {
+          return { error: new Error('Email not confirmed'), needsVerification: true };
+        }
         return { error: new Error('Invalid email or password.') };
       }
-      if (code === 'identifier_not_verified') {
-        return { error: new Error('Email not confirmed'), needsVerification: true };
-      }
+      
+      return { error: null, userId: data.user?.id };
+    } catch (err: any) {
       return { error: err as Error };
     }
   };
 
   const signUpWithEmail = async (email: string, password: string, fullName?: string): Promise<SignInResult> => {
-    if (!signUpLoaded) return { error: new Error('Not loaded') };
     try {
-      const parts = fullName?.split(' ') || [];
-      const res = await signUp.create({
-        emailAddress: email,
+      const { data, error } = await supabase.auth.signUp({
+        email,
         password,
-        firstName: parts[0] || '',
-        lastName: parts.slice(1).join(' ') || '',
+        options: {
+          data: {
+            full_name: fullName,
+          },
+        },
       });
       
-      await signUp.prepareEmailAddressVerification({ 
-        strategy: "email_code",
-      });
+      if (error) return { error };
       
-      return { error: null, userId: res.createdUserId || undefined, needsVerification: true };
+      // If user exists and email is not confirmed, data.user.identities will be empty
+      if (data.user && data.user.identities && data.user.identities.length === 0) {
+        return { error: new Error('User already exists') };
+      }
+      
+      return { error: null, userId: data.user?.id, needsVerification: true };
     } catch (err: any) {
       return { error: err as Error };
     }
   };
 
   const verifyEmailCode = async (code: string): Promise<SignInResult> => {
-    if (!signUpLoaded) return { error: new Error('Not loaded') };
-    try {
-      const completeSignUp = await signUp.attemptEmailAddressVerification({ code });
-      if (completeSignUp.status === 'complete') {
-        await setActive({ session: completeSignUp.createdSessionId });
-        return { error: null };
-      } else {
-        return { error: new Error('Verification failed') };
-      }
-    } catch (err: any) {
-      return { error: err as Error };
-    }
+    // Usually Supabase handles OTP via links or verifyOtp
+    // We'll leave this stub returning error as we are shifting towards magic links or email confirm links
+    // If the app requires OTP, you'd use supabase.auth.verifyOtp({ email, token, type: 'email' })
+    return { error: new Error('Use the email confirmation link sent to your inbox.') };
   };
 
   const resendVerificationEmail = async (email: string): Promise<{ error: Error | null }> => {
-    if (!signUpLoaded) return { error: new Error('Not loaded') };
     try {
-      await signUp.prepareEmailAddressVerification({ 
-        strategy: "email_code",
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
       });
-      return { error: null };
+      return { error };
     } catch (err) {
       return { error: err as Error };
     }
   };
 
   const signOut = async () => {
-    await clerk.signOut();
-    setProfile(null);
+    await supabase.auth.signOut();
   };
 
   return (
     <AuthContext.Provider value={{
-      user: clerkUser, profile, loading,
+      user, profile, loading,
       signInWithEmail, signUpWithEmail, verifyEmailCode,
-      signInWithGoogle, resendVerificationEmail,
+      signInWithGoogle, signInWithGitHub, resendVerificationEmail,
       signOut, refreshProfile,
-      debug: { clerkLoaded, loadingProfile, hasClerkUser: !!clerkUser, clerkUserId }
+      debug: { loadingProfile: loading, hasUser: !!user, userId: user?.id }
     }}>
       {children}
     </AuthContext.Provider>

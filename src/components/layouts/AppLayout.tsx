@@ -12,7 +12,6 @@ import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { formatDistanceToNow } from 'date-fns';
-import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/clerk-react';
 
 const studentNavItems = [
   { label: 'Dashboard',       path: '/dashboard',   icon: 'dashboard' },
@@ -201,7 +200,7 @@ interface AppLayoutProps {
 
 export function AppLayout({ children, isAdmin: isAdminProp, title }: AppLayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { profile } = useAuth();
+  const { profile, user, signOut } = useAuth();
 
   const isAdmin = isAdminProp ?? (profile?.role === 'admin');
   const credits = profile?.credits ?? 0;
@@ -265,23 +264,44 @@ export function AppLayout({ children, isAdmin: isAdminProp, title }: AppLayoutPr
             <NotificationBell />
             
             <div className="ml-sm shrink-0 flex items-center justify-center">
-              <SignedIn>
-                <UserButton appearance={{
-                  elements: {
-                    avatarBox: "w-8 h-8 border border-outline-variant/60 hover:ring-2 hover:ring-primary transition-all",
-                  }
-                }}/>
-              </SignedIn>
-              <SignedOut>
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-outline-variant/60 hover:ring-2 hover:ring-primary transition-all overflow-hidden text-primary font-bold text-sm">
+                      {profile?.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56 p-1">
+                    <div className="px-2 py-2 mb-1 border-b border-outline-variant/60">
+                      <p className="font-label-md text-label-md text-on-surface truncate">{profile?.full_name || 'User'}</p>
+                      <p className="font-body-sm text-body-sm text-on-surface-variant truncate">{user.email}</p>
+                    </div>
+                    <DropdownMenuItem asChild>
+                      <Link to="/profile" className="flex items-center gap-2 cursor-pointer w-full">
+                        <span className="material-symbols-outlined text-[18px]">person</span>
+                        Profile
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => void signOut()}
+                      className="text-error focus:text-error cursor-pointer flex items-center gap-2"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">logout</span>
+                      Sign out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
                 <div className="flex items-center gap-2">
-                  <SignInButton>
+                  <Link to="/login">
                     <Button variant="ghost" className="text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/20 font-label-md">Sign In</Button>
-                  </SignInButton>
-                  <SignUpButton>
+                  </Link>
+                  <Link to="/signup">
                     <Button className="bg-primary text-on-primary font-label-md hover:brightness-110">Sign Up</Button>
-                  </SignUpButton>
+                  </Link>
                 </div>
-              </SignedOut>
+              )}
             </div>
           </div>
         </header>

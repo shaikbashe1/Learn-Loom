@@ -1,17 +1,37 @@
-import { AuthenticateWithRedirectCallback, useUser } from '@clerk/clerk-react';
-import { Loader2, Zap } from 'lucide-react';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { Loader2, Zap } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function AuthCallbackPage() {
-  const { user, isLoaded } = useUser();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isLoaded && user) {
-      navigate('/dashboard', { replace: true });
+    // Check for error in URL hash
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const error = hashParams.get('error_description') || hashParams.get('error');
+    
+    // Also check query params for server-side errors
+    const queryParams = new URLSearchParams(window.location.search);
+    const queryError = queryParams.get('error_description') || queryParams.get('error');
+
+    if (error || queryError) {
+      toast.error('Authentication failed', { description: decodeURIComponent(error || queryError || 'Unknown error') });
+      navigate('/login', { replace: true });
+      return;
     }
-  }, [isLoaded, user, navigate]);
+
+    if (!loading) {
+      if (user) {
+        navigate('/dashboard', { replace: true });
+      } else {
+        // If we finished loading but no user, fallback to login
+        navigate('/login', { replace: true });
+      }
+    }
+  }, [loading, user, navigate]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6">
@@ -23,12 +43,6 @@ export default function AuthCallbackPage() {
         <p className="text-sm text-muted-foreground">Please wait while we verify your session.</p>
       </div>
       <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      <div className="hidden">
-        <AuthenticateWithRedirectCallback 
-          signInForceRedirectUrl="/dashboard" 
-          signUpForceRedirectUrl="/dashboard" 
-        />
-      </div>
     </div>
   );
 }

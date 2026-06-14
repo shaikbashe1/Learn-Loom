@@ -9,9 +9,10 @@ export default function LoginPage() {
   const [password, setPassword]           = useState('');
   const [loading, setLoading]             = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [githubLoading, setGithubLoading] = useState(false);
   const [unverifiedEmail, setUnverifiedEmail] = useState('');
   const [resending, setResending]         = useState(false);
-  const { signInWithEmail, signInWithGoogle, resendVerificationEmail } = useAuth();
+  const { signInWithEmail, signInWithGoogle, signInWithGitHub, resendVerificationEmail } = useAuth();
   const navigate  = useNavigate();
   const location  = useLocation();
   const from = (location.state as { from?: string })?.from ?? '/dashboard';
@@ -25,6 +26,15 @@ export default function LoginPage() {
     if (error) {
       setGoogleLoading(false);
       toast.error('Google sign-in failed', { description: error.message });
+    }
+  };
+
+  const handleGitHubLogin = async () => {
+    setGithubLoading(true);
+    const { error } = await signInWithGitHub();
+    if (error) {
+      setGithubLoading(false);
+      toast.error('GitHub sign-in failed', { description: error.message });
     }
   };
 
@@ -154,14 +164,14 @@ export default function LoginPage() {
           </div>
 
           {/* Social Logins */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-md">
-            <button className="flex items-center justify-center gap-sm bg-surface-container-high border border-outline-variant/50 rounded-full py-md hover:bg-surface-bright hover:border-outline-variant transition-colors font-label-md text-label-md text-on-surface disabled:opacity-50" disabled>
-              <span className="material-symbols-outlined text-[20px]">code</span>
-              GitHub
-            </button>
-            <button onClick={handleGoogleLogin} disabled={loading || googleLoading} className="flex items-center justify-center gap-sm bg-surface-container-high border border-outline-variant/50 rounded-full py-md hover:bg-surface-bright hover:border-outline-variant transition-colors font-label-md text-label-md text-on-surface disabled:opacity-50">
+          <div className="flex flex-col gap-md">
+            <button onClick={handleGoogleLogin} disabled={loading || googleLoading || githubLoading} className="w-full flex items-center justify-center gap-sm bg-surface-container-high border border-outline-variant/50 rounded-full py-md hover:bg-surface-bright hover:border-outline-variant transition-colors font-label-md text-label-md text-on-surface disabled:opacity-50">
               {googleLoading ? <span className="material-symbols-outlined animate-spin text-[20px]">sync</span> : <span className="material-symbols-outlined text-[20px]">mail</span>}
-              Google
+              Continue with Google
+            </button>
+            <button onClick={handleGitHubLogin} disabled={loading || googleLoading || githubLoading} className="w-full flex items-center justify-center gap-sm bg-surface-container-high border border-outline-variant/50 rounded-full py-md hover:bg-surface-bright hover:border-outline-variant transition-colors font-label-md text-label-md text-on-surface disabled:opacity-50">
+              {githubLoading ? <span className="material-symbols-outlined animate-spin text-[20px]">sync</span> : <span className="material-symbols-outlined text-[20px]">code</span>}
+              Continue with GitHub
             </button>
           </div>
 

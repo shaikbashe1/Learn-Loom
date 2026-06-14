@@ -4,7 +4,6 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSession } from '@clerk/clerk-react';
 import { toast } from 'sonner';
 
 type Lang = 'python' | 'javascript' | 'java' | 'cpp' | 'c';
@@ -72,7 +71,6 @@ const VERDICT_META: Record<string, { label: string; color: string; icon: string 
 
 export default function CodingPracticePage() {
   const { user } = useAuth();
-  const { session } = useSession();
   const [problems, setProblems]     = useState<Problem[]>([]);
   const [loadingP, setLoadingP]     = useState(true);
   const [idx, setIdx]               = useState(0);
