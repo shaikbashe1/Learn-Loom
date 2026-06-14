@@ -69,7 +69,11 @@ export default function CodingPracticePage() {
   const [language, setLanguage]     = useState<Lang>('javascript');
   const [code, setCode]             = useState('');
   const [judging, setJudging]       = useState(false);
+  const [running, setRunning]       = useState(false);
   const [result, setResult]         = useState<JudgeResponse | null>(null);
+  const [activeTab, setActiveTab]   = useState<'output' | 'input'>('output');
+  const [useCustomInput, setUseCustomInput] = useState(false);
+  const [customInput, setCustomInput] = useState('');
 
   // Load problems from DB
   useEffect(() => {
@@ -102,6 +106,43 @@ export default function CodingPracticePage() {
     setResult(null);
   };
 
+  const handleRun = async () => {
+    if (!user) { toast.error('Please log in to run code'); return; }
+    if (!code.trim()) { toast.error('Please write some code first'); return; }
+
+    setRunning(true);
+    setResult(null);
+    setActiveTab('output');
+
+    const { data, error } = await supabase.functions.invoke<JudgeResponse>('execute-code', {
+      body: {
+        source_code: code,
+        language,
+        run_only: true,
+        stdin: useCustomInput ? customInput : ''
+      },
+    });
+
+    setRunning(false);
+
+    if (error) {
+      const msg = await error?.context?.text?.();
+      const parsed = msg ? (() => { try { return JSON.parse(msg); } catch { return null; } })() : null;
+      const errText = parsed?.error ?? msg ?? error.message;
+      toast.error('Execution failed', { description: errText });
+      return;
+    }
+
+    if (data) {
+      setResult(data);
+      if (data.compileError) {
+        toast.error('Compilation Error');
+      } else {
+        toast.success('Execution finished');
+      }
+    }
+  };
+
   const handleSubmit = async () => {
     if (!user) { toast.error('Please log in to submit code'); return; }
     if (!problem) return;
@@ -109,6 +150,7 @@ export default function CodingPracticePage() {
 
     setJudging(true);
     setResult(null);
+    setActiveTab('output');
 
     const { data, error } = await supabase.functions.invoke<JudgeResponse>('execute-code', {
       body: { problem_id: problem.id, source_code: code, language },
@@ -120,13 +162,7 @@ export default function CodingPracticePage() {
       const msg = await error?.context?.text?.();
       const parsed = msg ? (() => { try { return JSON.parse(msg); } catch { return null; } })() : null;
       const errText = parsed?.error ?? msg ?? error.message;
-      if (errText?.includes('JUDGE0_API_KEY')) {
-        toast.error('Judge0 not configured', {
-          description: 'Add your JUDGE0_API_KEY in project secrets (get it from RapidAPI).',
-        });
-      } else {
-        toast.error('Submission failed', { description: errText });
-      }
+      toast.error('Submission failed', { description: errText });
       return;
     }
 
@@ -214,7 +250,11 @@ export default function CodingPracticePage() {
             <button onClick={() => resetCode()} className="flex items-center gap-1 px-3 py-1.5 rounded border border-outline-variant/60 text-on-surface font-label-sm text-label-sm hover:border-outline transition-colors">
               <span className="material-symbols-outlined text-[16px]">refresh</span> Reset
             </button>
-            <button onClick={handleSubmit} disabled={judging || !user} className="flex items-center gap-1 bg-primary text-on-primary-fixed px-4 py-1.5 rounded font-label-sm text-label-sm font-bold hover:brightness-110 transition-colors disabled:opacity-50">
+            <button onClick={handleRun} disabled={judging || running || !user} className="flex items-center gap-1 px-4 py-1.5 rounded border border-outline-variant/60 text-on-surface font-label-sm text-label-sm hover:border-outline transition-colors disabled:opacity-50">
+              {running ? <span className="material-symbols-outlined animate-spin text-[16px]">autorenew</span> : <span className="material-symbols-outlined text-[16px]">play_arrow</span>}
+              {running ? 'Running' : 'Run'}
+            </button>
+            <button onClick={handleSubmit} disabled={judging || running || !user} className="flex items-center gap-1 bg-primary text-on-primary-fixed px-4 py-1.5 rounded font-label-sm text-label-sm font-bold hover:brightness-110 transition-colors disabled:opacity-50">
               {judging ? <span className="material-symbols-outlined animate-spin text-[16px]">autorenew</span> : <span className="material-symbols-outlined text-[16px]">publish</span>}
               {judging ? 'Judging' : 'Submit'}
             </button>
@@ -277,91 +317,175 @@ export default function CodingPracticePage() {
 
           {/* Right Pane: Console/Output */}
           <section className="flex-1 bg-surface-container-lowest rounded-lg border border-outline-variant/30 flex flex-col overflow-hidden min-w-[300px]">
-            <div className="px-md py-sm border-b border-outline-variant/30 bg-surface flex gap-md">
-              <button className="font-label-md text-label-md text-primary border-b-2 border-primary pb-1 -mb-2">Output</button>
+            <div className="px-md py-xs border-b border-outline-variant/30 bg-surface flex gap-md shrink-0">
+              <button 
+                onClick={() => setActiveTab('output')}
+                className={`font-label-md text-label-md pb-1 border-b-2 transition-colors ${activeTab === 'output' ? 'text-primary border-primary' : 'text-on-surface-variant border-transparent'}`}
+              >
+                Output
+              </button>
+              <button 
+                onClick={() => setActiveTab('input')}
+                className={`font-label-md text-label-md pb-1 border-b-2 transition-colors ${activeTab === 'input' ? 'text-primary border-primary' : 'text-on-surface-variant border-transparent'}`}
+              >
+                Custom Input
+              </button>
             </div>
             <div className="flex-1 overflow-y-auto p-md font-label-sm text-label-sm" style={{ scrollbarWidth: 'thin' }}>
               
-              {!result && !judging && (
-                <div className="text-center py-10 text-on-surface-variant">
-                  <span className="material-symbols-outlined text-[32px] opacity-30 mb-2">science</span>
-                  <p className="text-xs">Submit code to see results</p>
-                </div>
-              )}
-
-              {judging && (
-                <div className="space-y-3 animate-pulse">
-                  {[1, 2].map(i => (
-                    <div key={i} className="h-20 rounded bg-surface-variant border border-outline-variant/30"></div>
-                  ))}
-                  <p className="text-center text-xs text-on-surface-variant">Running tests on Judge0...</p>
-                </div>
-              )}
-
-              {result && !judging && (
-                <div className="space-y-3">
-                  
-                  {/* Credits banner */}
-                  {result.creditsAwarded > 0 && (
-                    <div className="p-3 rounded border border-[#6f00be]/40 bg-[#6f00be]/10 text-center mb-4">
-                      <span className="material-symbols-outlined text-[#d6a9ff] mb-1 text-[24px]">workspace_premium</span>
-                      <p className="font-bold text-[#d6a9ff]">+{result.creditsAwarded} Credits Earned!</p>
-                      <p className="text-[10px] text-[#ddb7ff]">Daily challenge complete</p>
-                    </div>
-                  )}
-
-                  {/* Summary */}
-                  <div className={`p-2 rounded border font-bold flex items-center gap-2 ${result.verdict === 'accepted' ? 'border-[#2f3b2f] bg-[#1a2e1e] text-[#4ade80]' : 'border-[#3b2f2f] bg-[#2e1a1a] text-error'}`}>
-                    <span className="material-symbols-outlined text-[18px]">{VERDICT_META[result.verdict]?.icon ?? 'info'}</span>
-                    <span>{VERDICT_META[result.verdict]?.label ?? result.verdict}</span>
-                    <span className="ml-auto text-xs font-normal opacity-80">{result.passedCount}/{result.totalCount} passed</span>
+              {activeTab === 'input' && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <input 
+                      type="checkbox" 
+                      id="customInputCheck"
+                      checked={useCustomInput}
+                      onChange={e => setUseCustomInput(e.target.checked)}
+                      className="rounded border-outline-variant/60 text-primary focus:ring-primary h-4 w-4"
+                    />
+                    <label htmlFor="customInputCheck" className="text-on-surface-variant font-label-sm cursor-pointer select-none">
+                      Use Custom Input
+                    </label>
                   </div>
+                  {useCustomInput && (
+                    <textarea
+                      value={customInput}
+                      onChange={e => setCustomInput(e.target.value)}
+                      placeholder="Type custom stdin here..."
+                      className="w-full h-32 p-3 bg-surface-container border border-outline-variant/30 rounded font-mono text-xs text-on-surface focus:ring-1 focus:ring-primary focus:border-primary outline-none resize-none"
+                    />
+                  )}
+                </div>
+              )}
 
-                  {/* Stats */}
-                  {result.verdict === 'accepted' && (
-                    <div className="flex gap-4 text-[10px] text-on-surface-variant px-1">
-                      <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[12px]">timer</span> {result.time_ms.toFixed(0)}ms</span>
-                      <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[12px]">memory</span> {(result.memory_kb / 1024).toFixed(1)}MB</span>
+              {activeTab === 'output' && (
+                <>
+                  {!result && !judging && !running && (
+                    <div className="text-center py-10 text-on-surface-variant">
+                      <span className="material-symbols-outlined text-[32px] opacity-30 mb-2">science</span>
+                      <p className="text-xs">Run or Submit code to see results</p>
                     </div>
                   )}
 
-                  {/* Compile error */}
-                  {result.compileError && (
-                    <div className="p-sm rounded border border-[#3b2f2f] bg-[#2e1a1a]">
-                      <div className="flex items-center gap-sm mb-sm text-error">
-                        <span className="material-symbols-outlined text-[16px]">error</span>
-                        <span className="font-bold">Compilation Error</span>
-                      </div>
-                      <pre className="text-error/80 text-[10px] whitespace-pre-wrap font-mono">{result.compileError}</pre>
+                  {(judging || running) && (
+                    <div className="space-y-3 animate-pulse">
+                      {[1, 2].map(i => (
+                        <div key={i} className="h-20 rounded bg-surface-variant border border-outline-variant/30"></div>
+                      ))}
+                      <p className="text-center text-xs text-on-surface-variant">{running ? 'Running code...' : 'Running tests...'}</p>
                     </div>
                   )}
 
-                  {/* Test Cases */}
-                  {result.testResults.map((t, i) => {
-                    const pass = t.verdict === 'accepted';
-                    return (
-                      <div key={i} className={`p-sm rounded border ${pass ? 'border-[#2f3b2f] bg-[#1a2e1e]' : 'border-[#3b2f2f] bg-[#2e1a1a]'}`}>
-                        <div className={`flex justify-between items-center mb-2 ${pass ? 'text-[#4ade80]' : 'text-error'}`}>
-                          <div className="flex items-center gap-1">
-                            <span className="material-symbols-outlined text-[14px]">{pass ? 'check_circle' : 'cancel'}</span>
-                            <span className="font-bold text-xs">Test Case {t.case}</span>
-                          </div>
-                          {!pass && <span className="text-[10px] bg-error/20 px-1 rounded">{VERDICT_META[t.verdict]?.label ?? t.verdict}</span>}
+                  {result && !judging && !running && (
+                    <div className="space-y-3">
+                      
+                      {/* Credits banner */}
+                      {result.creditsAwarded > 0 && (
+                        <div className="p-3 rounded border border-[#6f00be]/40 bg-[#6f00be]/10 text-center mb-4">
+                          <span className="material-symbols-outlined text-[#d6a9ff] mb-1 text-[24px]">workspace_premium</span>
+                          <p className="font-bold text-[#d6a9ff]">+{result.creditsAwarded} Credits Earned!</p>
+                          <p className="text-[10px] text-[#ddb7ff]">Daily challenge complete</p>
                         </div>
-                        <div className="text-on-surface-variant grid grid-cols-[60px_1fr] gap-x-2 gap-y-1 text-[11px] font-mono">
-                          <span>Input:</span><span className="text-on-surface truncate break-all">{t.input}</span>
-                          <span>Expected:</span><span className="text-on-surface truncate break-all">{t.expectedOutput}</span>
-                          {!pass && (
+                      )}
+
+                      {/* Run Only Results */}
+                      {result.run_only && (
+                        <div className="space-y-3 font-mono text-xs">
+                          <div className="flex gap-4 text-[10px] text-on-surface-variant px-1 border-b border-outline-variant/30 pb-2">
+                            <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[12px]">timer</span> {result.time_ms.toFixed(0)}ms</span>
+                            <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[12px]">memory</span> {result.memory_kb > 0 ? `${result.memory_kb}KB` : '—'}</span>
+                          </div>
+                          
+                          {result.compileError && (
+                            <div className="p-sm rounded border border-[#3b2f2f] bg-[#2e1a1a]">
+                              <div className="flex items-center gap-sm mb-sm text-error font-sans">
+                                <span className="material-symbols-outlined text-[16px]">error</span>
+                                <span className="font-bold">Compilation Error</span>
+                              </div>
+                              <pre className="text-error/80 text-[10px] whitespace-pre-wrap">{result.compileError}</pre>
+                            </div>
+                          )}
+
+                          {!result.compileError && (
                             <>
-                              <span className="text-error mt-1">Output:</span>
-                              <span className="text-error mt-1 break-words bg-error/10 px-1 rounded">{t.actualOutput || '(empty)'}</span>
+                              {result.stdout && (
+                                <div className="p-sm rounded border border-outline-variant/30 bg-surface-container">
+                                  <div className="text-[10px] text-on-surface-variant font-bold mb-1 font-sans">Standard Output:</div>
+                                  <pre className="text-on-surface whitespace-pre-wrap">{result.stdout}</pre>
+                                </div>
+                              )}
+                              {result.stderr && (
+                                <div className="p-sm rounded border border-[#3b2f2f] bg-[#2e1a1a]">
+                                  <div className="text-[10px] text-error font-bold mb-1 font-sans">Standard Error:</div>
+                                  <pre className="text-error/80 whitespace-pre-wrap">{result.stderr}</pre>
+                                </div>
+                              )}
+                              {!result.stdout && !result.stderr && (
+                                <div className="text-center py-4 text-on-surface-variant italic font-sans">
+                                  (Code executed successfully with no output)
+                                </div>
+                              )}
                             </>
                           )}
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      )}
+
+                      {/* Summary */}
+                      {!result.run_only && (
+                        <div className={`p-2 rounded border font-bold flex items-center gap-2 ${result.verdict === 'accepted' ? 'border-[#2f3b2f] bg-[#1a2e1e] text-[#4ade80]' : 'border-[#3b2f2f] bg-[#2e1a1a] text-error'}`}>
+                          <span className="material-symbols-outlined text-[18px]">{VERDICT_META[result.verdict]?.icon ?? 'info'}</span>
+                          <span>{VERDICT_META[result.verdict]?.label ?? result.verdict}</span>
+                          <span className="ml-auto text-xs font-normal opacity-80">{result.passedCount}/{result.totalCount} passed</span>
+                        </div>
+                      )}
+
+                      {/* Stats */}
+                      {result.verdict === 'accepted' && !result.run_only && (
+                        <div className="flex gap-4 text-[10px] text-on-surface-variant px-1">
+                          <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[12px]">timer</span> {result.time_ms.toFixed(0)}ms</span>
+                          <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[12px]">memory</span> {(result.memory_kb / 1024).toFixed(1)}MB</span>
+                        </div>
+                      )}
+
+                      {/* Compile error */}
+                      {result.compileError && !result.run_only && (
+                        <div className="p-sm rounded border border-[#3b2f2f] bg-[#2e1a1a]">
+                          <div className="flex items-center gap-sm mb-sm text-error">
+                            <span className="material-symbols-outlined text-[16px]">error</span>
+                            <span className="font-bold">Compilation Error</span>
+                          </div>
+                          <pre className="text-error/80 text-[10px] whitespace-pre-wrap font-mono">{result.compileError}</pre>
+                        </div>
+                      )}
+
+                      {/* Test Cases */}
+                      {!result.run_only && result.testResults.map((t, i) => {
+                        const pass = t.verdict === 'accepted';
+                        return (
+                          <div key={i} className={`p-sm rounded border ${pass ? 'border-[#2f3b2f] bg-[#1a2e1e]' : 'border-[#3b2f2f] bg-[#2e1a1a]'}`}>
+                            <div className={`flex justify-between items-center mb-2 ${pass ? 'text-[#4ade80]' : 'text-error'}`}>
+                              <div className="flex items-center gap-1">
+                                <span className="material-symbols-outlined text-[14px]">{pass ? 'check_circle' : 'cancel'}</span>
+                                <span className="font-bold text-xs">Test Case {t.case}</span>
+                              </div>
+                              {!pass && <span className="text-[10px] bg-error/20 px-1 rounded">{VERDICT_META[t.verdict]?.label ?? t.verdict}</span>}
+                            </div>
+                            <div className="text-on-surface-variant grid grid-cols-[60px_1fr] gap-x-2 gap-y-1 text-[11px] font-mono">
+                              <span>Input:</span><span className="text-on-surface truncate break-all">{t.input}</span>
+                              <span>Expected:</span><span className="text-on-surface truncate break-all">{t.expectedOutput}</span>
+                              {!pass && (
+                                <>
+                                  <span className="text-error mt-1">Output:</span>
+                                  <span className="text-error mt-1 break-words bg-error/10 px-1 rounded">{t.actualOutput || '(empty)'}</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </section>

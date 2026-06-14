@@ -6,88 +6,65 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 );
 
-// Judge0 CE via RapidAPI language IDs
-const LANG_ID: Record<string, number> = {
-  python:     71,  // Python 3.8
-  javascript: 63,  // Node.js 12
-  java:       62,  // Java (OpenJDK 13)
-  cpp:        54,  // C++ (GCC 9.2)
-  c:          50,  // C (GCC 9.2)
+// Piston language mapping
+const LANG_MAP: Record<string, string> = {
+  python:     'python',
+  javascript: 'javascript',
+  java:       'java',
+  cpp:        'c++',
+  c:          'c',
 };
 
-// Judge0 verdict status IDs
-const VERDICT_MAP: Record<number, string> = {
-  3:  'accepted',
-  4:  'wrong_answer',
-  5:  'time_limit_exceeded',
-  6:  'compilation_error',
-  7:  'runtime_error',
-  8:  'runtime_error',
-  9:  'runtime_error',
-  10: 'runtime_error',
-  11: 'runtime_error',
-  12: 'runtime_error',
-};
+const PISTON_URL = Deno.env.get('PISTON_API_URL') || 'https://emkc.org/api/v2/piston/execute';
 
-const J0_HOST    = 'judge0-ce.p.rapidapi.com';
-const J0_BASE    = `https://${J0_HOST}`;
-const MAX_POLL   = 10;
-const POLL_DELAY = 1200; // ms
-
-function toB64(s: string): string {
-  return btoa(unescape(encodeURIComponent(s)));
-}
-function fromB64(s: string): string {
-  try { return decodeURIComponent(escape(atob(s))); }
-  catch { return atob(s); }
-}
 function sleep(ms: number) { return new Promise(r => setTimeout(r, ms)); }
 
-async function submitToJudge0(
+// Rate Limiting Map
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+
+function isRateLimited(userId: string, limit = 10, windowMs = 60000): boolean {
+  const now = Date.now();
+  const userRate = rateLimitMap.get(userId);
+
+  if (!userRate || now > userRate.resetTime) {
+    rateLimitMap.set(userId, { count: 1, resetTime: now + windowMs });
+    return false;
+  }
+
+  userRate.count++;
+  if (userRate.count > limit) {
+    return true;
+  }
+  return false;
+}
+
+async function executePiston(
   sourceCode: string,
-  languageId: number,
-  stdin: string,
-  expectedOutput: string,
-  apiKey: string
-): Promise<{ token: string }> {
-  const res = await fetch(`${J0_BASE}/submissions?base64_encoded=true&wait=false`, {
+  language: string,
+  stdin: string
+) {
+  const res = await fetch(PISTON_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-RapidAPI-Key': apiKey,
-      'X-RapidAPI-Host': J0_HOST,
     },
     body: JSON.stringify({
-      source_code:      toB64(sourceCode),
-      language_id:      languageId,
-      stdin:            toB64(stdin),
-      expected_output:  toB64(expectedOutput),
+      language: language,
+      version: '*',
+      files: [{ content: sourceCode }],
+      stdin: stdin,
+      compile_timeout: 10000,
+      run_timeout: 3000,
+      compile_memory_limit: -1,
+      run_memory_limit: -1,
     }),
   });
+  
   if (!res.ok) {
     const txt = await res.text();
-    throw new Error(`Judge0 submit failed (${res.status}): ${txt}`);
+    throw new Error(`Piston execute failed (${res.status}): ${txt}`);
   }
   return res.json();
-}
-
-async function pollResult(token: string, apiKey: string) {
-  for (let i = 0; i < MAX_POLL; i++) {
-    await sleep(POLL_DELAY);
-    const res = await fetch(
-      `${J0_BASE}/submissions/${token}?base64_encoded=true&fields=status,stdout,stderr,compile_output,time,memory`,
-      {
-        headers: {
-          'X-RapidAPI-Key': apiKey,
-          'X-RapidAPI-Host': J0_HOST,
-        },
-      }
-    );
-    if (!res.ok) continue;
-    const data = await res.json();
-    if (data.status?.id > 2) return data; // done (not In Queue / Processing)
-  }
-  return null; // timed out waiting
 }
 
 Deno.serve(async (req) => {
@@ -101,15 +78,42 @@ Deno.serve(async (req) => {
     );
     if (authErr || !user) return json({ error: 'Unauthorized' }, 401);
 
-    const apiKey = Deno.env.get('JUDGE0_API_KEY');
-    if (!apiKey) return json({ error: 'JUDGE0_API_KEY not configured' }, 500);
+    const { problem_id, source_code, language, run_only, stdin } = await req.json();
+    if (!source_code || !language)
+      return json({ error: 'Missing source_code or language' }, 400);
 
-    const { problem_id, source_code, language } = await req.json();
-    if (!problem_id || !source_code || !language)
-      return json({ error: 'Missing problem_id, source_code, or language' }, 400);
+    if (!run_only && !problem_id)
+      return json({ error: 'Missing problem_id for submission' }, 400);
 
-    const langId = LANG_ID[language];
-    if (!langId) return json({ error: `Unsupported language: ${language}` }, 400);
+    const pistonLang = LANG_MAP[language];
+    if (!pistonLang) return json({ error: `Unsupported language: ${language}` }, 400);
+
+    // Rate Limiting check
+    if (isRateLimited(user.id, 10, 60000)) {
+      return json({ error: 'Rate limit exceeded. Please wait a minute.' }, 429);
+    }
+
+    if (run_only) {
+      try {
+        const result = await executePiston(source_code, pistonLang, stdin ?? '');
+        let compileError: string | null = null;
+        if (result.compile && result.compile.code !== 0) {
+          compileError = result.compile.output || result.compile.stderr;
+        }
+        return json({
+          run_only: true,
+          compileError,
+          stdout: result.run?.stdout || '',
+          stderr: result.run?.stderr || '',
+          output: result.run?.output || '',
+          time_ms: result.run?.cpu_time ?? 0,
+          memory_kb: result.run?.memory ? Math.round(result.run.memory / 1024) : 0,
+        });
+      } catch (err) {
+        console.error('run_only Piston error:', err);
+        return json({ error: err instanceof Error ? err.message : 'Execution failed' }, 500);
+      }
+    }
 
     // Fetch problem + test cases from DB
     const { data: problem, error: pErr } = await supabase
@@ -122,14 +126,6 @@ Deno.serve(async (req) => {
     const testCases: Array<{ input: string; expectedOutput: string }> = problem.test_cases ?? [];
     if (!testCases.length) return json({ error: 'No test cases configured for this problem' }, 400);
 
-    // Submit all test cases to Judge0 in parallel (get tokens first)
-    const tokens: string[] = [];
-    for (const tc of testCases) {
-      const sub = await submitToJudge0(source_code, langId, tc.input, tc.expectedOutput, apiKey);
-      tokens.push(sub.token);
-    }
-
-    // Poll all results (sequentially to respect rate limits)
     const testResults: Array<{
       case: number;
       input: string;
@@ -146,61 +142,75 @@ Deno.serve(async (req) => {
     let maxMemory = 0;
     let compileError: string | null = null;
 
-    for (let i = 0; i < tokens.length; i++) {
-      const result = await pollResult(tokens[i], apiKey);
+    // Execute test cases sequentially to avoid rate limits
+    for (let i = 0; i < testCases.length; i++) {
       const tc = testCases[i];
+      if (i > 0) await sleep(250); // Small delay between requests to be gentle to the API
 
-      if (!result) {
+      let result;
+      try {
+        result = await executePiston(source_code, pistonLang, tc.input);
+      } catch (e) {
         testResults.push({
           case: i + 1,
           input: tc.input,
           expectedOutput: tc.expectedOutput,
           actualOutput: '',
-          status: 'Timed Out',
-          verdict: 'time_limit_exceeded',
+          status: 'API Error',
+          verdict: 'runtime_error',
           time: '—',
           memory: 0,
         });
-        overallVerdict = 'time_limit_exceeded';
+        overallVerdict = 'runtime_error';
         continue;
       }
 
-      const statusId  = result.status?.id ?? 0;
-      const verdict   = VERDICT_MAP[statusId] ?? 'runtime_error';
-      const stdout    = result.stdout ? fromB64(result.stdout).trim() : '';
-      const stderr    = result.stderr ? fromB64(result.stderr).trim() : '';
-      const compOut   = result.compile_output ? fromB64(result.compile_output).trim() : '';
-      const timeMs    = parseFloat(result.time ?? '0') * 1000;
-      const memKb     = result.memory ?? 0;
-
-      totalTimeMs += timeMs;
-      maxMemory    = Math.max(maxMemory, memKb);
-
-      if (verdict === 'compilation_error') {
-        compileError = compOut || stderr;
+      // Check compilation error
+      if (result.compile && result.compile.code !== 0) {
+        compileError = result.compile.output || result.compile.stderr;
         overallVerdict = 'compilation_error';
-        // No point running more tests
         testResults.push({
           case: i + 1,
           input: tc.input,
           expectedOutput: tc.expectedOutput,
           actualOutput: compileError ?? '',
-          status: result.status?.description ?? 'Compilation Error',
-          verdict,
-          time: `${timeMs.toFixed(0)}ms`,
-          memory: memKb,
+          status: 'Compilation Error',
+          verdict: 'compilation_error',
+          time: '0ms',
+          memory: 0,
         });
-        break;
+        break; // No point running more tests
       }
+
+      const runOutput = result.run.output || '';
+      const actualOutputTrimmed = runOutput.trim();
+      const expectedOutputTrimmed = tc.expectedOutput.trim();
+      
+      let verdict = 'accepted';
+      let status = 'Accepted';
+
+      if (result.run.signal === 'SIGKILL') {
+        verdict = 'time_limit_exceeded';
+        status = 'Time Limit Exceeded';
+      } else if (result.run.code !== 0) {
+        verdict = 'runtime_error';
+        status = 'Runtime Error';
+      } else if (actualOutputTrimmed !== expectedOutputTrimmed) {
+        verdict = 'wrong_answer';
+        status = 'Wrong Answer';
+      }
+
+      const timeMs = 0;
+      const memKb = 0;
 
       testResults.push({
         case: i + 1,
         input: tc.input,
         expectedOutput: tc.expectedOutput,
-        actualOutput: stdout || stderr,
-        status: result.status?.description ?? 'Unknown',
+        actualOutput: runOutput,
+        status,
         verdict,
-        time: `${timeMs.toFixed(0)}ms`,
+        time: `${timeMs}ms`,
         memory: memKb,
       });
 
@@ -265,7 +275,7 @@ Deno.serve(async (req) => {
     });
 
   } catch (err) {
-    console.error('judge-code error:', err);
+    console.error('execute-code error:', err);
     return json({ error: err instanceof Error ? err.message : 'Internal error' }, 500);
   }
 });
