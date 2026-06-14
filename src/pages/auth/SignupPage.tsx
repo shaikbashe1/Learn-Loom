@@ -16,8 +16,9 @@ export default function SignupPage() {
   const [resending, setResending]           = useState(false);
   const [stage, setStage]                   = useState<'form' | 'verify-sent'>('form');
   const [submittedEmail, setSubmittedEmail] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
 
-  const { signUpWithEmail, signInWithGoogle, resendVerificationEmail } = useAuth();
+  const { signUpWithEmail, signInWithGoogle, resendVerificationEmail, verifyEmailCode } = useAuth();
   const navigate = useNavigate();
 
   const handleGoogleSignup = async () => {
@@ -78,22 +79,48 @@ export default function SignupPage() {
             </div>
             <h2 className="font-headline-md text-headline-md text-on-surface mb-sm">Check your inbox</h2>
             <p className="font-body-md text-body-md text-on-surface-variant mb-xl">
-              We&apos;ve sent a verification link to <span className="text-on-surface font-bold">{submittedEmail}</span>. Click the link to activate your account.
+              We&apos;ve sent a verification code to <span className="text-on-surface font-bold">{submittedEmail}</span>. Enter the 6-digit code below to activate your account.
             </p>
-            <div className="space-y-md">
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              setLoading(true);
+              const { error } = await verifyEmailCode(verificationCode);
+              setLoading(false);
+              if (error) { toast.error('Verification failed', { description: error.message }); }
+              else {
+                toast.success('Account verified!');
+                navigate('/dashboard', { replace: true });
+              }
+            }} className="space-y-md">
+              <div>
+                <input 
+                  type="text" 
+                  required 
+                  placeholder="123456"
+                  maxLength={6}
+                  value={verificationCode}
+                  onChange={e => setVerificationCode(e.target.value)}
+                  className="w-full text-center tracking-widest text-2xl bg-surface-container border border-outline-variant text-on-surface focus:border-primary focus:bg-surface-container-high focus:outline-none focus:ring-1 focus:ring-primary rounded-xl py-md font-body-md placeholder:text-outline transition-all duration-200" 
+                />
+              </div>
+              <button 
+                type="submit" 
+                disabled={loading || verificationCode.length < 6}
+                className="w-full bg-primary text-on-primary font-headline-md text-headline-md rounded-full py-md hover:bg-primary-fixed transition-all active:scale-[0.98] disabled:opacity-70 disabled:pointer-events-none flex justify-center items-center"
+              >
+                {loading ? <span className="material-symbols-outlined animate-spin mr-2">sync</span> : null}
+                Verify Account
+              </button>
               <button 
                 type="button" 
                 onClick={handleResend} 
                 disabled={resending}
-                className="w-full bg-surface-container-high text-on-surface border border-outline-variant font-label-md text-label-md rounded-full py-md hover:bg-surface-bright transition-colors disabled:opacity-70 flex justify-center items-center gap-sm"
+                className="w-full mt-4 bg-transparent text-on-surface-variant font-label-md text-label-md hover:text-on-surface transition-colors disabled:opacity-70 flex justify-center items-center gap-sm"
               >
                 {resending ? <span className="material-symbols-outlined animate-spin text-[18px]">sync</span> : <span className="material-symbols-outlined text-[18px]">refresh</span>}
-                Resend verification email
+                Resend verification code
               </button>
-              <Link to="/login" className="block w-full bg-primary text-on-primary font-label-md text-label-md rounded-full py-md hover:bg-primary-fixed transition-colors shadow-[0_0_15px_rgba(192,193,255,0.2)]">
-                Back to Sign In
-              </Link>
-            </div>
+            </form>
           </div>
         ) : (
           /* ── Signup form ── */

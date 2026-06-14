@@ -4,12 +4,11 @@ import type { Profile } from '@/types/types';
 import { toast } from 'sonner';
 import { useUser, useSignIn, useSignUp, useClerk, useSession } from '@clerk/clerk-react';
 
-export async function getProfile(userId: string): Promise<Profile | null> {
+export async function getProfile(): Promise<Profile | null> {
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
-    .eq('id', userId)
-    .maybeSingle();
+    .maybeSingle(); // RLS automatically filters to auth.uid()
 
   if (error) {
     console.error('Failed to fetch profile:', error);
@@ -18,19 +17,7 @@ export async function getProfile(userId: string): Promise<Profile | null> {
   return data;
 }
 
-export async function createProfile(userId: string, email: string, fullName: string): Promise<Profile | null> {
-  const { data, error } = await supabase
-    .from('profiles')
-    .insert([{ id: userId, email, full_name: fullName, role: 'student' }])
-    .select('*')
-    .single();
-
-  if (error) {
-    console.error('Failed to create profile:', error);
-    return null;
-  }
-  return data;
-}
+// Frontend profile creation removed - handled securely by Clerk Webhook
 
 interface SignInResult {
   error: Error | null;
@@ -44,6 +31,7 @@ interface AuthContextType {
   loading: boolean;
   signInWithEmail: (email: string, password: string) => Promise<SignInResult>;
   signUpWithEmail: (email: string, password: string, fullName?: string) => Promise<SignInResult>;
+  verifyEmailCode: (code: string) => Promise<SignInResult>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
   resendVerificationEmail: (email: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -69,10 +57,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const syncSupabaseToken = async () => {
+    const syncSupabaseToken = async (retries = 3) => {
       try {
         const token = await session.getToken({ template: 'supabase' });
         if (token) {
+          // Decode token lightly to ensure webhook has populated supabase_uuid
+          // if it's a new user. The clerk template sets `sub` to the uuid.
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          if (payload.sub && payload.sub.startsWith('user_') && retries > 0) {
+            console.log('[Auth] Webhook still processing, retrying token sync...');
+            setTimeout(() => syncSupabaseToken(retries - 1), 1500);
+            return;
+          }
+
           await supabase.auth.setSession({
             access_token: token,
             refresh_token: '',
@@ -101,24 +98,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     if (clerkUser && clerkUserId) {
       setLoadingProfile(true);
-      getProfile(clerkUserId).then(async (data) => {
-        if (!data) {
-          // Create profile if it doesn't exist
-          const email = clerkUser.primaryEmailAddress?.emailAddress || '';
-          const fullName = clerkUser.fullName || '';
-          const newProfile = await createProfile(clerkUserId, email, fullName);
-          setProfile(newProfile);
-        } else {
-          setProfile(data);
-        }
-      }).finally(() => {
-        setLoadingProfile(false);
-      });
+      // Wait a moment for Supabase session to sync if it's a fresh login
+      setTimeout(() => {
+        getProfile().then((data) => {
+          setProfile(data); // Will be null if webhook hasn't finished, which is fine, UI will just poll or refresh
+        }).finally(() => {
+          setLoadingProfile(false);
+        });
+      }, 500);
     } else {
       setProfile(null);
       setLoadingProfile(false);
     }
-  }, [clerkUserId, clerkLoaded]);
+  }, [clerkUserId, clerkLoaded, session]);
 
   const loading = !clerkLoaded || loadingProfile;
 
@@ -175,11 +167,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       
       await signUp.prepareEmailAddressVerification({ 
-        strategy: "email_link",
-        redirectUrl: `${window.location.origin}/auth/callback`
+        strategy: "email_code",
       });
       
       return { error: null, userId: res.createdUserId || undefined, needsVerification: true };
+    } catch (err: any) {
+      return { error: err as Error };
+    }
+  };
+
+  const verifyEmailCode = async (code: string): Promise<SignInResult> => {
+    if (!signUpLoaded) return { error: new Error('Not loaded') };
+    try {
+      const completeSignUp = await signUp.attemptEmailAddressVerification({ code });
+      if (completeSignUp.status === 'complete') {
+        await setActive({ session: completeSignUp.createdSessionId });
+        return { error: null };
+      } else {
+        return { error: new Error('Verification failed') };
+      }
     } catch (err: any) {
       return { error: err as Error };
     }
@@ -189,8 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!signUpLoaded) return { error: new Error('Not loaded') };
     try {
       await signUp.prepareEmailAddressVerification({ 
-        strategy: "email_link",
-        redirectUrl: `${window.location.origin}/auth/callback`
+        strategy: "email_code",
       });
       return { error: null };
     } catch (err) {
@@ -206,7 +211,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider value={{
       user: clerkUser, profile, loading,
-      signInWithEmail, signUpWithEmail,
+      signInWithEmail, signUpWithEmail, verifyEmailCode,
       signInWithGoogle, resendVerificationEmail,
       signOut, refreshProfile,
       debug: { clerkLoaded, loadingProfile, hasClerkUser: !!clerkUser, clerkUserId }
