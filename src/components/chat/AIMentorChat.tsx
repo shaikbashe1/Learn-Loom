@@ -254,18 +254,44 @@ YOUR ROLE:
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token ?? '';
 
-      const res = await fetch('/api/ai-mentor', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ contents }),
-        signal: abortRef.current.signal,
-      });
+      let res: Response;
+      const directKey = import.meta.env.VITE_GEMINI_API_KEY;
+
+      if (directKey) {
+        // Fallback for local development or direct testing
+        const systemInstruction = {
+          role: 'user',
+          parts: [{ text: buildSystemPrompt() }],
+        };
+        const fullContents = [systemInstruction, ...contents.slice(1)];
+        res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key=${directKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: fullContents }),
+            signal: abortRef.current.signal,
+          }
+        );
+      } else {
+        // Use Vercel backend in production
+        res = await fetch('/api/ai-mentor', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ contents }),
+          signal: abortRef.current.signal,
+        });
+      }
 
       if (!res.ok) {
-        const errText = await res.text();
+        let errText = await res.text();
+        try {
+          const parsedErr = JSON.parse(errText);
+          errText = parsedErr.error?.message || parsedErr.error || errText;
+        } catch {}
         throw new Error(errText || `HTTP ${res.status}`);
       }
       if (!res.body) throw new Error('No response body');
@@ -295,9 +321,12 @@ YOUR ROLE:
         buffer = lines.pop() ?? '';
         for (const line of lines) parser.feed(line + '\n');
       }
-    } catch (err: unknown) {
-      if (err instanceof Error && err.name === 'AbortError') return;
-      toast.error('AI Mentor unavailable', { description: 'Please try again in a moment.' });
+    } catch (err: any) {
+      if (err.name === 'AbortError') return;
+      console.error('AI Mentor Error:', err);
+      toast.error('AI Mentor unavailable', { 
+        description: err.message || 'Please try again in a moment.' 
+      });
       setMessages(prev => prev.filter(m => m.id !== aiMsgId));
     } finally {
       setStreaming(false);
