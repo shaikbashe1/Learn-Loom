@@ -2,7 +2,7 @@ export const config = {
   runtime: 'edge',
 };
 
-const GATEWAY_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse';
+const GATEWAY_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:streamGenerateContent?alt=sse';
 
 export default async function handler(req: Request) {
   if (req.method === 'OPTIONS') {
