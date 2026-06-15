@@ -265,7 +265,7 @@ YOUR ROLE:
         };
         const fullContents = [systemInstruction, ...contents.slice(1)];
         res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:streamGenerateContent?alt=sse&key=${directKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${directKey}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
