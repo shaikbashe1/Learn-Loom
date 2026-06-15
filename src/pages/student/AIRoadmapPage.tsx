@@ -1,41 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { supabase } from '@/db/supabase';
-import { toast } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
 import type { RoadmapDomain } from '@/types/types';
-
-interface PhaseResource {
-  title: string;
-  type: 'video' | 'article' | 'book' | 'project';
-  url?: string;
-}
-
-interface Phase {
-  phase: number;
-  title: string;
-  duration_weeks: number;
-  topics: string[];
-  resources: PhaseResource[];
-  milestone: string;
-}
-
-interface QuizQuestion {
-  question: string;
-  options: string[];
-  correct_index: number;
-  explanation: string;
-}
-
-interface StaticRoadmap {
-  id: string;
-  domain: string;
-  title: string;
-  description: string;
-  estimated_weeks: number;
-  phases: Phase[];
-  quiz_questions: QuizQuestion[];
-}
+import { staticRoadmaps, StaticRoadmap, Phase } from '@/data/roadmaps';
 
 const domainOptions = [
   { id: 'data-science' as RoadmapDomain, label: 'Data Science', icon: 'bar_chart', color: 'from-primary/20 to-primary/5', border: 'border-primary/40', iconColor: 'text-primary', weeks: 12 },
@@ -47,39 +14,20 @@ const domainOptions = [
 
 export default function AIRoadmapPage() {
   const [selectedDomain, setSelectedDomain] = useState<RoadmapDomain | null>(null);
-  const [loading, setLoading] = useState(false);
   const [roadmap, setRoadmap] = useState<StaticRoadmap | null>(null);
   const navigate = useNavigate();
 
-  const handleGenerate = async () => {
+  const handleGenerate = () => {
     if (!selectedDomain) return;
-    setLoading(true);
-    setRoadmap(null);
-
-    try {
-      const { data, error } = await supabase
-        .from('roadmaps')
-        .select('*')
-        .eq('domain', selectedDomain)
-        .single();
-
-      if (error) throw error;
-      if (!data) throw new Error('Roadmap not found in database. Ensure migrations are applied.');
-
-      setRoadmap(data as StaticRoadmap);
-    } catch (err: unknown) {
-      console.error('Roadmap loading error:', err);
-      toast.error('Failed to load roadmap', {
-        description: err instanceof Error ? err.message : 'Please try again in a few moments.',
-      });
-    } finally {
-      setLoading(false);
+    // Load static roadmap directly from JSON data
+    const data = staticRoadmaps[selectedDomain];
+    if (data) {
+      setRoadmap(data);
     }
   };
 
   const handleAskAI = (phase: Phase) => {
     const prompt = `I am currently studying Phase ${phase.phase}: ${phase.title} in the ${roadmap?.title} roadmap. The topics include: ${phase.topics.join(', ')}. Can you help me understand this better?`;
-    // Pass the initial prompt via localStorage or state
     localStorage.setItem('initial_ai_prompt', prompt);
     navigate('/ai-mentor');
   };
@@ -129,14 +77,10 @@ export default function AIRoadmapPage() {
                 </div>
                 <button
                   onClick={handleGenerate}
-                  disabled={!selectedDomain || loading}
+                  disabled={!selectedDomain}
                   className="bg-primary text-on-primary-container px-xl py-sm rounded-lg font-label-md text-label-md hover:brightness-110 transition-all shrink-0 shadow-[0_0_15px_rgba(192,193,255,0.2)] disabled:opacity-50 flex items-center gap-2 h-12"
                 >
-                  {loading ? (
-                    <><span className="material-symbols-outlined text-[20px] animate-spin">sync</span> Loading...</>
-                  ) : (
-                    <>Load Roadmap <span className="material-symbols-outlined text-[20px]">arrow_forward</span></>
-                  )}
+                  Load Roadmap <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
                 </button>
               </div>
             </div>
@@ -147,7 +91,7 @@ export default function AIRoadmapPage() {
               <div>
                 <h1 className="font-display text-display text-on-surface mb-xs leading-tight">{roadmap.title}</h1>
                 <p className="font-body-md text-body-md text-on-surface-variant max-w-3xl">{roadmap.description}</p>
-                <div className="mt-2 text-sm text-primary font-bold">{roadmap.estimated_weeks} Weeks Estimated</div>
+                <div className="mt-2 text-sm text-primary font-bold">{roadmap.estimated_weeks} Weeks Estimated Curriculum</div>
               </div>
               <button
                 onClick={() => { setRoadmap(null); setSelectedDomain(null); }}
@@ -160,42 +104,85 @@ export default function AIRoadmapPage() {
 
             <div className="space-y-lg mt-8">
               {roadmap.phases.map((phase) => (
-                <div key={phase.phase} className="bg-surface-container-low border border-outline-variant/60 rounded-xl p-lg md:p-xl transition-all hover:border-primary/40">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="bg-primary text-on-primary px-3 py-1 rounded-md font-bold text-sm">
-                      Week {phase.phase}
+                <div key={phase.phase} className="bg-surface-container-low border border-outline-variant/60 rounded-xl p-lg md:p-xl transition-all hover:border-primary/40 flex flex-col md:flex-row gap-6">
+                  {/* Left Column: Details */}
+                  <div className="flex-1 space-y-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="bg-primary text-on-primary px-3 py-1 rounded-md font-bold text-sm">
+                        Week {phase.phase}
+                      </div>
+                      <h2 className="text-xl font-bold text-on-surface">{phase.title}</h2>
                     </div>
-                    <h2 className="text-xl font-bold text-on-surface">{phase.title}</h2>
-                  </div>
-                  
-                  <div className="mb-4">
-                    <p className="text-on-surface-variant mb-2"><strong>Topics:</strong> {phase.topics.join(', ')}</p>
-                    <p className="text-on-surface-variant italic text-sm">Milestone: {phase.milestone}</p>
+                    
+                    <div className="space-y-2">
+                      <p className="text-on-surface-variant"><strong>Topics:</strong> {phase.topics.join(', ')}</p>
+                      
+                      <div>
+                        <p className="text-on-surface-variant font-bold text-sm mb-1">Learning Objectives:</p>
+                        <ul className="list-disc list-inside text-sm text-on-surface-variant/90 space-y-1">
+                          {phase.learning_objectives.map((obj, i) => (
+                            <li key={i}>{obj}</li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {phase.assignments && phase.assignments.length > 0 && (
+                        <div className="mt-4 p-3 bg-secondary/10 border border-secondary/20 rounded-lg">
+                          <p className="text-secondary font-bold text-sm mb-1 flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[16px]">assignment</span> Assignments:
+                          </p>
+                          <ul className="list-disc list-inside text-sm text-on-surface-variant space-y-1">
+                            {phase.assignments.map((ass, i) => (
+                              <li key={i}>{ass}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {phase.practice_questions && phase.practice_questions.length > 0 && (
+                        <div className="mt-2 p-3 bg-tertiary/10 border border-tertiary/20 rounded-lg">
+                          <p className="text-tertiary font-bold text-sm mb-1 flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[16px]">psychology</span> Practice Questions:
+                          </p>
+                          <ul className="list-disc list-inside text-sm text-on-surface-variant space-y-1">
+                            {phase.practice_questions.map((pq, i) => (
+                              <li key={i}>{pq}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      <div className="mt-4 border-t border-outline-variant/30 pt-3">
+                        <p className="text-primary italic text-sm flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[16px]">flag</span> Milestone: {phase.milestone}
+                        </p>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Resource Actions */}
-                  <div className="flex flex-wrap gap-3 mt-6">
+                  {/* Right Column: Actions */}
+                  <div className="flex flex-col gap-3 md:w-48 shrink-0">
                     {phase.resources?.filter(r => r.type === 'article').map((res, i) => (
-                      <a key={`art-${i}`} href={res.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 bg-surface border border-outline-variant rounded-lg hover:border-primary transition-colors text-sm text-on-surface">
-                        <span className="material-symbols-outlined text-[18px]">article</span> Notes
+                      <a key={`art-${i}`} href={res.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-3 bg-surface border border-outline-variant rounded-lg hover:border-primary transition-colors text-sm text-on-surface w-full">
+                        <span className="material-symbols-outlined text-[20px] text-primary">article</span> Notes
                       </a>
                     ))}
                     
                     {phase.resources?.filter(r => r.type === 'video').map((res, i) => (
-                      <a key={`vid-${i}`} href={res.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 bg-surface border border-outline-variant rounded-lg hover:border-primary transition-colors text-sm text-on-surface">
-                        <span className="material-symbols-outlined text-[18px] text-error">play_circle</span> Videos
+                      <a key={`vid-${i}`} href={res.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-3 bg-surface border border-outline-variant rounded-lg hover:border-error transition-colors text-sm text-on-surface w-full">
+                        <span className="material-symbols-outlined text-[20px] text-error">play_circle</span> Videos
                       </a>
                     ))}
 
-                    <Link to={`/quiz/${roadmap.domain}-w${phase.phase}`} className="flex items-center gap-2 px-4 py-2 bg-surface border border-outline-variant rounded-lg hover:border-primary transition-colors text-sm text-on-surface">
-                      <span className="material-symbols-outlined text-[18px] text-primary">quiz</span> Quiz
+                    <Link to={`/quiz/${roadmap.domain}-w${phase.phase}`} className="flex items-center gap-2 px-4 py-3 bg-surface border border-outline-variant rounded-lg hover:border-secondary transition-colors text-sm text-on-surface w-full">
+                      <span className="material-symbols-outlined text-[20px] text-secondary">quiz</span> Quiz
                     </Link>
 
                     <button 
                       onClick={() => handleAskAI(phase)}
-                      className="flex items-center gap-2 px-4 py-2 bg-tertiary/10 border border-tertiary/30 rounded-lg hover:bg-tertiary/20 transition-colors text-sm text-tertiary font-medium ml-auto"
+                      className="flex items-center justify-center gap-2 px-4 py-3 bg-tertiary text-on-tertiary rounded-lg hover:brightness-110 transition-all font-bold mt-auto w-full"
                     >
-                      <span className="material-symbols-outlined text-[18px]">auto_awesome</span> Ask AI Mentor
+                      <span className="material-symbols-outlined text-[20px]">auto_awesome</span> Ask AI Mentor
                     </button>
                   </div>
                 </div>
