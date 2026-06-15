@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
@@ -224,7 +226,12 @@ function PostCard({
           <span className="text-label-sm font-label-sm font-semibold">{post.upvotes}</span>
         </button>
         <button 
-          onClick={() => setExpanded(e => !e)}
+          onClick={() => {
+            if (!expanded) {
+               supabase.rpc('increment_post_view', { p_post_id: post.id }).then(() => {});
+            }
+            setExpanded(e => !e);
+          }}
           className="flex items-center gap-xs text-on-surface-variant hover:text-on-surface transition-colors"
         >
           <span className="material-symbols-outlined text-[20px]">chat_bubble_outline</span>
@@ -232,7 +239,7 @@ function PostCard({
         </button>
         <div className="flex items-center gap-xs text-on-surface-variant ml-auto">
           <span className="material-symbols-outlined text-[20px]">visibility</span>
-          <span className="text-label-sm font-label-sm">{(post.upvotes * 3 + post.reply_count * 5) || 12} views</span>
+          <span className="text-label-sm font-label-sm">{post.views || 0} views</span>
         </div>
       </div>
 
@@ -371,7 +378,57 @@ export default function CommunityPage() {
     }
   }, [user]);
 
-  useEffect(() => { fetchPosts(); }, [fetchPosts]);
+  // ── Fetch Dynamic Engagement Data ──────────────────────────────────────
+  const [trendingTopics, setTrendingTopics] = useState<any[]>([]);
+  const [topContributors, setTopContributors] = useState<any[]>([]);
+  const [joinedGroups, setJoinedGroups] = useState<any[]>([]);
+
+  const fetchDynamicData = useCallback(async () => {
+    try {
+      // Fetch trending topics
+      const { data: topics } = await supabase
+        .from('trending_topics_view')
+        .select('*')
+        .limit(5);
+      if (topics) setTrendingTopics(topics);
+
+      // Fetch top contributors
+      const { data: contributors } = await supabase
+        .from('top_contributors_view')
+        .select('*')
+        .limit(5);
+      if (contributors) setTopContributors(contributors);
+
+      // Fetch joined groups
+      if (user) {
+        const { data: groups } = await supabase
+          .from('community_group_memberships')
+          .select('group_id, community_groups(name, icon, color)')
+          .eq('user_id', user.id);
+        
+        if (groups) {
+          setJoinedGroups(groups.map(g => ({
+            id: g.group_id,
+            ...((Array.isArray(g.community_groups) ? g.community_groups[0] : g.community_groups) || {})
+          })));
+        }
+      } else {
+        // Fetch public groups if not logged in
+        const { data: publicGroups } = await supabase
+          .from('community_groups')
+          .select('*')
+          .limit(4);
+        if (publicGroups) setJoinedGroups(publicGroups);
+      }
+    } catch (err) {
+      console.error('Dynamic data fetch error (tables might be missing):', err);
+    }
+  }, [user]);
+
+  useEffect(() => { 
+    fetchPosts(); 
+    fetchDynamicData();
+  }, [fetchPosts, fetchDynamicData]);
 
   // ── Supabase Realtime subscription for new/deleted posts ─────────────────
   useEffect(() => {
@@ -496,20 +553,19 @@ export default function CommunityPage() {
               <h3 className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Joined Groups</h3>
               <button className="text-primary hover:text-primary-fixed-dim transition-colors"><span className="material-symbols-outlined text-[18px]">add</span></button>
             </div>
-            {[
-              { color: 'text-[#61DAFB]', icon: 'code_blocks', name: 'React Masters', badge: true },
-              { color: 'text-[#DEA584]', icon: 'settings_b_roll', name: 'Rustaceans' },
-              { color: 'text-secondary', icon: 'psychology', name: 'AI Engineers' },
-              { color: 'text-on-surface', icon: 'terminal', name: 'System Design' },
-            ].map((group, i) => (
-              <a key={i} href="#" className="flex items-center gap-sm px-sm py-sm rounded-lg hover:bg-surface-container-low transition-colors group">
-                <div className={`w-8 h-8 rounded bg-surface-container-high border border-outline-variant/60 flex items-center justify-center ${group.color}`}>
-                  <span className="material-symbols-outlined text-[18px]">{group.icon}</span>
-                </div>
-                <span className="font-label-md text-label-md text-on-surface-variant group-hover:text-on-surface flex-1 truncate">{group.name}</span>
-                {group.badge && <div className="w-2 h-2 rounded-full bg-primary"></div>}
-              </a>
-            ))}
+            {joinedGroups.length > 0 ? (
+              joinedGroups.map((group, i) => (
+                <a key={i} href="#" className="flex items-center gap-sm px-sm py-sm rounded-lg hover:bg-surface-container-low transition-colors group">
+                  <div className={`w-8 h-8 rounded bg-surface-container-high border border-outline-variant/60 flex items-center justify-center ${group.color || 'text-primary'}`}>
+                    <span className="material-symbols-outlined text-[18px]">{group.icon || 'group'}</span>
+                  </div>
+                  <span className="font-label-md text-label-md text-on-surface-variant group-hover:text-on-surface flex-1 truncate">{group.name}</span>
+                  {i === 0 && <div className="w-2 h-2 rounded-full bg-primary"></div>}
+                </a>
+              ))
+            ) : (
+              <p className="px-sm text-xs text-on-surface-variant italic py-1">No groups joined</p>
+            )}
           </section>
         </div>
 
@@ -634,52 +690,66 @@ export default function CommunityPage() {
         {/* Right Column: Widgets */}
         <div className="col-span-1 lg:col-span-3 flex flex-col gap-lg lg:sticky lg:top-24">
           {/* Trending Topics */}
-          <div className="bg-surface border border-outline-variant/60 rounded-xl p-md">
-            <h3 className="font-label-md text-label-md font-bold text-on-surface mb-md flex items-center gap-xs">
-              <span className="material-symbols-outlined text-tertiary text-[18px]">trending_up</span> Trending Topics
-            </h3>
-            <div className="flex flex-col gap-sm">
-              {[
-                { topic: '#machine-learning', desc: 'Trending in AI Engineers', posts: '2.4k' },
-                { topic: '#system-design', desc: 'Trending globally', posts: '1.8k' },
-                { topic: '#career-advice', desc: 'Trending in General', posts: '956' },
-              ].map((t, i) => (
-                <a key={i} href="#" className="flex justify-between items-center group">
-                  <div className="flex flex-col">
-                    <span className="font-label-sm text-label-sm font-mono text-on-surface group-hover:text-primary transition-colors">{t.topic}</span>
-                    <span className="text-xs text-on-surface-variant">{t.desc}</span>
-                  </div>
-                  <span className="font-label-sm text-[10px] text-on-surface-variant bg-surface-container px-xs py-[2px] rounded">{t.posts} posts</span>
-                </a>
-              ))}
-            </div>
-            <button className="w-full text-center mt-md font-label-sm text-label-sm text-primary hover:text-primary-fixed-dim transition-colors">Show all trends</button>
-          </div>
+          <Card className="border-outline-variant/60 bg-surface-container-low/50 hidden lg:block backdrop-blur-md rounded-xl">
+            <CardContent className="p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="material-symbols-outlined text-[18px] text-tertiary">trending_up</span>
+                <h3 className="font-label-lg font-bold text-on-surface">Trending Topics</h3>
+              </div>
+              <div className="space-y-4">
+                {trendingTopics.length > 0 ? (
+                  trendingTopics.map((t, i) => (
+                    <div key={i} className="flex justify-between items-start group cursor-pointer">
+                      <div>
+                        <p className="font-label-md text-on-surface group-hover:text-primary transition-colors">{t.topic}</p>
+                        <p className="text-xs text-on-surface-variant/80 mt-0.5">Trending locally</p>
+                      </div>
+                      <span className="text-xs font-label-sm text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full">{t.posts_count} posts</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-on-surface-variant italic py-2">No trending topics yet</p>
+                )}
+                {trendingTopics.length > 0 && (
+                  <Button variant="ghost" className="w-full text-xs text-primary hover:text-primary/80 h-8 mt-2">
+                    Show all trends
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Top Contributors */}
-          <div className="bg-surface border border-outline-variant/60 rounded-xl p-md">
-            <h3 className="font-label-md text-label-md font-bold text-on-surface mb-md flex items-center gap-xs">
-              <span className="material-symbols-outlined text-secondary text-[18px]">workspace_premium</span> Top Contributors
-            </h3>
-            <div className="flex flex-col gap-sm">
-              {[
-                { name: 'Elena Rostova', pts: '14.2k', rank: 1, color: 'text-tertiary' },
-                { name: 'Marcus Johnson', pts: '12.8k', rank: 2, color: 'text-on-surface-variant' },
-                { name: 'Sarah Jenkins', pts: '9.4k', rank: 3, color: 'text-on-surface-variant' },
-              ].map((c, i) => (
-                <div key={i} className="flex items-center gap-sm">
-                  <div className={`w-6 text-center font-label-sm text-label-sm font-bold ${c.color}`}>{c.rank}</div>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${c.rank === 1 ? 'border border-tertiary/50 bg-tertiary/10 text-tertiary' : 'bg-surface-container-high border border-outline-variant/40 text-on-surface'}`}>
-                    {initials(c.name)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-label-sm text-label-sm text-on-surface truncate">{c.name}</p>
-                  </div>
-                  <span className="font-label-sm text-[10px] text-on-surface-variant font-mono">{c.pts} pts</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          <Card className="border-outline-variant/60 bg-surface-container-low/50 hidden lg:block backdrop-blur-md rounded-xl">
+            <CardContent className="p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="material-symbols-outlined text-[18px] text-secondary">workspace_premium</span>
+                <h3 className="font-label-lg font-bold text-on-surface">Top Contributors</h3>
+              </div>
+              <div className="space-y-4">
+                {topContributors.length > 0 ? (
+                  topContributors.map((c, i) => (
+                    <div key={i} className="flex items-center justify-between group cursor-pointer">
+                      <div className="flex items-center gap-3">
+                        <span className={`text-xs font-bold w-4 text-center ${i === 0 ? 'text-tertiary' : 'text-on-surface-variant'}`}>{i + 1}</span>
+                        {c.avatar_url ? (
+                          <img src={c.avatar_url} alt={c.full_name || 'User'} className="w-8 h-8 rounded-full border border-outline-variant" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-surface-container-high border border-outline-variant flex items-center justify-center">
+                            <span className="text-xs font-bold text-on-surface">{(c.full_name || 'U').substring(0, 2).toUpperCase()}</span>
+                          </div>
+                        )}
+                        <span className="font-label-md text-on-surface group-hover:text-primary transition-colors truncate max-w-[100px]">{c.full_name || 'Anonymous User'}</span>
+                      </div>
+                      <span className="text-xs font-label-sm text-on-surface-variant">{c.contributor_score || 0} pts</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-on-surface-variant italic py-2">No contributors yet</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Guidelines Card */}
           <div className="bg-surface-container-low border border-outline-variant/40 rounded-xl p-md">
