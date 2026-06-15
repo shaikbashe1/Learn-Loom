@@ -35,6 +35,7 @@ const adminNavItems = [
   { label: 'Community',       path: '/admin/community',     icon: 'forum' },
   { label: 'Submissions',     path: '/admin/submissions',   icon: 'assignment' },
   { label: 'Reports',         path: '/admin/reports',       icon: 'analytics' },
+  { label: 'Roadmaps',        path: '/admin/roadmaps',      icon: 'map' },
 ];
 
 function SidebarNav({ items, onClose }: { items: typeof studentNavItems, onClose?: () => void }) {

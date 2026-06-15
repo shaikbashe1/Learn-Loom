@@ -37,6 +37,7 @@ const AdminCertsPage      = lazy(() => import('./pages/admin/AdminCertificatesPa
 const AdminReportsPage    = lazy(() => import('./pages/admin/AdminReportsPage'));
 const AdminCommunityPage  = lazy(() => import('./pages/admin/AdminCommunityPage'));
 const AdminSubmissionsPage = lazy(() => import('./pages/admin/AdminSubmissionsPage'));
+const AdminRoadmapsPage   = lazy(() => import('./pages/admin/AdminRoadmapsPage'));
 
 export interface RouteConfig {
   name: string;
@@ -85,4 +86,5 @@ export const routes: RouteConfig[] = [
   { name: 'Admin Reports',        path: '/admin/reports',           component: AdminReportsPage },
   { name: 'Admin Community',      path: '/admin/community',         component: AdminCommunityPage },
   { name: 'Admin Submissions',    path: '/admin/submissions',       component: AdminSubmissionsPage },
+  { name: 'Admin Roadmaps',       path: '/admin/roadmaps',          component: AdminRoadmapsPage },
 ];
