@@ -18,6 +18,7 @@ interface ForumPost {
   tags: string[];
   upvotes: number;
   reply_count: number;
+  views: number;
   created_at: string;
   user_id: string;
   is_pinned?: boolean;
@@ -331,6 +332,7 @@ export default function CommunityPage() {
   const [posting, setPosting]           = useState(false);
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [realtimeOk, setRealtimeOk]     = useState(false);
+  const [feedTab, setFeedTab]           = useState<'new' | 'trending' | 'top'>('new');
 
   // ── Fetch posts with vote state ──────────────────────────────────────────
   const fetchPosts = useCallback(async () => {
@@ -481,9 +483,15 @@ export default function CommunityPage() {
       title: newTitle.trim(),
       content: newContent.trim(),
       category: newCategory,
-    });
+    }).select().single();
     setPosting(false);
     if (err) { toast.error('Failed to post', { description: err.message }); return; }
+    
+    setPosts(prev => {
+      if (prev.some(p => p.id === data.id)) return prev;
+      return [{ ...data, profiles: { full_name: user.user_metadata?.full_name || 'Community Member', avatar_url: user.user_metadata?.avatar_url }, user_voted: false }, ...prev];
+    });
+
     toast.success('Discussion posted!');
     setIsComposerOpen(false);
     setNewTitle(''); setNewContent(''); setNewCategory('general');
@@ -509,12 +517,31 @@ export default function CommunityPage() {
     setPosts(prev => prev.map(p => p.id === postId ? { ...p, reply_count: p.reply_count + delta } : p));
   };
 
-  const filtered = posts.filter(p => {
+  let filtered = posts.filter(p => {
+    const searchLower = search.toLowerCase();
     const matchSearch = !search ||
-      p.title.toLowerCase().includes(search.toLowerCase()) ||
-      p.content.toLowerCase().includes(search.toLowerCase());
+      p.title.toLowerCase().includes(searchLower) ||
+      p.content.toLowerCase().includes(searchLower) ||
+      (p.profiles?.full_name?.toLowerCase().includes(searchLower)) ||
+      (p.tags && p.tags.some(t => t.toLowerCase().includes(searchLower)));
     const matchCat = activeCategory === 'all' || p.category === activeCategory;
     return matchSearch && matchCat;
+  });
+
+  filtered = filtered.sort((a, b) => {
+    if (feedTab === 'top') {
+      const scoreA = (a.views || 0) + a.upvotes + a.reply_count;
+      const scoreB = (b.views || 0) + b.upvotes + b.reply_count;
+      return scoreB - scoreA;
+    } else if (feedTab === 'trending') {
+      const ageA = (new Date().getTime() - new Date(a.created_at).getTime()) / (1000 * 3600);
+      const ageB = (new Date().getTime() - new Date(b.created_at).getTime()) / (1000 * 3600);
+      const scoreA = ((a.views || 0) + (a.upvotes * 2) + (a.reply_count * 3)) / Math.max(1, Math.log10(ageA + 1));
+      const scoreB = ((b.views || 0) + (b.upvotes * 2) + (b.reply_count * 3)) / Math.max(1, Math.log10(ageB + 1));
+      return scoreB - scoreA;
+    } else {
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    }
   });
 
   return (
@@ -624,13 +651,22 @@ export default function CommunityPage() {
           {/* Feed Filters */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-sm border-b border-outline-variant/40 pb-sm mb-xs">
             <div className="flex items-center gap-sm">
-              <button className="flex items-center gap-xs px-sm py-xs text-on-surface font-label-sm font-bold border-b-2 border-primary -mb-[calc(0.5rem+2px)]">
+              <button 
+                onClick={() => setFeedTab('new')}
+                className={`flex items-center gap-xs px-sm py-xs font-label-sm transition-colors ${feedTab === 'new' ? 'text-on-surface font-bold border-b-2 border-primary -mb-[calc(0.5rem+2px)]' : 'text-on-surface-variant hover:text-on-surface'}`}
+              >
                 <span className="material-symbols-outlined text-[18px]">fiber_new</span> New
               </button>
-              <button className="flex items-center gap-xs px-sm py-xs text-on-surface-variant hover:text-on-surface font-label-sm transition-colors">
+              <button 
+                onClick={() => setFeedTab('trending')}
+                className={`flex items-center gap-xs px-sm py-xs font-label-sm transition-colors ${feedTab === 'trending' ? 'text-on-surface font-bold border-b-2 border-primary -mb-[calc(0.5rem+2px)]' : 'text-on-surface-variant hover:text-on-surface'}`}
+              >
                 <span className="material-symbols-outlined text-[18px]">moving</span> Trending
               </button>
-              <button className="flex items-center gap-xs px-sm py-xs text-on-surface-variant hover:text-on-surface font-label-sm transition-colors">
+              <button 
+                onClick={() => setFeedTab('top')}
+                className={`flex items-center gap-xs px-sm py-xs font-label-sm transition-colors ${feedTab === 'top' ? 'text-on-surface font-bold border-b-2 border-primary -mb-[calc(0.5rem+2px)]' : 'text-on-surface-variant hover:text-on-surface'}`}
+              >
                 <span className="material-symbols-outlined text-[18px]">verified</span> Top
               </button>
             </div>

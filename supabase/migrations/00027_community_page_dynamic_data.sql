@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS community_groups (
 
 ALTER TABLE community_groups ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "groups_select_all" ON community_groups FOR SELECT USING (true);
-CREATE POLICY "groups_admin_all" ON community_groups FOR ALL USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
+CREATE POLICY "groups_admin_all" ON community_groups FOR ALL USING (EXISTS (SELECT 1 FROM profiles WHERE id::text = auth.uid()::text AND role = 'admin'));
 
 -- Insert some default groups (safely ignoring conflicts)
 INSERT INTO community_groups (name, description, icon, color) VALUES
@@ -101,8 +101,8 @@ SELECT
     (COALESCE(r.total_reply_upvotes, 0) * 2)
   ) AS contributor_score
 FROM profiles prof
-LEFT JOIN user_stats u ON u.user_id = prof.id
-LEFT JOIN reply_stats r ON r.user_id = prof.id
+LEFT JOIN user_stats u ON u.user_id::text = prof.id::text
+LEFT JOIN reply_stats r ON r.user_id::text = prof.id::text
 WHERE (COALESCE(u.posts_count, 0) + COALESCE(r.replies_given, 0)) > 0
 ORDER BY contributor_score DESC;
 
