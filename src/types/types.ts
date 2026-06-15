@@ -1,6 +1,6 @@
 // LearnLoom Platform Type Definitions
 
-export type UserRole = 'student' | 'instructor' | 'admin' | 'user';
+export type UserRole = 'student' | 'instructor' | 'admin' | 'user' | 'super_admin' | 'org_admin';
 
 export interface Profile {
   id: string;
