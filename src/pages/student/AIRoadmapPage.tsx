@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import type { RoadmapDomain } from '@/types/types';
 import { staticRoadmaps, StaticRoadmap, Phase } from '@/data/roadmaps';
+import { AIMentorChat } from '@/components/chat/AIMentorChat';
 
 const domainOptions = [
   { id: 'data-science' as RoadmapDomain, label: 'Data Science', icon: 'bar_chart', color: 'from-primary/20 to-primary/5', border: 'border-primary/40', iconColor: 'text-primary', weeks: 12 },
@@ -15,26 +16,35 @@ const domainOptions = [
 export default function AIRoadmapPage() {
   const [selectedDomain, setSelectedDomain] = useState<RoadmapDomain | null>(null);
   const [roadmap, setRoadmap] = useState<StaticRoadmap | null>(null);
-  const navigate = useNavigate();
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatPrompt, setChatPrompt] = useState<string | undefined>(undefined);
 
   const handleGenerate = () => {
     if (!selectedDomain) return;
-    // Load static roadmap directly from JSON data
     const data = staticRoadmaps[selectedDomain];
-    if (data) {
-      setRoadmap(data);
-    }
+    if (data) setRoadmap(data);
   };
 
   const handleAskAI = (phase: Phase) => {
     const prompt = `I am currently studying Phase ${phase.phase}: ${phase.title} in the ${roadmap?.title} roadmap. The topics include: ${phase.topics.join(', ')}. Can you help me understand this better?`;
-    localStorage.setItem('initial_ai_prompt', prompt);
-    navigate('/ai-mentor');
+    setChatPrompt(prompt);
+    setChatOpen(true);
+  };
+
+  const handleFloatingAIClick = () => {
+    if (!chatOpen) {
+      if (roadmap) {
+        setChatPrompt(`I am studying the ${roadmap.title} roadmap. I have a general question.`);
+      } else {
+        setChatPrompt(undefined);
+      }
+    }
+    setChatOpen(!chatOpen);
   };
 
   return (
     <AppLayout title="Learning Roadmap">
-      <div className="max-w-[1440px] mx-auto space-y-2xl">
+      <div className="max-w-[1440px] mx-auto space-y-2xl pb-32">
         
         {!roadmap ? (
           <div className="space-y-xl">
@@ -105,7 +115,6 @@ export default function AIRoadmapPage() {
             <div className="space-y-lg mt-8">
               {roadmap.phases.map((phase) => (
                 <div key={phase.phase} className="bg-surface-container-low border border-outline-variant/60 rounded-xl p-lg md:p-xl transition-all hover:border-primary/40 flex flex-col md:flex-row gap-6">
-                  {/* Left Column: Details */}
                   <div className="flex-1 space-y-4">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="bg-primary text-on-primary px-3 py-1 rounded-md font-bold text-sm">
@@ -159,7 +168,7 @@ export default function AIRoadmapPage() {
                       </div>
                     </div>
                   </div>
-                  {/* Right Column: Actions */}
+
                   <div className="flex flex-col gap-3 md:w-48 shrink-0">
                     {phase.resources?.filter(r => r.type === 'article').map((res, i) => (
                       <a key={`art-${i}`} href={res.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-3 bg-surface border border-outline-variant rounded-lg hover:border-primary transition-colors text-sm text-on-surface w-full">
@@ -189,6 +198,33 @@ export default function AIRoadmapPage() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Floating AI Mentor Widget */}
+      <div className={`fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4 pointer-events-none ${chatOpen ? 'h-[600px] max-h-[80vh] w-[400px] max-w-[calc(100vw-48px)]' : 'w-auto h-auto'}`}>
+        {/* Chat Panel */}
+        <div className={`w-full h-full bg-surface-container-low border border-outline-variant/60 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 pointer-events-auto flex flex-col ${chatOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-8 absolute bottom-20'}`}>
+          <div className="bg-primary/10 border-b border-primary/20 px-4 py-3 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary text-[24px]">smart_toy</span>
+              <span className="font-bold text-on-surface">Loomie Mentor</span>
+            </div>
+            <button onClick={() => setChatOpen(false)} className="text-on-surface-variant hover:text-on-surface transition-colors p-1 rounded-full hover:bg-surface-variant">
+              <span className="material-symbols-outlined text-[20px]">close</span>
+            </button>
+          </div>
+          <div className="flex-1 overflow-hidden relative bg-surface">
+            <AIMentorChat externalPrompt={chatPrompt} onExternalPromptHandled={() => setChatPrompt(undefined)} isWidget={true} />
+          </div>
+        </div>
+
+        {/* Floating Action Button */}
+        <button 
+          onClick={handleFloatingAIClick}
+          className="w-14 h-14 rounded-full bg-tertiary text-on-tertiary shadow-[0_8px_30px_rgba(255,180,168,0.4)] flex items-center justify-center hover:scale-105 active:scale-95 transition-all pointer-events-auto shrink-0 relative z-50"
+        >
+          <span className="material-symbols-outlined text-[28px]">{chatOpen ? 'keyboard_arrow_down' : 'auto_awesome'}</span>
+        </button>
       </div>
     </AppLayout>
   );
