@@ -73,23 +73,37 @@ function PostCard({
     setLoadingR(true);
     const { data } = await supabase
       .from('forum_replies')
-      .select('*, profiles!forum_replies_user_id_fkey(full_name, avatar_url)')
+      .select('*')
       .eq('post_id', post.id)
       .is('parent_id', null)
       .order('created_at', { ascending: true })
       .limit(100);
 
-    if (data && currentUserId) {
-      const replyIds = data.map(r => r.id);
+    let enrichedReplies = data || [];
+    if (data && data.length > 0) {
+      const userIds = Array.from(new Set(data.map(r => r.user_id)));
+      const { data: profData } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', userIds);
+        
+      if (profData) {
+        const profMap = Object.fromEntries(profData.map(p => [p.id, p]));
+        enrichedReplies = data.map(r => ({ ...r, profiles: profMap[r.user_id] }));
+      }
+    }
+
+    if (enrichedReplies.length > 0 && currentUserId) {
+      const replyIds = enrichedReplies.map(r => r.id);
       const { data: voted } = await supabase
         .from('forum_reply_votes')
         .select('reply_id')
         .eq('user_id', currentUserId)
         .in('reply_id', replyIds);
       const votedSet = new Set(voted?.map(v => v.reply_id) ?? []);
-      setReplies(data.map(r => ({ ...r, user_voted: votedSet.has(r.id) })));
+      setReplies(enrichedReplies.map(r => ({ ...r, user_voted: votedSet.has(r.id) })));
     } else {
-      setReplies(data ?? []);
+      setReplies(enrichedReplies);
     }
     setLoadingR(false);
   }, [post.id, currentUserId]);
@@ -317,27 +331,41 @@ export default function CommunityPage() {
     try {
       const { data, error: fetchErr } = await supabase
         .from('forum_posts')
-        .select('*, profiles!forum_posts_user_id_fkey(full_name, avatar_url)')
+        .select('*')
         .order('is_pinned', { ascending: false })
         .order('created_at', { ascending: false })
         .limit(100);
       if (fetchErr) throw fetchErr;
 
-      if (user && data) {
-        const postIds = data.map(p => p.id);
+      let enrichedPosts = data || [];
+      if (data && data.length > 0) {
+        const userIds = Array.from(new Set(data.map(p => p.user_id)));
+        const { data: profData } = await supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url')
+          .in('id', userIds);
+          
+        if (profData) {
+          const profMap = Object.fromEntries(profData.map(p => [p.id, p]));
+          enrichedPosts = data.map(p => ({ ...p, profiles: profMap[p.user_id] }));
+        }
+      }
+
+      if (user && enrichedPosts.length > 0) {
+        const postIds = enrichedPosts.map(p => p.id);
         const { data: voteData } = await supabase
           .from('forum_votes')
           .select('post_id')
           .eq('user_id', user.id)
           .in('post_id', postIds);
         const votedSet = new Set(voteData?.map(v => v.post_id) ?? []);
-        setPosts(data.map(p => ({ ...p, user_voted: votedSet.has(p.id) })));
+        setPosts(enrichedPosts.map(p => ({ ...p, user_voted: votedSet.has(p.id) })));
       } else {
-        setPosts(data ?? []);
+        setPosts(enrichedPosts);
       }
     } catch (err: unknown) {
       console.error('Community load error:', err);
-      setError('Failed to load posts. Please try again.');
+      setError(err instanceof Error ? err.message : 'Failed to load posts. Please try again.');
     } finally {
       setLoading(false);
     }

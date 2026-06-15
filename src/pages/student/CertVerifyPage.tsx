@@ -35,8 +35,7 @@ export default function CertVerifyPage() {
       const { data, error } = await supabase
         .from('certificates')
         .select(`
-          verification_code, is_valid, revoked, issued_at,
-          profiles!certificates_user_id_fkey(full_name),
+          user_id, verification_code, is_valid, revoked, issued_at,
           courses!certificates_course_id_fkey(title, instructor_name, instructor)
         `)
         .eq('verification_code', code)
@@ -53,17 +52,21 @@ export default function CertVerifyPage() {
       }
 
       const d = data as {
+        user_id: string;
         verification_code: string;
         is_valid: boolean;
         revoked: boolean;
         issued_at: string;
-        profiles: unknown;
         courses: unknown;
       };
 
-      const profileData = Array.isArray(d.profiles)
-        ? (d.profiles[0] as { full_name: string | null } | undefined)
-        : (d.profiles as { full_name: string | null } | null);
+      const { data: profileDataResponse } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', d.user_id)
+        .maybeSingle();
+
+      const profileData = profileDataResponse as { full_name: string | null } | null;
 
       const courseData = Array.isArray(d.courses)
         ? (d.courses[0] as { title: string; instructor_name: string; instructor: string } | undefined)
