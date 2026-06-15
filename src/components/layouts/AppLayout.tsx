@@ -202,7 +202,7 @@ export function AppLayout({ children, isAdmin: isAdminProp, title }: AppLayoutPr
   const [mobileOpen, setMobileOpen] = useState(false);
   const { profile, user, signOut } = useAuth();
 
-  const isAdmin = isAdminProp ?? (profile?.role === 'admin');
+  const isAdmin = isAdminProp ?? (profile?.role === 'admin' || profile?.role === 'super_admin' || profile?.role === 'org_admin');
   const credits = profile?.credits ?? 0;
   const streak = profile?.streak_days ?? 0;
 

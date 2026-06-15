@@ -28,8 +28,10 @@ export function RouteGuard({ children }: RouteGuardProps) {
     const isPublic = isPublicPath(location.pathname);
     const isAuthPage = ['/login', '/signup'].includes(location.pathname);
 
+    const isAdminUser = profile?.role === 'admin' || profile?.role === 'super_admin' || profile?.role === 'org_admin';
+
     if (user && isAuthPage) {
-      navigate(profile?.role === 'admin' ? '/admin' : '/dashboard', { replace: true });
+      navigate(isAdminUser ? '/admin' : '/dashboard', { replace: true });
       return;
     }
 
@@ -38,7 +40,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
       return;
     }
 
-    if (user && location.pathname.startsWith('/admin') && profile?.role !== 'admin') {
+    if (user && location.pathname.startsWith('/admin') && !isAdminUser) {
       navigate('/dashboard', { replace: true });
       return;
     }
