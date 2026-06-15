@@ -149,7 +149,7 @@ export default function SignupPage() {
                 <div>
                   <label className="block font-label-md text-label-md text-on-surface-variant mb-sm" htmlFor="name">FULL_NAME</label>
                   <div className="relative">
-                    <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline-muted">person</span>
+                    <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant">person</span>
                     <input 
                       id="name" 
                       type="text" 
@@ -166,7 +166,7 @@ export default function SignupPage() {
                 <div>
                   <label className="block font-label-md text-label-md text-on-surface-variant mb-sm" htmlFor="email">USER_IDENTIFIER</label>
                   <div className="relative">
-                    <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline-muted">mail</span>
+                    <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant">mail</span>
                     <input 
                       id="email" 
                       type="email" 
@@ -183,7 +183,7 @@ export default function SignupPage() {
                 <div>
                   <label className="block font-label-md text-label-md text-on-surface-variant mb-sm" htmlFor="password">AUTH_KEY</label>
                   <div className="relative">
-                    <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline-muted">lock</span>
+                    <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant">lock</span>
                     <input 
                       id="password" 
                       type={showPassword ? 'text' : 'password'} 
@@ -194,7 +194,7 @@ export default function SignupPage() {
                       onChange={e => setPassword(e.target.value)}
                       className="w-full bg-surface-container border border-outline-variant text-on-surface focus:border-primary focus:bg-surface-container-high focus:outline-none focus:ring-1 focus:ring-primary rounded-full py-md pl-[3.5rem] pr-12 font-body-md text-body-md placeholder:text-outline transition-all duration-200" 
                     />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-md top-1/2 -translate-y-1/2 text-outline-muted hover:text-on-surface transition-colors flex items-center justify-center">
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-md top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center">
                       <span className="material-symbols-outlined text-[20px]">{showPassword ? 'visibility_off' : 'visibility'}</span>
                     </button>
                   </div>
@@ -204,7 +204,7 @@ export default function SignupPage() {
                 <div>
                   <label className="block font-label-md text-label-md text-on-surface-variant mb-sm" htmlFor="confirm">VERIFY_AUTH_KEY</label>
                   <div className="relative">
-                    <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline-muted">lock</span>
+                    <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant">lock</span>
                     <input 
                       id="confirm" 
                       type={showConfirm ? 'text' : 'password'} 
@@ -214,7 +214,7 @@ export default function SignupPage() {
                       onChange={e => setConfirmPassword(e.target.value)}
                       className={`w-full bg-surface-container border ${confirmPassword && password !== confirmPassword ? 'border-error focus:border-error focus:ring-error' : 'border-outline-variant focus:border-primary focus:ring-primary'} text-on-surface focus:bg-surface-container-high focus:outline-none focus:ring-1 rounded-full py-md pl-[3.5rem] pr-12 font-body-md text-body-md placeholder:text-outline transition-all duration-200`} 
                     />
-                    <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-md top-1/2 -translate-y-1/2 text-outline-muted hover:text-on-surface transition-colors flex items-center justify-center">
+                    <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-md top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center">
                       <span className="material-symbols-outlined text-[20px]">{showConfirm ? 'visibility_off' : 'visibility'}</span>
                     </button>
                   </div>

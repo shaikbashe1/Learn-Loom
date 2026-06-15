@@ -4,7 +4,7 @@ import { supabase } from '@/db/supabase';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Bell, Send, Loader2, Users, AlertCircle, Info, CheckCircle2 } from 'lucide-react';
+import { Bell, Send, Loader2, Users, AlertCircle, Info, CheckCircle2, History } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';

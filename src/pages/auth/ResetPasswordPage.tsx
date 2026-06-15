@@ -89,7 +89,7 @@ export default function ResetPasswordPage() {
                 <div>
                   <label className="block font-label-md text-label-md text-on-surface-variant mb-sm" htmlFor="password">NEW_AUTH_KEY</label>
                   <div className="relative">
-                    <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline-muted">lock</span>
+                    <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant">lock</span>
                     <input 
                       id="password" 
                       type={showPassword ? 'text' : 'password'} 
@@ -100,7 +100,7 @@ export default function ResetPasswordPage() {
                       onChange={e => setPassword(e.target.value)}
                       className="w-full bg-surface-container border border-outline-variant text-on-surface focus:border-primary focus:bg-surface-container-high focus:outline-none focus:ring-1 focus:ring-primary rounded-full py-md pl-[3.5rem] pr-12 font-body-md text-body-md placeholder:text-outline transition-all duration-200" 
                     />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-md top-1/2 -translate-y-1/2 text-outline-muted hover:text-on-surface transition-colors flex items-center justify-center">
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-md top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center">
                       <span className="material-symbols-outlined text-[20px]">{showPassword ? 'visibility_off' : 'visibility'}</span>
                     </button>
                   </div>
@@ -110,7 +110,7 @@ export default function ResetPasswordPage() {
                 <div>
                   <label className="block font-label-md text-label-md text-on-surface-variant mb-sm" htmlFor="confirm">VERIFY_NEW_AUTH_KEY</label>
                   <div className="relative">
-                    <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline-muted">lock</span>
+                    <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant">lock</span>
                     <input 
                       id="confirm" 
                       type={showPassword ? 'text' : 'password'} 

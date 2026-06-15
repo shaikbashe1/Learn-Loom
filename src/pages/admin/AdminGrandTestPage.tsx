@@ -127,7 +127,7 @@ export default function AdminGrandTestPage() {
             <h2 className="font-headline-md text-on-surface flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-primary" /> Global Question Pool
             </h2>
-            <Badge className="bg-primary/10 text-primary">{questions.length} Total</Badge>
+            <span className="px-2 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary">{questions.length} Total</span>
           </div>
           
           <div className="divide-y divide-outline-variant/30">

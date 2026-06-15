@@ -51,7 +51,7 @@ export function HeroSection() {
             {/* Floating snippet */}
             <div className="absolute bottom-md right-md bg-surface-container-high border border-outline-variant/60 rounded-lg p-sm shadow-lg max-w-[200px]">
               <div className="text-label-sm font-label-sm text-primary mb-xs flex justify-between"><span>Status</span> <span>Active</span></div>
-              <div className="h-1 bg-surface-lowest rounded-full overflow-hidden">
+              <div className="h-1 bg-surface-container-lowest rounded-full overflow-hidden">
                 <div className="h-full bg-primary w-3/4 shadow-[0_0_8px_rgba(192,193,255,0.8)]"></div>
               </div>
             </div>

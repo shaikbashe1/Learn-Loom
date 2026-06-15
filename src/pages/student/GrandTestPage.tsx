@@ -321,7 +321,7 @@ export default function GrandTestPage() {
               <p className="font-body-md text-body-md text-on-surface-variant mt-2">Please enable your camera for identity verification.</p>
             </div>
             
-            <div className="aspect-video rounded-xl overflow-hidden bg-surface-lowest border border-outline-variant/40 mb-xl flex items-center justify-center relative shadow-inner">
+            <div className="aspect-video rounded-xl overflow-hidden bg-surface-container-lowest border border-outline-variant/40 mb-xl flex items-center justify-center relative shadow-inner">
               {cameraOn ? (
                 <>
                   <video ref={videoRef} autoPlay muted className="w-full h-full object-cover" />
@@ -506,7 +506,7 @@ export default function GrandTestPage() {
 
         {/* Right Panel: Options & Navigation */}
         <section className="flex-1 flex flex-col min-w-0 bg-surface-container-lowest relative h-1/2 md:h-full">
-          <div className="flex-1 overflow-y-auto p-xl flex flex-col gap-md bg-surface-lowest relative">
+          <div className="flex-1 overflow-y-auto p-xl flex flex-col gap-md bg-surface-container-lowest relative">
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none opacity-20"></div>
             
             <h3 className="font-headline-sm text-headline-sm text-on-surface mb-md relative z-10 flex items-center gap-2">
@@ -532,7 +532,7 @@ export default function GrandTestPage() {
                   <div className={`flex-1 font-body-md text-[16px] transition-colors ${answers[current] === i ? 'text-on-surface' : 'text-on-surface-variant group-hover:text-on-surface'}`}>
                     {opt}
                   </div>
-                  <div className={`font-label-md text-label-md px-sm py-xs border rounded ml-md shrink-0 ${answers[current] === i ? 'text-primary border-primary/50 bg-surface' : 'text-outline border-outline/30 bg-surface-lowest'}`}>
+                  <div className={`font-label-md text-label-md px-sm py-xs border rounded ml-md shrink-0 ${answers[current] === i ? 'text-primary border-primary/50 bg-surface' : 'text-outline border-outline/30 bg-surface-container-lowest'}`}>
                     {String.fromCharCode(65 + i)}
                   </div>
                 </label>

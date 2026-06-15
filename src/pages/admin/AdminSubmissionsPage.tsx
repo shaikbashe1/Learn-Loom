@@ -232,7 +232,7 @@ export default function AdminSubmissionsPage() {
             {selectedSub && (
               <div className="grid grid-cols-1 md:grid-cols-5 gap-0 max-h-[70vh] overflow-hidden">
                 {/* Answer / File Area */}
-                <div className="md:col-span-3 bg-surface-lowest p-6 font-label-md text-label-md overflow-y-auto max-h-[70vh]">
+                <div className="md:col-span-3 bg-surface-container-lowest p-6 font-label-md text-label-md overflow-y-auto max-h-[70vh]">
                   <p className="text-primary mb-2 font-bold uppercase tracking-wider text-xs">Student Answer</p>
                   <pre className="text-on-surface-variant whitespace-pre-wrap font-body-md leading-relaxed">{selectedSub.answer_text}</pre>
                   
@@ -257,7 +257,7 @@ export default function AdminSubmissionsPage() {
                           type="number"
                           value={scoreInput}
                           onChange={(e) => setScoreInput(e.target.value)}
-                          className="bg-surface-lowest border-outline-variant text-on-surface font-label-md focus:border-primary"
+                          className="bg-surface-container-lowest border-outline-variant text-on-surface font-label-md focus:border-primary"
                           placeholder="Enter score..."
                         />
                       </div>
@@ -270,7 +270,7 @@ export default function AdminSubmissionsPage() {
                       id="feedback"
                       value={feedbackInput}
                       onChange={(e) => setFeedbackInput(e.target.value)}
-                      className="flex-1 min-h-[150px] bg-surface-lowest border-outline-variant rounded-xl p-3 text-body-md text-on-surface focus:border-primary outline-none resize-none mb-3 transition-all"
+                      className="flex-1 min-h-[150px] bg-surface-container-lowest border-outline-variant rounded-xl p-3 text-body-md text-on-surface focus:border-primary outline-none resize-none mb-3 transition-all"
                       placeholder="Add private feedback to student..."
                     />
                   </section>

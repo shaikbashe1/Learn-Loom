@@ -359,7 +359,7 @@ export default function CourseDetailPage() {
                               setPreviewModule(mod);
                               if (accessible && isEnrolled) navigate(`/courses/${courseId}/learn/${mod.id}`);
                             }}
-                            className={`p-md flex items-center justify-between transition-colors ${accessible || isEnrolled ? 'cursor-pointer hover:bg-surface-container bg-surface-container-low' : 'bg-surface-lowest opacity-60'}`}
+                            className={`p-md flex items-center justify-between transition-colors ${accessible || isEnrolled ? 'cursor-pointer hover:bg-surface-container bg-surface-container-low' : 'bg-surface-container-lowest opacity-60'}`}
                           >
                             <div className="flex items-center gap-md min-w-0">
                               <div className={`w-8 h-8 rounded-full flex items-center justify-center font-label-sm text-label-sm shrink-0

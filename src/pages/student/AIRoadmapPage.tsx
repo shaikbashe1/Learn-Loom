@@ -159,7 +159,6 @@ export default function AIRoadmapPage() {
                       </div>
                     </div>
                   </div>
-
                   {/* Right Column: Actions */}
                   <div className="flex flex-col gap-3 md:w-48 shrink-0">
                     {phase.resources?.filter(r => r.type === 'article').map((res, i) => (

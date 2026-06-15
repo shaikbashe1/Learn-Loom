@@ -227,7 +227,7 @@ export default function QuizPage() {
                       <div className={`flex-1 font-body-md text-body-md transition-colors ${selectedOpt === i ? 'text-on-surface' : 'text-on-surface-variant group-hover:text-on-surface'}`}>
                         {option}
                       </div>
-                      <div className={`font-label-sm text-label-sm px-sm py-xs border rounded ml-md ${selectedOpt === i ? 'text-primary border-primary/50 bg-primary/10' : 'text-outline border-outline/30 bg-surface-lowest'}`}>
+                      <div className={`font-label-sm text-label-sm px-sm py-xs border rounded ml-md ${selectedOpt === i ? 'text-primary border-primary/50 bg-primary/10' : 'text-outline border-outline/30 bg-surface-container-lowest'}`}>
                         {String.fromCharCode(65 + i)}
                       </div>
                     </label>

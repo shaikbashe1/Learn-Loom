@@ -17,9 +17,9 @@ export function LoomiePreview() {
               <div className="w-8 h-8 rounded bg-secondary/20 flex-shrink-0 flex items-center justify-center text-secondary font-label-sm">
                 <span className="material-symbols-outlined text-[16px]">smart_toy</span>
               </div>
-              <div className="bg-surface-low rounded-lg p-sm border border-secondary/30 font-body-md text-body-md text-on-surface">
+              <div className="bg-surface-container-low rounded-lg p-sm border border-secondary/30 font-body-md text-body-md text-on-surface">
                 <p className="mb-sm">The issue is that you're trying to maintain multiple mutable references to a node.</p>
-                <div className="bg-surface-lowest p-sm rounded border border-outline-variant/30 font-mono text-label-sm text-on-surface-variant mt-sm">
+                <div className="bg-surface-container-lowest p-sm rounded border border-outline-variant/30 font-mono text-label-sm text-on-surface-variant mt-sm">
                   <span className="text-error">// Error: cannot borrow `*node` as mutable more than once at a time</span><br/>
                   node.neighbors.push(&amp;mut other_node);
                 </div>

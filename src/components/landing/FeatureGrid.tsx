@@ -17,7 +17,7 @@ export function FeatureGrid() {
             <h3 className="font-headline-md text-headline-md text-on-surface mb-sm">System Design Mastery</h3>
             <p className="font-body-md text-body-md text-on-surface-variant max-w-[400px]">Architect scalable, fault-tolerant systems. Learn trade-offs between microservices, event-driven architectures, and distributed databases.</p>
           </div>
-          <div className="mt-lg h-32 bg-surface-lowest rounded-lg border border-outline-variant/30 flex items-center justify-center relative overflow-hidden z-10">
+          <div className="mt-lg h-32 bg-surface-container-lowest rounded-lg border border-outline-variant/30 flex items-center justify-center relative overflow-hidden z-10">
             <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 2px 2px, #c0c1ff 1px, transparent 0)", backgroundSize: "16px 16px" }}></div>
             <div className="flex gap-md z-10">
               <div className="w-16 h-16 bg-surface-container rounded border border-primary/50 shadow-[0_0_10px_rgba(192,193,255,0.2)]"></div>
@@ -35,7 +35,7 @@ export function FeatureGrid() {
           <h3 className="font-headline-md text-headline-md text-on-surface mb-sm text-[20px]">Advanced Concurrency</h3>
           <p className="font-body-md text-body-md text-on-surface-variant flex-grow">Master multithreading, mutexes, and channels in Rust and Go.</p>
           <div className="mt-md">
-            <div className="h-2 bg-surface-lowest rounded-full overflow-hidden mb-xs"><div className="h-full bg-secondary w-[80%]"></div></div>
+            <div className="h-2 bg-surface-container-lowest rounded-full overflow-hidden mb-xs"><div className="h-full bg-secondary w-[80%]"></div></div>
             <div className="text-right font-label-sm text-label-sm text-on-surface-variant">Module 4/5</div>
           </div>
         </div>

@@ -107,7 +107,7 @@ export default function LoginPage() {
             <div>
               <label className="block font-label-md text-label-md text-on-surface-variant mb-sm" htmlFor="email">USER_IDENTIFIER</label>
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline-muted">mail</span>
+                <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant">mail</span>
                 <input 
                   id="email" 
                   name="email" 
@@ -128,7 +128,7 @@ export default function LoginPage() {
                 <Link to="/forgot-password" className="font-label-sm text-label-sm text-primary hover:text-primary-fixed transition-colors">Forgot Password?</Link>
               </div>
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline-muted">lock</span>
+                <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant">lock</span>
                 <input 
                   id="password" 
                   name="password" 
@@ -139,7 +139,7 @@ export default function LoginPage() {
                   onChange={e => setPassword(e.target.value)}
                   className="w-full bg-surface-container border border-outline-variant text-on-surface focus:border-primary focus:bg-surface-container-high focus:outline-none focus:ring-1 focus:ring-primary rounded-full py-md pl-[3.5rem] pr-12 font-body-md text-body-md placeholder:text-outline transition-all duration-200" 
                 />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-md top-1/2 -translate-y-1/2 text-outline-muted hover:text-on-surface transition-colors flex items-center justify-center">
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-md top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center">
                   <span className="material-symbols-outlined text-[20px]">{showPassword ? 'visibility_off' : 'visibility'}</span>
                 </button>
               </div>

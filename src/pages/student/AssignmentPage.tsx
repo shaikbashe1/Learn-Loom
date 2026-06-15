@@ -152,7 +152,7 @@ export default function AssignmentPage() {
                     </div>
                     <h3 className="font-headline-sm text-headline-sm text-on-surface mb-2">{a.title}</h3>
                     <p className="font-body-sm text-body-sm text-on-surface-variant flex-grow line-clamp-2 mb-4">{a.instructions ?? 'No instructions provided.'}</p>
-                    <div className="font-label-sm text-label-sm text-outline-muted flex items-center mt-auto pt-4 border-t border-outline-variant/40">
+                    <div className="font-label-sm text-label-sm text-on-surface-variant flex items-center mt-auto pt-4 border-t border-outline-variant/40">
                       <span className="material-symbols-outlined text-[14px] mr-1">book</span>
                       {a.courses?.title ?? '—'}
                     </div>
@@ -186,7 +186,7 @@ export default function AssignmentPage() {
                         <span className="material-symbols-outlined text-[16px]">arrow_back</span> Back
                       </button>
                       <span className="font-label-sm text-label-sm text-secondary bg-secondary/10 px-2 py-1 rounded border border-secondary/20 uppercase tracking-widest">{selected.courses?.title}</span>
-                      <span className="font-label-sm text-label-sm text-outline-muted flex items-center"><span className="material-symbols-outlined text-[14px] mr-1">schedule</span>Due in {selected.due_days}d</span>
+                      <span className="font-label-sm text-label-sm text-on-surface-variant flex items-center"><span className="material-symbols-outlined text-[14px] mr-1">schedule</span>Due in {selected.due_days}d</span>
                     </div>
                     <h1 className="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-2">{selected.title}</h1>
                   </div>
