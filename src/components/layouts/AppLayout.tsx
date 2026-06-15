@@ -208,21 +208,16 @@ export function AppLayout({ children, isAdmin: isAdminProp, title }: AppLayoutPr
 
   return (
     <div className="flex h-screen overflow-hidden bg-background text-on-surface font-body-md text-body-md antialiased selection:bg-primary/20 selection:text-primary">
-      {/* SideNavBar (Desktop) */}
-      <aside className="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 bg-surface-container-lowest border-r border-outline-variant/60 z-40">
-        <SidebarContent isAdmin={isAdmin} />
-      </aside>
-
       {/* Main Content Area */}
-      <main className="flex-1 md:ml-64 flex flex-col h-screen overflow-y-auto bg-background">
+      <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-background">
         {/* TopNavBar */}
         <header className="sticky top-0 z-30 flex justify-between items-center px-lg py-sm w-full max-w-[1440px] mx-auto bg-background/80 backdrop-blur-md border-b border-outline-variant/60">
           
-          {/* Mobile Menu Toggle & Title */}
-          <div className="flex items-center gap-2 md:hidden">
+          {/* Menu Toggle & Title */}
+          <div className="flex items-center gap-2">
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
-                <button className="text-on-surface-variant p-sm">
+                <button className="text-on-surface-variant p-sm hover:bg-surface-variant/20 rounded-full flex items-center justify-center transition-colors">
                   <span className="material-symbols-outlined">menu</span>
                 </button>
               </SheetTrigger>
