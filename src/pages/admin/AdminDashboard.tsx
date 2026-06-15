@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/db/supabase';
-import type { AdminStats } from '@/types/types';
+import type { AdminStats, DailyTrendData } from '@/types/types';
 
 interface RecentActivity { text: string; time: string; icon: string; iconColor: string; }
 interface CourseRow {
@@ -15,11 +15,12 @@ export default function AdminDashboard() {
   const [stats, setStats]       = useState<AdminStats | null>(null);
   const [courses, setCourses]   = useState<CourseRow[]>([]);
   const [activity, setActivity] = useState<RecentActivity[]>([]);
+  const [trendData, setTrendData] = useState<DailyTrendData[]>([]);
   const [loading, setLoading]   = useState(true);
 
   useEffect(() => {
     (async () => {
-      const [statsRes, coursesRes, enrollRes, postRes] = await Promise.all([
+      const [statsRes, coursesRes, enrollRes, postRes, trendRes] = await Promise.all([
         supabase.rpc('get_admin_stats').single(),
         supabase.from('courses')
           .select('id,title,category,student_count,is_published,thumbnail_url')
@@ -30,10 +31,12 @@ export default function AdminDashboard() {
         supabase.from('forum_posts')
           .select('created_at, title')
           .order('created_at', { ascending: false }).limit(3),
+        supabase.rpc('get_admin_enrollment_trends', { days_ago: 14 })
       ]);
 
       if (statsRes.data) setStats(statsRes.data as AdminStats);
       if (coursesRes.data) setCourses(coursesRes.data as CourseRow[]);
+      if (trendRes.data) setTrendData(trendRes.data as DailyTrendData[]);
 
       const acts: RecentActivity[] = [];
       (enrollRes.data ?? []).forEach((e: { created_at: string; courses: unknown }) => {
@@ -52,6 +55,21 @@ export default function AdminDashboard() {
       setLoading(false);
     })();
   }, []);
+
+  // Derived Trend Metrics
+  const avgDaily = trendData.length > 0 ? Math.round(trendData.reduce((acc, curr) => acc + curr.signups, 0) / trendData.length) : 0;
+  const peakSignups = trendData.length > 0 ? Math.max(...trendData.map(t => t.signups)) : 0;
+  
+  const totalSignupsPeriod = trendData.reduce((acc, curr) => acc + curr.signups, 0);
+  const totalEnrollmentsPeriod = trendData.reduce((acc, curr) => acc + curr.enrollments, 0);
+  const conversionRate = totalSignupsPeriod > 0 ? ((totalEnrollmentsPeriod / totalSignupsPeriod) * 100).toFixed(1) : '0.0';
+
+  const last7 = trendData.slice(-7).reduce((acc, curr) => acc + curr.signups, 0);
+  const prev7 = trendData.slice(-14, -7).reduce((acc, curr) => acc + curr.signups, 0);
+  let growthRate = 0;
+  if (prev7 > 0) {
+    growthRate = ((last7 - prev7) / prev7) * 100;
+  }
 
   return (
     <AppLayout title="Admin Dashboard" isAdmin>
@@ -163,38 +181,47 @@ export default function AdminDashboard() {
             </div>
             
             <div className="flex-1 flex items-end justify-between gap-2 h-64 pt-8">
-              {/* Mock Bar chart visualization */}
-              {[45, 60, 52, 85, 70, 30, 95, 48, 62, 75, 58, 40, 100, 20].map((height, idx) => (
-                <div key={idx} className="flex-1 flex flex-col items-center gap-2 group h-full">
-                  <div className="w-full bg-surface-container-highest rounded-t-sm relative flex items-end overflow-hidden h-full">
-                    <div 
-                      className={`chart-bar w-full ${height === 100 ? 'bg-primary shadow-[0_0_8px_rgba(192,193,255,0.4)]' : 'bg-primary/40 group-hover:bg-primary transition-all'} rounded-t-sm`} 
-                      style={{ height: `${height}%` }}
-                    ></div>
+              {/* Dynamic Bar chart visualization */}
+              {trendData.length > 0 ? trendData.map((day, idx) => {
+                const maxVal = Math.max(peakSignups, 1);
+                const heightPercent = Math.max((day.signups / maxVal) * 100, 2);
+                const isMax = day.signups === peakSignups && day.signups > 0;
+                return (
+                  <div key={idx} className="flex-1 flex flex-col items-center gap-2 group h-full">
+                    <div className="w-full bg-surface-container-highest rounded-t-sm relative flex items-end overflow-hidden h-full">
+                      <div 
+                        className={`chart-bar w-full ${isMax ? 'bg-primary shadow-[0_0_8px_rgba(192,193,255,0.4)]' : 'bg-primary/40 group-hover:bg-primary transition-all'} rounded-t-sm`} 
+                        style={{ height: `${heightPercent}%` }}
+                      ></div>
+                    </div>
+                    <span className={`font-label-sm text-[10px] ${isMax ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>
+                      {new Date(day.trend_date).getDate().toString().padStart(2, '0')}
+                    </span>
                   </div>
-                  <span className={`font-label-sm text-[10px] ${height === 100 ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>
-                    {(idx + 1).toString().padStart(2, '0')}
-                  </span>
-                </div>
-              ))}
+                );
+              }) : (
+                <div className="w-full h-full flex items-center justify-center text-on-surface-variant font-label-md">Loading trend data...</div>
+              )}
             </div>
             
             <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-outline-variant/30 pt-6">
               <div>
                 <p className="text-label-sm text-on-surface-variant">Average Daily</p>
-                <p className="text-headline-md font-bold text-on-surface">842</p>
+                <p className="text-headline-md font-bold text-on-surface">{avgDaily}</p>
               </div>
               <div>
                 <p className="text-label-sm text-on-surface-variant">Peak Signups</p>
-                <p className="text-headline-md font-bold text-on-surface">1,204</p>
+                <p className="text-headline-md font-bold text-on-surface">{peakSignups.toLocaleString()}</p>
               </div>
               <div>
                 <p className="text-label-sm text-on-surface-variant">Conversion Rate</p>
-                <p className="text-headline-md font-bold text-on-surface">4.2%</p>
+                <p className="text-headline-md font-bold text-on-surface">{conversionRate}%</p>
               </div>
               <div>
                 <p className="text-label-sm text-on-surface-variant">Growth Rate</p>
-                <p className="text-headline-md font-bold text-[#4ade80]">+18.5%</p>
+                <p className={`text-headline-md font-bold ${growthRate >= 0 ? 'text-[#4ade80]' : 'text-error'}`}>
+                  {growthRate >= 0 ? '+' : ''}{growthRate.toFixed(1)}%
+                </p>
               </div>
             </div>
           </div>
@@ -264,7 +291,8 @@ export default function AdminDashboard() {
             courses.slice(0, 4).map((c, i) => {
               const isFirst = i % 2 === 0;
               const colorTheme = isFirst ? 'primary' : 'secondary';
-              const progressWidth = isFirst ? '85%' : '40%';
+              const maxStudents = courses.length > 0 ? courses[0].student_count : 1;
+              const progressWidth = `${Math.max((c.student_count / Math.max(maxStudents, 1)) * 100, 5)}%`;
               
               return (
                 <div key={c.id} className={`glass-panel p-lg rounded-xl flex items-center gap-6 group hover:border-${colorTheme} transition-all`}>

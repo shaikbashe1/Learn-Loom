@@ -218,6 +218,12 @@ export interface AdminStats {
   forum_posts_count: number;
 }
 
+export interface DailyTrendData {
+  trend_date: string;
+  signups: number;
+  enrollments: number;
+}
+
 export type ModuleStatus = 'locked' | 'unlocked' | 'completed';
 
 export interface DBEnrollment {
