@@ -17,7 +17,7 @@ const SUGGESTED_PROMPTS = [
 const WELCOME_MESSAGE: ChatMessage = {
   id: 'welcome',
   role: 'assistant',
-  content: "👋 Hi! I'm your AI Learning Mentor powered by **Gemini 2.5 Flash**.\n\nI can help with:\n\n• **Doubt Solving** — Ask any technical question\n• **Code Review** — Paste your code and I'll explain it\n• **Concept Deep-Dives** — Any topic, any depth\n\nWhat would you like to explore today?",
+  content: "👋 Hi! I'm your AI Learning Mentor powered by **Gemini 1.5 Flash**.\n\nI can help with:\n\n• **Doubt Solving** — Ask any technical question\n• **Code Review** — Paste your code and I'll explain it\n• **Concept Deep-Dives** — Any topic, any depth\n\nWhat would you like to explore today?",
   timestamp: new Date().toISOString(),
 };
 
