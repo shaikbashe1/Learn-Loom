@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -577,6 +578,9 @@ export default function AdminCoursesPage() {
                           <button onClick={() => togglePublish(course)} className="p-2 hover:bg-surface-variant rounded-lg transition-colors text-on-surface-variant" title={course.is_published ? 'Unpublish' : 'Publish'}>
                             <span className="material-symbols-outlined text-[20px]">{course.is_published ? 'visibility_off' : 'visibility'}</span>
                           </button>
+                          <Link to={`/courses/${course.id}`} className="p-2 hover:bg-surface-variant rounded-lg transition-colors text-on-surface-variant" title="Preview Course">
+                            <span className="material-symbols-outlined text-[20px]">open_in_new</span>
+                          </Link>
                           <button onClick={() => openEdit(course)} className="p-2 hover:bg-surface-variant rounded-lg transition-colors text-on-surface-variant" title="Edit">
                             <span className="material-symbols-outlined text-[20px]">edit</span>
                           </button>
