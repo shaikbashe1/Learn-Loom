@@ -1,0 +1,10 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "SUPABASE_URL": "https://uxyxekustlfhzytgdbfs.supabase.co",
+    "SUPABASE_SERVICE_ROLE_KEY": "dummy_service_key_for_local_testing",
+    "OPENAI_API_KEY": "dummy_openai_key"
+  }
+}
