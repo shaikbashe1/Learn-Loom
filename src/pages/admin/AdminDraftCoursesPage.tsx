@@ -19,7 +19,6 @@ export function AdminDraftCoursesPage() {
       .from('courses')
       .select('*')
       .eq('is_published', false)
-      .contains('tags', ['auto-generated'])
       .order('created_at', { ascending: false });
       
     if (error) {
