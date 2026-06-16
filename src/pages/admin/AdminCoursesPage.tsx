@@ -115,6 +115,16 @@ const blankQuestion = () => ({ question: '', options: ['', '', '', ''], answer_i
 export default function AdminCoursesPage() {
   const { user } = useAuth();
   const [courses, setCourses] = useState<DBCourse[]>([]);
+  const [metrics, setMetrics] = useState({
+    totalCourses: 0,
+    activeStudents: 0,
+    avgRating: 0,
+    monthlyRevenue: 0,
+  });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Draft'>('All');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const [loadingList, setLoadingList] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -173,16 +183,67 @@ export default function AdminCoursesPage() {
   // ── load courses ────────────────────────────────────────────────────────
   const fetchCourses = async () => {
     setLoadingList(true);
-    const { data, error } = await supabase
-      .from('courses')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (error) toast.error('Failed to load courses');
-    else setCourses(data ?? []);
-    setLoadingList(false);
+    try {
+      // 1. Fetch courses
+      const { data: coursesData, error: coursesError } = await supabase
+        .from('courses')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (coursesError) throw coursesError;
+      
+      const loadedCourses = coursesData ?? [];
+      setCourses(loadedCourses);
+
+      // 2. Calculate Course Metrics
+      const totalCourses = loadedCourses.length;
+      const activeStudents = loadedCourses.reduce((sum, c) => sum + (c.student_count || 0), 0);
+      
+      const ratedCourses = loadedCourses.filter(c => c.rating > 0);
+      const avgRating = ratedCourses.length > 0 
+        ? ratedCourses.reduce((sum, c) => sum + c.rating, 0) / ratedCourses.length 
+        : 0;
+
+      // 3. Fetch Revenue Metrics
+      const { data: subsData } = await supabase
+        .from('user_subscriptions')
+        .select(`plan_id, subscription_plans(price_inr)`)
+        .eq('status', 'active');
+        
+      let monthlyRevenue = 0;
+      if (subsData) {
+        monthlyRevenue = subsData.reduce((sum, sub: any) => {
+          // Add up price in INR, convert from paise to rupees
+          const price = sub.subscription_plans?.price_inr || 0;
+          return sum + (price / 100);
+        }, 0);
+      }
+
+      setMetrics({
+        totalCourses,
+        activeStudents,
+        avgRating,
+        monthlyRevenue
+      });
+
+    } catch (err) {
+      toast.error('Failed to load dashboard data');
+      console.error(err);
+    } finally {
+      setLoadingList(false);
+    }
   };
 
   useEffect(() => { fetchCourses(); }, []);
+
+  // ── derived state for table ───────────────────────────────────────────────
+  const filteredCourses = courses.filter(c => {
+    const matchesSearch = c.title.toLowerCase().includes(searchQuery.toLowerCase()) || c.id.includes(searchQuery);
+    const matchesStatus = statusFilter === 'All' ? true : statusFilter === 'Active' ? c.is_published : !c.is_published;
+    return matchesSearch && matchesStatus;
+  });
+  const totalPages = Math.ceil(filteredCourses.length / itemsPerPage) || 1;
+  const paginatedCourses = filteredCourses.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   // ── open create dialog ──────────────────────────────────────────────────
   const openCreate = () => {
@@ -377,7 +438,7 @@ export default function AdminCoursesPage() {
               </div>
             </div>
             <p className="text-on-surface-variant text-label-md mb-xs">Total Courses</p>
-            <h3 className="font-display text-headline-lg text-on-surface">{courses.length}</h3>
+            <h3 className="font-display text-headline-lg text-on-surface">{loadingList ? <Skeleton className="h-8 w-16" /> : metrics.totalCourses}</h3>
           </div>
           <div className="glass-panel p-lg rounded-2xl">
             <div className="flex justify-between items-start mb-md">
@@ -387,7 +448,7 @@ export default function AdminCoursesPage() {
             </div>
             <p className="text-on-surface-variant text-label-md mb-xs">Active Students</p>
             <h3 className="font-display text-headline-lg text-on-surface">
-              {courses.reduce((acc, c) => acc + (c.student_count ?? 0), 0).toLocaleString()}
+              {loadingList ? <Skeleton className="h-8 w-16" /> : metrics.activeStudents.toLocaleString()}
             </h3>
           </div>
           <div className="glass-panel p-lg rounded-2xl">
@@ -397,7 +458,7 @@ export default function AdminCoursesPage() {
               </div>
             </div>
             <p className="text-on-surface-variant text-label-md mb-xs">Avg. Course Rating</p>
-            <h3 className="font-display text-headline-lg text-on-surface">4.82</h3>
+            <h3 className="font-display text-headline-lg text-on-surface">{loadingList ? <Skeleton className="h-8 w-16" /> : metrics.avgRating.toFixed(2)}</h3>
           </div>
           <div className="glass-panel p-lg rounded-2xl overflow-hidden relative">
             <div className="relative z-10">
@@ -407,7 +468,7 @@ export default function AdminCoursesPage() {
                 </div>
               </div>
               <p className="text-on-surface-variant text-label-md mb-xs">Monthly Revenue</p>
-              <h3 className="font-display text-headline-lg text-on-surface">$248.3k</h3>
+              <h3 className="font-display text-headline-lg text-on-surface">{loadingList ? <Skeleton className="h-8 w-24" /> : `₹${metrics.monthlyRevenue.toLocaleString()}`}</h3>
             </div>
           </div>
         </div>
@@ -422,16 +483,17 @@ export default function AdminCoursesPage() {
                 className="w-full bg-surface-container-low border border-outline-variant rounded-full py-3 pl-12 pr-6 text-on-surface focus:outline-none focus:border-primary transition-all font-body-md" 
                 placeholder="Search course title, ID or instructor..." 
                 type="text"
+                value={searchQuery}
+                onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1); }}
               />
             </div>
             <div className="flex items-center gap-md w-full lg:w-auto overflow-x-auto no-scrollbar">
-              <button className="flex items-center gap-2 px-md py-2 rounded-lg bg-surface-container-high border border-outline-variant text-on-surface-variant whitespace-nowrap hover:bg-surface-variant transition-colors">
+              <button 
+                onClick={() => { setStatusFilter(prev => prev === 'All' ? 'Active' : prev === 'Active' ? 'Draft' : 'All'); setCurrentPage(1); }}
+                className="flex items-center gap-2 px-md py-2 rounded-lg bg-surface-container-high border border-outline-variant text-on-surface-variant whitespace-nowrap hover:bg-surface-variant transition-colors"
+              >
                 <span className="material-symbols-outlined text-sm">filter_list</span>
-                <span className="font-label-md">Category: All</span>
-              </button>
-              <button className="flex items-center gap-2 px-md py-2 rounded-lg bg-surface-container-high border border-outline-variant text-on-surface-variant whitespace-nowrap hover:bg-surface-variant transition-colors">
-                <span className="material-symbols-outlined text-sm">calendar_month</span>
-                <span className="font-label-md">Status: Active</span>
+                <span className="font-label-md">Status: {statusFilter}</span>
               </button>
             </div>
           </div>
@@ -457,14 +519,14 @@ export default function AdminCoursesPage() {
                       <td colSpan={5} className="px-lg py-md"><Skeleton className="h-16 w-full bg-surface border border-outline-variant/30" /></td>
                     </tr>
                   ))
-                ) : courses.length === 0 ? (
+                ) : paginatedCourses.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-lg py-16 text-center text-on-surface-variant">
                       No courses yet. Click <strong>New Course</strong> to get started.
                     </td>
                   </tr>
                 ) : (
-                  courses.map((course) => (
+                  paginatedCourses.map((course) => (
                     <tr key={course.id} className="hover:bg-surface-variant/20 transition-colors group">
                       <td className="px-lg py-lg">
                         <div className="flex items-center gap-md">
@@ -521,6 +583,33 @@ export default function AdminCoursesPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="p-lg border-t border-outline-variant/60 flex items-center justify-between">
+              <span className="text-label-md text-on-surface-variant">
+                Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredCourses.length)} of {filteredCourses.length} entries
+              </span>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Contextual Insight Banner */}
@@ -530,8 +619,18 @@ export default function AdminCoursesPage() {
               <span className="material-symbols-outlined text-[14px]">auto_awesome</span>
               AI PERFORMANCE INSIGHT
             </div>
-            <h2 className="font-display text-headline-lg text-on-surface mb-md">Course completion is up 22% in Cloud Computing</h2>
-            <p className="text-on-surface-variant text-body-md mb-xl">Students are progressing faster through modules with hands-on labs. Consider replicating this architecture for your upcoming drafts to maximize engagement.</p>
+            <h2 className="font-display text-headline-lg text-on-surface mb-md">
+              {loadingList ? <Skeleton className="h-8 w-3/4" /> : metrics.activeStudents > 0 
+                ? `You've reached ${metrics.activeStudents.toLocaleString()} students across ${metrics.totalCourses} courses!`
+                : `Ready to grow? Publish your first course to start gaining students.`}
+            </h2>
+            <p className="text-on-surface-variant text-body-md mb-xl">
+              {loadingList ? <Skeleton className="h-12 w-full" /> : metrics.avgRating >= 4.5 
+                ? `Your average rating of ${metrics.avgRating.toFixed(2)} indicates exceptional course quality. Consider leveraging this high satisfaction to promote subscription plans.`
+                : metrics.totalCourses > 0 
+                  ? `Focus on adding interactive modules and engaging content to boost student retention and ratings.`
+                  : `Use the AI Factory to rapidly generate high-quality drafts and start building your catalog.`}
+            </p>
             <button className="px-lg py-md rounded-xl bg-on-surface text-surface-lowest font-bold hover:opacity-90 transition-all">View Analytics Detail</button>
           </div>
           <div className="relative md:w-1/3 aspect-video w-full rounded-2xl overflow-hidden bg-primary/10 border border-primary/20 flex items-center justify-center">
