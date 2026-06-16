@@ -48,3 +48,7 @@ piston-deploy/
  
 backend/venv/
 backend/.env
+
+scraping_engine/venv/
+scraping_engine/node_modules/
+scraping_engine/.env

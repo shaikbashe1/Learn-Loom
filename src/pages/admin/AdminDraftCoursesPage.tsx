@@ -3,6 +3,7 @@ import { supabase } from '@/db/supabase';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
 
 export function AdminDraftCoursesPage() {
   const [drafts, setDrafts] = useState<any[]>([]);
@@ -85,8 +86,13 @@ export function AdminDraftCoursesPage() {
                     <Button variant="outline" className="flex-1 text-error border-error/50 hover:bg-error/10 hover:text-error" onClick={() => handleReview(course.id, 'reject')}>
                        Reject
                     </Button>
+                    <Link to={`/courses/${course.id}`} className="flex-1">
+                      <Button variant="outline" className="w-full">
+                         Preview
+                      </Button>
+                    </Link>
                     <Button className="flex-1" onClick={() => handleReview(course.id, 'approve')}>
-                       Approve & Publish
+                       Approve
                     </Button>
                   </div>
                 </div>

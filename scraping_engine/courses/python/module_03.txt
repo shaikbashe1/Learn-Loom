@@ -1,0 +1,66 @@
+MODULE 3: Surviving Contact With Reality (Errors, Files & Modules)
+========================================================================
+
+LESSON 3.1 — Errors Are Information, Not Failure
+
+Original Explanation:
+A program that crashes on bad input isn't broken because errors exist —
+it's broken because nobody told it what to do when they happen. `try` /
+`except` lets you say "attempt this, and if a specific kind of problem
+occurs, here's the backup plan" instead of letting the whole program halt.
+
+Original Analogy:
+A smoke detector doesn't prevent fires — it detects them and lets you
+respond before they become catastrophic. `try`/`except` is your code's
+smoke detector: it doesn't prevent bad input, it gives you a chance to
+react to it gracefully.
+
+Original Example (new scenario — parsing user-entered ages from a sign-up
+form where someone might type "twenty" instead of "20"):
+    def parse_age(raw_input):
+        try:
+            return int(raw_input)
+        except ValueError:
+            return None  # caller decides how to handle a bad entry
+
+LESSON 3.2 — Files as Memory That Outlives the Program
+
+Original Explanation:
+Everything a running Python program holds in variables disappears the
+moment it ends — files are how a program remembers things across runs.
+The `with open(...) as f:` pattern matters because it guarantees the file
+gets closed (and any pending writes flushed to disk) even if something
+goes wrong inside the block.
+
+Original Example (new scenario — logging workout sessions to a file):
+    with open("workout_log.txt", "a") as log_file:
+        log_file.write("2026-06-16: 30 min run, felt strong\n")
+
+LESSON 3.3 — Modules: Splitting One Big File Into Several Small Ones
+
+Original Explanation:
+Once a single .py file holds unrelated responsibilities (say, both
+"calculate shipping cost" and "send a welcome email"), it becomes harder
+to find anything. A module is just a Python file whose functions/classes
+you can `import` into another file — the same code, reorganized so each
+file has one clear job.
+
+Original Example (new scenario):
+    # shipping.py
+    def calculate_shipping(weight_kg, distance_km):
+        return weight_kg * 0.5 + distance_km * 0.05
+
+    # main.py
+    from shipping import calculate_shipping
+    cost = calculate_shipping(2.3, 140)
+
+EXERCISES (Module 3)
+---------------------
+1. Write a function that divides two numbers and returns a friendly error
+   message string (not a crash) if the second number is zero.
+2. Write a script that reads a file named `scores.txt` (one number per
+   line) and prints the average, handling the case where the file doesn't
+   exist yet.
+3. Split a "temperature converter" program into a module `convert.py`
+   (holding the conversion functions) and a `main.py` that imports and
+   uses them.

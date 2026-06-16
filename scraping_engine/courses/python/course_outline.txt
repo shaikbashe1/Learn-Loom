@@ -1,0 +1,20 @@
+COURSE OUTLINE
+==============
+
+Module 1 — Telling the Computer What You Know (Data & Decisions)
+  Learning Objectives:
+    - Represent real-world facts using Python's core data types
+    - Make a program choose between paths based on conditions
+    - Repeat work safely without copy-pasting code
+
+Module 2 — Organizing Behavior (Functions, Collections & Objects)
+  Learning Objectives:
+    - Package repeated logic into functions with clear contracts
+    - Choose the right collection type for a given data shape
+    - Model real entities using classes when functions alone get unwieldy
+
+Module 3 — Surviving Contact With Reality (Errors, Files & Modules)
+  Learning Objectives:
+    - Anticipate and handle failure instead of letting programs crash
+    - Read and write external data (files) safely
+    - Split a growing program into reusable modules

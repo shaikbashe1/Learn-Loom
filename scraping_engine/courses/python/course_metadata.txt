@@ -1,0 +1,26 @@
+COURSE METADATA
+================
+
+Course Name: Python Foundations Through Building, Not Memorizing
+
+Course Description:
+This course teaches Python by treating the language as a toolkit for
+modeling real decisions and real data, rather than as a list of syntax to
+memorize. Every concept is introduced through a small system you build and
+then extend, so that "why would I use this" is answered before "how do I
+write this." By the end, you will be able to read someone else's Python
+script, predict what it does before running it, and write your own scripts
+that handle realistic messy input.
+
+Difficulty Level: Beginner to Lower-Intermediate
+
+Estimated Duration: 24-30 hours (3 modules, ~8-10 hours each)
+
+Target Audience:
+- Learners with no prior programming experience
+- Programmers from another language (e.g. spreadsheet macros, SQL) making
+  their first jump into a general-purpose language
+
+Prerequisites:
+- Comfortable using a file system (creating folders, finding files)
+- No prior coding experience required

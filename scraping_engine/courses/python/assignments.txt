@@ -1,0 +1,19 @@
+ASSIGNMENTS
+===========
+
+Assignment 1 (after Module 1):
+Write a "mood logger" script: ask the user to rate their day 1-10 in a
+loop for 5 entries, store the ratings in a list, then print whether the
+average was a "rough week," "okay week," or "great week" using your own
+threshold choices.
+
+Assignment 2 (after Module 2):
+Refactor any function you wrote in Assignment 1 that took more than 3
+loosely-related parameters into a class instead, and explain in a code
+comment why the class version is easier to extend.
+
+Assignment 3 (after Module 3):
+Take your Module 1 mood logger and modify it to save each day's rating to
+a file, append to that file on future runs instead of overwriting it, and
+wrap the file-reading portion in a try/except so a missing file doesn't
+crash the program on first run.

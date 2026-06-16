@@ -1,0 +1,74 @@
+MODULE 2: Organizing Behavior (Functions, Collections & Objects)
+=====================================================================
+
+LESSON 2.1 — Functions as Reusable Recipes With a Contract
+
+Original Explanation:
+A function is a named, reusable block of steps — but the more important
+idea is the *contract*: what inputs it expects (parameters) and what it
+promises to hand back (return value). Once you trust a function's
+contract, you can use it without re-reading its internals every time,
+the same way you trust a thermostat to "make it 70 degrees" without
+needing to understand its internal wiring.
+
+Original Example (new scenario — splitting a restaurant bill, not the
+common "add two numbers" or "calculate area" examples):
+    def split_bill(total, num_people, tip_percent=15):
+        tip = total * (tip_percent / 100)
+        return (total + tip) / num_people
+
+    each_owes = split_bill(84.00, 3)
+
+LESSON 2.2 — Collections: Lists, Dictionaries, and Tuples as Different Shelves
+
+Original Explanation:
+A list is an ordered shelf where position matters and items can repeat —
+good for "the order I added these things." A dictionary is a labeled
+lookup system — good for "give me the value that belongs to this key,"
+not "what's in slot 3." A tuple is a list that has been sealed shut —
+useful for values that should never change after creation, like a
+geographic coordinate.
+
+Original Example (new scenario — a small inventory tracker):
+    inventory = {"apples": 12, "bananas": 5, "oranges": 0}
+    restock_needed = [fruit for fruit, count in inventory.items() if count == 0]
+    warehouse_location = (40.7128, -74.0060)  # tuple — shouldn't be edited
+
+LESSON 2.3 — Classes: When Functions Alone Get Unwieldy
+
+Original Explanation:
+Once you find yourself passing the same five variables into ten different
+functions, that's a signal those variables and functions belong together
+as one *thing*. A class lets you bundle data (attributes) and the
+behavior that acts on that data (methods) into a single blueprint, then
+stamp out as many instances of that blueprint as you need.
+
+Original Analogy:
+A class is a cookie cutter; an object/instance is an actual cookie. The
+cutter defines the shape (what attributes and methods every cookie will
+have), but each cookie can still have its own sprinkles (its own
+attribute values).
+
+Original Example (new scenario — a simple library book tracker):
+    class LibraryBook:
+        def __init__(self, title, is_checked_out=False):
+            self.title = title
+            self.is_checked_out = is_checked_out
+
+        def check_out(self):
+            if self.is_checked_out:
+                return f"{self.title} is already checked out."
+            self.is_checked_out = True
+            return f"{self.title} checked out successfully."
+
+    copy_one = LibraryBook("Dune")
+    print(copy_one.check_out())
+
+EXERCISES (Module 2)
+---------------------
+1. Write a function `seconds_to_minutes(total_seconds)` that returns a
+   tuple of (minutes, leftover_seconds).
+2. Build a dictionary representing a playlist (song title -> duration in
+   seconds) and write a one-line expression that finds the longest song.
+3. Create a `Thermostat` class with a `current_temp` attribute and methods
+   `heat_up()` and `cool_down()` that adjust it by 1 degree each call.

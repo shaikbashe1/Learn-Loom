@@ -1,0 +1,94 @@
+MODULE 1: Telling the Computer What You Know (Data & Decisions)
+====================================================================
+
+LESSON 1.1 — Variables as Labeled Boxes, Not Algebra
+
+Original Explanation:
+A variable is best understood not as algebra (where x is a mystery to
+solve for) but as a labeled storage box on a shelf. When you write
+`age = 17`, you are not asserting a mathematical truth — you are putting
+the value 17 into a box labeled "age" so you can refer to it later by
+name instead of by value. The box can be relabeled or refilled at any
+time; Python does not remember what used to be in it.
+
+Original Analogy:
+Think of a kitchen with labeled spice jars. The jar labeled "salt" can be
+refilled with sugar by mistake — the jar doesn't enforce what's inside,
+only the label tells you what to expect. Python variables work the same
+way: nothing stops you from putting a number in a box you previously used
+for text, which is exactly why naming boxes clearly matters more in code
+than it does in math.
+
+Original Example:
+    meals_eaten_today = 2
+    meals_eaten_today = meals_eaten_today + 1   # now 3 — the box was refilled
+    favorite_snack = "pretzels"
+
+LESSON 1.2 — Data Types as Different Kinds of Boxes
+
+Original Explanation:
+Python boxes come in different shapes depending on what you put in them:
+whole numbers (int), numbers with decimals (float), text (str), and
+true/false values (bool). The shape of the box determines what you're
+allowed to do with its contents — you can add two int boxes together,
+but adding a str box to an int box requires you to first convert one to
+match the other's shape.
+
+Original Example:
+    steps_walked = 8342          # int
+    average_pace_kph = 5.5       # float
+    weather_today = "cloudy"     # str
+    is_rest_day = False          # bool
+
+LESSON 1.3 — Decisions With if / elif / else
+
+Original Explanation:
+A program that always does the same thing regardless of input is barely
+more useful than a printed sign. `if` statements let a program branch:
+"if this condition is true, take this path; otherwise, take that path."
+`elif` adds more branches; `else` is the catch-all for "none of the above."
+
+Original Analogy:
+A vending machine doesn't ask "Should I dispense a snack?" — it asks
+"Did the customer insert enough money AND select a valid slot?" and
+branches its behavior on the answer. Your `if` statements are doing the
+same kind of gatekeeping.
+
+Original Example (new scenario — a hydration reminder, not copied from
+any tutorial's "grade calculator" or "is_adult" examples):
+    cups_of_water_today = 3
+    if cups_of_water_today >= 8:
+        status = "well hydrated"
+    elif cups_of_water_today >= 4:
+        status = "getting there"
+    else:
+        status = "drink some water!"
+
+LESSON 1.4 — Repetition With for and while
+
+Original Explanation:
+A `for` loop walks through a known, finite collection of things one at a
+time — useful when you can say "for each item in this list." A `while`
+loop instead keeps going as long as a condition stays true — useful when
+you don't know in advance how many repetitions you'll need, only the
+stopping condition.
+
+Original Example (new scenario — simulating a savings goal):
+    savings = 0
+    monthly_deposit = 150
+    months_elapsed = 0
+    while savings < 2000:
+        savings += monthly_deposit
+        months_elapsed += 1
+    print(f"Reached the goal after {months_elapsed} months")
+
+EXERCISES (Module 1)
+---------------------
+1. Create variables describing a fictional pet (name, age in months,
+   is_vaccinated) using the correct data type for each, then print a
+   single sentence built from all three using an f-string.
+2. Write an if/elif/else chain that takes a `temperature_celsius` variable
+   and assigns a `clothing_suggestion` string ("coat", "jacket", "t-shirt")
+   based on three original temperature bands of your choosing.
+3. Using a while loop, simulate a countdown for a rocket launch from 10 to
+   "liftoff!", printing each number along the way.

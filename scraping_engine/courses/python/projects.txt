@@ -1,0 +1,22 @@
+PROJECTS
+========
+
+Project A — Personal Budget Tracker
+Build a command-line tool that lets a user log expenses with a category
+(food, rent, entertainment, etc.), stores them in a list of dictionaries,
+and prints a summary of total spend per category. Extend it to write the
+log to a file so it persists between runs.
+
+Project B — Text Adventure Mini-Game
+Build a small text-based game where the player reads a room description,
+types a command (e.g. "go north", "take key"), and the game responds
+based on a dictionary representing the map. This project deliberately
+exercises dictionaries, functions, and a while loop driving the main game
+loop — skills introduced separately in Modules 1-2, combined here for the
+first time.
+
+Project C — CSV-less Contact Book
+Build a contact book using a list of small classes (`Contact` with name,
+phone, and email attributes) supporting add, search by name, and delete.
+Save and reload the contact list from a plain text file using the
+file-handling pattern from Module 3.

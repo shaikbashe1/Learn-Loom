@@ -1,0 +1,26 @@
+FINAL ASSESSMENT
+================
+
+Build a "Habit Tracker" command-line application that combines every
+module's concepts:
+
+Requirements:
+1. (Module 1) Use variables and conditionals to let the user mark a habit
+   as "done," "skipped," or "partial" each day, with different point
+   values awarded for each.
+2. (Module 2) Represent each habit as a small class with a name and a
+   list of daily entries; store multiple habits in a dictionary keyed by
+   habit name.
+3. (Module 3) Persist the habit data to a file between runs, and handle
+   the case where the file doesn't exist on first launch using
+   try/except rather than crashing.
+4. Print a weekly summary showing each habit's total points and a
+   one-line original assessment of consistency (e.g. "on track,"
+   "slipping," "strong week") based on thresholds you define yourself.
+
+Grading Guidance:
+- Correctness of conditionals and point logic (25%)
+- Appropriate use of a class to represent a habit (25%)
+- Working file persistence with graceful handling of a missing file (25%)
+- Code organization — at least one concern split into its own function or
+  module (25%)

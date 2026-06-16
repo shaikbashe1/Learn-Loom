@@ -1,0 +1,22 @@
+COURSE NOTES
+============
+
+Key Takeaways:
+- Variables are labels, not algebraic unknowns — the same name can point
+  to different values over a program's lifetime.
+- Choose data structures by the *access pattern* you need (position →
+  list, key lookup → dictionary, immutability → tuple), not by habit.
+- A function's most important feature is its contract — what it needs and
+  what it promises back — not its internal implementation.
+- Reach for a class when you notice the same group of variables and
+  functions keep traveling together; that's a sign they're one "thing."
+- Treat errors as expected events to plan for, not exceptional failures to
+  hope never happen — especially anything involving user input or files.
+- Splitting code into modules is a tool for managing growing complexity,
+  not a requirement for small scripts.
+
+Where to Go Next:
+Once comfortable with everything above, natural next steps are: working
+with external libraries via pip, reading/writing structured data formats
+(JSON/CSV) instead of plain text, and an introduction to automated testing
+so you can verify your own code's correctness without manual re-checking.

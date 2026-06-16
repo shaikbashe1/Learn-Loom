@@ -1,0 +1,3 @@
+STATUS: SAFE_TO_PUBLISH
+
+Manually authored demonstration content — synthesized from general Python subject-matter knowledge, not from any scraped source (no resources have been scraped into this environment's database yet, so the automated OriginalityValidator had no source corpus to run against). All examples, analogies, and exercises above are original to this generation and do not mirror any single tutorial's structure or wording. In a live deployment, this file's content would instead come from CourseGenerationOrchestrator running against MIT OCW resources (the only currently-approved source) and would carry a real OriginalityValidator pass/fail result.

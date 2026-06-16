@@ -1,0 +1,38 @@
+QUIZZES
+=======
+
+Quiz — Module 1
+Q1. What is printed by the following code?
+    x = 5
+    x = x + 1
+    print(x)
+A1. 6 — the variable is reassigned to its old value plus one.
+
+Q2. Why might `"5" + 5` raise an error in Python?
+A2. Because `"5"` is a string and `5` is an int — Python does not
+automatically convert between text and numbers when using `+`.
+
+Q3. What's the difference between using `for` and `while` to print the
+numbers 1 through 5?
+A3. `for` is natural here because the count is known in advance
+(`for i in range(1, 6)`); `while` could do it too but requires manually
+tracking and incrementing a counter variable.
+
+Quiz — Module 2
+Q1. When should you reach for a dictionary instead of a list?
+A1. When you need to look values up by a meaningful key (like a name or
+ID) rather than by numeric position.
+
+Q2. What does `self` represent inside a class method?
+A2. The specific instance the method was called on — it's how the method
+knows which object's attributes to read or modify.
+
+Quiz — Module 3
+Q1. What happens if you don't use `try`/`except` around code that might
+fail, and the failure occurs?
+A1. The program crashes immediately at that line and nothing after it
+runs.
+
+Q2. Why use `with open(...) as f:` instead of calling `open()` directly?
+A2. It guarantees the file is properly closed afterward, even if an
+error occurs inside the block.

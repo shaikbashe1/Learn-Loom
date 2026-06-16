@@ -1,0 +1,110 @@
+version: "3.9"
+
+x-app-env: &app-env
+  env_file: .env
+  environment:
+    - REDIS_HOST=redis
+    - REDIS_HOST=redis
+
+services:
+
+
+  # ── Redis ───────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: learnloom_redis
+    restart: unless-stopped
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── FastAPI ─────────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: learnloom_api
+    restart: unless-stopped
+    <<: *app-env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+
+
+      redis:
+
+    command: >
+      sh -c "
+        alembic upgrade head &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+      "
+
+  # ── Celery Worker ───────────────────────────────────────────────────────────
+  worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: learnloom_worker
+    restart: unless-stopped
+    <<: *app-env
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+
+
+      redis:
+
+    command: >
+      celery -A app.workers.celery_app worker
+        --loglevel=info
+        --concurrency=4
+        --queues=celery,scraping
+
+  # ── Celery Beat (scheduler) ─────────────────────────────────────────────────
+  beat:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: learnloom_beat
+    restart: unless-stopped
+    <<: *app-env
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+
+
+      redis:
+
+    command: >
+      celery -A app.workers.celery_app beat
+        --loglevel=info
+        --scheduler celery.beat:PersistentScheduler
+
+  # ── Flower (Celery monitoring UI) ───────────────────────────────────────────
+  flower:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: learnloom_flower
+    restart: unless-stopped
+    <<: *app-env
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+    command: >
+      celery -A app.workers.celery_app flower
+        --port=5555
+        --broker=${CELERY_BROKER_URL}
+
+volumes:
+  redis_data:
