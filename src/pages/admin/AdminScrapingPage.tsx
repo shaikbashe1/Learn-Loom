@@ -38,14 +38,14 @@ export function AdminScrapingPage() {
         const dbPayload = {
           title,
           description,
-          instructor_id: profile?.id, // Use current admin as placeholder instructor
+          created_by: profile?.id, // Use current admin as placeholder instructor
           thumbnail_url: isJava ? 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80' : 
                          isAds ? 'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=800&q=80' : 
                          'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&q=80',
-          difficulty_level: 'intermediate',
+          difficulty: 'Intermediate',
           is_published: false,
-          tags: ['auto-generated', isJava ? 'java' : isAds ? 'algorithms' : 'scraped'],
-          price: 49.99
+          rating: 0,
+          student_count: 0
         };
         
         const { error } = await supabase.from('courses').insert(dbPayload);
@@ -86,7 +86,7 @@ export function AdminScrapingPage() {
         <CardContent className="pt-6 flex flex-col gap-4">
           <p className="text-body-sm text-on-surface-variant">Enter URLs to scrape (one per line). The engine will crawl, extract facts, humanize the content using AI, run originality checks, and push the generated course as a draft.</p>
           <textarea
-            className="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg p-4 font-body-md min-h-[150px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50"
+            className="w-full bg-surface-container-low text-on-surface border border-outline-variant/60 rounded-lg p-4 font-body-md min-h-[150px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50"
             placeholder="https://example-edu.com/java-programming&#10;https://example-edu.com/algorithms-data-structures"
             value={urlInput}
             onChange={(e) => setUrlInput(e.target.value)}
