@@ -29,6 +29,8 @@ const studentNavItems = [
 
 const adminNavItems = [
   { label: 'Admin Dashboard', path: '/admin',               icon: 'dashboard' },
+  { label: 'Auto-Import Courses', path: '/admin/scraping',   icon: 'spider' },
+  { label: 'Review Drafts',   path: '/admin/courses/drafts', icon: 'rate_review' },
   { label: 'Manage Courses',  path: '/admin/courses',       icon: 'menu_book' },
   { label: 'Manage Students', path: '/admin/students',      icon: 'group' },
   { label: 'Certificates',    path: '/admin/certificates',  icon: 'workspace_premium' },

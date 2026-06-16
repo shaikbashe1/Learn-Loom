@@ -38,6 +38,8 @@ const AdminReportsPage    = lazy(() => import('./pages/admin/AdminReportsPage'))
 const AdminCommunityPage  = lazy(() => import('./pages/admin/AdminCommunityPage'));
 const AdminSubmissionsPage = lazy(() => import('./pages/admin/AdminSubmissionsPage'));
 const AdminRoadmapsPage   = lazy(() => import('./pages/admin/AdminRoadmapsPage'));
+const AdminScrapingPage   = lazy(() => import('./pages/admin/AdminScrapingPage').then(module => ({ default: module.AdminScrapingPage })));
+const AdminDraftCoursesPage = lazy(() => import('./pages/admin/AdminDraftCoursesPage').then(module => ({ default: module.AdminDraftCoursesPage })));
 
 export interface RouteConfig {
   name: string;
@@ -87,4 +89,6 @@ export const routes: RouteConfig[] = [
   { name: 'Admin Community',      path: '/admin/community',         component: AdminCommunityPage },
   { name: 'Admin Submissions',    path: '/admin/submissions',       component: AdminSubmissionsPage },
   { name: 'Admin Roadmaps',       path: '/admin/roadmaps',          component: AdminRoadmapsPage },
+  { name: 'Auto-Import Courses',  path: '/admin/scraping',          component: AdminScrapingPage },
+  { name: 'Review Drafts',        path: '/admin/courses/drafts',    component: AdminDraftCoursesPage },
 ];

@@ -478,7 +478,7 @@ export default function CommunityPage() {
     if (!user) { toast.error('Please log in to post'); return; }
     if (!newTitle.trim() || !newContent.trim()) { toast.error('Please fill in all fields'); return; }
     setPosting(true);
-    const { error: err } = await supabase.from('forum_posts').insert({
+    const { data, error: err } = await supabase.from('forum_posts').insert({
       user_id: user.id,
       title: newTitle.trim(),
       content: newContent.trim(),
@@ -518,29 +518,36 @@ export default function CommunityPage() {
   };
 
   let filtered = posts.filter(p => {
-    const searchLower = search.toLowerCase();
-    const matchSearch = !search ||
-      p.title.toLowerCase().includes(searchLower) ||
-      p.content.toLowerCase().includes(searchLower) ||
-      (p.profiles?.full_name?.toLowerCase().includes(searchLower)) ||
+    const searchLower = search.trim().toLowerCase();
+    const title = p.title || '';
+    const content = p.content || '';
+    const author = p.profiles?.full_name || '';
+    
+    const matchSearch = !searchLower ||
+      title.toLowerCase().includes(searchLower) ||
+      content.toLowerCase().includes(searchLower) ||
+      author.toLowerCase().includes(searchLower) ||
       (p.tags && p.tags.some(t => t.toLowerCase().includes(searchLower)));
+      
     const matchCat = activeCategory === 'all' || p.category === activeCategory;
     return matchSearch && matchCat;
   });
 
   filtered = filtered.sort((a, b) => {
     if (feedTab === 'top') {
-      const scoreA = (a.views || 0) + a.upvotes + a.reply_count;
-      const scoreB = (b.views || 0) + b.upvotes + b.reply_count;
-      return scoreB - scoreA;
+      const scoreA = (a.views || 0) + (a.upvotes || 0) + (a.reply_count || 0);
+      const scoreB = (b.views || 0) + (b.upvotes || 0) + (b.reply_count || 0);
+      if (scoreB !== scoreA) return scoreB - scoreA;
+      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
     } else if (feedTab === 'trending') {
-      const ageA = (new Date().getTime() - new Date(a.created_at).getTime()) / (1000 * 3600);
-      const ageB = (new Date().getTime() - new Date(b.created_at).getTime()) / (1000 * 3600);
-      const scoreA = ((a.views || 0) + (a.upvotes * 2) + (a.reply_count * 3)) / Math.max(1, Math.log10(ageA + 1));
-      const scoreB = ((b.views || 0) + (b.upvotes * 2) + (b.reply_count * 3)) / Math.max(1, Math.log10(ageB + 1));
-      return scoreB - scoreA;
+      const ageA = (new Date().getTime() - new Date(a.created_at || 0).getTime()) / (1000 * 3600);
+      const ageB = (new Date().getTime() - new Date(b.created_at || 0).getTime()) / (1000 * 3600);
+      const scoreA = ((a.views || 0) + ((a.upvotes || 0) * 2) + ((a.reply_count || 0) * 3)) / Math.max(1, Math.log10(ageA + 1));
+      const scoreB = ((b.views || 0) + ((b.upvotes || 0) * 2) + ((b.reply_count || 0) * 3)) / Math.max(1, Math.log10(ageB + 1));
+      if (scoreB !== scoreA) return scoreB - scoreA;
+      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
     } else {
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
     }
   });
 

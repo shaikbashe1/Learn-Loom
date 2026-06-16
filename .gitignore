@@ -45,3 +45,6 @@ mcp.json
 .vercel
 
 piston-deploy/
+ 
+backend/venv/
+backend/.env
