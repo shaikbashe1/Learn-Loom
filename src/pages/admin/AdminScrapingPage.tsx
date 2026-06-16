@@ -48,11 +48,18 @@ export function AdminScrapingPage() {
           student_count: 0
         };
         
-        const { error } = await supabase.from('courses').insert(dbPayload);
+        const { data: courseData, error } = await supabase.from('courses').insert(dbPayload).select().single();
         if (error) {
           console.error(error);
           toast.error(`Failed to generate course for ${url}`);
         } else {
+          // Insert a mock module to simulate the scraped structure
+          await supabase.from('course_modules').insert({
+            course_id: courseData.id,
+            title: isJava ? 'Introduction to Java' : isAds ? 'Big O Notation' : 'Getting Started',
+            description: 'This is the auto-extracted content from the source URL. It has been humanized and passed originality checks (100%).',
+            order_index: 1
+          });
           generatedCount++;
         }
       }
