@@ -197,7 +197,15 @@ export default function AdminCoursesPage() {
 
       // 2. Calculate Course Metrics
       const totalCourses = loadedCourses.length;
-      const activeStudents = loadedCourses.reduce((sum, c) => sum + (c.student_count || 0), 0);
+      
+      // Fetch unique active students
+      const { data: enrollments } = await supabase
+        .from('user_course_enrollments')
+        .select('user_id');
+      
+      // Create a set of unique user IDs
+      const uniqueStudentIds = new Set(enrollments?.map(e => e.user_id) || []);
+      const activeStudents = uniqueStudentIds.size;
       
       const ratedCourses = loadedCourses.filter(c => c.rating > 0);
       const avgRating = ratedCourses.length > 0 
