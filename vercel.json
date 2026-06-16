@@ -2,5 +2,11 @@
   "rewrites": [
     { "source": "/api/piston/:match*", "destination": "http://20.193.241.97:2000/api/v2/:match*" },
     { "source": "/((?!api/.*).*)", "destination": "/index.html" }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron-scrape",
+      "schedule": "0 0 * * *"
+    }
   ]
 }
