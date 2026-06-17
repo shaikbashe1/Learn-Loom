@@ -69,6 +69,7 @@
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
     "tailwindcss-intersect": "^2.2.0",
+    "uuid": "^14.0.0",
     "vaul": "^1.1.2",
     "video-react": "^0.16.0",
     "zod": "^3.25.76"
@@ -78,6 +79,7 @@
     "@tailwindcss/container-queries": "^0.1.1",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
+    "@types/uuid": "^10.0.0",
     "@types/video-react": "^0.15.8",
     "@typescript/native-preview": "7.0.0-dev.20260303.1",
     "@vitejs/plugin-react": "^5.1.4",

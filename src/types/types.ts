@@ -282,15 +282,56 @@ export interface ChatMessage {
   timestamp: string;
 }
 
-export interface DBActivityLog {
+export interface DBMentorConversation {
   id: string;
   user_id: string;
-  action_type: 'login' | 'code_run' | 'course_completed' | 'module_completed';
-  description?: string;
+  title: string;
+  context_snapshot: any;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DBMentorMessage {
+  id: string;
+  conversation_id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
   created_at: string;
 }
 
-export interface ActivityHeatmapItem {
-  activity_date: string;
-  activity_count: number;
+export interface DBUserRoadmap {
+  id: string;
+  user_id: string;
+  title: string;
+  description: string;
+  domain: string;
+  target_role: string;
+  difficulty: string;
+  estimated_weeks: number;
+  progress_percentage: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DBRoadmapStage {
+  id: string;
+  roadmap_id: string;
+  title: string;
+  description: string;
+  phase_number: number;
+  status: 'locked' | 'in_progress' | 'completed';
+  xp_reward: number;
+  order_index: number;
+  created_at: string;
+}
+
+export interface DBRoadmapItem {
+  id: string;
+  stage_id: string;
+  title: string;
+  item_type: 'course' | 'project' | 'quiz' | 'article';
+  resource_url: string | null;
+  status: 'pending' | 'completed';
+  duration_minutes: number;
+  created_at: string;
 }

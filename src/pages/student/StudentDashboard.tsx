@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
-import type { DBCourse, DBEnrollment, DBModule, LeaderboardEntry } from '@/types/types';
+import { Map, Trophy, Target, BookOpen, ChevronRight, Activity, Zap } from 'lucide-react';
+import type { DBCourse, DBEnrollment, DBModule, DBUserRoadmap, DBRoadmapStage } from '@/types/types';
 
 type EnrollWithCourse = DBEnrollment & {
   course: DBCourse;
@@ -14,13 +15,15 @@ export default function StudentDashboard() {
   const { user, profile } = useAuth();
   const [enrollments, setEnrollments] = useState<EnrollWithCourse[]>([]);
   const [recommended, setRecommended] = useState<DBCourse[]>([]);
+  const [activeRoadmap, setActiveRoadmap] = useState<(DBUserRoadmap & { stages: DBRoadmapStage[] }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [myRank, setMyRank] = useState<number | null>(null);
 
   useEffect(() => {
     if (!user) { setLoading(false); return; }
+    
     const load = async () => {
-      const [enrollRes, rankRes] = await Promise.all([
+      const [enrollRes, rankRes, roadmapRes] = await Promise.all([
         supabase
           .from('user_course_enrollments')
           .select(`*, course:courses!user_course_enrollments_course_id_fkey(*), last_module:course_modules!user_course_enrollments_last_module_id_fkey(*)`)
@@ -32,12 +35,23 @@ export default function StudentDashboard() {
           .select('rank')
           .eq('user_id', user.id)
           .maybeSingle(),
+        supabase
+          .from('user_roadmaps')
+          .select('*, roadmap_stages(*)')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
       ]);
 
       const enrollList = Array.isArray(enrollRes.data) ? (enrollRes.data as unknown as EnrollWithCourse[]) : [];
       setEnrollments(enrollList);
 
       if (rankRes.data) setMyRank((rankRes.data as { rank: number }).rank);
+
+      if (roadmapRes.data && roadmapRes.data.length > 0) {
+        const rm = roadmapRes.data[0];
+        setActiveRoadmap({ ...rm, stages: rm.roadmap_stages || [] });
+      }
 
       const enrolledIds = enrollList.map(e => e.course_id);
       const { data: recData } = await supabase
@@ -47,10 +61,11 @@ export default function StudentDashboard() {
         .not('id', 'in', enrolledIds.length > 0 ? `(${enrolledIds.join(',')})` : '(00000000-0000-0000-0000-000000000000)')
         .order('student_count', { ascending: false })
         .limit(3);
+        
       setRecommended(Array.isArray(recData) ? (recData as DBCourse[]) : []);
-
       setLoading(false);
     };
+    
     void load();
   }, [user]);
 
@@ -59,163 +74,193 @@ export default function StudentDashboard() {
   const credits  = profile?.credits ?? 0;
   const streak   = profile?.streak_days ?? 0;
 
+  // Mock weekly activity for the chart
+  const weeklyActivity = [40, 70, 45, 90, 60, 20, 85]; // Mon - Sun percentage
+
   return (
     <AppLayout title="Dashboard">
-      <div className="flex-1 p-gutter lg:p-margin-desktop bg-[radial-gradient(#E2E8F0_1px,transparent_1px)] [background-size:24px_24px]">
-        <div className="max-w-container-max mx-auto flex flex-col gap-stack-lg">
-          {/* Welcome Banner */}
-          <section className="glass-panel rounded-2xl p-stack-lg relative overflow-hidden border-t-2 border-t-tertiary">
-            <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-              <div>
-                <h1 className="font-display-lg text-display-lg text-text-primary mb-2">Welcome back, {displayName}.</h1>
-                <p className="font-body-lg text-body-lg text-text-secondary">"The expert in anything was once a beginner." Keep pushing forward.</p>
-              </div>
-              <div className="flex flex-col items-end">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="material-symbols-outlined text-warning">local_fire_department</span>
-                  <span className="font-headline-md text-headline-md text-text-primary">{streak} Day Streak</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="font-label-sm text-label-sm text-text-secondary">Rank</span>
-                  <span className="font-label-sm text-label-sm font-bold text-primary">#{myRank ?? '-'}</span>
-                </div>
-                <div className="flex items-center gap-3 mt-1">
-                  <span className="font-label-sm text-label-sm text-text-secondary">Credits</span>
-                  <span className="font-label-sm text-label-sm font-bold text-secondary">{credits.toLocaleString()}</span>
-                </div>
-              </div>
-            </div>
-          </section>
+      <div className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full space-y-8 bg-background">
+        
+        {/* Hero Welcome Banner */}
+        <section className="relative overflow-hidden bg-surface border border-outline-variant rounded-2xl p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 group shadow-sm">
+          <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-primary/10 to-transparent pointer-events-none rounded-r-2xl"></div>
+          <div className="relative z-10 space-y-2">
+            <h2 className="text-3xl md:text-4xl font-heading font-bold text-on-surface">Welcome back, {displayName}! 👋</h2>
+            <p className="text-on-surface-variant font-body-lg max-w-2xl">
+              You've completed <span className="text-primary font-bold">{completedCount}</span> course{completedCount !== 1 ? 's' : ''}. Keep the momentum going!
+            </p>
+          </div>
+          <div className="relative z-10 shrink-0">
+            <Link to="/courses" className="bg-primary text-on-primary px-6 py-3 rounded-xl font-label-md font-bold hover:brightness-110 active:scale-95 transition-all flex items-center gap-2 shadow-sm">
+              <Zap className="w-5 h-5" />
+              Jump Back In
+            </Link>
+          </div>
+        </section>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
-            {/* Left Column (Wider) */}
-            <div className="lg:col-span-2 flex flex-col gap-stack-lg">
-              {/* Continue Learning */}
-              <section>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-headline-md text-headline-md text-text-primary flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary">play_circle</span> Continue Learning
-                  </h2>
-                  <Link to="/courses" className="font-label-sm text-label-sm text-primary hover:underline">View All</Link>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* Main Content (Left Column) */}
+          <div className="lg:col-span-2 space-y-8">
+            
+            {/* AI Roadmap Status Widget */}
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-heading font-bold text-on-surface flex items-center gap-2">
+                  <Map className="w-6 h-6 text-primary" /> Active AI Roadmap
+                </h3>
+                <Link to="/student/roadmap" className="text-primary font-label-sm hover:underline flex items-center">
+                  View full <ChevronRight className="w-4 h-4 ml-1" />
+                </Link>
+              </div>
+              
+              {!activeRoadmap ? (
+                <div className="bg-surface border border-outline-variant rounded-2xl p-8 text-center flex flex-col items-center shadow-sm">
+                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                    <Target className="w-8 h-8 text-primary" />
+                  </div>
+                  <h4 className="text-lg font-bold text-on-surface mb-2">No Roadmap Generated</h4>
+                  <p className="text-on-surface-variant mb-6">Let Loomie generate a personalized career path for you.</p>
+                  <Link to="/student/roadmap" className="bg-primary/10 text-primary px-6 py-2 rounded-lg font-bold hover:bg-primary/20 transition-colors">
+                    Create Roadmap
+                  </Link>
                 </div>
-                
-                {loading ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {[1, 2].map(i => <div key={i} className="h-40 bg-surface-container-low animate-pulse rounded-xl"></div>)}
+              ) : (
+                <div className="bg-surface border border-outline-variant rounded-2xl p-6 shadow-sm group hover:border-primary/50 transition-colors">
+                  <div className="flex justify-between items-start mb-6">
+                    <div>
+                      <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded uppercase tracking-wider mb-2 inline-block">
+                        {activeRoadmap.difficulty}
+                      </span>
+                      <h4 className="text-2xl font-bold text-on-surface">{activeRoadmap.title}</h4>
+                      <p className="text-on-surface-variant">{activeRoadmap.target_role}</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-3xl font-bold text-primary">
+                        {activeRoadmap.stages.filter(s => s.status === 'completed').length}
+                        <span className="text-lg text-on-surface-variant">/{activeRoadmap.stages.length}</span>
+                      </div>
+                      <p className="text-xs text-on-surface-variant uppercase tracking-wider">Stages</p>
+                    </div>
                   </div>
-                ) : enrollments.length === 0 ? (
-                  <div className="glass-panel p-stack-md rounded-2xl text-center flex flex-col items-center gap-md">
-                    <span className="material-symbols-outlined text-[48px] text-outline-variant">menu_book</span>
-                    <p className="font-body-md text-body-md text-text-secondary">You haven't enrolled in any courses yet.</p>
-                    <Link to="/courses" className="bg-primary-container text-on-primary px-lg py-sm rounded-lg font-label-md text-label-md font-bold mt-sm hover:bg-surface-tint transition-colors">Browse Catalog</Link>
+                  
+                  {/* Visual Progress */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-on-surface-variant font-bold">Overall Progress</span>
+                      <span className="text-primary font-bold">
+                        {Math.round((activeRoadmap.stages.filter(s => s.status === 'completed').length / activeRoadmap.stages.length) * 100) || 0}%
+                      </span>
+                    </div>
+                    <div className="h-3 w-full bg-surface-container rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-primary transition-all duration-1000 ease-out" 
+                        style={{ width: `${Math.round((activeRoadmap.stages.filter(s => s.status === 'completed').length / activeRoadmap.stages.length) * 100) || 0}%` }}
+                      />
+                    </div>
                   </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {enrollments.map((e, index) => {
-                      const c = e.course;
-                      return (
-                        <div key={e.id} className="bg-surface rounded-xl p-5 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05),0_2px_4px_-2px_rgba(0,0,0,0.05)] hover:-translate-y-[2px] hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)] transition-all border border-border-base flex flex-col gap-4 relative overflow-hidden group">
-                          {index % 2 !== 0 && (
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-tertiary to-secondary-container"></div>
-                          )}
-                          <div className="flex justify-between items-start">
-                            <div className={`w-12 h-12 rounded-lg ${index % 2 === 0 ? 'bg-surface-container-low text-primary' : 'bg-tertiary-fixed text-on-tertiary-fixed'} flex items-center justify-center`}>
-                              <span className="material-symbols-outlined">{index % 2 === 0 ? 'data_object' : 'psychology'}</span>
-                            </div>
-                            <span className={`px-2 py-1 ${index % 2 === 0 ? 'bg-surface-container-high text-primary' : 'bg-secondary-container text-on-secondary-container'} text-xs rounded-full font-label-sm font-bold flex items-center gap-1`}>
-                              {index % 2 !== 0 && <span className="material-symbols-outlined text-[12px]">spark</span>}
-                              {e.progress_percent === 100 ? 'Completed' : 'In Progress'}
-                            </span>
+                </div>
+              )}
+            </section>
+
+            {/* Continue Learning */}
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-heading font-bold text-on-surface flex items-center gap-2">
+                  <BookOpen className="w-6 h-6 text-secondary" /> Continue Learning
+                </h3>
+                <Link to="/courses" className="text-secondary font-label-sm hover:underline">View All</Link>
+              </div>
+              
+              {enrollments.length === 0 ? (
+                 <div className="bg-surface border border-outline-variant rounded-2xl p-8 text-center shadow-sm">
+                   <p className="text-on-surface-variant">You haven't enrolled in any courses yet.</p>
+                 </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {enrollments.map((e) => (
+                    <Link key={e.id} to={`/courses/${e.course_id}`} className="bg-surface border border-outline-variant rounded-xl p-4 flex gap-4 hover:border-secondary/50 transition-colors shadow-sm">
+                      <div className="w-20 h-20 rounded-lg overflow-hidden shrink-0 bg-surface-container">
+                        {e.course?.thumbnail_url && <img src={e.course.thumbnail_url} alt="" className="w-full h-full object-cover" />}
+                      </div>
+                      <div className="flex-1 flex flex-col justify-between">
+                        <h4 className="font-bold text-on-surface line-clamp-2 leading-tight">{e.course?.title}</h4>
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs">
+                            <span className="text-on-surface-variant">Progress</span>
+                            <span className="text-secondary font-bold">{e.progress_percent}%</span>
                           </div>
-                          <div>
-                            <h3 className="font-headline-md text-body-md font-semibold text-text-primary mb-1 line-clamp-1">{c?.title ?? 'Untitled Course'}</h3>
-                            <p className="font-body-sm text-body-sm text-text-secondary line-clamp-2">{e.last_module?.title ?? c?.description ?? 'Resume your learning'}</p>
-                          </div>
-                          <div className="mt-auto pt-4 border-t border-border-base flex justify-between items-center">
-                            <div className="flex flex-col gap-1 w-2/3">
-                              <div className="flex justify-between font-label-sm text-label-sm">
-                                <span className="text-text-secondary">Progress</span>
-                                <span className="text-text-primary">{e.progress_percent ?? 0}%</span>
-                              </div>
-                              <div className="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
-                                <div className={`h-full ${index % 2 === 0 ? 'bg-primary' : 'bg-tertiary'} rounded-full`} style={{ width: `${e.progress_percent ?? 0}%` }}></div>
-                              </div>
-                            </div>
-                            <Link to={`/courses/${e.course_id}`} className="w-8 h-8 rounded-full bg-primary-container text-on-primary flex items-center justify-center hover:opacity-90 transition-opacity">
-                              <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                            </Link>
+                          <div className="h-1.5 w-full bg-surface-container rounded-full overflow-hidden">
+                            <div className="h-full bg-secondary" style={{ width: `${e.progress_percent}%` }} />
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </section>
-
-              {/* Recommended for You */}
-              {recommended.length > 0 && (
-                <section className="mt-stack-lg">
-                  <h2 className="font-headline-md text-headline-md text-text-primary mb-4 flex items-center gap-2">
-                    <span className="material-symbols-outlined text-secondary-container">auto_awesome</span> Recommended Paths
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {recommended.map((c, index) => {
-                      if (index > 1) return null; // limit to 2 for space
-                      const colors = [
-                        { icon: 'database', bg: 'bg-primary/10 text-primary', hue: 'primary' },
-                        { icon: 'architecture', bg: 'bg-secondary/10 text-secondary', hue: 'secondary' },
-                      ];
-                      const color = colors[index % colors.length];
-
-                      return (
-                        <Link key={c.id} to={`/courses/${c.id}`} className="glass-panel p-5 rounded-xl border border-border-base hover:border-primary/50 transition-colors group flex flex-col gap-4">
-                          <div className="flex justify-between items-start">
-                            <div className={`w-10 h-10 rounded ${color.bg} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                              <span className="material-symbols-outlined">{color.icon}</span>
-                            </div>
-                            <span className="font-label-sm text-label-sm text-text-secondary px-2 py-0.5 rounded border border-outline-variant/60">{c.level ?? 'All Levels'}</span>
-                          </div>
-                          <div>
-                            <h4 className="font-headline-sm text-headline-sm text-text-primary mb-xs line-clamp-2">{c.title}</h4>
-                            <p className="font-body-sm text-body-sm text-text-secondary line-clamp-2">{c.description ?? 'A comprehensive course to advance your skills.'}</p>
-                          </div>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </section>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
               )}
-            </div>
+            </section>
+          </div>
 
-            {/* Right Column (Sidebar Widgets) */}
-            <div className="flex flex-col gap-stack-lg">
-              {/* AI Recommendations */}
-              <section className="glass-panel rounded-xl p-5">
-                <h3 className="font-headline-md text-body-md font-semibold text-text-primary mb-4 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-secondary-container">auto_awesome</span> Mentor Suggestions
-                </h3>
-                <div className="flex flex-col gap-4">
-                  <div className="flex gap-3 items-start">
-                    <div className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-primary shrink-0 mt-1">
-                      <span className="material-symbols-outlined text-sm">menu_book</span>
+          {/* Sidebar Content (Right Column) */}
+          <div className="space-y-8">
+            
+            {/* Quick Stats */}
+            <section className="grid grid-cols-2 gap-4">
+              <div className="bg-surface border border-outline-variant rounded-2xl p-4 shadow-sm flex flex-col justify-center items-center text-center">
+                <div className="w-10 h-10 rounded-full bg-tertiary/10 flex items-center justify-center mb-2">
+                  <Trophy className="w-5 h-5 text-tertiary" />
+                </div>
+                <p className="text-2xl font-bold text-on-surface">#{myRank ?? '-'}</p>
+                <p className="text-xs text-on-surface-variant uppercase tracking-wider">Global Rank</p>
+              </div>
+              <div className="bg-surface border border-outline-variant rounded-2xl p-4 shadow-sm flex flex-col justify-center items-center text-center">
+                <div className="w-10 h-10 rounded-full bg-error/10 flex items-center justify-center mb-2">
+                  <Activity className="w-5 h-5 text-error" />
+                </div>
+                <p className="text-2xl font-bold text-on-surface">{streak}</p>
+                <p className="text-xs text-on-surface-variant uppercase tracking-wider">Day Streak</p>
+              </div>
+            </section>
+
+            {/* Weekly Activity Chart */}
+            <section className="bg-surface border border-outline-variant rounded-2xl p-6 shadow-sm">
+              <h3 className="text-lg font-bold text-on-surface mb-6">Weekly Activity</h3>
+              <div className="flex items-end justify-between h-32 gap-2">
+                {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => (
+                  <div key={i} className="flex flex-col items-center gap-2 flex-1 group">
+                    <div className="w-full bg-surface-container rounded-t-sm relative flex items-end h-full">
+                      <div 
+                        className="w-full bg-primary/80 group-hover:bg-primary transition-colors rounded-t-sm"
+                        style={{ height: `${weeklyActivity[i]}%` }}
+                      />
                     </div>
-                    <div>
-                      <p className="font-body-sm text-body-sm text-text-primary font-medium">Review Data Structures</p>
-                      <p className="font-label-sm text-label-sm text-text-secondary mt-1">You struggled with Binary Trees in yesterday's quiz. Want to review?</p>
-                    </div>
+                    <span className="text-xs text-on-surface-variant font-bold">{day}</span>
                   </div>
-                  <div className="flex gap-3 items-start border-t border-border-base pt-4">
-                    <div className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-tertiary shrink-0 mt-1">
-                      <span className="material-symbols-outlined text-sm">code</span>
-                    </div>
-                    <div>
-                      <p className="font-body-sm text-body-sm text-text-primary font-medium">Daily Coding Challenge</p>
-                      <p className="font-label-sm text-label-sm text-text-secondary mt-1">Complete today's challenge to maintain your streak.</p>
-                    </div>
-                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Recommended Paths */}
+            {recommended.length > 0 && (
+              <section className="bg-surface border border-outline-variant rounded-2xl p-6 shadow-sm">
+                <h3 className="text-lg font-bold text-on-surface mb-4">Recommended</h3>
+                <div className="space-y-4">
+                  {recommended.map((c) => (
+                    <Link key={c.id} to={`/courses/${c.id}`} className="group flex gap-3 items-center p-2 -mx-2 rounded-xl hover:bg-surface-container/50 transition-colors">
+                      <div className="w-12 h-12 rounded bg-surface-container overflow-hidden shrink-0">
+                        {c.thumbnail_url ? <img src={c.thumbnail_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-primary/10"></div>}
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-on-surface line-clamp-1 group-hover:text-primary transition-colors">{c.title}</h4>
+                        <p className="text-xs text-on-surface-variant">{c.level ?? 'All Levels'}</p>
+                      </div>
+                    </Link>
+                  ))}
                 </div>
               </section>
-            </div>
+            )}
+
           </div>
         </div>
       </div>

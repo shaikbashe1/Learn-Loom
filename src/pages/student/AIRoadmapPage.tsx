@@ -1,200 +1,303 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { Link, useNavigate } from 'react-router-dom';
-import type { RoadmapDomain } from '@/types/types';
-import { staticRoadmaps, StaticRoadmap, Phase } from '@/data/roadmaps';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/db/supabase';
+import { generateAndSaveRoadmap } from '@/lib/roadmapGenerator';
+import { toast } from 'sonner';
+import { CheckCircle2, Lock, PlayCircle, Loader2, Trophy, Clock, Target } from 'lucide-react';
+import type { DBUserRoadmap, DBRoadmapStage, DBRoadmapItem } from '@/types/types';
 
-const domainOptions = [
-  { id: 'data-science' as RoadmapDomain, label: 'Data Science', icon: 'bar_chart', color: 'from-primary/20 to-primary/5', border: 'border-primary/40', iconColor: 'text-primary', weeks: 12 },
-  { id: 'web-development' as RoadmapDomain, label: 'Web Development', icon: 'globe', color: 'from-secondary/20 to-secondary/5', border: 'border-secondary/40', iconColor: 'text-secondary', weeks: 16 },
-  { id: 'ai-ml' as RoadmapDomain, label: 'AI / ML', icon: 'memory', color: 'from-tertiary/20 to-tertiary/5', border: 'border-tertiary/40', iconColor: 'text-tertiary', weeks: 20 },
-  { id: 'cybersecurity' as RoadmapDomain, label: 'Cybersecurity', icon: 'shield', color: 'from-error/20 to-error/5', border: 'border-error/40', iconColor: 'text-error', weeks: 14 },
-  { id: 'dsa' as RoadmapDomain, label: 'DSA', icon: 'code', color: 'from-primary-container/20 to-primary-container/5', border: 'border-primary-container/40', iconColor: 'text-primary-container', weeks: 18 },
+const DOMAINS = [
+  { id: 'web-development', label: 'Full Stack Web Development', icon: 'globe' },
+  { id: 'data-science', label: 'Data Science & Analytics', icon: 'bar_chart' },
+  { id: 'ai-ml', label: 'Artificial Intelligence & ML', icon: 'memory' },
+  { id: 'cybersecurity', label: 'Cybersecurity', icon: 'shield' },
+  { id: 'dsa', label: 'Data Structures & Algorithms', icon: 'code' },
 ];
 
 export default function AIRoadmapPage() {
-  const [selectedDomain, setSelectedDomain] = useState<RoadmapDomain | null>(null);
-  const [roadmap, setRoadmap] = useState<StaticRoadmap | null>(null);
-  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [activeRoadmap, setActiveRoadmap] = useState<DBUserRoadmap | null>(null);
+  const [stages, setStages] = useState<(DBRoadmapStage & { items: DBRoadmapItem[] })[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleGenerate = () => {
-    if (!selectedDomain) return;
-    const data = staticRoadmaps[selectedDomain];
-    if (data) {
-      setRoadmap(data);
+  // Wizard State
+  const [domain, setDomain] = useState('');
+  const [role, setRole] = useState('');
+  const [difficulty, setDifficulty] = useState<'beginner' | 'intermediate' | 'advanced'>('beginner');
+  const [generating, setGenerating] = useState(false);
+
+  const fetchRoadmap = async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const { data: roadmaps } = await supabase
+        .from('user_roadmaps')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (roadmaps && roadmaps.length > 0) {
+        const rm = roadmaps[0];
+        setActiveRoadmap(rm);
+        
+        const { data: stgData } = await supabase
+          .from('roadmap_stages')
+          .select('*, roadmap_items(*)')
+          .eq('roadmap_id', rm.id)
+          .order('order_index', { ascending: true });
+
+        if (stgData) {
+          setStages(stgData.map(s => ({ ...s, items: s.roadmap_items || [] })));
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to load roadmap.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleAskAI = (phase: Phase) => {
-    const prompt = `I am currently studying Phase ${phase.phase}: ${phase.title} in the ${roadmap?.title} roadmap. The topics include: ${phase.topics.join(', ')}. Can you help me understand this better?`;
-    localStorage.setItem('initial_ai_prompt', prompt);
-    navigate('/ai-mentor');
+  useEffect(() => {
+    fetchRoadmap();
+  }, [user]);
+
+  const handleGenerate = async () => {
+    if (!user || !domain || !role) {
+      toast.error('Please complete all fields.');
+      return;
+    }
+    setGenerating(true);
+    try {
+      await generateAndSaveRoadmap(user.id, domain, role, difficulty);
+      toast.success('Your personalized roadmap is ready!');
+      await fetchRoadmap();
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to generate roadmap.');
+    } finally {
+      setGenerating(false);
+    }
   };
 
-  return (
-    <AppLayout title="Learning Roadmap">
-      <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg flex flex-col gap-stack-xl">
+  const markItemComplete = async (itemId: string, stageId: string) => {
+    if (!user) return;
+    try {
+      // Mark item complete
+      await supabase.from('roadmap_items').update({ status: 'completed' }).eq('id', itemId);
+      
+      // Update local state
+      let allItemsInStageComplete = true;
+      const newStages = stages.map(s => {
+        if (s.id === stageId) {
+          const newItems = s.items.map(i => {
+            if (i.id === itemId) return { ...i, status: 'completed' as const };
+            if (i.status !== 'completed') allItemsInStageComplete = false;
+            return i;
+          });
+          return { ...s, items: newItems };
+        }
+        return s;
+      });
+
+      // If all items complete, mark stage complete and unlock next
+      if (allItemsInStageComplete) {
+        await supabase.from('roadmap_stages').update({ status: 'completed' }).eq('id', stageId);
+        toast.success(`Stage Completed! Earned XP!`);
         
-        {!roadmap ? (
-          <>
-            <section className="w-full max-w-[800px] mx-auto text-center flex flex-col items-center gap-stack-md pt-stack-md relative z-10">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-lowest border border-border-base text-tertiary font-label-sm text-label-sm mb-2 shadow-sm">
-                <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
-                <span>AI Powered Journey</span>
-              </div>
-              <h1 className="font-display-lg-mobile text-display-lg-mobile md:font-display-lg md:text-display-lg text-text-primary">What do you want to master?</h1>
-              <p className="font-body-lg text-body-lg text-text-secondary max-w-2xl">
-                Select a domain to instantly load your curated, structured learning path. Our experts have mapped out the optimal progression.
-              </p>
-            </section>
-            
-            <section className="w-full max-w-[1000px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
-              {domainOptions.map(domain => (
-                <button
-                  key={domain.id}
-                  onClick={() => setSelectedDomain(domain.id)}
-                  className={`text-left p-6 rounded-xl border-2 transition-all duration-200 glass-panel flex flex-col ${
-                    selectedDomain === domain.id 
-                      ? 'border-primary shadow-[0_0_15px_rgba(37,99,235,0.15)] ring-2 ring-primary/20 scale-[1.02]' 
-                      : 'border-border-base hover:border-primary/40 hover:-translate-y-1 hover:shadow-lg'
-                  }`}
-                >
-                  <div className="flex items-center gap-4 mb-4 w-full">
-                    <div className="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center border border-border-base shadow-sm">
-                      <span className={`material-symbols-outlined text-[24px] ${domain.iconColor}`}>{domain.icon}</span>
-                    </div>
-                    {selectedDomain === domain.id && (
-                      <span className="material-symbols-outlined text-[24px] text-primary ml-auto" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                    )}
-                  </div>
-                  <h3 className="font-headline-md text-headline-md text-text-primary mb-1">{domain.label}</h3>
-                  <p className="font-body-sm text-body-sm text-text-secondary">{domain.weeks}-week curriculum plan</p>
-                </button>
-              ))}
-            </section>
+        const currentStageIdx = newStages.findIndex(s => s.id === stageId);
+        if (currentStageIdx < newStages.length - 1) {
+          const nextStageId = newStages[currentStageIdx + 1].id;
+          await supabase.from('roadmap_stages').update({ status: 'in_progress' }).eq('id', nextStageId);
+          newStages[currentStageIdx].status = 'completed';
+          newStages[currentStageIdx + 1].status = 'in_progress';
+          toast.success(`Next stage unlocked!`);
+        }
+      }
 
-            <section className="w-full max-w-[1000px] mx-auto text-center mt-stack-md">
-              <button
-                onClick={handleGenerate}
-                disabled={!selectedDomain}
-                className="px-8 py-4 rounded-lg bg-primary-container text-on-primary font-label-md text-label-md font-semibold hover:bg-primary transition-colors active:scale-95 duration-200 flex items-center justify-center gap-2 mx-auto shadow-md disabled:opacity-50 disabled:pointer-events-none"
-              >
-                <span className="material-symbols-outlined">magic_button</span> Generate Path
-              </button>
-            </section>
-          </>
-        ) : (
-          <>
-            {/* Header info for loaded roadmap */}
-            <section className="w-full max-w-[1000px] mx-auto glass-panel p-6 rounded-xl border border-border-base shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] flex flex-col justify-between relative overflow-hidden z-10 transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg">
-              <div className="absolute top-0 right-0 w-48 h-48 bg-primary-container/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider mb-2">Selected Domain</h3>
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-transparent bg-clip-text bg-gradient-to-r from-primary via-tertiary to-secondary">{roadmap.title}</span>
-                  </div>
-                  <p className="font-body-sm text-body-sm text-text-secondary max-w-2xl">{roadmap.description}</p>
-                </div>
-                <button
-                  onClick={() => { setRoadmap(null); setSelectedDomain(null); }}
-                  className="p-2 rounded-full hover:bg-surface-container-high text-text-secondary transition-colors border border-border-base"
-                  title="Change Domain"
-                >
-                  <span className="material-symbols-outlined text-[20px]">refresh</span>
-                </button>
-              </div>
-              <div className="mt-6 flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-surface-bright border border-border-base rounded-full font-label-sm text-label-sm text-text-primary flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[14px] text-primary">schedule</span> {roadmap.estimated_weeks} Weeks Estimated
-                </span>
-              </div>
-            </section>
+      setStages(newStages);
+    } catch (err) {
+      toast.error('Failed to update progress.');
+    }
+  };
 
-            {/* Roadmap Timeline */}
-            <section className="w-full max-w-[900px] mx-auto relative pt-8 pb-16 z-10">
-              <h2 className="font-headline-lg text-headline-lg text-text-primary text-center mb-stack-lg">Your Learning Path</h2>
+  if (loading) {
+    return (
+      <AppLayout title="AI Roadmap">
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="w-8 h-8 text-primary animate-spin" />
+            <p className="text-on-surface-variant">Loading your personalized journey...</p>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  return (
+    <AppLayout title="AI Roadmap">
+      <div className="max-w-6xl mx-auto p-4 md:p-8 space-y-8 pb-20">
+        
+        {!activeRoadmap ? (
+          <div className="max-w-2xl mx-auto space-y-8 animate-fade-in mt-12">
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto shadow-sm border border-primary/20">
+                <Target className="w-8 h-8 text-primary" />
+              </div>
+              <h1 className="text-4xl font-heading font-bold text-on-surface">Design Your Future</h1>
+              <p className="text-on-surface-variant font-body-lg">Our AI will generate a step-by-step learning roadmap tailored to your specific career goals and current skill level.</p>
+            </div>
+
+            <div className="bg-surface border border-outline-variant rounded-2xl p-6 md:p-8 shadow-sm space-y-8">
               
-              <div className="relative py-8">
-                {/* Center Line */}
-                <div className="absolute top-0 bottom-0 left-1/2 w-1 bg-border-base -translate-x-1/2 z-0 hidden md:block"></div>
-                <div className="absolute top-0 bottom-0 left-[24px] w-1 bg-border-base z-0 md:hidden"></div>
+              <div className="space-y-4">
+                <label className="font-label-md font-bold text-on-surface block">1. What is your primary learning domain?</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {DOMAINS.map(d => (
+                    <button
+                      key={d.id}
+                      onClick={() => setDomain(d.id)}
+                      className={`flex items-center gap-3 p-4 rounded-xl border text-left transition-all ${domain === d.id ? 'border-primary bg-primary/5 shadow-sm' : 'border-outline-variant/60 hover:bg-surface-variant/50'}`}
+                    >
+                      <span className="material-symbols-outlined text-primary">{d.icon}</span>
+                      <span className="font-label-md text-on-surface">{d.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-                {roadmap.phases.map((phase, index) => {
-                  const isEven = index % 2 === 0;
-                  // Alternate alignment for desktop
-                  return (
-                    <div key={phase.phase} className="relative flex flex-col md:flex-row items-start md:items-center justify-between mb-16 w-full group">
-                      
-                      {/* Desktop Left / Mobile Right */}
-                      <div className={`w-full md:w-[45%] pl-16 md:pl-0 ${isEven ? 'md:text-right md:pr-8' : 'md:order-3 md:text-left md:pl-8'} relative`}>
-                        <div className="relative bg-clip-padding border-2 border-transparent rounded-xl shadow-md transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-lg"
-                             style={{ background: 'linear-gradient(white, white) padding-box, linear-gradient(90deg, #2563eb, #7d4ce7, #4cd7f6) border-box' }}>
-                          <div className="bg-surface rounded-lg p-5">
-                            <div className={`flex items-start md:items-center justify-between mb-2 flex-col md:flex-row ${isEven ? 'md:flex-row-reverse' : ''} gap-2`}>
-                              <h3 className="font-headline-md text-headline-md text-text-primary">{phase.title}</h3>
-                              <span className="px-2 py-1 bg-surface-container-low text-primary font-label-sm text-label-sm rounded-full shrink-0">Week {phase.phase}</span>
-                            </div>
-                            <p className="font-body-sm text-body-sm text-text-secondary mb-4 text-left">
-                              <strong>Topics:</strong> {phase.topics.join(', ')}
-                            </p>
-                            
-                            <div className="space-y-3">
-                               <div className="text-left">
-                                  <p className="font-label-sm text-label-sm text-text-primary mb-1">Learning Objectives:</p>
-                                  <ul className="list-disc list-inside text-body-sm text-text-secondary space-y-1">
-                                    {phase.learning_objectives.map((obj, i) => (
-                                      <li key={i}>{obj}</li>
-                                    ))}
-                                  </ul>
-                               </div>
+              <div className="space-y-4">
+                <label className="font-label-md font-bold text-on-surface block">2. What is your target role or goal?</label>
+                <input 
+                  type="text" 
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  placeholder="e.g. Frontend Developer, Machine Learning Engineer"
+                  className="w-full bg-background border border-outline-variant/60 rounded-xl px-4 py-3 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                />
+              </div>
 
-                               <div className="flex flex-col gap-2 pt-2 border-t border-border-base">
-                                  <div className="flex flex-wrap gap-2">
-                                     {phase.assignments && phase.assignments.length > 0 && (
-                                       <span className="font-label-sm text-label-sm text-secondary bg-secondary/10 px-2 py-1 rounded flex items-center gap-1">
-                                          <span className="material-symbols-outlined text-[14px]">assignment</span> {phase.assignments.length} Assignments
-                                       </span>
-                                     )}
-                                     {phase.practice_questions && phase.practice_questions.length > 0 && (
-                                       <span className="font-label-sm text-label-sm text-tertiary bg-tertiary/10 px-2 py-1 rounded flex items-center gap-1">
-                                          <span className="material-symbols-outlined text-[14px]">psychology</span> {phase.practice_questions.length} Practice Qs
-                                       </span>
-                                     )}
-                                  </div>
-                               </div>
-                            </div>
-                            
-                            <div className="mt-4 flex flex-col gap-2">
-                              <button 
-                                onClick={() => handleAskAI(phase)}
-                                className="w-full py-2 bg-surface-container border border-border-base text-primary font-label-md text-label-md rounded hover:bg-surface-container-high hover:border-primary/30 transition-colors flex items-center justify-center gap-2"
-                              >
-                                <span className="material-symbols-outlined text-[18px]">auto_awesome</span> Ask AI Mentor
-                              </button>
-                            </div>
+              <div className="space-y-4">
+                <label className="font-label-md font-bold text-on-surface block">3. What is your current skill level?</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {['beginner', 'intermediate', 'advanced'].map(level => (
+                    <button
+                      key={level}
+                      onClick={() => setDifficulty(level as any)}
+                      className={`p-3 rounded-xl border capitalize font-label-md transition-all ${difficulty === level ? 'border-primary bg-primary text-on-primary shadow-sm' : 'border-outline-variant/60 text-on-surface-variant hover:bg-surface-variant/50'}`}
+                    >
+                      {level}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-                          </div>
+              <button 
+                onClick={handleGenerate}
+                disabled={generating || !domain || !role}
+                className="w-full bg-primary text-on-primary py-4 rounded-xl font-bold font-label-lg shadow-sm hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+              >
+                {generating ? <><Loader2 className="w-5 h-5 animate-spin" /> Generating AI Roadmap...</> : 'Generate My Roadmap'}
+              </button>
+
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-12 animate-fade-in">
+            {/* Roadmap Header */}
+            <div className="bg-surface border border-outline-variant rounded-3xl p-8 shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[80px] pointer-events-none" />
+              <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div>
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="px-3 py-1 rounded-full bg-primary/10 text-primary font-label-sm uppercase tracking-wider text-xs font-bold border border-primary/20">
+                      {activeRoadmap.difficulty}
+                    </span>
+                    <span className="px-3 py-1 rounded-full bg-secondary/10 text-secondary font-label-sm uppercase tracking-wider text-xs font-bold border border-secondary/20">
+                      {activeRoadmap.target_role}
+                    </span>
+                  </div>
+                  <h1 className="text-3xl md:text-4xl font-heading font-bold text-on-surface mb-2">{activeRoadmap.title}</h1>
+                  <p className="text-on-surface-variant font-body-lg max-w-2xl">{activeRoadmap.description}</p>
+                </div>
+                <div className="flex gap-4 items-center">
+                  <div className="text-center p-4 rounded-2xl bg-background border border-outline-variant/60 min-w-[120px]">
+                    <Clock className="w-6 h-6 text-primary mx-auto mb-2" />
+                    <p className="font-bold text-xl text-on-surface">{activeRoadmap.estimated_weeks} Wks</p>
+                    <p className="text-xs text-on-surface-variant uppercase tracking-wider">Est. Time</p>
+                  </div>
+                  <div className="text-center p-4 rounded-2xl bg-background border border-outline-variant/60 min-w-[120px]">
+                    <Trophy className="w-6 h-6 text-secondary mx-auto mb-2" />
+                    <p className="font-bold text-xl text-on-surface">{stages.filter(s => s.status === 'completed').length} / {stages.length}</p>
+                    <p className="text-xs text-on-surface-variant uppercase tracking-wider">Stages</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Stages Timeline */}
+            <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-outline-variant/40 before:to-transparent">
+              {stages.map((stage, idx) => {
+                const isLocked = stage.status === 'locked';
+                const isCompleted = stage.status === 'completed';
+                const isActive = stage.status === 'in_progress';
+
+                return (
+                  <div key={stage.id} className={`relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active ${isLocked ? 'opacity-60' : ''}`}>
+                    {/* Icon */}
+                    <div className={`flex items-center justify-center w-10 h-10 rounded-full border-4 border-background shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-sm relative z-10 
+                      ${isCompleted ? 'bg-primary text-on-primary' : isActive ? 'bg-secondary text-on-primary animate-pulse' : 'bg-surface-variant text-on-surface-variant'}`}>
+                      {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : isLocked ? <Lock className="w-4 h-4" /> : <PlayCircle className="w-5 h-5" />}
+                    </div>
+
+                    {/* Card */}
+                    <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-surface border border-outline-variant rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <p className={`text-sm font-bold uppercase tracking-wider mb-1 ${isCompleted ? 'text-primary' : isActive ? 'text-secondary' : 'text-on-surface-variant'}`}>
+                            Stage {stage.phase_number}
+                          </p>
+                          <h3 className="text-xl font-heading font-bold text-on-surface">{stage.title}</h3>
+                        </div>
+                        <div className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-1 rounded text-xs font-bold border border-primary/20">
+                          <Trophy className="w-3 h-3" /> {stage.xp_reward} XP
                         </div>
                       </div>
+                      <p className="text-on-surface-variant font-body-sm mb-6">{stage.description}</p>
 
-                      {/* Icon */}
-                      <div className={`absolute left-[24px] md:left-1/2 -translate-x-1/2 md:translate-x-[-50%] w-12 h-12 bg-surface text-text-secondary rounded-full flex items-center justify-center z-10 border-4 border-background shadow-md group-hover:bg-primary-container group-hover:text-white transition-colors top-0 md:top-auto`}>
-                        <span className="material-symbols-outlined">auto_stories</span>
+                      <div className="space-y-3">
+                        {stage.items.map(item => (
+                          <div key={item.id} className="flex items-center justify-between bg-background border border-outline-variant/60 rounded-xl p-3">
+                            <div className="flex items-center gap-3">
+                              <span className={`material-symbols-outlined text-lg ${item.item_type === 'project' ? 'text-secondary' : 'text-primary'}`}>
+                                {item.item_type === 'course' ? 'play_lesson' : item.item_type === 'project' ? 'code_blocks' : 'article'}
+                              </span>
+                              <span className={`font-label-md ${item.status === 'completed' ? 'text-on-surface-variant line-through' : 'text-on-surface'}`}>
+                                {item.title}
+                              </span>
+                            </div>
+                            {item.status === 'completed' ? (
+                              <CheckCircle2 className="w-5 h-5 text-primary" />
+                            ) : (
+                              <button 
+                                onClick={() => markItemComplete(item.id, stage.id)}
+                                disabled={isLocked}
+                                className="w-6 h-6 rounded-full border-2 border-outline-variant hover:border-primary flex items-center justify-center transition-colors disabled:opacity-50"
+                              />
+                            )}
+                          </div>
+                        ))}
                       </div>
 
-                      {/* Desktop Spacer */}
-                      <div className={`hidden md:block w-[45%] ${isEven ? 'order-3 pl-8' : 'order-1 pr-8'}`}>
-                        {/* Empty spacer for zigzag layout */}
-                      </div>
-                      
                     </div>
-                  );
-                })}
+                  </div>
+                );
+              })}
+            </div>
 
-              </div>
-            </section>
-          </>
+          </div>
         )}
       </div>
     </AppLayout>

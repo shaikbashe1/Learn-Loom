@@ -4,20 +4,20 @@ import { createParser } from 'eventsource-parser';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import type { ChatMessage } from '@/types/types';
+import type { ChatMessage, DBMentorConversation, DBMentorMessage } from '@/types/types';
 
-const MAX_HISTORY = 10;
+const MAX_HISTORY = 20;
 
 const SUGGESTED_PROMPTS = [
-  'Explain dynamic programming with a real example',
-  'How to prepare for system design interviews?',
-  'Create a 7-day revision plan for React',
+  'Analyze my current course progress',
+  'What are my weakest skills based on quizzes?',
+  'Create a personalized project idea for me',
 ];
 
 const WELCOME_MESSAGE: ChatMessage = {
   id: 'welcome',
   role: 'assistant',
-  content: "👋 Hi! I'm your AI Learning Mentor powered by **Gemini 1.5 Flash**.\n\nI can help with:\n\n• **Doubt Solving** — Ask any technical question\n• **Code Review** — Paste your code and I'll explain it\n• **Concept Deep-Dives** — Any topic, any depth\n\nWhat would you like to explore today?",
+  content: "👋 Hi! I'm Loomie, your AI Learning Mentor.\n\nI automatically analyze your course progress, quiz scores, and assignments to provide personalized recommendations.\n\nHow can I help you accelerate your learning today?",
   timestamp: new Date().toISOString(),
 };
 
@@ -155,8 +155,11 @@ export function AIMentorChat({ externalPrompt, onExternalPromptHandled, isWidget
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+  
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourseInfo[]>([]);
-  const [loadingCourses, setLoadingCourses] = useState(true);
+  
   const bottomRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -166,32 +169,86 @@ export function AIMentorChat({ externalPrompt, onExternalPromptHandled, isWidget
   }, [messages]);
 
   useEffect(() => {
-    if (externalPrompt && !streaming) {
+    if (externalPrompt && !streaming && activeConversationId) {
       sendMessage(externalPrompt);
       if (onExternalPromptHandled) onExternalPromptHandled();
     }
-  }, [externalPrompt]);
+  }, [externalPrompt, activeConversationId]);
 
+  // Bootstrapping the context and conversation history
   useEffect(() => {
     if (!user) return;
-    supabase
-      .from('user_course_enrollments')
-      .select('course_id, progress_percent, courses!user_course_enrollments_course_id_fkey(id, title, category)')
-      .eq('user_id', user.id)
-      .order('enrolled_at', { ascending: false })
-      .limit(5)
-      .then(({ data }) => {
-        if (data) {
-          const mapped: EnrolledCourseInfo[] = data
-            .filter(r => r.courses)
-            .map(r => {
-              const c = Array.isArray(r.courses) ? r.courses[0] : r.courses as { id: string; title: string; category: string };
-              return { id: c.id, title: c.title, category: c.category, progress_percent: r.progress_percent };
-            });
-          setEnrolledCourses(mapped);
+    
+    const loadState = async () => {
+      setLoadingHistory(true);
+      try {
+        // 1. Fetch user analytics/context
+        const { data: courses } = await supabase
+          .from('user_course_enrollments')
+          .select('course_id, progress_percent, courses!user_course_enrollments_course_id_fkey(id, title, category)')
+          .eq('user_id', user.id)
+          .order('enrolled_at', { ascending: false });
+          
+        if (courses) {
+          setEnrolledCourses(courses.filter(r => r.courses).map(r => {
+            const c = Array.isArray(r.courses) ? r.courses[0] : r.courses as any;
+            return { id: c.id, title: c.title, category: c.category, progress_percent: r.progress_percent };
+          }));
         }
-        setLoadingCourses(false);
-      });
+
+        // 2. Fetch or create latest active conversation
+        const { data: existingConvos, error: convoErr } = await supabase
+          .from('mentor_conversations')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        let convoId = '';
+        if (existingConvos && existingConvos.length > 0) {
+          convoId = existingConvos[0].id;
+          setActiveConversationId(convoId);
+          
+          // 3. Load historical messages for this session
+          const { data: historicalMsgs } = await supabase
+            .from('mentor_messages')
+            .select('*')
+            .eq('conversation_id', convoId)
+            .order('created_at', { ascending: true });
+
+          if (historicalMsgs && historicalMsgs.length > 0) {
+            const parsedHistory: ChatMessage[] = historicalMsgs.map(m => ({
+              id: m.id,
+              role: m.role as 'user' | 'assistant',
+              content: m.content,
+              timestamp: m.created_at
+            }));
+            setMessages([WELCOME_MESSAGE, ...parsedHistory]);
+          }
+        } else {
+          // Create new conversation
+          const { data: newConvo, error: insertErr } = await supabase
+            .from('mentor_conversations')
+            .insert({
+              user_id: user.id,
+              title: 'Learning Session',
+              context_snapshot: { timestamp: new Date().toISOString() }
+            })
+            .select()
+            .single();
+            
+          if (newConvo) {
+            setActiveConversationId(newConvo.id);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to bootstrap AI Mentor:", err);
+      } finally {
+        setLoadingHistory(false);
+      }
+    };
+
+    loadState();
   }, [user]);
 
   const buildSystemPrompt = useCallback(() => {
@@ -207,15 +264,17 @@ STUDENT PROFILE:
 ${courseContext}
 
 YOUR ROLE:
+- You act as a personalized AI mentor analyzing the student's progress and goals.
 - Answer technical questions clearly with examples and code snippets when helpful.
-- Create personalized study plans.
+- Suggest projects based on the courses they are taking.
+- Create personalized study plans to tackle weak areas.
 - Help with interview preparation and coding doubts.
 - Format responses with markdown: **bold** for key terms, bullet points, numbered lists, and fenced code blocks.
-- Keep responses focused and concise. Be encouraging.`;
+- Keep responses focused, encouraging, and highly contextual to their LearnLoom progress.`;
   }, [profile, enrolledCourses]);
 
   const sendMessage = async (text: string) => {
-    if (!text.trim() || streaming) return;
+    if (!text.trim() || streaming || !activeConversationId || !user) return;
 
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
@@ -236,6 +295,13 @@ YOUR ROLE:
     setInput('');
     setStreaming(true);
 
+    // Persist user message to Supabase
+    await supabase.from('mentor_messages').insert({
+      conversation_id: activeConversationId,
+      role: 'user',
+      content: userMsg.content
+    });
+
     const historyBase = [...messages.filter(m => m.id !== 'welcome'), userMsg];
     const recentHistory = historyBase.slice(-MAX_HISTORY);
 
@@ -249,6 +315,7 @@ YOUR ROLE:
     ];
 
     abortRef.current = new AbortController();
+    let fullResponseText = '';
 
     try {
       const { data: sessionData } = await supabase.auth.getSession();
@@ -307,6 +374,7 @@ YOUR ROLE:
             const parsed = JSON.parse(event.data);
             const chunk: string = parsed?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
             if (chunk) {
+              fullResponseText += chunk;
               setMessages(prev => prev.map(m => m.id === aiMsgId ? { ...m, content: m.content + chunk } : m));
             }
           } catch { }
@@ -321,6 +389,16 @@ YOUR ROLE:
         buffer = lines.pop() ?? '';
         for (const line of lines) parser.feed(line + '\n');
       }
+
+      // Final persistence step: save the generated AI response to Supabase
+      if (fullResponseText.trim().length > 0) {
+        await supabase.from('mentor_messages').insert({
+          conversation_id: activeConversationId,
+          role: 'assistant',
+          content: fullResponseText
+        });
+      }
+
     } catch (err: any) {
       if (err.name === 'AbortError') return;
       console.error('AI Mentor Error:', err);
@@ -334,7 +412,28 @@ YOUR ROLE:
   };
 
   const handleStop = () => { abortRef.current?.abort(); setStreaming(false); };
-  const handleReset = () => { setMessages([WELCOME_MESSAGE]); setInput(''); };
+  
+  const handleReset = async () => { 
+    if (!user) return;
+    setMessages([WELCOME_MESSAGE]); 
+    setInput(''); 
+    
+    // Create new fresh conversation branch
+    const { data: newConvo } = await supabase
+      .from('mentor_conversations')
+      .insert({
+        user_id: user.id,
+        title: 'New Learning Session',
+        context_snapshot: { timestamp: new Date().toISOString() }
+      })
+      .select()
+      .single();
+      
+    if (newConvo) {
+      setActiveConversationId(newConvo.id);
+      toast.success("Started a new session!");
+    }
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -351,6 +450,17 @@ YOUR ROLE:
     }
   };
 
+  if (loadingHistory) {
+    return (
+      <div className={`flex flex-col h-full w-full relative ${isWidget ? 'bg-surface' : ''} items-center justify-center`}>
+        <div className="flex flex-col items-center gap-3">
+          <span className="material-symbols-outlined text-[32px] text-primary animate-pulse">smart_toy</span>
+          <p className="text-on-surface-variant font-label-sm">Initializing your learning context...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`flex flex-col h-full w-full relative ${isWidget ? 'bg-surface' : ''}`}>
       <div className={`flex-1 overflow-y-auto px-4 ${isWidget ? 'py-4 space-y-4' : 'py-8 space-y-8'} scroll-smooth pb-40 relative`}>
@@ -359,7 +469,7 @@ YOUR ROLE:
             <div className="flex items-center gap-2">
               <span className={`w-2 h-2 rounded-full ${streaming ? 'bg-primary animate-pulse' : 'bg-primary/50'}`} />
               <span className="text-xs text-on-surface-variant font-label-sm">
-                {streaming ? 'Loomie is generating response...' : 'Loomie is online'}
+                {streaming ? 'Loomie is analyzing your progress...' : 'Loomie is monitoring your progress'}
               </span>
             </div>
             <div className="flex gap-2">
@@ -369,7 +479,7 @@ YOUR ROLE:
                 </button>
               )}
               <button onClick={handleReset} className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-outline-variant/60 text-on-surface hover:bg-surface-variant/50 font-label-sm text-label-sm transition-colors">
-                <span className="material-symbols-outlined text-[14px]">refresh</span> New Chat
+                <span className="material-symbols-outlined text-[14px]">add_comment</span> New Chat
               </button>
             </div>
           </div>
@@ -378,17 +488,17 @@ YOUR ROLE:
         {messages.map(msg => (
           <div key={msg.id} className={`mx-auto flex gap-3 md:gap-4 ${isWidget ? 'w-full' : 'max-w-3xl'}`}>
             {msg.role === 'assistant' ? (
-              <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0 border border-primary/30 mt-1">
+              <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0 border border-primary/30 mt-1 shadow-sm">
                 <span className="material-symbols-outlined text-[18px] text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>smart_toy</span>
               </div>
             ) : (
-              <div className="w-8 h-8 rounded-lg bg-surface-variant flex items-center justify-center shrink-0 border border-outline-variant/60 mt-1 overflow-hidden">
+              <div className="w-8 h-8 rounded-lg bg-surface-variant flex items-center justify-center shrink-0 border border-outline-variant/60 mt-1 overflow-hidden shadow-sm">
                 {profile?.avatar_url ? <img src={profile.avatar_url} alt="User" className="w-full h-full object-cover" /> : <span className="material-symbols-outlined text-[18px] text-on-surface">person</span>}
               </div>
             )}
             <div className="flex-1 space-y-1 md:space-y-2 min-w-0">
               <div className="flex items-baseline gap-2">
-                <span className="font-label-md text-label-md font-semibold text-on-surface">{msg.role === 'assistant' ? 'Loomie' : 'You'}</span>
+                <span className="font-label-md text-label-md font-bold text-on-surface">{msg.role === 'assistant' ? 'Loomie' : 'You'}</span>
               </div>
               <div className={`font-body-md ${isWidget ? 'text-sm' : 'text-body-md'} text-on-surface/90 leading-relaxed overflow-hidden`}>
                 {msg.role === 'assistant' ? <MarkdownMessage content={msg.content} /> : <p className="whitespace-pre-wrap">{msg.content}</p>}
@@ -405,7 +515,7 @@ YOUR ROLE:
             <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
               {SUGGESTED_PROMPTS.map(p => (
                 <button key={p} onClick={() => sendMessage(p)} disabled={streaming}
-                  className="whitespace-nowrap px-4 py-1.5 rounded-full border border-outline-variant/60 bg-surface-container/50 text-on-surface-variant font-label-sm text-label-sm hover:border-primary/50 hover:text-primary transition-colors hover:bg-primary/5 disabled:opacity-50">
+                  className="whitespace-nowrap px-4 py-1.5 rounded-full border border-outline-variant/60 bg-surface-container/50 text-on-surface-variant font-label-sm text-label-sm hover:border-primary/50 hover:text-primary transition-colors hover:bg-primary/5 disabled:opacity-50 shadow-sm">
                   {p}
                 </button>
               ))}
@@ -416,7 +526,7 @@ YOUR ROLE:
             <textarea 
               ref={textareaRef}
               className={`w-full bg-transparent border-none resize-none px-4 ${isWidget ? 'py-2 text-sm max-h-24' : 'py-3 font-body-md max-h-32'} text-on-surface placeholder:text-on-surface-variant/50 focus:ring-0 min-h-[52px]`}
-              placeholder="Message Loomie... (Shift+Enter for new line)" 
+              placeholder="Ask for a customized study plan, project ideas, or code explanations..." 
               rows={1} 
               style={{ scrollbarWidth: 'thin' }}
               value={input}
@@ -424,7 +534,7 @@ YOUR ROLE:
               onKeyDown={handleKeyDown}
               disabled={streaming}
             />
-            <div className="flex justify-between items-center px-2 py-2 border-t border-outline-variant/20">
+            <div className="flex justify-between items-center px-2 py-2 border-t border-outline-variant/20 bg-surface/30">
               <div className="flex items-center">
                  {isWidget && streaming && (
                   <button onClick={handleStop} className="text-error text-xs ml-2 hover:underline">Stop Generating</button>
