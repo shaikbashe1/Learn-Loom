@@ -406,8 +406,9 @@ YOUR ROLE:
             <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-gradient-to-tr from-surface-tint to-primary-container blur-[80px] mix-blend-multiply"></div>
           </div>
           
-          {/* Chat Area */}
-          <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col gap-8 max-w-container-max mx-auto w-full z-10 scroll-smooth pb-32">
+          {/* Chat Area Wrapper */}
+          <div className="flex-1 overflow-y-auto w-full z-10 scroll-smooth pb-32">
+            <div className="p-4 md:p-8 flex flex-col gap-8 max-w-container-max mx-auto w-full">
             
             <div className="flex items-center justify-between w-full mb-4">
               <div className="flex items-center gap-2">
@@ -477,6 +478,7 @@ YOUR ROLE:
             )}
             
             <div ref={bottomRef} />
+            </div>
           </div>
 
           {/* Input Area */}
