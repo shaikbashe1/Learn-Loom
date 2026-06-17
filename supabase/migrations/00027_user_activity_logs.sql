@@ -17,6 +17,11 @@ CREATE INDEX IF NOT EXISTS idx_user_activity_logs_created_at ON public.user_acti
 -- RLS Policies
 ALTER TABLE public.user_activity_logs ENABLE ROW LEVEL SECURITY;
 
+DO $$ BEGIN
+    DROP POLICY IF EXISTS "Users can insert their own activity logs" ON public.user_activity_logs;
+    DROP POLICY IF EXISTS "Users can view their own activity logs" ON public.user_activity_logs;
+END $$;
+
 CREATE POLICY "Users can insert their own activity logs"
     ON public.user_activity_logs
     FOR INSERT

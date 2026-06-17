@@ -149,6 +149,16 @@ export async function completeModule(
   // 6. Log activity for streak tracking (fire-and-forget)
   void supabase.rpc('log_activity', { p_user_id: userId, p_type: 'lesson', p_value: 1 }).then(() => {});
 
+  // 7. Auto-award certificate if course is newly completed
+  if (isCourseDone) {
+    await supabase.from('certificates').insert({
+      user_id: userId,
+      course_id: courseId,
+      score: 100,
+      verification_code: ''
+    });
+  }
+
   return { error: null, isCourseDone };
 }
 
