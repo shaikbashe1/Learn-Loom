@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Certificate Management - LearnLoom</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700&amp;family=Inter:wght@400&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface-variant": "#434655",
+                        "surface-tint": "#0053db",
+                        "on-secondary-container": "#006172",
+                        "error-container": "#ffdad6",
+                        "inverse-surface": "#213145",
+                        "on-error": "#ffffff",
+                        "surface-container-highest": "#d3e4fe",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-tertiary-container": "#f6edff",
+                        "on-tertiary-fixed": "#23005c",
+                        "on-surface": "#0b1c30",
+                        "on-background": "#0b1c30",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed": "#e9ddff",
+                        "surface-container-high": "#dce9ff",
+                        "primary": "#004ac6",
+                        "secondary-fixed-dim": "#4cd7f6",
+                        "secondary-container": "#57dffe",
+                        "primary-container": "#2563eb",
+                        "text-secondary": "#64748B",
+                        "on-secondary-fixed": "#001f26",
+                        "on-secondary-fixed-variant": "#004e5c",
+                        "on-primary-container": "#eeefff",
+                        "on-primary": "#ffffff",
+                        "background": "#F8FAFC",
+                        "tertiary-container": "#7d4ce7",
+                        "surface": "#FFFFFF",
+                        "outline-variant": "#c3c6d7",
+                        "outline": "#737686",
+                        "on-error-container": "#93000a",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "surface-container-low": "#eff4ff",
+                        "surface-variant": "#d3e4fe",
+                        "inverse-primary": "#b4c5ff",
+                        "secondary": "#00687a",
+                        "secondary-fixed": "#acedff",
+                        "surface-container": "#e5eeff",
+                        "text-primary": "#0F172A",
+                        "on-tertiary-fixed-variant": "#5516be",
+                        "on-tertiary": "#ffffff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed": "#dbe1ff",
+                        "surface-bright": "#f8f9ff",
+                        "surface-dim": "#cbdbf5",
+                        "warning": "#F59E0B",
+                        "success": "#22C55E",
+                        "error": "#EF4444",
+                        "border-base": "#E2E8F0",
+                        "tertiary-fixed-dim": "#d0bcff",
+                        "tertiary": "#632ecd",
+                        "on-primary-fixed": "#00174b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-xl": "64px",
+                        "margin-desktop": "40px",
+                        "stack-sm": "8px",
+                        "gutter": "24px",
+                        "margin-mobile": "16px",
+                        "container-max": "1280px",
+                        "stack-md": "16px",
+                        "stack-lg": "32px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Hanken Grotesk"],
+                        "body-sm": ["Inter"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "body-md": ["Inter"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "body-lg": ["Inter"],
+                        "display-lg-mobile": ["Hanken Grotesk"],
+                        "label-sm": ["JetBrains Mono"],
+                        "label-md": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "display-lg-mobile": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .soft-shadow {
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+        }
+        .hover-lift {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+        }
+    </style>
+</head>
+<body class="bg-background text-text-primary font-body-md antialiased selection:bg-primary-container selection:text-white min-h-screen">
+<!-- SideNavBar Component -->
+<nav class="bg-surface dark:bg-on-background h-screen w-64 fixed left-0 top-0 border-r border-outline-variant dark:border-outline shadow-sm flex flex-col h-full py-gutter z-50">
+<div class="px-6 mb-8">
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed">LearnLoom</h1>
+<p class="font-body-sm text-body-sm text-text-secondary mt-1">Enterprise Admin</p>
+</div>
+<div class="flex-1 overflow-y-auto px-2 space-y-1">
+<!-- Active Tab: Dashboard (Mapping to Certificate Management top-level intent) -->
+<a class="flex items-center gap-3 px-4 py-3 text-primary dark:text-primary-fixed font-bold border-r-4 border-primary dark:border-primary-fixed bg-surface-container-low dark:bg-surface-variant hover:bg-surface-container-highest dark:hover:bg-surface-variant transition-all rounded-r-none rounded-l-lg scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-text-secondary dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors hover:bg-surface-container-highest dark:hover:bg-surface-variant transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-md text-label-md">Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-text-secondary dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors hover:bg-surface-container-highest dark:hover:bg-surface-variant transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-md text-label-md">Students</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-text-secondary dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors hover:bg-surface-container-highest dark:hover:bg-surface-variant transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">school</span>
+<span class="font-label-md text-label-md">Courses</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-text-secondary dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors hover:bg-surface-container-highest dark:hover:bg-surface-variant transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-label-md text-label-md">Revenue</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-text-secondary dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors hover:bg-surface-container-highest dark:hover:bg-surface-variant transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</div>
+<div class="px-4 mt-auto space-y-4">
+<button class="w-full bg-primary-container text-on-primary-container font-label-md text-label-md py-2 px-4 rounded-lg shadow-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">description</span>
+                Generate Report
+            </button>
+<div class="pt-4 border-t border-outline-variant space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 text-text-secondary hover:text-primary transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-sm text-label-sm">Help Center</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-text-secondary hover:text-error transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-sm text-label-sm">Logout</span>
+</a>
+</div>
+</div>
+</nav>
+<!-- TopAppBar Component -->
+<header class="bg-surface/70 dark:bg-on-background/70 backdrop-blur-md fixed top-0 right-0 w-[calc(100%-16rem)] z-40 border-b border-outline-variant dark:border-outline shadow-sm flex justify-between items-center h-16 px-gutter ml-64 transition-all focus-within:ring-2 focus-within:ring-primary">
+<div class="flex items-center flex-1 max-w-md">
+<div class="relative w-full group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary">search</span>
+<input class="w-full bg-background border border-border-base rounded-full py-2 pl-10 pr-4 text-body-sm font-body-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" placeholder="Search certificates, users, templates..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-text-secondary dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors p-2 rounded-full hover:bg-surface-container-low">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-text-secondary dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors p-2 rounded-full hover:bg-surface-container-low">
+<span class="material-symbols-outlined">dark_mode</span>
+</button>
+<button class="text-text-secondary dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors p-2 rounded-full hover:bg-surface-container-low">
+<span class="material-symbols-outlined">apps</span>
+</button>
+<div class="h-8 w-8 rounded-full bg-surface-variant border border-border-base overflow-hidden ml-2 flex items-center justify-center text-primary font-bold font-label-sm cursor-pointer hover:ring-2 hover:ring-primary transition-all">
+<img alt="Administrator Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIVV7F0W33qvGF7wz9dFMvcle5XAAytNAc_A4bhDPzYq2Ipg3hWsJ-e6yO0QAwPDvVgXI7V369iirxgMRb0WrmXoLsbejtFeVXRGMo35SMEFVHT9JzoPglGqpWTqTTwJ7gmVlAw7BTTex2R7Q9IPSS9k-mWjMsNREP3XbTUiVXYiYzUHsIShv05twtdhsORwZeQEsmucYwP3ZDQlVa8mUcpf5ANYY4AARgvEKuaypaI_ToMkoHITxPtXK74r4nOtZVxvgfulgD3R50"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-64 pt-24 px-gutter pb-16">
+<div class="max-w-[1024px] mx-auto space-y-stack-xl">
+<!-- Page Header -->
+<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+<div>
+<h1 class="font-display-lg text-display-lg text-text-primary tracking-tight">Certificate Management</h1>
+<p class="font-body-lg text-body-lg text-text-secondary mt-2">Manage the certification ecosystem, issue credentials, and review verification requests.</p>
+</div>
+<div class="flex gap-3">
+<button class="bg-surface border border-border-base text-text-primary font-label-md text-label-md py-2 px-4 rounded-lg hover:bg-surface-container-lowest soft-shadow hover-lift flex items-center gap-2">
+<span class="material-symbols-outlined text-text-secondary">settings</span>
+                        Configure
+                    </button>
+<button class="bg-primary-container text-on-primary font-label-md text-label-md py-2 px-5 rounded-lg soft-shadow hover-lift flex items-center gap-2">
+<span class="material-symbols-outlined">workspace_premium</span>
+                        Issue Certificate
+                    </button>
+</div>
+</div>
+<!-- Metrics Bento Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Metric Card 1 -->
+<div class="bg-surface rounded-xl border border-border-base p-6 soft-shadow hover-lift relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-500"></div>
+<div class="flex items-start justify-between mb-4">
+<h3 class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider">Certificates Issued</h3>
+<span class="material-symbols-outlined text-primary bg-surface-container-low p-2 rounded-lg">workspace_premium</span>
+</div>
+<div class="flex items-baseline gap-3">
+<span class="font-display-lg text-display-lg text-text-primary">12,450</span>
+<span class="font-label-sm text-label-sm text-success bg-success/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">trending_up</span> 18%
+                        </span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary mt-1">Total credentials actively held by learners.</p>
+</div>
+<!-- Metric Card 2 -->
+<div class="bg-surface rounded-xl border border-border-base p-6 soft-shadow hover-lift relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-32 h-32 bg-warning/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-500"></div>
+<div class="flex items-start justify-between mb-4">
+<h3 class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider">Verification Requests</h3>
+<span class="material-symbols-outlined text-warning bg-warning/10 p-2 rounded-lg">verified_user</span>
+</div>
+<div class="flex items-baseline gap-3">
+<span class="font-display-lg text-display-lg text-text-primary">3,210</span>
+<span class="font-label-sm text-label-sm text-success bg-success/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">trending_up</span> 5%
+                        </span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary mt-1">3rd-party validation requests this month.</p>
+</div>
+<!-- Metric Card 3 -->
+<div class="bg-surface rounded-xl border border-border-base p-6 soft-shadow hover-lift relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-32 h-32 bg-secondary/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-500"></div>
+<div class="flex items-start justify-between mb-4">
+<h3 class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider">Active Templates</h3>
+<span class="material-symbols-outlined text-secondary bg-secondary/10 p-2 rounded-lg">design_services</span>
+</div>
+<div class="flex items-baseline gap-3">
+<span class="font-display-lg text-display-lg text-text-primary">8</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary mt-1">Design configurations currently in use.</p>
+</div>
+</section>
+<!-- Certificate Templates Section -->
+<section class="space-y-6">
+<div class="flex items-center justify-between border-b border-border-base pb-4">
+<h2 class="font-headline-lg text-headline-lg text-text-primary">Certificate Templates</h2>
+<a class="font-label-md text-label-md text-primary hover:text-primary-fixed transition-colors flex items-center gap-1" href="#">
+                        View all <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Template Card 1 -->
+<div class="bg-surface border border-border-base rounded-xl overflow-hidden soft-shadow hover-lift group">
+<div class="h-48 bg-surface-container-low relative overflow-hidden border-b border-border-base">
+<img alt="Placeholder Template" class="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700" data-alt="A professional, modern SaaS-style digital certificate design template. The layout is clean and minimalist, utilizing a crisp white background with subtle geometric glassmorphism overlays. High-end typography is used for the certificate title and recipient name. A sophisticated deep blue and cyan gradient seal is featured in the corner. The overall lighting is bright and studio-like, conveying trust, achievement, and enterprise-grade security." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3c7R3RIlHR076P2AEr18nJsaTy2cuLv8kd37ySEG2QZDNsi6-N1GNfBcQboWt-XLYC2MML9-echWzyIA_HzDHC38I7Qr4kO5335yGaIR00XSbenWUk5ANDiLm8n5D4nz8L5SUribmk9l24ZC0EbG9SQsuB6J7MauwXIEVULgnhW8lQ19TwULYox58sCRoktrBxvDuswdWmLiS2LrOt7t9JeIo8BEAGzMEawWQxhjhKLrPmKbO-CLgXaAdU8VD18jeeWXFQpKSroUI"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+<span class="absolute top-3 right-3 bg-surface/80 backdrop-blur-md px-2 py-1 rounded-md font-label-sm text-label-sm text-text-primary shadow-sm">Default</span>
+</div>
+<div class="p-4 flex items-center justify-between">
+<div>
+<h4 class="font-headline-md text-[18px] text-text-primary leading-tight">Mastery Standard</h4>
+<p class="font-body-sm text-body-sm text-text-secondary">Used in 12 courses</p>
+</div>
+<button class="text-text-secondary hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-container-low">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+</div>
+<!-- Template Card 2 -->
+<div class="bg-surface border border-border-base rounded-xl overflow-hidden soft-shadow hover-lift group relative">
+<!-- AI Generated subtle border indication -->
+<div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-secondary-container to-tertiary-container z-10"></div>
+<div class="h-48 bg-surface-container-low relative overflow-hidden border-b border-border-base">
+<img alt="Placeholder Template" class="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700" data-alt="A premium, minimalist digital certificate template suitable for high-tech enterprise environments. The design features a very subtle, light-mode background texture reminiscent of frosted glass. Content is structured with perfect alignment and generous whitespace. An intricate, AI-generated cryptographic seal in deep violet and cyan acts as the focal point. The mood is highly professional, secure, and modern." src="https://lh3.googleusercontent.com/aida-public/AB6AXuChsZ0U-Q4Psgyqs8shjRXmHcw94pZIgjFXRcj7Hh_gSVq9DdJHdfj9gNG_cBfHzYCCyAHMWSoR8qIN-SVDair7vH7y49ZRWveNqMThHO1o5J40wcLl4b-HdUW-6gnzvWWt_PW0u2z5Dz3Llcgds9kR-B1s8kSjkBTp6XSeR8R7dmgZMc_JMjV9KBSc0tmCGeN6wPSYhfZt7VZru4_vcb0g5CFvOQmOc9lMWLr1_wme3HPygipfdQ4LX-5069_ZexDU3Cl9KC2Ts6jx"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+</div>
+<div class="p-4 flex items-center justify-between">
+<div>
+<h4 class="font-headline-md text-[18px] text-text-primary leading-tight flex items-center gap-2">
+                                    Technical Pro
+                                    <span class="inline-block w-2 h-2 rounded-full bg-secondary-container" title="AI Enhanced Design"></span>
+</h4>
+<p class="font-body-sm text-body-sm text-text-secondary">Used in 5 courses</p>
+</div>
+<button class="text-text-secondary hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-container-low">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+</div>
+<!-- Template Card 3 -->
+<div class="bg-surface border border-border-base rounded-xl overflow-hidden soft-shadow hover-lift group border-dashed bg-surface-bright flex flex-col items-center justify-center h-[262px] cursor-pointer hover:border-primary transition-colors">
+<div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-primary">add</span>
+</div>
+<h4 class="font-headline-md text-[18px] text-text-primary">Create New Template</h4>
+<p class="font-body-sm text-body-sm text-text-secondary text-center px-6 mt-1">Start from scratch or use AI generation.</p>
+</div>
+</div>
+</section>
+<!-- Verification Center Section -->
+<section class="space-y-6">
+<div class="flex items-center justify-between border-b border-border-base pb-4">
+<h2 class="font-headline-lg text-headline-lg text-text-primary">Verification Center</h2>
+<div class="flex gap-2">
+<button class="text-text-secondary hover:text-primary transition-colors p-1 rounded-md hover:bg-surface-container-low">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+</div>
+</div>
+<div class="bg-surface border border-border-base rounded-xl overflow-hidden soft-shadow">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-lowest border-b border-border-base">
+<th class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider py-4 px-6 font-medium">Request ID</th>
+<th class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider py-4 px-6 font-medium">Recipient</th>
+<th class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider py-4 px-6 font-medium">Date Verified</th>
+<th class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider py-4 px-6 font-medium">Status</th>
+<th class="py-4 px-6"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-base">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-bright transition-colors group">
+<td class="py-4 px-6">
+<span class="font-label-md text-label-md text-text-primary">#VR-8921</span>
+</td>
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center font-label-sm text-primary">JD</div>
+<div>
+<p class="font-body-md text-text-primary font-medium">John Doe</p>
+<p class="font-body-sm text-text-secondary text-[12px]">Data Science Fundamentals</p>
+</div>
+</div>
+</td>
+<td class="py-4 px-6 font-body-sm text-text-secondary">Today, 10:42 AM</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-success/10 text-success border border-success/20">
+<span class="w-1.5 h-1.5 rounded-full bg-success"></span> Verified
+                                    </span>
+</td>
+<td class="py-4 px-6 text-right">
+<button class="text-text-secondary hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-bright transition-colors group">
+<td class="py-4 px-6">
+<span class="font-label-md text-label-md text-text-primary">#VR-8920</span>
+</td>
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center font-label-sm text-primary">AS</div>
+<div>
+<p class="font-body-md text-text-primary font-medium">Alice Smith</p>
+<p class="font-body-sm text-text-secondary text-[12px]">Advanced AI Ethics</p>
+</div>
+</div>
+</td>
+<td class="py-4 px-6 font-body-sm text-text-secondary">Yesterday, 14:15 PM</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-error/10 text-error border border-error/20">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span> Invalid
+                                    </span>
+</td>
+<td class="py-4 px-6 text-right">
+<button class="text-text-secondary hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-bright transition-colors group">
+<td class="py-4 px-6">
+<span class="font-label-md text-label-md text-text-primary">#VR-8919</span>
+</td>
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center font-label-sm text-primary">RJ</div>
+<div>
+<p class="font-body-md text-text-primary font-medium">Robert Johnson</p>
+<p class="font-body-sm text-text-secondary text-[12px]">Cloud Architecture</p>
+</div>
+</div>
+</td>
+<td class="py-4 px-6 font-body-sm text-text-secondary">Yesterday, 09:30 AM</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-success/10 text-success border border-success/20">
+<span class="w-1.5 h-1.5 rounded-full bg-success"></span> Verified
+                                    </span>
+</td>
+<td class="py-4 px-6 text-right">
+<button class="text-text-secondary hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="p-4 border-t border-border-base bg-surface-container-lowest flex justify-center">
+<button class="font-label-sm text-label-sm text-text-secondary hover:text-primary transition-colors">View all requests</button>
+</div>
+</div>
+</section>
+</div>
+</main>
+</body></html>

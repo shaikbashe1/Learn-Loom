@@ -1,83 +1,87 @@
-const plans = [
-  {
-    name: "Pro",
-    description: "For individual developers upgrading their skills.",
-    price: "$29",
-    features: [
-      { text: "Full Curriculum Access", iconColor: "text-primary" },
-      { text: "Interactive Environments", iconColor: "text-primary" },
-      { text: "Community Discord", iconColor: "text-primary" }
-    ],
-    buttonText: "Start Free Trial",
-    highlight: false
-  },
-  {
-    name: "Elite",
-    description: "For senior engineers seeking mastery with AI support.",
-    price: "$49",
-    features: [
-      { text: "Everything in Pro", iconColor: "text-primary" },
-      { text: "Unlimited Loomie AI Access", iconColor: "text-secondary" },
-      { text: "Project Code Reviews", iconColor: "text-primary" },
-      { text: "Early Access to Modules", iconColor: "text-primary" }
-    ],
-    buttonText: "Go Elite",
-    highlight: true
-  },
-  {
-    name: "Enterprise",
-    description: "Scale engineering excellence across your team.",
-    price: "Custom",
-    features: [
-      { text: "Team Analytics Dashboard", iconColor: "text-primary" },
-      { text: "SSO & SAML", iconColor: "text-primary" },
-      { text: "Custom Learning Paths", iconColor: "text-primary" }
-    ],
-    buttonText: "Contact Sales",
-    highlight: false
-  }
-];
-
 export function PricingSection() {
   return (
-    <section id="enterprise" className="px-gutter py-2xl max-w-[1440px] mx-auto">
-      <div className="text-center mb-xl">
-        <h2 className="font-headline-lg text-headline-lg text-on-surface mb-sm">Invest in your trajectory</h2>
-        <p className="font-body-md text-body-md text-on-surface-variant">Simple, transparent pricing for individuals and teams.</p>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg max-w-[1000px] mx-auto">
-        {plans.map((plan, i) => (
-          <div key={i} className={plan.highlight 
-            ? "bg-surface-container border-2 border-primary rounded-xl p-lg flex flex-col relative transform lg:-translate-y-4 shadow-[0_10px_30px_rgba(192,193,255,0.1)]"
-            : `bg-surface-container-lowest border border-outline-variant/60 rounded-xl p-lg flex flex-col hover:border-outline transition-colors ${i===2 ? 'lg:col-span-1 md:col-span-2 md:w-1/2 lg:w-full md:mx-auto' : ''}`
-          }>
-            {plan.highlight && (
-              <>
-                <div className="absolute inset-0 bg-gradient-to-t from-primary/5 to-transparent pointer-events-none rounded-xl"></div>
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-on-primary font-label-sm text-label-sm px-md py-xs rounded-full font-bold">Most Popular</div>
-              </>
-            )}
-            <h3 className={`font-headline-md text-headline-md ${plan.highlight ? 'text-primary' : 'text-on-surface'} mb-xs mt-sm relative z-10`}>{plan.name}</h3>
-            <p className="font-body-md text-body-md text-on-surface-variant mb-md h-12 relative z-10">{plan.description}</p>
-            <div className="mb-lg relative z-10">
-              <span className={`font-display ${plan.price === 'Custom' ? 'text-[32px] font-headline-lg' : 'text-[40px]'} text-on-surface font-bold`}>{plan.price}</span>
-              {plan.price !== 'Custom' && <span className="font-body-md text-on-surface-variant">/mo</span>}
+    <section className="py-stack-xl px-margin-mobile md:px-margin-desktop bg-background border-t border-border-base">
+      <div className="max-w-container-max mx-auto">
+        <div className="text-center mb-stack-lg">
+          <h2 className="font-headline-lg-mobile md:font-headline-lg text-text-primary mb-2">Simple, transparent pricing</h2>
+          <p className="font-body-md text-body-md text-text-secondary">Start for free, upgrade when you need more power.</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          {/* Free */}
+          <div className="rounded-3xl bg-surface border border-border-base p-8 flex flex-col hover-lift">
+            <h3 className="font-label-md text-label-md text-text-secondary uppercase tracking-wider mb-2">Basic</h3>
+            <div className="flex items-baseline gap-1 mb-6">
+              <span className="font-display-lg text-text-primary">$0</span>
+              <span className="text-text-secondary">/ forever</span>
             </div>
-            <ul className="space-y-sm font-body-md text-body-md text-on-surface-variant flex-grow mb-lg relative z-10">
-              {plan.features.map((f, j) => (
-                <li key={j} className="flex items-center gap-sm">
-                  <span className={`material-symbols-outlined ${f.iconColor} text-[18px]`}>done</span> 
-                  {f.text}
-                </li>
-              ))}
+            <ul className="space-y-3 mb-8 flex-1">
+              <li className="flex items-center gap-2 text-text-primary font-body-sm text-body-sm">
+                <span className="material-symbols-outlined text-success text-[18px]">check_circle</span>
+                Core Curriculum Access
+              </li>
+              <li className="flex items-center gap-2 text-text-primary font-body-sm text-body-sm">
+                <span className="material-symbols-outlined text-success text-[18px]">check_circle</span>
+                Community Support
+              </li>
+              <li className="flex items-center gap-2 text-text-secondary font-body-sm text-body-sm opacity-60">
+                <span className="material-symbols-outlined text-[18px]">cancel</span>
+                AI Mentor
+              </li>
             </ul>
-            <button className={`w-full font-label-md text-label-md py-sm rounded transition-all relative z-10 ${plan.highlight ? 'bg-primary text-on-primary font-bold hover:shadow-[0_0_12px_rgba(192,193,255,0.6)]' : 'bg-surface-container-high text-on-surface border border-outline-variant/60 hover:bg-surface-container-highest'}`}>
-              {plan.buttonText}
-            </button>
+            <button className="w-full py-3 rounded-full bg-surface-container text-text-primary font-label-md text-label-md font-medium hover:bg-surface-variant transition-colors border border-border-base">Get Started</button>
           </div>
-        ))}
+          {/* Pro (Highlighted) */}
+          <div className="rounded-3xl bg-surface-bright border-2 border-primary relative p-8 flex flex-col shadow-lg transform md:-translate-y-4">
+            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-primary text-on-primary px-4 py-1 rounded-full font-label-sm text-label-sm font-bold">
+              Most Popular
+            </div>
+            <h3 className="font-label-md text-label-md text-primary uppercase tracking-wider mb-2">Pro</h3>
+            <div className="flex items-baseline gap-1 mb-6">
+              <span className="font-display-lg text-text-primary">$29</span>
+              <span className="text-text-secondary">/ month</span>
+            </div>
+            <ul className="space-y-3 mb-8 flex-1">
+              <li className="flex items-center gap-2 text-text-primary font-body-sm text-body-sm">
+                <span className="material-symbols-outlined text-success text-[18px]">check_circle</span>
+                Everything in Basic
+              </li>
+              <li className="flex items-center gap-2 text-text-primary font-body-sm text-body-sm">
+                <span className="material-symbols-outlined text-primary text-[18px]">neurology</span>
+                Unlimited AI Mentor Access
+              </li>
+              <li className="flex items-center gap-2 text-text-primary font-body-sm text-body-sm">
+                <span className="material-symbols-outlined text-success text-[18px]">check_circle</span>
+                Dynamic Roadmaps
+              </li>
+            </ul>
+            <button className="w-full py-3 rounded-full bg-primary-container text-on-primary font-label-md text-label-md font-medium hover:bg-primary transition-colors shadow-md">Start 7-Day Trial</button>
+          </div>
+          {/* Premium */}
+          <div className="rounded-3xl bg-surface border border-border-base p-8 flex flex-col hover-lift">
+            <h3 className="font-label-md text-label-md text-tertiary uppercase tracking-wider mb-2">Premium</h3>
+            <div className="flex items-baseline gap-1 mb-6">
+              <span className="font-display-lg text-text-primary">$79</span>
+              <span className="text-text-secondary">/ month</span>
+            </div>
+            <ul className="space-y-3 mb-8 flex-1">
+              <li className="flex items-center gap-2 text-text-primary font-body-sm text-body-sm">
+                <span className="material-symbols-outlined text-success text-[18px]">check_circle</span>
+                Everything in Pro
+              </li>
+              <li className="flex items-center gap-2 text-text-primary font-body-sm text-body-sm">
+                <span className="material-symbols-outlined text-warning text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
+                Verified Certificates
+              </li>
+              <li className="flex items-center gap-2 text-text-primary font-body-sm text-body-sm">
+                <span className="material-symbols-outlined text-success text-[18px]">check_circle</span>
+                1-on-1 Human Career Coaching
+              </li>
+            </ul>
+            <button className="w-full py-3 rounded-full bg-surface-container text-text-primary font-label-md text-label-md font-medium hover:bg-surface-variant transition-colors border border-border-base">Contact Sales</button>
+          </div>
+        </div>
       </div>
     </section>
   );
 }
+

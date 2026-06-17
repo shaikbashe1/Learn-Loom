@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LearnLoom - Learn Smarter with AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-fixed-dim": "#4cd7f6",
+                      "on-background": "#0b1c30",
+                      "background": "#F8FAFC",
+                      "on-tertiary": "#ffffff",
+                      "surface": "#FFFFFF",
+                      "surface-container": "#e5eeff",
+                      "surface-container-high": "#dce9ff",
+                      "text-secondary": "#64748B",
+                      "inverse-on-surface": "#eaf1ff",
+                      "tertiary-fixed-dim": "#d0bcff",
+                      "on-surface": "#0b1c30",
+                      "secondary": "#00687a",
+                      "on-tertiary-fixed": "#23005c",
+                      "surface-container-low": "#eff4ff",
+                      "surface-tint": "#0053db",
+                      "on-secondary": "#ffffff",
+                      "surface-variant": "#d3e4fe",
+                      "on-primary-fixed": "#00174b",
+                      "inverse-surface": "#213145",
+                      "tertiary-fixed": "#e9ddff",
+                      "secondary-container": "#57dffe",
+                      "on-primary-container": "#eeefff",
+                      "primary-container": "#2563eb",
+                      "error-container": "#ffdad6",
+                      "surface-dim": "#cbdbf5",
+                      "surface-bright": "#f8f9ff",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "on-tertiary-fixed-variant": "#5516be",
+                      "on-primary": "#ffffff",
+                      "warning": "#F59E0B",
+                      "tertiary": "#632ecd",
+                      "tertiary-container": "#7d4ce7",
+                      "on-secondary-fixed": "#001f26",
+                      "error": "#EF4444",
+                      "text-primary": "#0F172A",
+                      "on-error-container": "#93000a",
+                      "primary-fixed": "#dbe1ff",
+                      "primary": "#004ac6",
+                      "surface-container-highest": "#d3e4fe",
+                      "on-tertiary-container": "#f6edff",
+                      "on-error": "#ffffff",
+                      "on-secondary-fixed-variant": "#004e5c",
+                      "border-base": "#E2E8F0",
+                      "outline": "#737686",
+                      "secondary-fixed": "#acedff",
+                      "on-secondary-container": "#006172",
+                      "on-surface-variant": "#434655",
+                      "inverse-primary": "#b4c5ff",
+                      "success": "#22C55E",
+                      "outline-variant": "#c3c6d7",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "surface-container-lowest": "#ffffff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px",
+                      "2xl": "1rem",
+                      "3xl": "1.5rem"
+              },
+              "spacing": {
+                      "stack-sm": "8px",
+                      "margin-desktop": "40px",
+                      "gutter": "24px",
+                      "margin-mobile": "16px",
+                      "container-max": "1280px",
+                      "stack-md": "16px",
+                      "stack-lg": "32px",
+                      "stack-xl": "64px"
+              },
+              "fontFamily": {
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Hanken Grotesk"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "headline-lg": [
+                              "Hanken Grotesk"
+                      ],
+                      "display-lg": [
+                              "Hanken Grotesk"
+                      ],
+                      "label-md": [
+                              "JetBrains Mono"
+                      ],
+                      "display-lg-mobile": [
+                              "Hanken Grotesk"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "headline-lg-mobile": [
+                              "Hanken Grotesk"
+                      ],
+                      "label-sm": [
+                              "JetBrains Mono"
+                      ]
+              },
+              "fontSize": {
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "56px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "0.02em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "display-lg-mobile": [
+                              "36px",
+                              {
+                                      "lineHeight": "44px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.04em",
+                                      "fontWeight": "500"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-text-primary antialiased font-body-md overflow-x-hidden">
+<!-- TopNavBar -->
+<nav class="fixed w-full top-0 z-50 bg-surface/70 backdrop-blur-xl border-b border-border-base/50 shadow-sm">
+<div class="flex justify-between items-center h-16 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+<!-- Brand -->
+<a class="font-headline-md text-headline-md font-bold text-on-surface flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-primary" data-icon="school" data-weight="fill">school</span>
+                LearnLoom
+            </a>
+<!-- Navigation Links (Desktop) -->
+<div class="hidden md:flex items-center gap-gutter">
+<a class="font-label-md text-label-md text-primary font-bold border-b-2 border-primary py-4 hover:text-primary transition-colors duration-200" href="#">Platform</a>
+<a class="font-label-md text-label-md text-text-secondary hover:text-primary transition-colors duration-200" href="#">Curriculum</a>
+<a class="font-label-md text-label-md text-text-secondary hover:text-primary transition-colors duration-200" href="#">AI Features</a>
+<a class="font-label-md text-label-md text-text-secondary hover:text-primary transition-colors duration-200" href="#">Pricing</a>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-4">
+<a class="hidden md:block font-label-md text-label-md text-text-secondary hover:text-primary transition-colors duration-200" href="#">Log In</a>
+<a class="bg-primary-container text-on-primary font-label-md text-label-md px-6 py-2 rounded-full hover:bg-primary transition-colors duration-200" href="#">Get Started</a>
+<!-- Mobile Menu Toggle -->
+<button class="md:hidden text-text-secondary">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+</div>
+</div>
+</nav>
+<!-- Hero Section -->
+<section class="relative min-h-[921px] flex items-center pt-24 pb-16 overflow-hidden">
+<!-- Background Shader -->
+<!-- STITCH_SHADER_START:ANIMATION_3 class="absolute inset-0 w-full h-full -z-10 opacity-30" -->
+<div class="absolute inset-0 w-full h-full -z-10 opacity-30" style="display:block;">
+<canvas id="shader-canvas-ANIMATION_3" style="display:block;width:100%;height:100%"></canvas>
+<script>
+(function() {
+  const canvas = document.getElementById('shader-canvas-ANIMATION_3');
+
+  // Sync the WebGL drawing-buffer size with the CSS-driven layout size.
+  // This fires on initial layout and whenever the element is resized.
+  function syncSize() {
+    const w = canvas.clientWidth  || 1280;
+    const h = canvas.clientHeight || 720;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width  = w;
+      canvas.height = h;
+    }
+  }
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(syncSize).observe(canvas);
+  }
+  syncSize();
+
+  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  if (!gl) return;
+  const vs = `attribute vec2 a_position;
+varying vec2 v_texCoord;
+void main() {
+  v_texCoord = a_position * 0.5 + 0.5;
+  gl_Position = vec4(a_position, 0.0, 1.0);
+}`;
+  const fs = `precision highp float;
+uniform float u_time;
+uniform vec2 u_resolution;
+uniform vec2 u_mouse;
+varying vec2 v_texCoord;
+
+void main() {
+    vec2 uv = v_texCoord;
+    vec2 p = uv * 2.0 - 1.0;
+    p.x *= u_resolution.x / u_resolution.y;
+
+    // Soft flowing gradient blobs
+    float t = u_time * 0.3;
+    
+    vec3 color1 = vec3(0.145, 0.388, 0.922); // LearnLoom Blue #2563EB
+    vec3 color2 = vec3(0.024, 0.714, 0.831); // AI Cyan #06B6D4
+    vec3 color3 = vec3(0.545, 0.361, 0.965); // Accent Violet #8B5CF6
+    
+    float blob1 = sin(p.x * 1.5 + t) * 0.5 + sin(p.y * 1.2 - t * 0.8) * 0.5;
+    float blob2 = cos(p.y * 1.3 + t * 0.5) * 0.5 + cos(p.x * 1.1 + t) * 0.5;
+    
+    vec3 finalColor = mix(color1, color2, blob1 * 0.5 + 0.5);
+    finalColor = mix(finalColor, color3, blob2 * 0.5 + 0.5);
+    
+    // Light background mix
+    vec3 bgColor = vec3(0.973, 0.98, 0.988); // #F8FAFC
+    float mask = smoothstep(0.4, 1.2, length(p * 0.6));
+    
+    gl_FragColor = vec4(mix(finalColor, bgColor, mask), 1.0);
+}`;
+  function cs(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    return s;
+  }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, cs(gl.VERTEX_SHADER, vs));
+  gl.attachShader(prog, cs(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(prog);
+  gl.useProgram(prog);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const pos = gl.getAttribLocation(prog, 'a_position');
+  gl.enableVertexAttribArray(pos);
+  gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+  const uTime = gl.getUniformLocation(prog, 'u_time');
+  const uRes = gl.getUniformLocation(prog, 'u_resolution');
+  const uMouse = gl.getUniformLocation(prog, 'u_mouse');
+
+  // u_mouse is in pixel coordinates matching u_resolution (ShaderToy convention).
+  // Shaders that need normalized coords should use: u_mouse / u_resolution.
+  let mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+  window.addEventListener('mousemove', (event) => {
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width && rect.height) {
+      const nx = (event.clientX - rect.left) / rect.width;
+      const ny = 1.0 - (event.clientY - rect.top) / rect.height;
+      mouse.x = nx * canvas.width;
+      mouse.y = ny * canvas.height;
+    }
+  });
+
+  function render(t) {
+    if (typeof ResizeObserver === 'undefined') syncSize();
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    if (uTime) gl.uniform1f(uTime, t * 0.001);
+    if (uRes) gl.uniform2f(uRes, canvas.width, canvas.height);
+    if (uMouse) gl.uniform2f(uMouse, mouse.x, mouse.y);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(render);
+  }
+  render(0);
+})();
+</script>
+</div>
+<!-- STITCH_SHADER_END:ANIMATION_3 -->
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop grid md:grid-cols-2 gap-gutter items-center relative z-10 w-full">
+<!-- Hero Content -->
+<div class="max-w-[600px] flex flex-col gap-stack-md">
+<div class="inline-flex items-center gap-2 bg-surface-container-high text-primary px-3 py-1 rounded-full w-fit mb-4">
+<span class="material-symbols-outlined text-sm" data-icon="auto_awesome">auto_awesome</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider">AI-Powered Learning</span>
+</div>
+<h1 class="font-display-lg-mobile md:font-display-lg text-text-primary">
+                    Learn Smarter with <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-tertiary">AI</span>
+</h1>
+<p class="font-body-lg text-body-lg text-text-secondary mt-4 mb-8">
+                    Personalized learning paths, instant AI tutoring, and dynamic curriculums designed to accelerate your growth. The future of education, tailored exactly to you.
+                </p>
+<div class="flex flex-col sm:flex-row gap-4">
+<button class="bg-primary-container text-on-primary font-label-md text-label-md px-8 py-3 rounded-full hover:bg-primary transition-colors shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group">
+                        Start Learning
+                        <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<button class="bg-surface border border-border-base text-text-primary font-label-md text-label-md px-8 py-3 rounded-full hover:bg-surface-container-low transition-colors flex items-center justify-center gap-2">
+                        Explore Courses
+                    </button>
+</div>
+<!-- Floating Stats -->
+<div class="flex gap-6 mt-8">
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md text-primary">98%</span>
+<span class="font-label-sm text-label-sm text-text-secondary">Completion Rate</span>
+</div>
+<div class="w-px h-12 bg-border-base"></div>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md text-tertiary">2.5x</span>
+<span class="font-label-sm text-label-sm text-text-secondary">Faster Learning</span>
+</div>
+</div>
+</div>
+<!-- Hero Visual -->
+<div class="relative h-[400px] md:h-[600px] rounded-3xl overflow-hidden glass-panel shadow-2xl card-shadow border border-white/40">
+<!-- 3D Dashboard Mockup Embed -->
+<!-- STITCH_THREEJS_START:ANIMATION_4 class="absolute inset-0 w-full h-full" -->
+<div class="absolute inset-0 w-full h-full" style="display:block;">
+<script src="https://ajax.googleapis.com/ajax/libs/threejs/r125/three.min.js"></script>
+<div id="threejs-container-ANIMATION_4" style="width:100%;height:100%"></div>
+<script>
+(function() {
+  const container = document.getElementById('threejs-container-ANIMATION_4');
+  const devicePixelRatio = window.devicePixelRatio || 1;
+  const width = container.clientWidth || window.innerWidth;
+const height = container.clientHeight || window.innerHeight;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+renderer.setSize(width, height);
+container.appendChild(renderer.domElement);
+
+// Create a modern dashboard mockup frame
+const group = new THREE.Group();
+scene.add(group);
+
+const frameGeom = new THREE.BoxGeometry(4, 2.5, 0.1);
+const frameMat = new THREE.MeshPhongMaterial({ 
+    color: 0xffffff, 
+    transparent: true, 
+    opacity: 0.9,
+    shininess: 100 
+});
+const dashboard = new THREE.Mesh(frameGeom, frameMat);
+group.add(dashboard);
+
+// Add "floating elements" around it
+const sphereGeom = new THREE.SphereGeometry(0.2, 32, 32);
+const accentMat = new THREE.MeshPhongMaterial({ color: 0x8B5CF6 }); // Violet
+const spheres = [];
+
+for(let i = 0; i < 5; i++) {
+    const s = new THREE.Mesh(sphereGeom, accentMat);
+    s.position.set(
+        (Math.random() - 0.5) * 6,
+        (Math.random() - 0.5) * 4,
+        (Math.random() - 0.5) * 2
+    );
+    group.add(s);
+    spheres.push({ mesh: s, offset: Math.random() * Math.PI * 2 });
+}
+
+const light = new THREE.DirectionalLight(0xffffff, 1);
+light.position.set(5, 5, 5);
+scene.add(light);
+scene.add(new THREE.AmbientLight(0x404040, 2));
+
+camera.position.z = 5;
+
+function animate(time) {
+    requestAnimationFrame(animate);
+    const t = time * 0.001;
+    
+    group.rotation.y = Math.sin(t * 0.5) * 0.1;
+    group.rotation.x = Math.cos(t * 0.3) * 0.05;
+    
+    spheres.forEach(s => {
+        s.mesh.position.y += Math.sin(t + s.offset) * 0.005;
+    });
+    
+    renderer.render(scene, camera);
+}
+
+window.addEventListener('resize', () => {
+    const w = container.clientWidth || window.innerWidth;
+    const h = container.clientHeight || window.innerHeight;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+});
+
+animate(0);
+})();
+</script>
+</div>
+<!-- STITCH_THREEJS_END:ANIMATION_4 -->
+<!-- Overlay Elements for Context -->
+<div class="absolute bottom-6 left-6 right-6 glass-panel rounded-xl p-4 flex items-center justify-between shadow-lg">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-gradient-to-br from-secondary-container to-primary flex items-center justify-center text-white font-bold">
+                             JD
+                         </div>
+<div>
+<p class="font-label-md text-label-md text-text-primary">Advanced Machine Learning</p>
+<div class="flex items-center gap-2 mt-1">
+<div class="w-32 h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="w-[75%] h-full bg-primary rounded-full"></div>
+</div>
+<span class="font-label-sm text-label-sm text-text-secondary">75%</span>
+</div>
+</div>
+</div>
+<button class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="play_arrow">play_arrow</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Trusted By -->
+<section class="py-12 bg-surface-container-lowest border-y border-border-base/50">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop text-center">
+<p class="font-label-sm text-label-sm text-text-secondary uppercase tracking-widest mb-6">Trusted by Forward-Thinking Institutions</p>
+<div class="flex flex-wrap justify-center gap-8 md:gap-16 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+<!-- Academic Logos (Placeholders) -->
+<div class="flex items-center gap-2 font-headline-md text-headline-md text-text-primary">
+<span class="material-symbols-outlined" data-icon="account_balance">account_balance</span>
+<span>Stanford</span>
+</div>
+<div class="flex items-center gap-2 font-headline-md text-headline-md text-text-primary">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span>MIT</span>
+</div>
+<div class="flex items-center gap-2 font-headline-md text-headline-md text-text-primary">
+<span class="material-symbols-outlined" data-icon="science">science</span>
+<span>Harvard</span>
+</div>
+<div class="flex items-center gap-2 font-headline-md text-headline-md text-text-primary">
+<span class="material-symbols-outlined" data-icon="computer">computer</span>
+<span>Berkeley</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="bg-surface border-t border-border-base py-stack-xl">
+<div class="grid grid-cols-2 md:grid-cols-6 gap-gutter px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+<!-- Brand Column -->
+<div class="col-span-2 md:col-span-2">
+<a class="font-headline-sm text-headline-sm font-bold text-on-surface flex items-center gap-2 mb-4" href="#">
+<span class="material-symbols-outlined text-primary" data-icon="school" data-weight="fill">school</span>
+                    LearnLoom
+                </a>
+<p class="font-body-sm text-body-sm text-text-secondary">© 2024 LearnLoom AI. Built for the future of education.</p>
+</div>
+<!-- Links Columns -->
+<div class="flex flex-col gap-3">
+<span class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider mb-2">Product</span>
+<a class="font-body-sm text-body-sm text-text-secondary hover:text-primary transition-colors focus:underline decoration-2 underline-offset-4" href="#">Platform</a>
+<a class="font-body-sm text-body-sm text-text-secondary hover:text-primary transition-colors focus:underline decoration-2 underline-offset-4" href="#">AI Features</a>
+<a class="font-body-sm text-body-sm text-text-secondary hover:text-primary transition-colors focus:underline decoration-2 underline-offset-4" href="#">Pricing</a>
+</div>
+<div class="flex flex-col gap-3">
+<span class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider mb-2">Solutions</span>
+<a class="font-body-sm text-body-sm text-text-secondary hover:text-primary transition-colors focus:underline decoration-2 underline-offset-4" href="#">For Students</a>
+<a class="font-body-sm text-body-sm text-text-secondary hover:text-primary transition-colors focus:underline decoration-2 underline-offset-4" href="#">For Educators</a>
+<a class="font-body-sm text-body-sm text-text-secondary hover:text-primary transition-colors focus:underline decoration-2 underline-offset-4" href="#">Enterprise</a>
+</div>
+<div class="flex flex-col gap-3">
+<span class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider mb-2">Company</span>
+<a class="font-body-sm text-body-sm text-text-secondary hover:text-primary transition-colors focus:underline decoration-2 underline-offset-4" href="#">About</a>
+<a class="font-body-sm text-body-sm text-text-secondary hover:text-primary transition-colors focus:underline decoration-2 underline-offset-4" href="#">Careers</a>
+<a class="font-body-sm text-body-sm text-text-secondary hover:text-primary transition-colors focus:underline decoration-2 underline-offset-4" href="#">Contact</a>
+</div>
+<div class="flex flex-col gap-3">
+<span class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider mb-2">Legal</span>
+<a class="font-body-sm text-body-sm text-text-secondary hover:text-primary transition-colors focus:underline decoration-2 underline-offset-4" href="#">Privacy</a>
+<a class="font-body-sm text-body-sm text-text-secondary hover:text-primary transition-colors focus:underline decoration-2 underline-offset-4" href="#">Terms</a>
+</div>
+</div>
+</footer>
+</body></html>

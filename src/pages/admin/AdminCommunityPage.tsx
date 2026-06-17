@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/db/supabase';
 import { toast } from 'sonner';
-import { EyeOff, Eye, Trash2, MessageSquare, RefreshCw } from 'lucide-react';
+import { RefreshCw, TrendingUp, Timer, Forum, Visibility, VisibilityOff, Delete } from 'lucide-react';
 
 interface ForumPost {
   id: string;
@@ -37,7 +35,6 @@ export default function AdminCommunityPage() {
       toast.error('Failed to load forum posts');
       console.error(error);
     } else {
-      // Supabase join syntax gives an array or object depending on relation, here it's object or null.
       setPosts((data as any[]) ?? []);
     }
     setLoading(false);
@@ -66,117 +63,151 @@ export default function AdminCommunityPage() {
     }
   };
 
+  const activePostsCount = posts.filter(p => !p.is_hidden).length;
+  const hiddenPostsCount = posts.filter(p => p.is_hidden).length;
+  const totalRepliesCount = posts.reduce((acc, p) => acc + (p.reply_count || 0), 0);
+
   return (
     <AppLayout title="Community Moderation" isAdmin>
-      <div className="max-w-[1440px] mx-auto w-full space-y-xl pb-xl">
-        {/* Header & Top Level Stats */}
-        <header className="mb-xl flex flex-col md:flex-row md:items-end justify-between gap-md">
+      <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-xl flex flex-col gap-stack-lg w-full">
+        
+        {/* Header Section */}
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h1 className="font-display text-display text-on-surface">Community Moderation</h1>
-            <p className="text-on-surface-variant text-body-lg mt-xs">Monitor forum health and maintain platform standards.</p>
+            <h1 className="font-display-lg-mobile md:font-display-lg text-[32px] md:text-[40px] font-bold text-text-primary tracking-tight">Community Moderation</h1>
+            <p className="font-body-md text-[16px] text-text-secondary mt-2 max-w-2xl">
+              Monitor forum health, manage active discussions, and maintain platform standards.
+            </p>
           </div>
-          <div className="flex gap-sm">
-            <Button variant="ghost" size="sm" onClick={fetchPosts} className="border border-outline-variant text-on-surface hover:bg-surface-variant h-11 w-11 rounded-xl">
-              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-            </Button>
-            <div className="glass-panel px-lg py-sm rounded-xl text-center min-w-[140px]">
-              <p className="text-label-sm text-on-surface-variant uppercase tracking-widest">Active Posts</p>
-              <p className="text-headline-md text-primary">{posts.filter(p => !p.is_hidden).length}</p>
-            </div>
-            <div className="glass-panel px-lg py-sm rounded-xl text-center min-w-[140px]">
-              <p className="text-label-sm text-on-surface-variant uppercase tracking-widest">Hidden/Flagged</p>
-              <p className="text-headline-md text-error">{posts.filter(p => p.is_hidden).length}</p>
-            </div>
+          <div className="flex flex-wrap items-center gap-3">
+             <button onClick={fetchPosts} className="flex items-center justify-center w-11 h-11 rounded-xl border border-border-base bg-surface text-text-secondary hover:text-primary hover:border-primary/30 transition-all card-lift shadow-sm">
+               <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+             </button>
+             <div className="flex flex-col justify-center px-5 py-2 bg-surface border border-border-base rounded-xl shadow-sm h-11">
+               <div className="flex items-center gap-2">
+                 <span className="w-2 h-2 rounded-full bg-success animate-pulse"></span>
+                 <span className="text-[12px] font-bold text-text-secondary uppercase tracking-wider">Active</span>
+                 <span className="text-[14px] font-bold text-text-primary ml-1">{activePostsCount}</span>
+               </div>
+             </div>
+             <div className="flex flex-col justify-center px-5 py-2 bg-surface border border-border-base rounded-xl shadow-sm h-11">
+               <div className="flex items-center gap-2">
+                 <span className="w-2 h-2 rounded-full bg-error"></span>
+                 <span className="text-[12px] font-bold text-text-secondary uppercase tracking-wider">Hidden</span>
+                 <span className="text-[14px] font-bold text-text-primary ml-1">{hiddenPostsCount}</span>
+               </div>
+             </div>
           </div>
         </header>
 
         {/* Bento Grid Layout for Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-lg mb-2xl">
-          <div className="glass-panel rounded-xl p-lg flex flex-col justify-between min-h-[160px] group hover:border-primary transition-all">
-            <div className="flex justify-between items-start">
-              <h3 className="font-headline-md text-on-surface">Community Engagement</h3>
-              <span className="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">trending_up</span>
-            </div>
-            <div className="mt-md">
-              <div className="flex justify-between text-label-md mb-xs">
-                <span className="text-on-surface-variant">Total Replies</span>
-                <span className="text-primary font-bold">{posts.reduce((acc, p) => acc + (p.reply_count || 0), 0)} Responses</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="glass-panel rounded-2xl border border-border-base p-6 shadow-sm flex flex-col justify-between min-h-[160px] group hover:border-primary/50 transition-all card-lift overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-bl-full -mr-20 -mt-20"></div>
+            <div className="flex justify-between items-start relative z-10">
+              <h3 className="font-headline-md text-[20px] font-bold text-text-primary flex items-center gap-2">
+                Community Engagement
+              </h3>
+              <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
+                <TrendingUp className="w-5 h-5" />
               </div>
-              <div className="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
-                <div className="h-full bg-primary glow-primary" style={{ width: '88%' }}></div>
+            </div>
+            <div className="mt-4 relative z-10">
+              <div className="flex justify-between items-end mb-2">
+                <span className="text-[13px] font-bold text-text-secondary uppercase tracking-wider">Total Replies</span>
+                <span className="text-[24px] font-bold text-primary leading-none">{totalRepliesCount} <span className="text-[14px] font-medium text-text-secondary ml-1">Responses</span></span>
+              </div>
+              <div className="h-2 w-full bg-surface-container rounded-full overflow-hidden border border-border-base/50">
+                <div className="h-full bg-gradient-to-r from-primary to-secondary shadow-[0_0_8px_rgba(192,193,255,0.6)] rounded-full transition-all duration-1000" style={{ width: '88%' }}></div>
               </div>
             </div>
           </div>
-          <div className="glass-panel rounded-xl p-lg flex flex-col justify-between min-h-[160px] group hover:border-secondary transition-all">
-            <div className="flex justify-between items-start">
-              <h3 className="font-headline-md text-on-surface">Moderation Speed</h3>
-              <span className="material-symbols-outlined text-secondary group-hover:scale-110 transition-transform">timer</span>
-            </div>
-            <div className="mt-md">
-              <div className="flex justify-between text-label-md mb-xs">
-                <span className="text-on-surface-variant">Avg Resolution</span>
-                <span className="text-secondary font-bold">14m 22s</span>
+          
+          <div className="glass-panel rounded-2xl border border-border-base p-6 shadow-sm flex flex-col justify-between min-h-[160px] group hover:border-secondary/50 transition-all card-lift overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-secondary/10 to-transparent rounded-bl-full -mr-20 -mt-20"></div>
+            <div className="flex justify-between items-start relative z-10">
+              <h3 className="font-headline-md text-[20px] font-bold text-text-primary flex items-center gap-2">
+                Moderation Speed
+              </h3>
+              <div className="w-10 h-10 rounded-full bg-secondary/10 text-secondary flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Timer className="w-5 h-5" />
               </div>
-              <div className="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
-                <div className="h-full bg-secondary" style={{ width: '94%' }}></div>
+            </div>
+            <div className="mt-4 relative z-10">
+              <div className="flex justify-between items-end mb-2">
+                <span className="text-[13px] font-bold text-text-secondary uppercase tracking-wider">Avg Resolution</span>
+                <span className="text-[24px] font-bold text-secondary leading-none">14m 22s</span>
+              </div>
+              <div className="h-2 w-full bg-surface-container rounded-full overflow-hidden border border-border-base/50">
+                <div className="h-full bg-gradient-to-r from-secondary to-primary-container shadow-[0_0_8px_rgba(221,183,255,0.6)] rounded-full transition-all duration-1000" style={{ width: '94%' }}></div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Posts Table */}
-        <div className="glass-panel rounded-xl overflow-hidden mt-xl">
-          <div className="p-6 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-low/50">
-            <h3 className="font-headline-md text-on-surface">Forum Posts Directory</h3>
+        <section className="glass-panel rounded-2xl border border-border-base shadow-sm overflow-hidden flex flex-col">
+          <div className="p-6 md:px-8 py-5 border-b border-border-base flex justify-between items-center bg-surface/50">
+            <h3 className="font-headline-md text-[20px] font-bold text-text-primary flex items-center gap-2">
+               <Forum className="w-5 h-5 text-primary" />
+               Forum Directory
+            </h3>
           </div>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse min-w-[900px]">
               <thead>
-                <tr className="bg-surface-container-high/50 text-label-sm text-outline uppercase tracking-wider">
-                  <th className="px-6 py-4 font-bold">Post / Author</th>
-                  <th className="px-6 py-4 font-bold">Category</th>
-                  <th className="px-6 py-4 font-bold text-center">Replies</th>
-                  <th className="px-6 py-4 font-bold text-center">Status</th>
-                  <th className="px-6 py-4 font-bold text-right">Actions</th>
+                <tr className="bg-surface-container/50 border-b border-border-base">
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider w-[40%]">Post / Author</th>
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Category</th>
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider text-center">Replies</th>
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider text-center">Status</th>
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-outline-variant/20">
+              <tbody className="divide-y divide-border-base">
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
-                    <tr key={i}><td colSpan={5} className="px-6 py-4"><Skeleton className="h-10 w-full bg-surface-container" /></td></tr>
+                    <tr key={i}><td colSpan={5} className="px-6 py-4"><Skeleton className="h-12 w-full bg-surface-container rounded-lg" /></td></tr>
                   ))
                 ) : posts.length === 0 ? (
-                  <tr><td colSpan={5} className="px-6 py-16 text-center text-label-md text-on-surface-variant">No forum posts found</td></tr>
+                  <tr>
+                    <td colSpan={5} className="px-6 py-16 text-center">
+                       <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mx-auto mb-4 border border-border-base">
+                         <Forum className="w-6 h-6 text-text-secondary" />
+                       </div>
+                       <p className="font-headline-md text-[18px] font-bold text-text-primary">No forum posts found</p>
+                    </td>
+                  </tr>
                 ) : (
                   posts.map(p => {
                     const authorName = Array.isArray(p.profiles) ? p.profiles[0]?.full_name : p.profiles?.full_name;
                     const authorEmail = Array.isArray(p.profiles) ? p.profiles[0]?.email : p.profiles?.email;
                     return (
-                      <tr key={p.id} className={`transition-colors group ${p.is_hidden ? 'bg-surface-variant/20 hover:bg-surface-variant/30' : 'hover:bg-surface-variant/10'}`}>
+                      <tr key={p.id} className={`transition-colors group hover:bg-surface-container/50 ${p.is_hidden ? 'bg-surface-container/30 opacity-75' : ''}`}>
                         <td className="px-6 py-4">
-                          <p className="font-bold text-on-surface line-clamp-1">{p.title}</p>
-                          <p className="text-[12px] text-outline mt-1">
-                            By {authorName ?? 'Unknown'} ({authorEmail}) • {new Date(p.created_at).toLocaleDateString()}
+                          <p className="font-bold text-[15px] text-text-primary line-clamp-1 group-hover:text-primary transition-colors">{p.title}</p>
+                          <p className="text-[12px] text-text-secondary mt-1 font-medium">
+                            By <span className="text-text-primary">{authorName ?? 'Unknown'}</span> ({authorEmail}) • {new Date(p.created_at).toLocaleDateString()}
                           </p>
                         </td>
                         <td className="px-6 py-4">
-                          <span className="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[10px] uppercase font-bold rounded border border-outline-variant/30">
+                          <span className="px-3 py-1 bg-surface border border-border-base text-text-secondary text-[11px] font-bold uppercase tracking-wider rounded-lg shadow-sm">
                             {p.category}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-center">
-                          <div className="flex items-center justify-center gap-1.5 text-on-surface font-label-md">
-                            <span className="material-symbols-outlined text-[16px] text-outline">forum</span>
+                          <div className="flex items-center justify-center gap-1.5 text-text-primary font-bold text-[15px]">
+                            <Forum className="w-4 h-4 text-text-secondary" />
                             {p.reply_count}
                           </div>
                         </td>
                         <td className="px-6 py-4 text-center">
                           {p.is_hidden 
-                            ? <span className="inline-flex items-center gap-1.5 text-error text-[12px] font-bold px-2 py-1 rounded-full bg-error/10 border border-error/20">
+                            ? <span className="inline-flex items-center gap-1.5 text-error text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-error/10 border border-error/20">
                                 <span className="w-1.5 h-1.5 bg-error rounded-full animate-pulse"></span>
                                 Hidden
                               </span>
-                            : <span className="inline-flex items-center gap-1.5 text-success text-[12px] font-bold px-2 py-1 rounded-full bg-success/10 border border-success/20">
+                            : <span className="inline-flex items-center gap-1.5 text-success text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-success/10 border border-success/20">
                                 <span className="w-1.5 h-1.5 bg-success rounded-full"></span>
                                 Active
                               </span>
@@ -187,20 +218,20 @@ export default function AdminCommunityPage() {
                             <button
                               onClick={() => toggleHide(p.id, p.is_hidden)}
                               title={p.is_hidden ? "Unhide" : "Hide post"}
-                              className={`p-2 border rounded-lg transition-colors flex items-center justify-center ${
+                              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm border border-transparent hover:border-border-base ${
                                 p.is_hidden 
-                                  ? 'border-success/30 text-success hover:bg-success/10' 
-                                  : 'border-warning/30 text-warning hover:bg-warning/10'
+                                  ? 'text-success hover:text-success hover:bg-surface' 
+                                  : 'text-warning hover:text-warning hover:bg-surface'
                               }`}
                             >
-                              <span className="material-symbols-outlined text-[18px]">{p.is_hidden ? 'visibility' : 'visibility_off'}</span>
+                              {p.is_hidden ? <Visibility className="w-5 h-5" /> : <VisibilityOff className="w-5 h-5" />}
                             </button>
                             <button
                               onClick={() => deletePost(p.id)}
                               title="Delete post permanently"
-                              className="p-2 border border-error/30 rounded-lg text-error hover:bg-error/10 transition-colors flex items-center justify-center"
+                              className="w-10 h-10 rounded-full text-text-secondary hover:text-error hover:bg-surface flex items-center justify-center transition-all shadow-sm border border-transparent hover:border-border-base"
                             >
-                              <span className="material-symbols-outlined text-[18px]">delete</span>
+                              <Delete className="w-5 h-5" />
                             </button>
                           </div>
                         </td>
@@ -211,7 +242,7 @@ export default function AdminCommunityPage() {
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
       </div>
     </AppLayout>
   );

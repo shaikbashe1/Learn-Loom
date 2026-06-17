@@ -102,9 +102,9 @@ export default function AssignmentPage() {
   };
 
   const statusColor = (status?: string) => {
-    if (status === 'submitted') return 'bg-primary/20 text-primary border-primary/30';
-    if (status === 'graded') return 'bg-tertiary/20 text-tertiary border-tertiary/30';
-    return 'bg-outline-variant text-on-surface border-outline-variant';
+    if (status === 'submitted') return 'bg-primary/10 text-primary border-primary/30';
+    if (status === 'graded') return 'bg-tertiary/10 text-tertiary border-tertiary/30';
+    return 'bg-surface-container text-text-secondary border-border-base';
   };
 
   const statusIcon = (status?: string) => {
@@ -117,44 +117,49 @@ export default function AssignmentPage() {
 
   return (
     <AppLayout title="Assignments">
-      <div className="max-w-[1440px] mx-auto h-full flex flex-col">
+      <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg h-full flex flex-col relative z-10">
         {!selected ? (
-          <div className="space-y-xl h-full pb-xl">
-            <h1 className="font-display text-display text-on-surface mb-xs">Assignments</h1>
-            <p className="font-body-md text-body-md text-on-surface-variant">View and submit your technical assignments.</p>
+          <div className="space-y-stack-xl h-full pb-stack-lg">
+            <div>
+              <h1 className="font-display-lg-mobile md:font-display-lg text-text-primary mb-2">Assignments</h1>
+              <p className="font-body-lg text-text-secondary max-w-2xl">Manage and track your course assignments efficiently.</p>
+            </div>
             
             {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md">
-                {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-40 w-full bg-surface-container rounded-xl" />)}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-48 w-full bg-surface-container rounded-xl" />)}
               </div>
             ) : assignments.length === 0 ? (
-              <div className="text-center py-20 border border-dashed border-outline-variant/60 rounded-xl text-on-surface-variant glass-card">
-                <span className="material-symbols-outlined text-[48px] mx-auto mb-3 opacity-30">description</span>
-                <p className="font-headline-md text-headline-md text-on-surface">No assignments yet</p>
-                <p className="font-body-md text-body-md">Enroll in a course to see its assignments here</p>
+              <div className="text-center py-20 border border-dashed border-border-base rounded-2xl text-text-secondary glass-panel card-lift">
+                <span className="material-symbols-outlined text-[48px] mx-auto mb-4 opacity-40 text-primary">description</span>
+                <p className="font-headline-md text-[20px] text-text-primary font-bold mb-1">No assignments yet</p>
+                <p className="font-body-md text-[16px]">Enroll in a course to see its assignments here</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {assignments.map(a => (
                   <button
                     key={a.id}
                     onClick={() => { setSelected(a); setNote(''); setFile(null); }}
-                    className="text-left p-xl rounded-xl border border-outline-variant/60 bg-surface-container-low hover:border-primary hover:shadow-[0_0_15px_rgba(192,193,255,0.15)] transition-all group flex flex-col h-full glass-card"
+                    className="text-left p-6 rounded-xl border border-border-base hover:border-primary/50 transition-all duration-300 group flex flex-col h-full glass-panel card-lift ring-0 hover:ring-1 hover:ring-primary/30"
                   >
-                    <div className="flex items-start justify-between gap-md mb-md">
-                      <div className="w-12 h-12 rounded-lg bg-surface-container-high flex items-center justify-center border border-outline-variant shrink-0 group-hover:bg-primary/10 group-hover:border-primary/30 transition-colors">
-                        <span className="material-symbols-outlined text-on-surface group-hover:text-primary">terminal</span>
+                    <div className="flex items-start justify-between gap-4 mb-4">
+                      <div className="w-12 h-12 rounded-lg bg-surface flex items-center justify-center border border-border-base shrink-0 group-hover:bg-primary group-hover:border-primary transition-colors shadow-sm">
+                        <span className="material-symbols-outlined text-text-secondary group-hover:text-white transition-colors">terminal</span>
                       </div>
-                      <div className={`px-2 py-1 rounded text-[11px] font-label-sm uppercase tracking-wider border flex items-center gap-1 ${statusColor(statusLabel(a))}`}>
-                        <span className="material-symbols-outlined text-[14px]">{statusIcon(statusLabel(a))}</span>
+                      <div className={`px-2 py-1 rounded text-[11px] font-label-sm uppercase tracking-widest border flex items-center gap-1 font-bold ${statusColor(statusLabel(a))}`}>
+                        <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>{statusIcon(statusLabel(a))}</span>
                         {statusLabel(a)}
                       </div>
                     </div>
-                    <h3 className="font-headline-sm text-headline-sm text-on-surface mb-2">{a.title}</h3>
-                    <p className="font-body-sm text-body-sm text-on-surface-variant flex-grow line-clamp-2 mb-4">{a.instructions ?? 'No instructions provided.'}</p>
-                    <div className="font-label-sm text-label-sm text-on-surface-variant flex items-center mt-auto pt-4 border-t border-outline-variant/40">
-                      <span className="material-symbols-outlined text-[14px] mr-1">book</span>
+                    <h3 className="font-headline-md text-[18px] text-text-primary mb-2 font-bold group-hover:text-primary transition-colors">{a.title}</h3>
+                    <p className="font-body-sm text-[14px] text-text-secondary flex-grow line-clamp-2 mb-4 leading-relaxed">{a.instructions ?? 'No instructions provided.'}</p>
+                    <div className="font-label-sm text-[12px] text-text-secondary flex items-center mt-auto pt-4 border-t border-border-base">
+                      <span className="material-symbols-outlined text-[14px] mr-1 text-primary">school</span>
                       {a.courses?.title ?? '—'}
+                      <span className="ml-auto text-[11px] uppercase tracking-wider font-bold text-error bg-error/10 px-2 py-0.5 rounded border border-error/20 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[12px]">schedule</span> {a.due_days}d
+                      </span>
                     </div>
                   </button>
                 ))}
@@ -162,118 +167,120 @@ export default function AssignmentPage() {
             )}
           </div>
         ) : (
-          <div className="flex flex-col lg:flex-row gap-xl h-full lg:h-[calc(100vh-8rem)]">
-            <div className="lg:hidden mb-4">
+          <div className="flex flex-col lg:flex-row gap-8 h-full lg:h-[calc(100vh-10rem)]">
+            <div className="lg:hidden mb-2">
               <button 
                 onClick={() => setSelected(null)}
-                className="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md px-3 py-1.5 rounded-lg border border-outline-variant/60 bg-surface-container"
+                className="flex items-center gap-2 text-text-secondary hover:text-primary transition-colors font-label-md text-label-md px-4 py-2 rounded-lg border border-border-base bg-surface shadow-sm card-lift inline-flex"
               >
                 <span className="material-symbols-outlined text-[18px]">arrow_back</span> Back to Assignments
               </button>
             </div>
 
             {/* Left Column: Assignment Brief */}
-            <section className="lg:w-[60%] flex flex-col h-full lg:overflow-y-auto glass-card rounded-xl border border-outline-variant/60">
+            <section className="lg:w-[60%] flex flex-col h-full lg:overflow-y-auto glass-panel rounded-2xl border border-border-base shadow-sm">
               {/* Header Section */}
-              <div className="p-md md:p-xl border-b border-outline-variant/60 bg-surface-container-lowest/50 sticky top-0 backdrop-blur-md z-10">
+              <div className="p-6 md:p-8 border-b border-border-base bg-surface-bright/50 sticky top-0 backdrop-blur-md z-10">
                 <div className="flex justify-between items-start">
                   <div>
-                    <div className="flex items-center gap-2 mb-3">
+                    <div className="flex items-center gap-3 mb-4">
                       <button 
                         onClick={() => setSelected(null)}
-                        className="hidden lg:flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md mr-2 bg-surface-container px-2 py-1 rounded border border-outline-variant/40"
+                        className="hidden lg:flex items-center justify-center text-text-secondary hover:text-primary hover:bg-surface-container transition-all w-8 h-8 rounded-full border border-border-base bg-surface shadow-sm"
+                        title="Back to Assignments"
                       >
-                        <span className="material-symbols-outlined text-[16px]">arrow_back</span> Back
+                        <span className="material-symbols-outlined text-[18px]">arrow_back</span>
                       </button>
-                      <span className="font-label-sm text-label-sm text-secondary bg-secondary/10 px-2 py-1 rounded border border-secondary/20 uppercase tracking-widest">{selected.courses?.title}</span>
-                      <span className="font-label-sm text-label-sm text-on-surface-variant flex items-center"><span className="material-symbols-outlined text-[14px] mr-1">schedule</span>Due in {selected.due_days}d</span>
+                      <span className="font-label-sm text-[11px] font-bold text-secondary bg-secondary/10 px-3 py-1 rounded-full border border-secondary/20 uppercase tracking-widest">{selected.courses?.title}</span>
+                      <span className="font-label-sm text-[12px] font-bold text-error flex items-center"><span className="material-symbols-outlined text-[16px] mr-1">schedule</span>Due in {selected.due_days}d</span>
                     </div>
-                    <h1 className="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-2">{selected.title}</h1>
+                    <h1 className="font-headline-lg text-[28px] md:text-[32px] font-bold text-text-primary text-balance">{selected.title}</h1>
                   </div>
                 </div>
               </div>
               
               {/* Content */}
-              <div className="p-md md:p-xl font-body-md text-body-md flex-1 text-on-surface-variant whitespace-pre-wrap">
+              <div className="p-6 md:p-8 font-body-md text-[15px] leading-relaxed flex-1 text-text-secondary whitespace-pre-wrap custom-scrollbar">
                 {selected.instructions ?? 'No instructions provided.'}
               </div>
             </section>
 
             {/* Right Column: Submission Portal */}
-            <section className="lg:w-[40%] flex flex-col gap-lg h-full lg:overflow-y-auto">
+            <section className="lg:w-[40%] flex flex-col gap-6 h-full lg:overflow-y-auto custom-scrollbar lg:pr-2">
               
               {!selected.submission ? (
                 <>
                   {/* Action / Sync Card (GitHub style placeholder) */}
-                  <div className="glass-card rounded-xl p-md md:p-lg shadow-[0_0_15px_rgba(192,193,255,0.05)] relative overflow-hidden border border-outline-variant/60">
-                    <div className="absolute -right-10 -top-10 w-32 h-32 bg-primary/10 rounded-full blur-2xl"></div>
-                    <h3 className="font-headline-md text-[18px] text-on-surface mb-1 flex items-center">
-                      <span className="material-symbols-outlined mr-2 text-primary">terminal</span>
-                      Submit via GitHub (Coming Soon)
-                    </h3>
-                    <p className="font-body-md text-[14px] text-on-surface-variant mb-6">Link your repository to automatically run the CI/CD grading pipeline.</p>
+                  <div className="glass-panel rounded-2xl p-6 md:p-8 relative overflow-hidden border border-border-base shadow-sm ai-gradient-border card-lift">
+                    <div className="absolute -right-10 -top-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <div className="flex items-center gap-2 mb-2 relative z-10">
+                      <span className="material-symbols-outlined text-primary text-[24px]">terminal</span>
+                      <h3 className="font-headline-md text-[20px] font-bold text-text-primary ai-gradient-text">Submit via GitHub</h3>
+                      <span className="ml-auto px-2 py-0.5 rounded-full bg-secondary-container/20 text-secondary-fixed-dim font-label-sm text-[10px] border border-secondary-container/30">Coming Soon</span>
+                    </div>
+                    <p className="font-body-sm text-[14px] text-text-secondary mb-6 relative z-10">Link your repository to automatically run the CI/CD grading pipeline.</p>
                     <div className="space-y-4 relative z-10 opacity-50 pointer-events-none">
                       <div>
-                        <label className="block font-label-md text-label-sm text-outline mb-1">Repository URL</label>
+                        <label className="block font-label-md text-[13px] font-medium text-text-secondary mb-1.5">Repository URL</label>
                         <div className="flex relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline text-[18px]">link</span>
-                          <input className="w-full bg-surface-container-highest border border-outline-variant/60 text-on-surface font-label-md text-label-md rounded-lg py-2 pl-10 pr-4" placeholder="https://github.com/username/repo" type="text" disabled/>
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-text-secondary text-[18px]">link</span>
+                          <input className="w-full bg-surface border border-border-base text-text-primary font-label-md text-[14px] rounded-lg py-2.5 pl-10 pr-4" placeholder="https://github.com/username/repo" type="text" disabled/>
                         </div>
                       </div>
-                      <button className="w-full bg-surface-variant text-on-surface-variant font-label-md text-[14px] py-3 rounded-lg flex justify-center items-center gap-2 mt-2" disabled>
+                      <button className="w-full bg-surface-container text-text-secondary font-label-md text-[14px] font-bold py-3 rounded-lg flex justify-center items-center gap-2 mt-2" disabled>
                         <span className="material-symbols-outlined text-[20px]">sync</span> Run Autograder
                       </button>
                     </div>
                   </div>
 
                   {/* Manual Upload Card */}
-                  <div className="glass-card rounded-xl p-md md:p-lg flex-1 flex flex-col border border-outline-variant/60 shadow-[0_0_15px_rgba(192,193,255,0.15)] relative">
-                    <h3 className="font-headline-md text-[18px] text-on-surface mb-1 flex items-center">
+                  <div className="glass-panel rounded-2xl p-6 md:p-8 flex-1 flex flex-col border border-border-base shadow-sm relative card-lift">
+                    <h3 className="font-headline-md text-[20px] font-bold text-text-primary mb-1 flex items-center">
                       <span className="material-symbols-outlined mr-2 text-primary">upload_file</span>
                       Manual Upload
                     </h3>
-                    <p className="font-body-md text-[14px] text-on-surface-variant mb-4">Upload a file or provide a link/notes.</p>
+                    <p className="font-body-sm text-[14px] text-text-secondary mb-6">Upload a file or provide a link/notes.</p>
                     
-                    <form onSubmit={handleSubmit} className="flex flex-col flex-1 gap-4">
+                    <form onSubmit={handleSubmit} className="flex flex-col flex-1 gap-5">
                       <div 
-                        className={`flex-1 border-2 border-dashed rounded-lg flex flex-col items-center justify-center p-6 text-center transition-all group ${file ? 'border-primary bg-primary/5' : 'border-outline-variant/60 hover:border-primary/50 hover:bg-surface-container-high/30 cursor-pointer'}`}
+                        className={`flex-1 border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-8 text-center transition-all duration-300 group ${file ? 'border-primary bg-primary/5 shadow-inner' : 'border-border-base hover:border-primary/50 hover:bg-surface/50 cursor-pointer'}`}
                         onClick={() => document.getElementById('file-input')?.click()}
                         onDragOver={e => e.preventDefault()}
                         onDrop={e => { e.preventDefault(); setFile(e.dataTransfer.files[0]); }}
                       >
-                        <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                          <span className="material-symbols-outlined text-outline group-hover:text-primary text-[32px] transition-colors">cloud_upload</span>
+                        <div className="w-16 h-16 rounded-full bg-surface flex items-center justify-center mb-4 group-hover:-translate-y-1 transition-transform border border-border-base shadow-sm">
+                          <span className="material-symbols-outlined text-text-secondary group-hover:text-primary text-[32px] transition-colors">cloud_upload</span>
                         </div>
                         {file ? (
                           <>
-                            <span className="font-headline-md text-[16px] text-primary mb-1">Selected: {file.name}</span>
-                            <span className="font-body-md text-[14px] text-on-surface-variant mb-4">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
-                            <button type="button" onClick={(e) => { e.stopPropagation(); setFile(null); }} className="text-error font-label-md text-label-md hover:underline">Remove</button>
+                            <span className="font-headline-md text-[16px] font-bold text-primary mb-1 truncate max-w-full px-4">{file.name}</span>
+                            <span className="font-body-sm text-[13px] text-text-secondary mb-4">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                            <button type="button" onClick={(e) => { e.stopPropagation(); setFile(null); }} className="text-error font-label-md text-[13px] font-bold hover:underline bg-error/10 px-3 py-1 rounded-full border border-error/20 transition-colors hover:bg-error hover:text-white">Remove</button>
                           </>
                         ) : (
                           <>
-                            <span className="font-headline-md text-[16px] text-on-surface mb-1">Drag and drop your files here</span>
-                            <span className="font-body-md text-[14px] text-on-surface-variant mb-4">or click to browse</span>
-                            <span className="font-label-sm text-label-sm text-outline border border-outline-variant rounded px-2 py-1 bg-surface">Max size: 50MB</span>
+                            <span className="font-headline-md text-[16px] font-bold text-text-primary mb-1">Drag and drop your files here</span>
+                            <span className="font-body-sm text-[14px] text-text-secondary mb-4">or click to browse</span>
+                            <span className="font-label-sm text-[11px] font-bold text-text-secondary border border-border-base rounded px-2 py-1 bg-surface uppercase tracking-wider">Max size: 50MB</span>
                           </>
                         )}
                         <input id="file-input" type="file" className="hidden" onChange={e => setFile(e.target.files?.[0] ?? null)} />
                       </div>
                       
                       <div>
-                        <label className="block font-label-md text-label-sm text-outline mb-1">Notes / Repository Link</label>
+                        <label className="block font-label-md text-[13px] font-medium text-text-secondary mb-1.5">Notes / Repository Link</label>
                         <textarea 
                           value={note} 
                           onChange={e => setNote(e.target.value)}
                           placeholder="Paste a link to your repository or write notes here..."
-                          className="w-full bg-surface-container-highest border border-outline-variant/60 text-on-surface font-body-md text-[14px] rounded-lg py-3 px-4 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-colors resize-none h-24"
+                          className="w-full bg-surface border border-border-base text-text-primary font-body-sm text-[14px] rounded-lg py-3 px-4 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-colors resize-none h-28 shadow-sm"
                         />
                       </div>
                       
                       <button 
                         type="submit" 
                         disabled={submitting || (!file && !note.trim())} 
-                        className="w-full bg-primary text-on-primary-container font-headline-md text-[16px] py-3 rounded-lg hover:brightness-110 transition-colors flex justify-center items-center gap-2 disabled:opacity-50 mt-auto"
+                        className="w-full bg-primary text-on-primary font-headline-md text-[16px] font-bold py-3.5 rounded-xl hover:bg-primary-container transition-all shadow-md disabled:opacity-50 mt-auto flex justify-center items-center gap-2"
                       >
                         {submitting ? (
                           <><span className="material-symbols-outlined text-[20px] animate-spin">autorenew</span> Submitting...</>
@@ -286,31 +293,33 @@ export default function AssignmentPage() {
                 </>
               ) : (
                 /* Submission History / Status */
-                <div className="glass-card rounded-xl p-md md:p-lg border border-outline-variant/60">
-                  <h3 className="font-headline-md text-[18px] text-on-surface mb-4">Submission Status</h3>
+                <div className="glass-panel rounded-2xl p-6 md:p-8 border border-border-base shadow-sm card-lift">
+                  <h3 className="font-headline-md text-[20px] font-bold text-text-primary mb-5">Submission Status</h3>
                   <div className="space-y-4">
-                    <div className={`flex items-start gap-3 p-4 rounded-lg border ${selected.submission.status === 'graded' ? 'border-tertiary/20 bg-tertiary/5' : 'border-primary/20 bg-primary/5'}`}>
-                      <span className={`material-symbols-outlined mt-0.5 ${selected.submission.status === 'graded' ? 'text-tertiary' : 'text-primary'}`}>
-                        {statusIcon(selected.submission.status)}
-                      </span>
+                    <div className={`flex items-start gap-4 p-5 rounded-xl border shadow-sm ${selected.submission.status === 'graded' ? 'border-tertiary/30 bg-tertiary/5' : 'border-primary/30 bg-primary/5'}`}>
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${selected.submission.status === 'graded' ? 'bg-tertiary text-white' : 'bg-primary text-white'}`}>
+                        <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                          {statusIcon(selected.submission.status)}
+                        </span>
+                      </div>
                       <div className="flex-1">
                         <div className="flex justify-between items-center mb-1">
-                          <span className="font-headline-sm text-[16px] text-on-surface capitalize">{selected.submission.status}</span>
-                          <span className="font-label-sm text-label-sm text-outline">
+                          <span className="font-headline-md text-[16px] font-bold text-text-primary capitalize">{selected.submission.status}</span>
+                          <span className="font-label-sm text-[12px] text-text-secondary">
                             {new Date(selected.submission.submitted_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
                         {selected.submission.status === 'graded' ? (
                           <>
-                            <p className="font-body-md text-[14px] text-on-surface-variant mb-2">
+                            <p className="font-body-sm text-[14px] text-text-secondary mb-3 bg-surface p-3 rounded border border-border-base">
                               {selected.submission.feedback ?? 'No feedback provided.'}
                             </p>
-                            <div className="font-label-md text-[14px] text-tertiary">
-                              Score: {selected.submission.score}/100
+                            <div className="font-label-md text-[14px] font-bold text-tertiary inline-flex items-center gap-1 bg-tertiary/10 px-3 py-1 rounded-lg border border-tertiary/20">
+                              <span className="material-symbols-outlined text-[16px]">military_tech</span> Score: {selected.submission.score}/100
                             </div>
                           </>
                         ) : (
-                          <p className="font-body-md text-[14px] text-on-surface-variant">Your submission is pending review by the instructor.</p>
+                          <p className="font-body-sm text-[14px] text-text-secondary">Your submission is pending review by the instructor.</p>
                         )}
                       </div>
                     </div>

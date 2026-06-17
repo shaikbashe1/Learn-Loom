@@ -4,8 +4,8 @@ import { supabase } from '@/db/supabase';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FileText, Download, Loader2, Sparkles, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { FileText, Download, Loader2, Sparkles, AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 interface Resume {
   id: string;
@@ -101,72 +101,107 @@ export default function AdminResumesPage() {
 
   return (
     <AppLayout title="Resume Management" isAdmin>
-      <div className="max-w-[1440px] mx-auto w-full space-y-xl pb-xl">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-xl mb-2xl">
-          <div className="space-y-2">
-            <h1 className="font-display text-display text-on-surface">Resume Management</h1>
-            <p className="text-on-surface-variant text-body-lg max-w-2xl">Monitor uploaded resumes, track AI analysis status, and review automated feedback provided to users.</p>
+      <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-xl flex flex-col gap-stack-lg w-full">
+        
+        {/* Header Section */}
+        <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="font-display-lg-mobile md:font-display-lg text-[32px] md:text-[40px] font-bold text-text-primary tracking-tight">Resume Management</h1>
+            <p className="font-body-md text-[16px] text-text-secondary mt-2 max-w-2xl">
+              Monitor uploaded resumes, track AI analysis status, and review automated feedback.
+            </p>
           </div>
-        </div>
+          <div className="flex flex-wrap items-center gap-3">
+             <button onClick={fetchResumes} className="flex items-center justify-center w-11 h-11 rounded-xl border border-border-base bg-surface text-text-secondary hover:text-primary hover:border-primary/30 transition-all card-lift shadow-sm">
+               <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+             </button>
+             <div className="flex flex-col justify-center px-5 py-2 bg-surface border border-border-base rounded-xl shadow-sm h-11">
+               <div className="flex items-center gap-2">
+                 <span className="w-2 h-2 rounded-full bg-success"></span>
+                 <span className="text-[12px] font-bold text-text-secondary uppercase tracking-wider">Analyzed</span>
+                 <span className="text-[14px] font-bold text-text-primary ml-1">{resumes.filter(r => r.status === 'completed').length}</span>
+               </div>
+             </div>
+             <div className="flex flex-col justify-center px-5 py-2 bg-surface border border-border-base rounded-xl shadow-sm h-11">
+               <div className="flex items-center gap-2">
+                 <span className="w-2 h-2 rounded-full bg-warning animate-pulse"></span>
+                 <span className="text-[12px] font-bold text-text-secondary uppercase tracking-wider">Pending</span>
+                 <span className="text-[14px] font-bold text-text-primary ml-1">{resumes.filter(r => r.status === 'pending').length}</span>
+               </div>
+             </div>
+          </div>
+        </section>
 
-        <div className="glass-panel rounded-xl overflow-hidden flex flex-col">
-          <div className="p-lg border-b border-outline-variant/60 flex items-center gap-2">
-            <FileText className="w-5 h-5 text-primary" />
-            <h2 className="font-headline-md text-on-surface">Student Resumes</h2>
+        {/* Resumes Table Area */}
+        <section className="glass-panel border border-border-base rounded-2xl shadow-sm overflow-hidden flex flex-col mt-4">
+          <div className="p-6 md:px-8 py-5 border-b border-border-base flex justify-between items-center bg-surface/50">
+            <h3 className="font-headline-md text-[20px] font-bold text-text-primary flex items-center gap-2">
+               <FileText className="w-5 h-5 text-primary" />
+               Student Resumes
+            </h3>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[800px]">
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full text-left border-collapse min-w-[900px]">
               <thead>
-                <tr className="bg-surface-container-highest/50">
-                  <th className="px-lg py-md font-label-md text-on-surface-variant uppercase tracking-wider border-b border-outline-variant/60">Candidate</th>
-                  <th className="px-lg py-md font-label-md text-on-surface-variant uppercase tracking-wider border-b border-outline-variant/60">Resume File</th>
-                  <th className="px-lg py-md font-label-md text-on-surface-variant uppercase tracking-wider border-b border-outline-variant/60">Uploaded</th>
-                  <th className="px-lg py-md font-label-md text-on-surface-variant uppercase tracking-wider border-b border-outline-variant/60">Status</th>
-                  <th className="px-lg py-md font-label-md text-on-surface-variant uppercase tracking-wider border-b border-outline-variant/60 text-right">Actions</th>
+                <tr className="bg-surface-container/50 border-b border-border-base">
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider w-[25%]">Candidate</th>
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider w-[30%]">Resume File</th>
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Uploaded</th>
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-outline-variant/30">
+              <tbody className="divide-y divide-border-base">
                 {loading ? (
-                  [...Array(3)].map((_, i) => (
+                  Array.from({ length: 5 }).map((_, i) => (
                     <tr key={i}>
-                      <td colSpan={5} className="px-lg py-md"><Skeleton className="h-16 w-full rounded-lg" /></td>
+                      <td colSpan={5} className="px-6 py-4"><Skeleton className="h-12 w-full bg-surface-container rounded-lg" /></td>
                     </tr>
                   ))
                 ) : resumes.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-lg py-16 text-center text-on-surface-variant">No resumes uploaded yet.</td>
+                    <td colSpan={5} className="px-6 py-16 text-center">
+                       <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mx-auto mb-4 border border-border-base">
+                         <FileText className="w-6 h-6 text-text-secondary" />
+                       </div>
+                       <p className="font-headline-md text-[18px] font-bold text-text-primary">No resumes uploaded yet</p>
+                    </td>
                   </tr>
                 ) : (
                   resumes.map((resume) => (
-                    <tr key={resume.id} className="hover:bg-surface-variant/20 transition-colors">
-                      <td className="px-lg py-lg">
-                        <p className="font-medium text-on-surface">{resume.user?.full_name || 'Unknown User'}</p>
-                        <p className="text-sm text-on-surface-variant">{resume.user?.email || 'No email'}</p>
+                    <tr key={resume.id} className="hover:bg-surface-container/50 transition-colors group">
+                      <td className="px-6 py-4">
+                        <p className="font-body-md text-[15px] font-bold text-text-primary group-hover:text-primary transition-colors">{resume.user?.full_name || 'Unknown User'}</p>
+                        <p className="text-[12px] text-text-secondary font-medium">{resume.user?.email || 'No email'}</p>
                       </td>
-                      <td className="px-lg py-lg">
-                        <div className="flex items-center gap-2 text-primary hover:underline cursor-pointer" onClick={() => window.open(resume.file_url, '_blank')}>
-                          <FileText className="w-4 h-4" />
-                          <span className="text-sm font-medium">{resume.file_name}</span>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2 text-primary hover:text-primary-container transition-colors cursor-pointer w-fit p-2 -ml-2 rounded-lg hover:bg-primary/5" onClick={() => window.open(resume.file_url, '_blank')}>
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shrink-0">
+                             <FileText className="w-4 h-4" />
+                          </div>
+                          <span className="text-[14px] font-bold truncate max-w-[200px]">{resume.file_name}</span>
                         </div>
                       </td>
-                      <td className="px-lg py-lg text-sm text-on-surface-variant">
+                      <td className="px-6 py-4 text-[13px] font-medium text-text-secondary">
                         {new Date(resume.created_at).toLocaleDateString()}
                       </td>
-                      <td className="px-lg py-lg">
-                        {resume.status === 'completed' && <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-success/10 text-success"><CheckCircle2 className="w-3 h-3 mr-1" /> Analyzed ({resume.analysis?.score}/100)</span>}
-                        {resume.status === 'pending' && <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-warning/10 text-warning"><AlertCircle className="w-3 h-3 mr-1" /> Pending AI</span>}
-                        {resume.status === 'analyzing' && <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-primary/10 text-primary"><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Analyzing...</span>}
+                      <td className="px-6 py-4">
+                        {resume.status === 'completed' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-success/10 border border-success/20 text-success"><CheckCircle2 className="w-3.5 h-3.5" /> Analyzed ({resume.analysis?.score}/100)</span>}
+                        {resume.status === 'pending' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-warning/10 border border-warning/20 text-warning"><AlertCircle className="w-3.5 h-3.5" /> Pending AI</span>}
+                        {resume.status === 'analyzing' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-primary/10 border border-primary/20 text-primary"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Analyzing...</span>}
                       </td>
-                      <td className="px-lg py-lg text-right">
-                        <div className="flex items-center justify-end gap-2">
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           {resume.status === 'pending' && (
-                            <Button size="sm" variant="outline" onClick={() => triggerAnalysis(resume.id)} disabled={analyzingId === resume.id} className="text-primary border-primary/30 hover:bg-primary/10">
-                              {analyzingId === resume.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 mr-1" />} Analyze
-                            </Button>
+                            <button onClick={() => triggerAnalysis(resume.id)} disabled={analyzingId === resume.id} className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary hover:bg-primary hover:text-white border border-primary/30 font-bold text-[13px] rounded-xl transition-all shadow-sm disabled:opacity-50">
+                              {analyzingId === resume.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />} Analyze
+                            </button>
                           )}
                           {resume.status === 'completed' && (
-                            <Button size="sm" variant="ghost" onClick={() => openDetails(resume)} className="text-on-surface-variant">View Report</Button>
+                            <button onClick={() => openDetails(resume)} className="px-4 py-2 bg-surface text-text-primary border border-border-base hover:bg-surface-container font-bold text-[13px] rounded-xl transition-all shadow-sm">
+                               View Report
+                            </button>
                           )}
                         </div>
                       </td>
@@ -176,52 +211,80 @@ export default function AdminResumesPage() {
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="bg-surface-container border-outline-variant max-w-2xl">
-          <DialogHeader><DialogTitle className="text-on-surface font-display text-headline-sm">AI Resume Analysis</DialogTitle></DialogHeader>
+        <DialogContent className="bg-surface border-border-base text-text-primary rounded-2xl shadow-2xl overflow-hidden p-0 max-w-2xl">
+          <DialogHeader className="p-6 md:p-8 border-b border-border-base bg-surface-container/30">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-inner">
+                 <Sparkles className="w-5 h-5" />
+              </div>
+              <div>
+                <DialogTitle className="font-headline-md text-[20px] font-bold text-text-primary">AI Resume Analysis</DialogTitle>
+                <DialogDescription className="text-text-secondary text-[13px] mt-1">Detailed breakdown of the candidate's ATS performance</DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+          
           {selectedResume?.analysis && (
-            <div className="space-y-6 mt-4">
-              <div className="flex items-center justify-between p-4 bg-surface-container-lowest rounded-lg border border-outline-variant/40">
+            <div className="p-6 md:p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+              <div className="flex items-center justify-between p-5 bg-surface-container rounded-xl border border-border-base shadow-sm">
                 <div>
-                  <p className="text-sm text-on-surface-variant">Candidate</p>
-                  <p className="font-medium text-on-surface">{selectedResume.user?.full_name}</p>
+                  <p className="text-[12px] font-bold text-text-secondary uppercase tracking-widest mb-1">Candidate</p>
+                  <p className="font-bold text-[16px] text-text-primary">{selectedResume.user?.full_name}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-on-surface-variant">ATS Score</p>
-                  <p className={`font-bold text-xl ${selectedResume.analysis.score >= 80 ? 'text-success' : selectedResume.analysis.score >= 60 ? 'text-warning' : 'text-error'}`}>
-                    {selectedResume.analysis.score}/100
+                  <p className="text-[12px] font-bold text-text-secondary uppercase tracking-widest mb-1">ATS Score</p>
+                  <p className={`font-bold text-[28px] leading-none ${selectedResume.analysis.score >= 80 ? 'text-success' : selectedResume.analysis.score >= 60 ? 'text-warning' : 'text-error'}`}>
+                    {selectedResume.analysis.score}<span className="text-[16px] text-text-secondary">/100</span>
                   </p>
                 </div>
               </div>
               
-              <div>
-                <h4 className="font-medium text-on-surface mb-2 text-success flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Strengths</h4>
-                <ul className="list-disc list-inside text-sm text-on-surface-variant space-y-1 pl-2">
-                  {selectedResume.analysis.strengths.map((s, i) => <li key={i}>{s}</li>)}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-success/5 border border-success/20 rounded-xl p-5 shadow-sm">
+                  <h4 className="font-bold text-[14px] text-success mb-3 flex items-center gap-2 uppercase tracking-wider"><CheckCircle2 className="w-4 h-4" /> Strengths</h4>
+                  <ul className="space-y-2">
+                    {selectedResume.analysis.strengths.map((s, i) => (
+                       <li key={i} className="text-[13px] text-text-primary flex items-start gap-2">
+                         <span className="w-1.5 h-1.5 rounded-full bg-success shrink-0 mt-1.5"></span>
+                         <span>{s}</span>
+                       </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="bg-error/5 border border-error/20 rounded-xl p-5 shadow-sm">
+                  <h4 className="font-bold text-[14px] text-error mb-3 flex items-center gap-2 uppercase tracking-wider"><AlertCircle className="w-4 h-4" /> Weaknesses</h4>
+                  <ul className="space-y-2">
+                    {selectedResume.analysis.weaknesses.map((w, i) => (
+                       <li key={i} className="text-[13px] text-text-primary flex items-start gap-2">
+                         <span className="w-1.5 h-1.5 rounded-full bg-error shrink-0 mt-1.5"></span>
+                         <span>{w}</span>
+                       </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div className="bg-primary/5 border border-primary/20 rounded-xl p-5 shadow-sm">
+                <h4 className="font-bold text-[14px] text-primary mb-3 flex items-center gap-2 uppercase tracking-wider"><Sparkles className="w-4 h-4" /> Suggestions for Improvement</h4>
+                <ul className="space-y-2">
+                  {selectedResume.analysis.suggestions.map((s, i) => (
+                     <li key={i} className="text-[13px] text-text-primary flex items-start gap-2">
+                       <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mt-1.5"></span>
+                       <span>{s}</span>
+                     </li>
+                  ))}
                 </ul>
               </div>
 
-              <div>
-                <h4 className="font-medium text-on-surface mb-2 text-error flex items-center gap-2"><AlertCircle className="w-4 h-4" /> Weaknesses</h4>
-                <ul className="list-disc list-inside text-sm text-on-surface-variant space-y-1 pl-2">
-                  {selectedResume.analysis.weaknesses.map((w, i) => <li key={i}>{w}</li>)}
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="font-medium text-on-surface mb-2 text-primary flex items-center gap-2"><Sparkles className="w-4 h-4" /> Suggestions for Improvement</h4>
-                <ul className="list-disc list-inside text-sm text-on-surface-variant space-y-1 pl-2">
-                  {selectedResume.analysis.suggestions.map((s, i) => <li key={i}>{s}</li>)}
-                </ul>
-              </div>
-
-              <div className="pt-4 border-t border-outline-variant/40">
-                <Button className="w-full" variant="outline" onClick={() => window.open(selectedResume.file_url, '_blank')}>
-                  <Download className="w-4 h-4 mr-2" /> Download Original Resume
-                </Button>
+              <div className="pt-6 border-t border-border-base flex justify-end">
+                <button className="flex items-center justify-center gap-2 px-6 h-11 bg-surface border border-border-base hover:bg-surface-container font-bold text-[14px] text-text-primary rounded-xl transition-all shadow-sm w-full md:w-auto" onClick={() => window.open(selectedResume.file_url, '_blank')}>
+                  <Download className="w-4 h-4" /> Download Original Resume
+                </button>
               </div>
             </div>
           )}

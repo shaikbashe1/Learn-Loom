@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LearnLoom - Ultimate Student Home Screen</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "warning-amber": "#F59E0B",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "surface-container-low": "#f2f3ff",
+                        "surface-variant": "#dae2fd",
+                        "surface-container": "#eaedff",
+                        "success-green": "#10B981",
+                        "on-secondary-fixed-variant": "#004e5c",
+                        "on-secondary-fixed": "#001f26",
+                        "on-background": "#131b2e",
+                        "secondary": "#00687a",
+                        "background": "#faf8ff",
+                        "tertiary-container": "#7d4ce7",
+                        "on-error": "#ffffff",
+                        "surface-tint": "#0053db",
+                        "surface-glass": "rgba(255, 255, 255, 0.7)",
+                        "secondary-fixed": "#acedff",
+                        "on-surface": "#131b2e",
+                        "on-secondary-container": "#006172",
+                        "surface-container-highest": "#dae2fd",
+                        "secondary-fixed-dim": "#4cd7f6",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed": "#e9ddff",
+                        "primary-container": "#2563eb",
+                        "surface-container-high": "#e2e7ff",
+                        "on-primary-fixed": "#00174b",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "primary": "#004ac6",
+                        "bg-base": "#F8FAFC",
+                        "surface-dim": "#d2d9f4",
+                        "on-secondary": "#ffffff",
+                        "on-surface-variant": "#434655",
+                        "on-primary-container": "#eeefff",
+                        "primary-fixed": "#dbe1ff",
+                        "on-tertiary-fixed-variant": "#5516be",
+                        "on-tertiary-container": "#f6edff",
+                        "inverse-on-surface": "#eef0ff",
+                        "outline": "#737686",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed": "#23005c",
+                        "surface-bright": "#faf8ff",
+                        "secondary-container": "#57dffe",
+                        "on-tertiary": "#ffffff",
+                        "surface": "#faf8ff",
+                        "inverse-surface": "#283044",
+                        "inverse-primary": "#b4c5ff",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#d0bcff",
+                        "outline-variant": "#c3c6d7",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "tertiary": "#632ecd"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "container-max": "1440px",
+                        "margin-desktop": "40px",
+                        "margin-mobile": "16px",
+                        "unit": "8px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "display-lg-mobile": ["Hanken Grotesk"],
+                        "code": ["JetBrains Mono"],
+                        "label-lg": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "display-lg-mobile": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "code": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        .ai-gradient-text {
+            background: linear-gradient(135deg, #004ac6 0%, #00687a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .ai-gradient-bg {
+            background: linear-gradient(135deg, #004ac6 0%, #7d4ce7 100%);
+        }
+        .hover-lift {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .hover-lift:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        /* Ambient Background */
+        body {
+            background-color: #F8FAFC;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(180, 197, 255, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(125, 76, 231, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+        
+        /* AI Pulse Animation */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(0, 104, 122, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 104, 122, 0); }
+            100% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(0, 104, 122, 0); }
+        }
+        .ai-pulse::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: inherit;
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class="text-on-background font-body-md antialiased min-h-screen flex flex-col">
+<!-- TopNavBar (Shared Component) -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-desktop h-16 bg-surface-glass dark:bg-surface-glass backdrop-blur-md border-b border-white/20 shadow-sm text-primary dark:text-primary-fixed">
+<div class="flex items-center gap-6">
+<span class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed">LearnLoom</span>
+<!-- Search Bar (on_left) -->
+<div class="hidden md:flex relative items-center ml-4">
+<span class="material-symbols-outlined absolute left-3 text-on-surface-variant z-10">search</span>
+<input class="pl-10 pr-4 py-2 w-80 rounded-full bg-white/50 border border-outline-variant focus:border-secondary-fixed-dim focus:ring-2 focus:ring-secondary-fixed-dim/20 transition-all font-body-md text-body-md" placeholder="Search courses, skills, or ask AI..." type="text"/>
+</div>
+</div>
+<!-- Trailing Actions & Profile -->
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-white/10 transition-all duration-300 text-on-surface-variant dark:text-surface-variant relative hover:scale-95">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="p-2 rounded-full hover:bg-white/10 transition-all duration-300 text-on-surface-variant dark:text-surface-variant hover:scale-95">
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+</button>
+<button class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant hover:scale-95 transition-transform duration-200">
+<img alt="Student avatar" class="w-full h-full object-cover" data-alt="A professional headshot of a young student against a light grey background. They are smiling and looking directly at the camera. The lighting is soft and even, typical of a modern corporate or educational profile picture. The style is clean, realistic, and consistent with an AI-native SaaS platform aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYSgfFaGW2z-jWtnCUAtDhI50VvArZPPu3jthz4LNCg2QIRcFS9nAVH1A8jN8Szqnp4xHBxJEhQ4hFz_pYlYwFtjQ-V2oIUNZFuojnZEGfQu3nAujRY1q55Hi1X9FOXtHHkg9vPsnv0d96GIvhxPYGCrlKX2uW-sCWRcXFVJpEyn0Q9g5puBwagwpp7E9Cg4fRGBKlS8fYILZabWjVyXIrBQgZ1PV2zNF6tXWY2Y6Y2kqIuTZ6aHtr30UZgqhNhQwOq4IZJD5WjMjS"/>
+</button>
+</div>
+</header>
+<div class="flex flex-1 pt-16">
+<!-- SideNavBar (Shared Component) -->
+<nav class="hidden md:flex fixed left-0 top-0 h-full z-40 flex-col pt-20 pb-8 px-4 bg-surface-glass dark:bg-surface-glass backdrop-blur-lg border-r border-white/20 shadow-md w-64">
+<div class="mb-8 px-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined">auto_awesome</span>
+</div>
+<div>
+<h2 class="text-label-lg font-headline-lg font-bold text-primary">Loom Intelligence</h2>
+<p class="text-label-md font-label-md text-on-surface-variant">Premium Learner</p>
+</div>
+</div>
+</div>
+<ul class="flex flex-col gap-2 flex-1">
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-primary dark:text-primary-fixed font-bold bg-primary-container/20 rounded-xl hover:bg-primary-container/10 hover:translate-x-1 transition-all duration-300 active:scale-98" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-label-lg font-label-lg">Dashboard</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-surface-variant hover:bg-primary-container/10 hover:translate-x-1 transition-all duration-300 active:scale-98 rounded-xl" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="text-label-lg font-label-lg">Courses</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-surface-variant hover:bg-primary-container/10 hover:translate-x-1 transition-all duration-300 active:scale-98 rounded-xl" href="#">
+<span class="material-symbols-outlined">auto_awesome</span>
+<span class="text-label-lg font-label-lg">AI Roadmap</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-surface-variant hover:bg-primary-container/10 hover:translate-x-1 transition-all duration-300 active:scale-98 rounded-xl" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="text-label-lg font-label-lg">Community</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-surface-variant hover:bg-primary-container/10 hover:translate-x-1 transition-all duration-300 active:scale-98 rounded-xl" href="#">
+<span class="material-symbols-outlined">workspace_premium</span>
+<span class="text-label-lg font-label-lg">Rewards</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-surface-variant hover:bg-primary-container/10 hover:translate-x-1 transition-all duration-300 active:scale-98 rounded-xl" href="#">
+<span class="material-symbols-outlined">sensors</span>
+<span class="text-label-lg font-label-lg">Live Hub</span>
+</a>
+</li>
+</ul>
+<div class="mt-auto flex flex-col gap-4">
+<button class="w-full py-2.5 bg-primary text-on-primary rounded-full text-label-lg font-label-lg font-semibold hover:bg-primary/90 transition-colors shadow-sm hover:shadow-md hover:-translate-y-0.5 transform duration-200">
+                    Focus Mode
+                </button>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-surface-variant hover:bg-primary-container/10 hover:translate-x-1 transition-all duration-300 active:scale-98 rounded-xl" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-label-lg font-label-lg">Settings</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-1 md:ml-64 p-4 md:p-8 lg:p-margin-desktop max-w-container-max mx-auto w-full flex flex-col gap-8">
+<!-- Header Section -->
+<section class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+<div>
+<h1 class="text-display-lg-mobile md:text-display-lg font-display-lg text-on-background">Good Morning, Bashe 👋</h1>
+<p class="text-body-lg font-body-lg text-on-surface-variant mt-2">Your Full Stack Developer journey is accelerating. Ready to build today?</p>
+</div>
+<div class="flex gap-3">
+<button class="px-6 py-2 rounded-full glass-panel text-primary font-label-lg text-label-lg hover:bg-white/90 transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]">calendar_today</span>
+                        Schedule
+                    </button>
+</div>
+</section>
+<!-- Hero Stats Grid -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-gutter">
+<!-- Stat Card 1 -->
+<div class="glass-panel p-6 rounded-xl hover-lift">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 rounded-full bg-warning-amber/10 flex items-center justify-center text-warning-amber">
+<span class="material-symbols-outlined">local_fire_department</span>
+</div>
+<span class="text-label-md font-label-md text-success-green flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">trending_up</span> +2 days
+                        </span>
+</div>
+<h3 class="text-label-lg font-label-lg text-on-surface-variant uppercase tracking-wider">Learning Streak</h3>
+<p class="text-headline-lg font-headline-lg text-on-background mt-1">14 Days</p>
+</div>
+<!-- Stat Card 2 -->
+<div class="glass-panel p-6 rounded-xl hover-lift">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 rounded-full bg-tertiary-container/10 flex items-center justify-center text-tertiary-container">
+<span class="material-symbols-outlined">stars</span>
+</div>
+</div>
+<h3 class="text-label-lg font-label-lg text-on-surface-variant uppercase tracking-wider">XP Points</h3>
+<p class="text-headline-lg font-headline-lg text-on-background mt-1">24,500</p>
+</div>
+<!-- Stat Card 3 -->
+<div class="glass-panel p-6 rounded-xl hover-lift">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 rounded-full bg-primary-container/10 flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined">flag</span>
+</div>
+</div>
+<h3 class="text-label-lg font-label-lg text-on-surface-variant uppercase tracking-wider">Current Goal</h3>
+<p class="text-headline-md font-headline-md text-on-background mt-1 truncate">Master React Hooks</p>
+</div>
+<!-- Stat Card 4 -->
+<div class="glass-panel p-6 rounded-xl hover-lift">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">work</span>
+</div>
+</div>
+<h3 class="text-label-lg font-label-lg text-on-surface-variant uppercase tracking-wider">Career Target</h3>
+<p class="text-headline-md font-headline-md text-on-background mt-1 truncate">Jr. Frontend Dev</p>
+</div>
+</section>
+</main>
+</div>
+<!-- Footer (Shared Component) -->
+<footer class="w-full py-8 px-margin-desktop flex justify-between items-center bg-transparent border-t border-outline-variant/30 mt-auto md:ml-64 md:w-[calc(100%-16rem)]">
+<p class="text-body-md font-body-md text-secondary dark:text-secondary-fixed">© 2024 LearnLoom. Powered by LoomAI</p>
+<div class="flex gap-6">
+<a class="text-label-md font-label-md text-on-surface-variant/70 hover:text-primary transition-colors duration-300 ease-in-out" href="#">Help Center</a>
+<a class="text-label-md font-label-md text-on-surface-variant/70 hover:text-primary transition-colors duration-300 ease-in-out" href="#">Terms</a>
+<a class="text-label-md font-label-md text-on-surface-variant/70 hover:text-primary transition-colors duration-300 ease-in-out" href="#">Privacy</a>
+</div>
+</footer>
+</body></html>

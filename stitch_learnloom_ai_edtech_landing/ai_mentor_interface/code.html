@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>LearnLoom AI Mentor</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-primary-fixed": "#00174b",
+                      "outline": "#737686",
+                      "inverse-on-surface": "#eaf1ff",
+                      "inverse-primary": "#b4c5ff",
+                      "tertiary-container": "#7d4ce7",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "text-primary": "#0F172A",
+                      "on-primary": "#ffffff",
+                      "on-secondary-fixed-variant": "#004e5c",
+                      "on-error": "#ffffff",
+                      "error-container": "#ffdad6",
+                      "outline-variant": "#c3c6d7",
+                      "primary": "#004ac6",
+                      "surface-dim": "#cbdbf5",
+                      "on-surface": "#0b1c30",
+                      "on-secondary": "#ffffff",
+                      "inverse-surface": "#213145",
+                      "on-tertiary-fixed-variant": "#5516be",
+                      "text-secondary": "#64748B",
+                      "primary-fixed": "#dbe1ff",
+                      "tertiary-fixed": "#e9ddff",
+                      "on-tertiary-container": "#f6edff",
+                      "secondary": "#00687a",
+                      "on-tertiary": "#ffffff",
+                      "surface-tint": "#0053db",
+                      "on-secondary-fixed": "#001f26",
+                      "error": "#EF4444",
+                      "surface-container-high": "#dce9ff",
+                      "on-surface-variant": "#434655",
+                      "on-error-container": "#93000a",
+                      "warning": "#F59E0B",
+                      "surface-container-lowest": "#ffffff",
+                      "tertiary": "#632ecd",
+                      "on-tertiary-fixed": "#23005c",
+                      "tertiary-fixed-dim": "#d0bcff",
+                      "surface-container-highest": "#d3e4fe",
+                      "surface-container-low": "#eff4ff",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "surface-variant": "#d3e4fe",
+                      "secondary-container": "#57dffe",
+                      "on-background": "#0b1c30",
+                      "surface-bright": "#f8f9ff",
+                      "surface-container": "#e5eeff",
+                      "surface": "#FFFFFF",
+                      "primary-container": "#2563eb",
+                      "secondary-fixed": "#acedff",
+                      "secondary-fixed-dim": "#4cd7f6",
+                      "border-base": "#E2E8F0",
+                      "background": "#F8FAFC",
+                      "on-secondary-container": "#006172",
+                      "on-primary-container": "#eeefff",
+                      "success": "#22C55E"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gutter": "24px",
+                      "stack-sm": "8px",
+                      "container-max": "1280px",
+                      "stack-xl": "64px",
+                      "stack-lg": "32px",
+                      "margin-desktop": "40px",
+                      "stack-md": "16px",
+                      "margin-mobile": "16px"
+              },
+              "fontFamily": {
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "headline-lg-mobile": [
+                              "Hanken Grotesk"
+                      ],
+                      "headline-lg": [
+                              "Hanken Grotesk"
+                      ],
+                      "display-lg": [
+                              "Hanken Grotesk"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "label-md": [
+                              "JetBrains Mono"
+                      ],
+                      "headline-md": [
+                              "Hanken Grotesk"
+                      ],
+                      "display-lg-mobile": [
+                              "Hanken Grotesk"
+                      ],
+                      "label-sm": [
+                              "JetBrains Mono"
+                      ]
+              },
+              "fontSize": {
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "56px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "0.02em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg-mobile": [
+                              "36px",
+                              {
+                                      "lineHeight": "44px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.04em",
+                                      "fontWeight": "500"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        
+        .bg-mesh-top {
+            background-image: radial-gradient(at 0% 0%, hsla(217,100%,89%,0.4) 0px, transparent 50%),
+                              radial-gradient(at 100% 0%, hsla(186,100%,89%,0.4) 0px, transparent 50%);
+        }
+
+        .bg-mesh-bottom {
+            background-image: radial-gradient(at 100% 100%, hsla(262,100%,89%,0.4) 0px, transparent 50%),
+                              radial-gradient(at 0% 100%, hsla(217,100%,89%,0.4) 0px, transparent 50%);
+        }
+
+        /* Hide scrollbar for neatness */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+      </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-text-primary h-screen w-screen overflow-hidden flex flex-col font-body-md relative">
+<!-- Background Mesh Elements -->
+<div class="absolute inset-0 bg-mesh-top z-0 pointer-events-none"></div>
+<div class="absolute inset-0 bg-mesh-bottom z-0 pointer-events-none"></div>
+<!-- Fixed Top Navigation (Suppressed global nav for transactional/focused view) -->
+<header class="glass-panel z-50 flex items-center justify-between h-16 px-margin-mobile border-b border-border-base/50 relative">
+<button class="text-text-secondary hover:text-primary transition-colors flex items-center justify-center p-2 rounded-full hover:bg-surface-container-high">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-bold font-headline-sm shadow-sm relative">
+<span class="material-symbols-outlined text-[18px]" data-icon="robot_2">robot_2</span>
+<div class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-success rounded-full border-2 border-white"></div>
+</div>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">AI Mentor</h1>
+</div>
+<button class="text-text-secondary hover:text-primary transition-colors flex items-center justify-center p-2 rounded-full hover:bg-surface-container-high">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</header>
+<!-- Scrollable Chat Canvas -->
+<main class="flex-1 overflow-y-auto px-margin-mobile py-stack-md flex flex-col gap-stack-lg relative z-10 pb-[200px]">
+<!-- AI Introduction -->
+<div class="flex flex-col items-center justify-center py-stack-xl text-center space-y-4">
+<div class="w-16 h-16 rounded-full bg-primary-container text-on-primary flex items-center justify-center shadow-lg shadow-primary-container/20">
+<span class="material-symbols-outlined text-[32px]" data-icon="model_training">model_training</span>
+</div>
+<p class="font-headline-md text-headline-md text-on-surface max-w-[280px]">Hello Alex! I'm your LearnLoom Mentor.</p>
+<p class="text-text-secondary font-body-sm text-body-sm">What would you like to master today?</p>
+</div>
+<!-- System Timestamp -->
+<div class="flex justify-center">
+<span class="text-label-sm font-label-sm text-outline-variant bg-surface-container px-3 py-1 rounded-full">Today, 10:42 AM</span>
+</div>
+<!-- User Message -->
+<div class="flex justify-end w-full">
+<div class="max-w-[85%] glass-panel rounded-2xl rounded-tr-sm p-4 border border-tertiary-fixed-dim/30 shadow-[0_4px_20px_-4px_rgba(125,76,231,0.15)] relative">
+<p class="font-body-sm text-body-sm text-on-surface">Can you help me understand how a basic neural network works using Python?</p>
+</div>
+</div>
+<!-- AI Response -->
+<div class="flex justify-start w-full gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-container shrink-0 flex items-center justify-center mt-1">
+<span class="material-symbols-outlined text-on-primary text-[16px]" data-icon="robot_2">robot_2</span>
+</div>
+<div class="max-w-[85%] space-y-3">
+<div class="glass-panel rounded-2xl rounded-tl-sm p-4 border border-border-base/50 shadow-sm">
+<p class="font-body-sm text-body-sm text-on-surface mb-3">Absolutely! Think of a neural network like a series of interconnected filters. Here's a very simple conceptual example in Python using a basic activation function.</p>
+<!-- Code Block -->
+<div class="bg-inverse-surface text-on-error rounded-lg overflow-hidden border border-outline/20">
+<div class="flex items-center justify-between px-3 py-2 bg-on-background/50 border-b border-outline/20">
+<span class="font-label-sm text-label-sm text-outline-variant">python</span>
+<button class="text-outline-variant hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[16px]" data-icon="content_copy">content_copy</span>
+</button>
+</div>
+<pre class="p-3 overflow-x-auto"><code class="font-label-md text-label-md text-primary-fixed-dim">import numpy as np
+
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+# Simple input and weights
+inputs = np.array([0.5, 0.8, -0.2])
+weights = np.array([0.4, 0.6, 0.1])
+
+# Calculate output
+output = sigmoid(np.dot(inputs, weights))
+print(f"Output: {output}")</code></pre>
+</div>
+</div>
+<!-- Action Row -->
+<div class="flex items-center gap-2 pl-2">
+<button class="flex items-center gap-1 text-text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[16px]" data-icon="thumb_up">thumb_up</span>
+</button>
+<button class="flex items-center gap-1 text-text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[16px]" data-icon="thumb_down">thumb_down</span>
+</button>
+<button class="flex items-center gap-1 text-text-secondary hover:text-primary transition-colors ml-2">
+<span class="material-symbols-outlined text-[16px]" data-icon="refresh">refresh</span>
+<span class="font-label-sm text-label-sm">Regenerate</span>
+</button>
+</div>
+</div>
+</div>
+<!-- User Message -->
+<div class="flex justify-end w-full mt-4">
+<div class="max-w-[85%] glass-panel rounded-2xl rounded-tr-sm p-4 border border-tertiary-fixed-dim/30 shadow-[0_4px_20px_-4px_rgba(125,76,231,0.15)] relative">
+<p class="font-body-sm text-body-sm text-on-surface">That makes sense. Can we create a study plan for me to master this over the next week?</p>
+</div>
+</div>
+<!-- AI Response with Rich Card -->
+<div class="flex justify-start w-full gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-container shrink-0 flex items-center justify-center mt-1">
+<span class="material-symbols-outlined text-on-primary text-[16px]" data-icon="robot_2">robot_2</span>
+</div>
+<div class="max-w-[85%] space-y-3">
+<div class="glass-panel rounded-2xl rounded-tl-sm p-4 border border-border-base/50 shadow-sm">
+<p class="font-body-sm text-body-sm text-on-surface mb-4">I've generated a targeted 7-day study plan to get you comfortable with Neural Networks in Python. We can track your progress here.</p>
+<!-- Study Plan Widget -->
+<div class="bg-surface rounded-xl border border-secondary-container shadow-sm overflow-hidden relative">
+<!-- AI Generated Indicator -->
+<div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-secondary-fixed-dim to-tertiary-container"></div>
+<div class="p-4 border-b border-border-base">
+<div class="flex items-center justify-between mb-1">
+<h3 class="font-label-md text-label-md font-bold text-on-surface">Neural Networks Foundation</h3>
+<span class="bg-surface-container-high text-primary font-label-sm text-label-sm px-2 py-0.5 rounded-full">7 Days</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="flex-1 h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full w-[14%] bg-gradient-to-r from-primary to-secondary-fixed-dim rounded-full"></div>
+</div>
+<span class="text-label-sm font-label-sm text-text-secondary">1/7</span>
+</div>
+</div>
+<ul class="p-2 space-y-1">
+<li>
+<label class="flex items-start gap-3 p-2 rounded-lg hover:bg-surface-container-low cursor-pointer transition-colors group">
+<input checked="" class="mt-0.5 rounded text-primary border-outline-variant focus:ring-primary focus:ring-offset-surface w-4 h-4" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-text-secondary line-through group-hover:text-on-surface transition-colors">Day 1: Linear Algebra Refresher &amp; Numpy</span>
+</label>
+</li>
+<li>
+<label class="flex items-start gap-3 p-2 rounded-lg hover:bg-surface-container-low cursor-pointer transition-colors group">
+<input class="mt-0.5 rounded text-primary border-outline-variant focus:ring-primary focus:ring-offset-surface w-4 h-4" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface">Day 2: Forward Propagation Mechanics</span>
+</label>
+</li>
+<li>
+<label class="flex items-start gap-3 p-2 rounded-lg hover:bg-surface-container-low cursor-pointer transition-colors group">
+<input class="mt-0.5 rounded text-primary border-outline-variant focus:ring-primary focus:ring-offset-surface w-4 h-4" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface">Day 3: Activation Functions Deep Dive</span>
+</label>
+</li>
+</ul>
+<div class="p-3 bg-surface-container-lowest border-t border-border-base flex justify-center">
+<button class="text-primary font-label-sm text-label-sm font-bold flex items-center gap-1 hover:text-primary-fixed-variant transition-colors">
+                                View Full Plan <span class="material-symbols-outlined text-[16px]" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Input Area (Fixed) -->
+<div class="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
+<!-- Suggested Prompts Carousel -->
+<div class="w-full overflow-x-auto flex gap-2 px-margin-mobile pb-3 pointer-events-auto snap-x">
+<button class="shrink-0 snap-start bg-surface/80 backdrop-blur-md border border-border-base/50 text-text-secondary hover:text-primary hover:border-primary/30 px-4 py-2 rounded-full font-label-sm text-label-sm shadow-sm transition-all">
+                Explain Neural Networks
+            </button>
+<button class="shrink-0 snap-start bg-surface/80 backdrop-blur-md border border-border-base/50 text-text-secondary hover:text-primary hover:border-primary/30 px-4 py-2 rounded-full font-label-sm text-label-sm shadow-sm transition-all">
+                Generate Study Plan for React
+            </button>
+<button class="shrink-0 snap-start bg-surface/80 backdrop-blur-md border border-border-base/50 text-text-secondary hover:text-primary hover:border-primary/30 px-4 py-2 rounded-full font-label-sm text-label-sm shadow-sm transition-all">
+                Review my code
+            </button>
+</div>
+<!-- Input Bar -->
+<div class="glass-panel border-t border-border-base/50 p-margin-mobile pointer-events-auto pb-8">
+<div class="flex items-end gap-2 bg-surface rounded-2xl border border-border-base shadow-sm focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all p-1.5">
+<button class="p-2 text-text-secondary hover:text-primary transition-colors shrink-0 mb-0.5">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+</button>
+<textarea class="flex-1 max-h-[120px] bg-transparent border-none focus:ring-0 resize-none font-body-md text-body-md text-on-surface placeholder:text-outline-variant py-3 px-1" placeholder="Ask your mentor..." rows="1" style="min-height: 44px;"></textarea>
+<div class="flex items-center gap-1 mb-1 shrink-0">
+<button class="p-2 text-text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="mic">mic</span>
+</button>
+<button class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-container to-tertiary-container text-on-primary flex items-center justify-center shadow-md hover:shadow-lg transition-all active:scale-95">
+<span class="material-symbols-outlined" data-icon="send">send</span>
+</button>
+</div>
+</div>
+<div class="flex justify-center mt-3">
+<div class="w-1/3 h-1 bg-outline-variant/30 rounded-full"></div>
+</div>
+</div>
+</div>
+</body></html>

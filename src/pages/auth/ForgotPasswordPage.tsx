@@ -23,88 +23,94 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="bg-background text-on-surface font-body-md min-h-screen flex items-center justify-center p-gutter relative overflow-hidden">
-      {/* Abstract Background */}
-      <div className="fixed top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(192,193,255,0.05)_0%,rgba(19,19,21,1)_70%)] -z-20 pointer-events-none"></div>
+    <div className="bg-background text-text-primary min-h-screen flex flex-col font-body-md overflow-x-hidden relative">
+      {/* Ambient Background Elements */}
+      <div className="fixed top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-surface-container-high/40 blur-[120px] pointer-events-none z-0"></div>
+      <div className="fixed bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-surface-variant/30 blur-[100px] pointer-events-none z-0"></div>
       
-      {/* Nebula Blobs */}
-      <div className="fixed rounded-full blur-[100px] opacity-30 -z-10 animate-[pulse_10s_ease-in-out_infinite_alternate]" style={{ top: '-10%', left: '20%', width: '40vw', height: '40vw', background: 'rgba(128, 131, 255, 0.15)' }}></div>
-      <div className="fixed rounded-full blur-[100px] opacity-30 -z-10 animate-[pulse_12s_ease-in-out_infinite_alternate_reverse]" style={{ bottom: '-10%', right: '10%', width: '50vw', height: '50vw', background: 'rgba(221, 183, 255, 0.1)' }}></div>
-
-      <main className="w-full max-w-md relative z-10 py-2xl">
-        {/* Brand Header */}
-        <div className="text-center mb-2xl">
-          <h1 className="font-display text-display text-primary tracking-tight mb-sm">LearnLoom</h1>
-          <p className="font-body-lg text-body-lg text-on-surface-variant">Engineer your potential.</p>
-        </div>
-
-        <div className="bg-surface-container-lowest/80 backdrop-blur-xl border border-outline-variant/60 rounded-xl p-xl sm:p-2xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] relative group transition-all duration-300 hover:border-outline-variant">
+      {/* Main Container */}
+      <main className="flex-grow flex items-center justify-center relative z-10 px-margin-desktop py-stack-xl">
+        {/* Glassmorphism Card */}
+        <div className="w-full max-w-[480px] bg-surface/70 backdrop-blur-xl border border-border-base/50 rounded-xl shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] p-stack-lg flex flex-col items-center">
+          
           {submitted ? (
-            <div className="text-center py-sm space-y-md">
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-md">
-                <span className="material-symbols-outlined text-[32px] text-primary">mark_email_read</span>
+            <div className="text-center w-full">
+              <div className="flex items-center justify-center mb-stack-md">
+                <span className="material-symbols-outlined text-[48px] text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  mark_email_read
+                </span>
               </div>
-              <h2 className="font-headline-md text-headline-md text-on-surface mb-xs">Check your email</h2>
-              <p className="font-body-md text-body-md text-on-surface-variant text-pretty mb-xl">
-                We sent a reset link to <span className="text-on-surface font-bold">{email}</span>.
+              <h1 className="font-headline-lg text-headline-lg text-text-primary mb-stack-sm tracking-tight">Check your email</h1>
+              <p className="font-body-md text-body-md text-text-secondary px-stack-md mb-stack-md">
+                We sent a reset link to <span className="text-text-primary font-medium">{email}</span>.
               </p>
-              
-              <div className="space-y-md">
-                <p className="font-label-sm text-label-sm text-on-surface-variant mb-md">
+              <div className="space-y-stack-md w-full mt-stack-md">
+                <p className="font-label-sm text-label-sm text-text-secondary">
                   Didn't receive it? Check your spam folder or{' '}
-                  <button type="button" onClick={() => setSubmitted(false)} className="text-primary hover:text-primary-fixed hover:underline transition-all font-bold">
+                  <button type="button" onClick={() => setSubmitted(false)} className="text-primary hover:text-primary-container hover:underline transition-all font-semibold">
                     try again
                   </button>
                 </p>
-                <Link to="/login" className="block w-full bg-surface-container-high text-on-surface border border-outline-variant font-label-md text-label-md rounded-full py-md hover:bg-surface-bright transition-colors text-center">
-                  Back to Sign In
-                </Link>
+                <div className="w-full text-center border-t border-border-base/50 pt-stack-md">
+                  <Link className="inline-flex items-center gap-2 font-label-md text-label-md text-text-secondary hover:text-primary transition-colors duration-200 group" to="/login">
+                    <span className="material-symbols-outlined text-[18px] group-hover:-translate-x-1 transition-transform duration-200">arrow_back</span>
+                    Back to Login
+                  </Link>
+                </div>
               </div>
             </div>
           ) : (
             <>
-              <div className="mb-xl text-center">
-                <h2 className="font-headline-md text-headline-md text-on-surface mb-xs">Reset your password</h2>
-                <p className="font-body-md text-body-md text-on-surface-variant">
-                  Enter your email and we'll send you a reset link
+              {/* Brand Logo / Header */}
+              <div className="mb-stack-lg text-center w-full">
+                <div className="flex items-center justify-center mb-stack-md">
+                  <span className="material-symbols-outlined text-[48px] text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
+                    lock_reset
+                  </span>
+                </div>
+                <h1 className="font-headline-lg text-headline-lg text-text-primary mb-stack-sm tracking-tight">Forgot Password</h1>
+                <p className="font-body-md text-body-md text-text-secondary px-stack-md">
+                  Enter your email address and we'll send you a link to reset your password.
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit} className="flex flex-col gap-xl">
-                {/* Email Field */}
-                <div>
-                  <label className="block font-label-md text-label-md text-on-surface-variant mb-sm" htmlFor="email">USER_IDENTIFIER</label>
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="w-full space-y-stack-md">
+                {/* Email Input */}
+                <div className="flex flex-col space-y-stack-sm w-full">
+                  <label className="font-label-md text-label-md text-text-primary text-left" htmlFor="email">Email Address</label>
                   <div className="relative">
-                    <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant">mail</span>
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <span className="material-symbols-outlined text-outline">mail</span>
+                    </div>
                     <input 
+                      className="w-full pl-12 pr-4 py-4 bg-surface border border-border-base rounded-lg font-body-md text-body-md text-text-primary placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 shadow-sm" 
                       id="email" 
-                      type="email" 
+                      name="email" 
+                      placeholder="you@example.com" 
                       required 
-                      placeholder="developer@domain.com"
+                      type="email"
                       value={email}
                       onChange={e => setEmail(e.target.value)}
-                      className="w-full bg-surface-container border border-outline-variant text-on-surface focus:border-primary focus:bg-surface-container-high focus:outline-none focus:ring-1 focus:ring-primary rounded-full py-md pl-[3.5rem] pr-md font-body-md text-body-md placeholder:text-outline transition-all duration-200" 
                     />
                   </div>
                 </div>
 
-                {/* Primary Action */}
-                <button 
-                  type="submit" 
-                  disabled={loading}
-                  className="w-full bg-primary text-on-primary font-headline-md text-headline-md rounded-full py-md mt-sm hover:bg-primary-fixed transition-all shadow-[0_0_15px_rgba(192,193,255,0.2)] hover:shadow-[0_0_20px_rgba(192,193,255,0.4)] active:scale-[0.98] disabled:opacity-70 disabled:pointer-events-none flex justify-center items-center gap-sm"
-                >
-                  {loading ? <span className="material-symbols-outlined animate-spin">sync</span> : null}
+                {/* Action Button */}
+                <button disabled={loading} className="w-full bg-primary-container text-on-primary py-4 px-6 rounded-lg font-label-md text-label-md shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.23)] hover:-translate-y-[1px] transition-all duration-200 flex justify-center items-center gap-2 disabled:opacity-50 disabled:pointer-events-none" type="submit">
+                  {loading ? <span className="material-symbols-outlined animate-spin text-[20px]">sync</span> : null}
                   Send Reset Link
+                  <span className="material-symbols-outlined text-[20px]">send</span>
                 </button>
-
-                <div className="mt-md text-center">
-                  <Link to="/login" className="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center gap-xs">
-                    <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-                    Back to Sign In
-                  </Link>
-                </div>
               </form>
+
+              {/* Back to Login Link */}
+              <div className="mt-stack-lg w-full text-center border-t border-border-base/50 pt-stack-md">
+                <Link className="inline-flex items-center gap-2 font-label-md text-label-md text-text-secondary hover:text-primary transition-colors duration-200 group" to="/login">
+                  <span className="material-symbols-outlined text-[18px] group-hover:-translate-x-1 transition-transform duration-200">arrow_back</span>
+                  Back to Login
+                </Link>
+              </div>
             </>
           )}
         </div>

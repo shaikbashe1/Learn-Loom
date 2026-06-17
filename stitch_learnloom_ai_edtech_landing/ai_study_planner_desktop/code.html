@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LearnLoom - AI Study Planner</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed-variant": "#003ea8",
+                        "inverse-on-surface": "#eef0ff",
+                        "on-primary-fixed": "#00174b",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#006172",
+                        "surface-container-low": "#f2f3ff",
+                        "on-primary-container": "#eeefff",
+                        "error-container": "#ffdad6",
+                        "on-primary": "#ffffff",
+                        "surface-glass": "rgba(255, 255, 255, 0.7)",
+                        "on-surface": "#131b2e",
+                        "on-secondary": "#ffffff",
+                        "inverse-primary": "#b4c5ff",
+                        "surface-bright": "#faf8ff",
+                        "secondary": "#00687a",
+                        "tertiary-fixed": "#e9ddff",
+                        "primary-container": "#2563eb",
+                        "on-tertiary-container": "#f6edff",
+                        "tertiary-container": "#7d4ce7",
+                        "on-background": "#131b2e",
+                        "secondary-fixed-dim": "#4cd7f6",
+                        "success-green": "#10B981",
+                        "on-error-container": "#93000a",
+                        "on-tertiary": "#ffffff",
+                        "surface-variant": "#dae2fd",
+                        "outline-variant": "#c3c6d7",
+                        "surface-dim": "#d2d9f4",
+                        "on-secondary-fixed-variant": "#004e5c",
+                        "outline": "#737686",
+                        "surface-container": "#eaedff",
+                        "on-tertiary-fixed-variant": "#5516be",
+                        "on-surface-variant": "#434655",
+                        "surface-container-highest": "#dae2fd",
+                        "warning-amber": "#F59E0B",
+                        "on-secondary-fixed": "#001f26",
+                        "surface": "#faf8ff",
+                        "on-tertiary-fixed": "#23005c",
+                        "tertiary-fixed-dim": "#d0bcff",
+                        "primary-fixed": "#dbe1ff",
+                        "primary": "#004ac6",
+                        "error": "#ba1a1a",
+                        "surface-container-high": "#e2e7ff",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-error": "#ffffff",
+                        "surface-tint": "#0053db",
+                        "inverse-surface": "#283044",
+                        "secondary-fixed": "#acedff",
+                        "tertiary": "#632ecd",
+                        "bg-base": "#F8FAFC",
+                        "background": "#faf8ff",
+                        "secondary-container": "#57dffe"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "container-max": "1440px",
+                        "margin-desktop": "40px",
+                        "margin-mobile": "16px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Hanken Grotesk"],
+                        "code": ["JetBrains Mono"],
+                        "body-md": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "label-lg": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "label-md": ["Hanken Grotesk"],
+                        "display-lg-mobile": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "code": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                        "display-lg-mobile": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        .ai-gradient-text {
+            background: linear-gradient(to right, #004ac6, #57dffe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .ai-gradient-bg {
+            background: linear-gradient(135deg, #004ac6, #57dffe);
+        }
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+    </style>
+</head>
+<body class="bg-bg-base text-on-surface h-full font-body-md overflow-hidden flex flex-col">
+<!-- TopNavBar -->
+<nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-desktop h-16 bg-surface-glass dark:bg-surface-glass backdrop-blur-md border-b border-white/20 shadow-sm transition-all duration-300">
+<div class="flex items-center gap-4">
+<span class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed">LearnLoom</span>
+</div>
+<div class="flex-1 flex justify-start pl-8 hidden md:flex">
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full pl-10 pr-4 py-2 rounded-full border border-surface-variant bg-white/50 focus:bg-white focus:ring-2 focus:ring-secondary-container focus:border-transparent transition-all outline-none text-body-md font-body-md text-on-surface placeholder:text-outline-variant" placeholder="Search..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-on-surface-variant hover:bg-white/10 rounded-full transition-all duration-300 hover:text-primary">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-white/10 rounded-full transition-all duration-300 hover:text-primary">
+<span class="material-symbols-outlined" data-icon="smart_toy">smart_toy</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-surface-variant cursor-pointer ml-2">
+<img alt="Student avatar" class="w-full h-full object-cover" data-alt="A professional headshot of a young adult learner, bright and optimistic lighting, minimalist white background, high quality, sharp focus." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4IFrKwFdDrDfY51q69jjU2VGe9GLC_bmzzoOauqhJxleQ2iSDeR6-Wuya2YNwxw_jbwS9EVGIYL9fslNs3ekI5Oll9hC9ynJeMC93ToTf5cePQBKylVsTyUaHGOhGw6Xi2o7wiKimIKoNETf42TZg3LHlclHDllhRec8pl1qZRilm0lwgA_4Eb-0Xfajeqy_2g0VM9r72-5IsJl7ph7zJjcsoLFQnewwrIoLZSPly7oDd0fX0vyi-XBEKq-d60DinApy2LIkCcE0P"/>
+</div>
+</div>
+</nav>
+<!-- SideNavBar & Main Content Wrapper -->
+<div class="flex flex-1 pt-16 h-full w-full">
+<!-- SideNavBar (Hidden on Mobile) -->
+<aside class="hidden md:flex flex-col w-64 h-full bg-surface-glass backdrop-blur-lg border-r border-white/20 shadow-md py-8 px-4 flex-shrink-0 z-40 overflow-y-auto">
+<div class="mb-8 px-4 flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container">
+<span class="material-symbols-outlined">school</span>
+</div>
+<div>
+<h2 class="text-label-lg font-headline-lg font-bold text-primary leading-tight">Loom Intelligence</h2>
+<p class="text-label-md font-label-md text-on-surface-variant">Premium Learner</p>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-2">
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-primary-container/10 hover:translate-x-1 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-label-lg font-label-lg">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-primary-container/10 hover:translate-x-1 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span class="text-label-lg font-label-lg">Courses</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-primary font-bold bg-primary-container/20 hover:bg-primary-container/30 transition-all duration-300 scale-[0.98]" href="#">
+<span class="material-symbols-outlined" data-icon="auto_awesome" data-weight="fill">auto_awesome</span>
+<span class="text-label-lg font-label-lg">AI Roadmap</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-primary-container/10 hover:translate-x-1 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span class="text-label-lg font-label-lg">Community</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-primary-container/10 hover:translate-x-1 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="workspace_premium">workspace_premium</span>
+<span class="text-label-lg font-label-lg">Rewards</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-primary-container/10 hover:translate-x-1 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="sensors">sensors</span>
+<span class="text-label-lg font-label-lg">Live Hub</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 border-t border-surface-variant/30 flex flex-col gap-4">
+<button class="w-full py-3 px-4 bg-primary text-on-primary rounded-full text-label-lg font-label-lg font-bold hover:bg-surface-tint transition-colors shadow-sm flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">center_focus_strong</span>
+                    Focus Mode
+                </button>
+<a class="flex items-center gap-3 px-4 py-2 rounded-xl text-on-surface-variant hover:bg-primary-container/10 transition-all duration-300" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="settings">settings</span>
+<span class="text-label-md font-label-md">Settings</span>
+</a>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="flex-1 overflow-y-auto p-4 md:p-gutter bg-gradient-to-br from-bg-base to-surface-bright flex gap-6">
+<!-- Left/Center Column: Calendar & Planner -->
+<div class="flex-1 flex flex-col gap-6 max-w-4xl">
+<!-- Header & View Toggles -->
+<header class="flex justify-between items-end mb-2">
+<div>
+<h1 class="text-headline-lg font-headline-lg text-on-surface mb-1">Study Planner</h1>
+<p class="text-body-md font-body-md text-outline">Turn learning into a daily habit.</p>
+</div>
+<div class="glass-panel rounded-full p-1 flex shadow-sm">
+<button class="px-4 py-1.5 rounded-full bg-white shadow-sm text-label-lg font-label-lg text-primary font-bold">Daily</button>
+<button class="px-4 py-1.5 rounded-full text-label-lg font-label-lg text-on-surface-variant hover:bg-white/50 transition-colors">Weekly</button>
+<button class="px-4 py-1.5 rounded-full text-label-lg font-label-lg text-on-surface-variant hover:bg-white/50 transition-colors">Monthly</button>
+</div>
+</header>
+<!-- Today's Focus Overview (Bento Grid Style) -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+<!-- Productivity Score -->
+<div class="glass-panel rounded-xl p-6 lg:col-span-1 flex flex-col items-center justify-center text-center relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+<h3 class="text-label-lg font-label-lg text-outline-variant uppercase tracking-wider mb-4 absolute top-4 left-4">Daily Score</h3>
+<div class="relative w-32 h-32 flex items-center justify-center mb-2 mt-4">
+<!-- SVG Progress Ring -->
+<svg class="w-full h-full" viewbox="0 0 100 100">
+<circle class="text-surface-variant stroke-current" cx="50" cy="50" fill="transparent" r="40" stroke-width="8"></circle>
+<circle class="text-secondary stroke-current progress-ring__circle" cx="50" cy="50" fill="transparent" r="40" stroke-dasharray="251.2" stroke-dashoffset="62.8" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-headline-lg font-headline-lg text-on-surface leading-none">75</span>
+<span class="text-label-md font-label-md text-secondary">%</span>
+</div>
+</div>
+<p class="text-body-md font-body-md text-on-surface-variant mt-2">On track for today</p>
+</div>
+<!-- Time Availability Stats -->
+<div class="glass-panel rounded-xl p-6 lg:col-span-2 flex flex-col justify-between hover:-translate-y-1 transition-transform duration-300">
+<div class="flex justify-between items-start mb-4">
+<h3 class="text-headline-md font-headline-md text-on-surface">Time Availability</h3>
+<button class="text-primary hover:text-surface-tint"><span class="material-symbols-outlined">more_horiz</span></button>
+</div>
+<div class="flex gap-6 mb-4">
+<div>
+<p class="text-display-lg font-display-lg text-on-surface leading-none mb-1">4h <span class="text-headline-md text-outline">30m</span></p>
+<p class="text-label-md font-label-md text-outline-variant uppercase tracking-wider">Scheduled</p>
+</div>
+<div class="w-px bg-surface-variant"></div>
+<div>
+<p class="text-display-lg font-display-lg text-secondary leading-none mb-1">2h <span class="text-headline-md text-outline">00m</span></p>
+<p class="text-label-md font-label-md text-outline-variant uppercase tracking-wider">Free Time</p>
+</div>
+</div>
+<!-- Mini timeline bar -->
+<div class="w-full h-3 bg-surface-variant rounded-full overflow-hidden flex">
+<div class="h-full bg-primary" style="width: 40%"></div>
+<div class="h-full bg-secondary" style="width: 25%"></div>
+<div class="h-full bg-tertiary" style="width: 15%"></div>
+</div>
+<div class="flex gap-4 mt-3 text-label-md font-label-md">
+<div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-primary"></span>Data Sci</div>
+<div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-secondary"></span>UX Design</div>
+<div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-tertiary"></span>Reading</div>
+</div>
+</div>
+</div>
+<!-- Schedule Drag and Drop Area -->
+<div class="glass-panel rounded-xl p-6 flex-1 flex flex-col min-h-[400px]">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-headline-md font-headline-md text-on-surface">Today's Schedule</h3>
+<button class="flex items-center gap-2 text-label-lg font-label-lg text-primary hover:text-surface-tint transition-colors">
+<span class="material-symbols-outlined text-sm">add</span> Add Block
+                        </button>
+</div>
+<!-- Timeline Layout -->
+<div class="relative flex-1">
+<!-- Current Time Line -->
+<div class="absolute top-[35%] left-0 w-full flex items-center z-10 pointer-events-none">
+<span class="text-label-md font-label-md text-error mr-2 w-12 text-right">10:30</span>
+<div class="h-px bg-error flex-1 relative">
+<div class="absolute -left-1 -top-1 w-2 h-2 rounded-full bg-error"></div>
+</div>
+</div>
+<!-- Time Slots Grid (Simplified) -->
+<div class="space-y-4">
+<!-- Slot 09:00 -->
+<div class="flex gap-4 group">
+<div class="w-12 text-right text-label-md font-label-md text-outline pt-2">09:00</div>
+<div class="flex-1 bg-primary/10 border border-primary/20 rounded-lg p-3 hover:shadow-md transition-shadow cursor-grab relative border-l-4 border-l-primary">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="text-label-lg font-label-lg text-on-surface font-bold">Data Structures</h4>
+<p class="text-body-md font-body-md text-on-surface-variant text-sm">Module 3: Linked Lists</p>
+</div>
+<span class="text-label-md font-label-md text-primary bg-white px-2 py-1 rounded-md shadow-sm">1h 30m</span>
+</div>
+</div>
+</div>
+<!-- Slot 11:00 -->
+<div class="flex gap-4 group">
+<div class="w-12 text-right text-label-md font-label-md text-outline pt-2">11:00</div>
+<div class="flex-1 bg-secondary/10 border border-secondary/20 rounded-lg p-3 hover:shadow-md transition-shadow cursor-grab relative border-l-4 border-l-secondary">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="text-label-lg font-label-lg text-on-surface font-bold">UX Research Methods</h4>
+<p class="text-body-md font-body-md text-on-surface-variant text-sm">User Interviews</p>
+</div>
+<span class="text-label-md font-label-md text-secondary bg-white px-2 py-1 rounded-md shadow-sm">1h</span>
+</div>
+</div>
+</div>
+<!-- Empty Slot -->
+<div class="flex gap-4">
+<div class="w-12 text-right text-label-md font-label-md text-outline pt-2">12:00</div>
+<div class="flex-1 border border-dashed border-outline-variant rounded-lg p-3 flex items-center justify-center text-outline-variant text-body-md font-body-md hover:bg-surface/50 hover:text-primary hover:border-primary transition-colors cursor-pointer">
+                                    Lunch Break (Suggested)
+                                </div>
+</div>
+<!-- Slot 13:00 -->
+<div class="flex gap-4 group">
+<div class="w-12 text-right text-label-md font-label-md text-outline pt-2">13:00</div>
+<div class="flex-1 bg-tertiary/10 border border-tertiary/20 rounded-lg p-3 hover:shadow-md transition-shadow cursor-grab relative border-l-4 border-l-tertiary opacity-70">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="text-label-lg font-label-lg text-on-surface font-bold">Required Reading</h4>
+<p class="text-body-md font-body-md text-on-surface-variant text-sm">Chapter 4-5</p>
+</div>
+<span class="text-label-md font-label-md text-tertiary bg-white px-2 py-1 rounded-md shadow-sm">2h</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: AI Assistant & Focus Mode -->
+<div class="w-80 flex flex-col gap-6 flex-shrink-0 hidden xl:flex">
+<!-- Focus Mode Widget -->
+<div class="glass-panel rounded-xl p-6 bg-gradient-to-b from-white to-surface-low border-t-2 border-t-primary shadow-md relative overflow-hidden">
+<div class="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full pointer-events-none"></div>
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-label-lg font-label-lg font-bold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">center_focus_strong</span>
+                            Focus Mode
+                        </h3>
+<!-- Toggle Switch -->
+<div class="w-10 h-6 bg-surface-variant rounded-full relative cursor-pointer">
+<div class="w-4 h-4 bg-white rounded-full absolute left-1 top-1 shadow-sm"></div>
+</div>
+</div>
+<div class="text-center mb-6">
+<div class="text-display-lg font-display-lg text-on-surface font-code tracking-tight">25:00</div>
+<p class="text-label-md font-label-md text-outline-variant uppercase tracking-wider mt-1">Pomodoro Timer</p>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 py-2 bg-primary text-white rounded-lg text-label-lg font-label-lg shadow-sm hover:bg-surface-tint transition-colors">Start</button>
+<button class="w-10 h-10 border border-outline-variant text-on-surface rounded-lg flex items-center justify-center hover:bg-surface-variant/50 transition-colors">
+<span class="material-symbols-outlined text-sm">replay</span>
+</button>
+</div>
+</div>
+<!-- AI Planning Assistant Widget -->
+<div class="glass-panel rounded-xl p-6 flex-1 flex flex-col relative border border-secondary-container/30 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center gap-2 mb-4 pb-4 border-b border-surface-variant/50">
+<div class="w-8 h-8 rounded-full ai-gradient-bg flex items-center justify-center text-white shadow-sm">
+<span class="material-symbols-outlined text-sm" data-weight="fill">auto_awesome</span>
+</div>
+<h3 class="text-label-lg font-label-lg font-bold ai-gradient-text">Loom Assistant</h3>
+</div>
+<div class="space-y-4 flex-1">
+<!-- AI Insight Card -->
+<div class="bg-warning-amber/10 border border-warning-amber/20 rounded-lg p-3">
+<div class="flex gap-2 items-start">
+<span class="material-symbols-outlined text-warning-amber text-sm mt-0.5">warning</span>
+<div>
+<h4 class="text-label-md font-label-md font-bold text-on-surface mb-1">Overload Detected</h4>
+<p class="text-body-md font-body-md text-on-surface-variant text-sm">You've scheduled 4 hours of heavy cognitive work back-to-back tomorrow.</p>
+<button class="mt-2 text-label-md font-label-md text-primary font-bold hover:underline">Auto-Reschedule</button>
+</div>
+</div>
+</div>
+<!-- AI Insight Card -->
+<div class="bg-secondary/5 border border-secondary/10 rounded-lg p-3">
+<div class="flex gap-2 items-start">
+<span class="material-symbols-outlined text-secondary text-sm mt-0.5">lightbulb</span>
+<div>
+<h4 class="text-label-md font-label-md font-bold text-on-surface mb-1">Optimal Focus Window</h4>
+<p class="text-body-md font-body-md text-on-surface-variant text-sm">Based on past performance, your focus peaks between 9 AM and 11 AM.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Generate Action -->
+<button class="mt-4 w-full py-2.5 rounded-lg text-white font-bold text-label-lg font-label-lg shadow-sm ai-gradient-bg opacity-90 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">magic_button</span> Generate Weekly Plan
+                    </button>
+</div>
+</div>
+</main>
+</div>
+</body></html>

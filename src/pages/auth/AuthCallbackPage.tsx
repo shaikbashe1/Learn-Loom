@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Loader2, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AuthCallbackPage() {
@@ -34,15 +33,26 @@ export default function AuthCallbackPage() {
   }, [loading, user, navigate]);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6">
-      <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center shadow-lg">
-        <Zap className="w-7 h-7 text-white" />
+    <div className="bg-background text-on-surface font-body-md min-h-screen flex items-center justify-center p-gutter relative overflow-hidden">
+      {/* Background Decorative Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[10%] left-[15%] w-96 h-96 bg-primary-container/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-[pulse_10s_ease-in-out_infinite_alternate]"></div>
+        <div className="absolute top-[40%] right-[10%] w-80 h-80 bg-secondary-container/30 rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-[pulse_12s_ease-in-out_infinite_alternate_reverse]"></div>
+        <div className="absolute bottom-[10%] left-[30%] w-[30rem] h-[30rem] bg-tertiary-container/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50"></div>
       </div>
-      <div className="text-center space-y-2">
-        <h2 className="text-xl font-semibold text-foreground">Signing you in…</h2>
-        <p className="text-sm text-muted-foreground">Please wait while we verify your session.</p>
+
+      <div className="glass-panel rounded-[24px] p-stack-xl flex flex-col items-center justify-center text-center shadow-[0_8px_32px_rgba(0,0,0,0.5)] max-w-sm w-full z-10">
+        <div className="relative mb-8">
+          <div className="absolute inset-0 bg-primary/20 rounded-full filter blur-xl animate-pulse"></div>
+          <div className="relative w-20 h-20 bg-surface rounded-full flex items-center justify-center border-2 border-primary shadow-[0_0_20px_rgba(0,74,198,0.3)]">
+             <span className="material-symbols-outlined text-[40px] text-primary animate-spin" style={{ animationDuration: '3s' }}>
+                sync
+             </span>
+          </div>
+        </div>
+        <h2 className="font-headline-md text-headline-md text-on-surface mb-2">Authenticating...</h2>
+        <p className="font-body-sm text-body-sm text-on-surface-variant">Please wait while we verify your session.</p>
       </div>
-      <Loader2 className="w-8 h-8 animate-spin text-primary" />
     </div>
   );
 }

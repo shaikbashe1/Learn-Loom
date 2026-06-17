@@ -1,17 +1,13 @@
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, Users, Zap, Flame, BookOpen, UserX, RefreshCw, MoreVertical, ShieldBan, Info } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { RefreshCw, Zap, Flame, BookOpen, Search, Filter } from 'lucide-react';
 import { supabase } from '@/db/supabase';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 interface Student {
   id: string;
@@ -79,163 +75,195 @@ export default function AdminStudentsPage() {
   const recentlyActive = students.filter(s => s.last_activity_date && new Date(s.last_activity_date) > new Date(Date.now() - 7 * 86400000)).length;
 
   return (
-    <AppLayout title="Student Management" isAdmin>
-      <div className="max-w-[1440px] mx-auto w-full space-y-xl pb-xl">
-        {/* Page Header Area */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-xl mb-2xl">
-          <div className="space-y-2">
-            <h1 className="font-display text-display text-on-surface">Student Directory</h1>
-            <p className="text-on-surface-variant text-body-lg max-w-2xl">Manage your learner ecosystem. Monitor engagement levels, track curriculum progress, and manage administrative permissions across your technical community.</p>
+    <AppLayout title="Student Directory" isAdmin>
+      <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-xl flex flex-col gap-stack-lg w-full">
+        
+        {/* Header Section */}
+        <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="font-display-lg-mobile md:font-display-lg text-[32px] md:text-[40px] font-bold text-text-primary tracking-tight">Student Directory</h1>
+            <p className="font-body-md text-[16px] text-text-secondary mt-2 max-w-2xl">
+              Manage your learner ecosystem. Monitor engagement levels, track curriculum progress, and manage community access.
+            </p>
           </div>
-          <div className="flex gap-md items-center">
-            <Button variant="ghost" size="sm" onClick={fetchStudents} className="border border-outline-variant text-on-surface hover:bg-surface-variant h-11 w-11 rounded-xl">
-              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-            </Button>
-            <button className="px-lg py-md rounded-xl bg-surface-container-high border border-outline-variant text-on-surface hover:bg-surface-variant transition-colors flex items-center gap-2 font-label-md">
-              <span className="material-symbols-outlined text-[18px]">download</span> Export CSV
-            </button>
-            <button className="px-lg py-md rounded-xl bg-primary text-on-primary font-bold hover:opacity-90 transition-all flex items-center gap-2 shadow-[0_0_8px_rgba(192,193,255,0.3)]">
-              <span className="material-symbols-outlined text-[18px]">person_add</span> Invite Student
-            </button>
+          <div className="flex flex-wrap items-center gap-3">
+             <button onClick={fetchStudents} className="flex items-center justify-center w-11 h-11 rounded-xl border border-border-base bg-surface text-text-secondary hover:text-primary hover:border-primary/30 transition-all card-lift shadow-sm">
+               <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+             </button>
+             <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-border-base bg-surface text-text-primary hover:bg-surface-container font-label-md text-[14px] font-bold transition-all card-lift shadow-sm">
+                <span className="material-symbols-outlined text-[18px]">download</span> Export
+             </button>
+             <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white hover:bg-primary-container hover:text-on-primary-container font-label-md text-[14px] font-bold shadow-sm transition-all card-lift">
+                <span className="material-symbols-outlined text-[18px]">person_add</span> Invite Student
+             </button>
           </div>
-        </div>
+        </section>
 
         {/* Bento Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-lg mb-2xl">
-          <div className="glass-panel p-lg rounded-xl flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-              <span className="material-symbols-outlined">group</span>
-            </div>
-            <div>
-              <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Total Active</p>
-              <h3 className="font-headline-md text-headline-md text-on-surface">{loading ? '—' : students.length}</h3>
-            </div>
-          </div>
-          <div className="glass-panel p-lg rounded-xl flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
-              <span className="material-symbols-outlined">bolt</span>
-            </div>
-            <div>
-              <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Avg Credits</p>
-              <h3 className="font-headline-md text-headline-md text-on-surface">{loading ? '—' : avgCredits}</h3>
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="glass-panel border border-border-base rounded-2xl p-6 shadow-sm card-lift relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-110"></div>
+            <div className="flex justify-between items-start mb-4 relative z-10">
+              <div>
+                <p className="font-label-sm text-[11px] text-text-secondary font-bold uppercase tracking-widest">Total Active</p>
+                <h3 className="font-headline-lg text-[32px] font-bold text-text-primary mt-1">{loading ? '—' : students.length}</h3>
+              </div>
+              <div className="p-3 bg-primary/10 rounded-xl text-primary border border-primary/20 shadow-inner">
+                <span className="material-symbols-outlined text-[24px]">group</span>
+              </div>
             </div>
           </div>
-          <div className="glass-panel p-lg rounded-xl flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-tertiary/10 flex items-center justify-center text-tertiary">
-              <span className="material-symbols-outlined">local_fire_department</span>
-            </div>
-            <div>
-              <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Active (7d)</p>
-              <h3 className="font-headline-md text-headline-md text-on-surface">{loading ? '—' : recentlyActive}</h3>
-            </div>
-          </div>
-          <div className="glass-panel p-lg rounded-xl flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-error/10 flex items-center justify-center text-error">
-              <span className="material-symbols-outlined">library_books</span>
-            </div>
-            <div>
-              <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Total Enrollments</p>
-              <h3 className="font-headline-md text-headline-md text-on-surface">{loading ? '—' : totalEnrollments}</h3>
-            </div>
-          </div>
-        </div>
 
-        {/* Directory Table */}
-        <div className="glass-panel rounded-xl overflow-hidden flex flex-col">
+          <div className="glass-panel border border-border-base rounded-2xl p-6 shadow-sm card-lift relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-warning/5 rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-110"></div>
+            <div className="flex justify-between items-start mb-4 relative z-10">
+              <div>
+                <p className="font-label-sm text-[11px] text-text-secondary font-bold uppercase tracking-widest">Avg Credits</p>
+                <h3 className="font-headline-lg text-[32px] font-bold text-text-primary mt-1">{loading ? '—' : avgCredits}</h3>
+              </div>
+              <div className="p-3 bg-warning/10 rounded-xl text-warning border border-warning/20 shadow-inner">
+                <span className="material-symbols-outlined text-[24px]">bolt</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="glass-panel border border-border-base rounded-2xl p-6 shadow-sm card-lift relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-error/5 rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-110"></div>
+            <div className="flex justify-between items-start mb-4 relative z-10">
+              <div>
+                <p className="font-label-sm text-[11px] text-text-secondary font-bold uppercase tracking-widest">Active (7d)</p>
+                <h3 className="font-headline-lg text-[32px] font-bold text-text-primary mt-1">{loading ? '—' : recentlyActive}</h3>
+              </div>
+              <div className="p-3 bg-error/10 rounded-xl text-error border border-error/20 shadow-inner">
+                <span className="material-symbols-outlined text-[24px]">local_fire_department</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="glass-panel border border-border-base rounded-2xl p-6 shadow-sm card-lift relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/5 rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-110"></div>
+            <div className="flex justify-between items-start mb-4 relative z-10">
+              <div>
+                <p className="font-label-sm text-[11px] text-text-secondary font-bold uppercase tracking-widest">Enrollments</p>
+                <h3 className="font-headline-lg text-[32px] font-bold text-text-primary mt-1">{loading ? '—' : totalEnrollments}</h3>
+              </div>
+              <div className="p-3 bg-secondary/10 rounded-xl text-secondary border border-secondary/20 shadow-inner">
+                <span className="material-symbols-outlined text-[24px]">school</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Directory Table Area */}
+        <section className="glass-panel rounded-2xl border border-border-base shadow-sm overflow-hidden flex flex-col">
+          
           {/* Table Filter Bar */}
-          <div className="p-lg border-b border-outline-variant/60 flex flex-col lg:flex-row gap-lg justify-between items-center bg-surface-container-low/40">
-            <div className="relative w-full lg:w-[400px]">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
+          <div className="p-6 md:p-8 border-b border-border-base flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-surface/30">
+            <div className="relative w-full lg:w-96 group">
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary transition-colors text-[20px]">search</span>
               <input 
-                className="w-full bg-surface-container-high/50 border border-outline-variant/40 rounded-lg pl-10 pr-4 py-2.5 text-body-md text-on-surface focus:outline-none focus:border-primary transition-all" 
-                placeholder="Filter by name, email..." 
+                className="w-full bg-surface-container border border-border-base rounded-full py-2.5 pl-12 pr-4 text-body-sm text-[14px] focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-inner" 
+                placeholder="Search students by name or email..." 
                 type="text"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
               />
             </div>
-            <div className="flex items-center gap-md w-full lg:w-auto overflow-x-auto no-scrollbar">
-              <select className="bg-surface-container-high/50 border border-outline-variant/40 rounded-lg px-4 py-2.5 text-label-md text-on-surface focus:outline-none focus:border-primary flex-1 lg:flex-none">
+            <div className="flex items-center gap-3 w-full lg:w-auto">
+              <select className="bg-surface border border-border-base rounded-xl px-4 py-2.5 text-label-md text-[13px] font-bold text-text-primary focus:outline-none focus:border-primary shadow-sm flex-1 lg:flex-none">
                 <option>Status: All</option>
                 <option>Active</option>
                 <option>Suspended</option>
               </select>
-              <button className="bg-surface-container-high/50 border border-outline-variant/40 text-on-surface-variant px-md py-2.5 rounded-lg flex items-center justify-center hover:bg-surface-variant transition-colors">
+              <button className="bg-surface border border-border-base text-text-secondary px-4 py-2.5 rounded-xl flex items-center justify-center hover:bg-surface-container hover:text-primary transition-colors shadow-sm shrink-0">
                 <span className="material-symbols-outlined text-[20px]">filter_list</span>
               </button>
             </div>
           </div>
 
           {/* Table Content */}
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse min-w-[1000px]">
               <thead>
-                <tr className="bg-surface-container-high/30 border-b border-outline-variant/40">
-                  <th className="px-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Student</th>
-                  <th className="px-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Credits</th>
-                  <th className="px-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Streak</th>
-                  <th className="px-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Enrollments</th>
-                  <th className="px-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Last Active</th>
-                  <th className="px-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-right">Actions</th>
+                <tr className="bg-surface-container/50 border-b border-border-base">
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Student Profile</th>
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Credits</th>
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Streak</th>
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Enrollments</th>
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Last Active</th>
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-outline-variant/20">
+              <tbody className="divide-y divide-border-base">
                 {loading ? (
                   Array.from({ length: 6 }).map((_, i) => (
                     <tr key={i}>
-                      <td colSpan={6} className="px-lg py-4"><Skeleton className="h-10 w-full bg-surface border border-outline-variant/40" /></td>
+                      <td colSpan={6} className="px-6 py-4"><Skeleton className="h-12 w-full bg-surface-container rounded-lg" /></td>
                     </tr>
                   ))
                 ) : filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-lg py-16 text-center text-sm text-on-surface-variant">No students found</td>
+                    <td colSpan={6} className="px-6 py-20 text-center">
+                       <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mx-auto mb-4 border border-border-base">
+                         <Search className="w-6 h-6 text-text-secondary" />
+                       </div>
+                       <p className="font-headline-md text-[18px] font-bold text-text-primary">No students found</p>
+                       <p className="text-[14px] text-text-secondary mt-1">Try adjusting your search query.</p>
+                    </td>
                   </tr>
                 ) : (
-                  filtered.map(s => {
-                    const name = s.full_name ?? 'Unknown';
+                  filtered.map((s, idx) => {
+                    const name = s.full_name ?? 'Unknown Student';
                     const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+                    const gradients = [
+                      'from-primary to-secondary',
+                      'from-tertiary-container to-primary',
+                      'from-secondary to-primary-container',
+                    ];
+                    const gradient = gradients[idx % gradients.length];
+                    
                     return (
-                      <tr key={s.id} className="hover:bg-surface-variant/20 transition-colors group">
-                        <td className="px-lg py-4">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="w-10 h-10 shrink-0 border border-outline-variant/40">
-                              <AvatarFallback className="bg-primary/20 text-primary text-xs font-bold">{initials}</AvatarFallback>
+                      <tr key={s.id} className="hover:bg-surface-container/30 transition-colors group">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-4">
+                            <Avatar className={`w-10 h-10 shrink-0 shadow-sm border border-border-base bg-gradient-to-br ${gradient}`}>
+                              <AvatarFallback className="bg-transparent text-white text-[13px] font-bold">{initials}</AvatarFallback>
                             </Avatar>
                             <div className="min-w-0 flex flex-col justify-center">
                               <div className="flex items-center gap-2">
-                                <p className="font-body-md text-body-md font-bold text-on-surface truncate">{name}</p>
-                                {s.is_suspended && <span className="bg-error/10 text-error border border-error/30 text-[10px] px-2 py-0.5 rounded-full font-bold">Suspended</span>}
+                                <p className="font-body-md text-[15px] font-bold text-text-primary truncate group-hover:text-primary transition-colors">{name}</p>
+                                {s.is_suspended && <span className="bg-error/10 text-error border border-error/20 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Suspended</span>}
                               </div>
-                              <p className="font-label-sm text-label-sm text-on-surface-variant truncate">{s.email ?? '—'}</p>
+                              <p className="font-label-sm text-[12px] text-text-secondary truncate">{s.email ?? '—'}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-lg py-4">
-                          <div className="flex items-center gap-1">
-                            <span className="material-symbols-outlined text-[16px] text-chart-4">bolt</span>
-                            <span className="text-body-md font-medium text-on-surface">{s.credits.toLocaleString()}</span>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-1.5">
+                            <span className="material-symbols-outlined text-[18px] text-warning" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
+                            <span className="text-body-md text-[15px] font-bold text-text-primary">{s.credits.toLocaleString()}</span>
                           </div>
                         </td>
-                        <td className="px-lg py-4">
-                          <div className="flex items-center gap-1">
-                            <span className="material-symbols-outlined text-[16px] text-chart-5 text-[#ffb783]">local_fire_department</span>
-                            <span className="text-body-md font-medium text-on-surface">{s.streak_days} days</span>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-1.5">
+                            <span className="material-symbols-outlined text-[18px] text-error" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
+                            <span className="text-body-md text-[15px] font-bold text-text-primary">{s.streak_days} <span className="text-[12px] font-medium text-text-secondary ml-0.5">days</span></span>
                           </div>
                         </td>
-                        <td className="px-lg py-4">
-                          <span className="text-body-md font-medium text-on-surface">{s.enrollments_count}</span>
+                        <td className="px-6 py-4">
+                          <span className="text-body-md text-[15px] font-bold text-text-primary bg-surface/50 px-3 py-1 rounded-lg border border-border-base">{s.enrollments_count}</span>
                         </td>
-                        <td className="px-lg py-4">
-                          <p className="text-label-md text-on-surface-variant">
-                            {s.last_activity_date ? formatDistanceToNow(new Date(s.last_activity_date), { addSuffix: true }) : 'Never'}
+                        <td className="px-6 py-4">
+                          <p className="text-label-md text-[13px] font-medium text-text-secondary">
+                            {s.last_activity_date ? formatDistanceToNow(new Date(s.last_activity_date), { addSuffix: true }) : 'Never active'}
                           </p>
                         </td>
-                        <td className="px-lg py-4 text-right">
+                        <td className="px-6 py-4 text-right">
                           <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => { setSelectedStudent(s); setDetailOpen(true); }} className="p-2 rounded-lg text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-all" title="View Details">
-                              <span className="material-symbols-outlined text-[20px]">info</span>
+                            <button onClick={() => { setSelectedStudent(s); setDetailOpen(true); }} className="w-10 h-10 flex items-center justify-center rounded-full text-text-secondary hover:text-primary hover:bg-surface shadow-sm border border-transparent hover:border-border-base transition-all" title="View Details">
+                              <span className="material-symbols-outlined text-[20px]">visibility</span>
                             </button>
-                            <button onClick={() => toggleSuspend(s)} className={`p-2 rounded-lg transition-all ${s.is_suspended ? 'text-success hover:bg-success/10' : 'text-on-surface-variant hover:text-error hover:bg-error/10'}`} title={s.is_suspended ? 'Unsuspend' : 'Suspend'}>
+                            <button onClick={() => toggleSuspend(s)} className={`w-10 h-10 flex items-center justify-center rounded-full shadow-sm border border-transparent hover:border-border-base transition-all hover:bg-surface ${s.is_suspended ? 'text-success hover:text-success' : 'text-text-secondary hover:text-error'}`} title={s.is_suspended ? 'Unsuspend' : 'Suspend'}>
                               <span className="material-symbols-outlined text-[20px]">{s.is_suspended ? 'how_to_reg' : 'person_off'}</span>
                             </button>
                           </div>
@@ -247,49 +275,59 @@ export default function AdminStudentsPage() {
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
 
+        {/* Detail Dialog */}
         <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-          <DialogContent className="bg-surface-container border-outline-variant text-on-surface">
-            <DialogHeader>
-              <DialogTitle className="font-display text-headline-md text-on-surface">Student Details</DialogTitle>
-              <DialogDescription className="text-on-surface-variant">
-                {selectedStudent?.full_name} ({selectedStudent?.email})
+          <DialogContent className="bg-surface border-border-base text-text-primary rounded-2xl shadow-2xl overflow-hidden p-0 max-w-md">
+            <div className="h-24 bg-gradient-to-r from-primary via-secondary to-tertiary relative">
+               <div className="absolute -bottom-10 left-6">
+                  <Avatar className="w-20 h-20 border-4 border-surface shadow-md bg-surface-container text-primary">
+                    <AvatarFallback className="text-[24px] font-bold">{selectedStudent?.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+               </div>
+            </div>
+            <DialogHeader className="pt-14 px-6 pb-2 border-b border-border-base">
+              <DialogTitle className="font-headline-md text-[24px] font-bold text-text-primary">{selectedStudent?.full_name}</DialogTitle>
+              <DialogDescription className="text-text-secondary text-[14px]">
+                {selectedStudent?.email}
               </DialogDescription>
             </DialogHeader>
             {selectedStudent && (
-              <div className="space-y-4">
+              <div className="p-6 space-y-4 bg-surface-container/20">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="glass-panel p-4 rounded-xl space-y-1">
-                    <p className="text-sm text-on-surface-variant">Joined</p>
-                    <p className="text-lg font-medium text-on-surface">{new Date(selectedStudent.created_at).toLocaleDateString()}</p>
+                  <div className="bg-surface border border-border-base p-4 rounded-xl shadow-sm">
+                    <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Joined</p>
+                    <p className="text-[15px] font-bold text-text-primary">{new Date(selectedStudent.created_at).toLocaleDateString()}</p>
                   </div>
-                  <div className="glass-panel p-4 rounded-xl space-y-1">
-                    <p className="text-sm text-on-surface-variant">Status</p>
+                  <div className="bg-surface border border-border-base p-4 rounded-xl shadow-sm">
+                    <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Status</p>
                     {selectedStudent.is_suspended ? (
-                       <Badge variant="destructive" className="bg-error/20 text-error border border-error/30">Suspended</Badge>
+                       <span className="inline-block bg-error/10 text-error border border-error/20 px-2.5 py-0.5 rounded-md text-[12px] font-bold">Suspended</span>
                     ) : (
-                       <Badge className="bg-primary/20 text-primary border border-primary/30">Active</Badge>
+                       <span className="inline-block bg-success/10 text-success border border-success/20 px-2.5 py-0.5 rounded-md text-[12px] font-bold">Active Account</span>
                     )}
                   </div>
-                  <div className="glass-panel p-4 rounded-xl space-y-1">
-                    <p className="text-sm text-on-surface-variant">Credits</p>
-                    <p className="text-lg font-medium text-on-surface flex items-center gap-1">
-                      <span className="material-symbols-outlined text-chart-4 text-[20px]">bolt</span>
+                  <div className="bg-surface border border-border-base p-4 rounded-xl shadow-sm">
+                    <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Credits Earned</p>
+                    <p className="text-[18px] font-bold text-text-primary flex items-center gap-1">
+                      <span className="material-symbols-outlined text-warning text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
                       {selectedStudent.credits}
                     </p>
                   </div>
-                  <div className="glass-panel p-4 rounded-xl space-y-1">
-                    <p className="text-sm text-on-surface-variant">Total Enrollments</p>
-                    <p className="text-lg font-medium text-on-surface">{selectedStudent.enrollments_count}</p>
+                  <div className="bg-surface border border-border-base p-4 rounded-xl shadow-sm">
+                    <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Total Enrollments</p>
+                    <p className="text-[18px] font-bold text-text-primary">{selectedStudent.enrollments_count}</p>
                   </div>
                 </div>
               </div>
             )}
+            <div className="p-4 border-t border-border-base bg-surface flex justify-end gap-3">
+              <Button onClick={() => setDetailOpen(false)} variant="outline" className="rounded-xl border-border-base font-bold text-[13px]">Close</Button>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
     </AppLayout>
   );
 }
-

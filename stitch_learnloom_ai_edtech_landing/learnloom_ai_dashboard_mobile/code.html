@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LearnLoom - Mobile Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Hanken+Grotesk:wght@600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#c3c6d7",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "secondary-container": "#57dffe",
+                        "inverse-primary": "#b4c5ff",
+                        "surface": "#FFFFFF",
+                        "on-secondary-fixed-variant": "#004e5c",
+                        "inverse-surface": "#213145",
+                        "secondary": "#00687a",
+                        "on-tertiary-container": "#f6edff",
+                        "surface-container": "#e5eeff",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "primary-container": "#2563eb",
+                        "tertiary": "#632ecd",
+                        "surface-bright": "#f8f9ff",
+                        "on-primary-container": "#eeefff",
+                        "tertiary-fixed": "#e9ddff",
+                        "surface-dim": "#cbdbf5",
+                        "on-primary-fixed": "#00174b",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed-dim": "#d0bcff",
+                        "background": "#F8FAFC",
+                        "on-tertiary-fixed-variant": "#5516be",
+                        "error-container": "#ffdad6",
+                        "on-secondary-container": "#006172",
+                        "text-primary": "#0F172A",
+                        "primary": "#004ac6",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed-dim": "#4cd7f6",
+                        "on-surface-variant": "#434655",
+                        "success": "#22C55E",
+                        "secondary-fixed": "#acedff",
+                        "surface-container-highest": "#d3e4fe",
+                        "surface-tint": "#0053db",
+                        "text-secondary": "#64748B",
+                        "surface-variant": "#d3e4fe",
+                        "surface-container-high": "#dce9ff",
+                        "primary-fixed": "#dbe1ff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "on-tertiary-fixed": "#23005c",
+                        "surface-container-low": "#eff4ff",
+                        "on-secondary-fixed": "#001f26",
+                        "on-primary": "#ffffff",
+                        "tertiary-container": "#7d4ce7",
+                        "on-secondary": "#ffffff",
+                        "border-base": "#E2E8F0",
+                        "on-error": "#ffffff",
+                        "outline": "#737686",
+                        "on-background": "#0b1c30",
+                        "on-tertiary": "#ffffff",
+                        "error": "#EF4444",
+                        "warning": "#F59E0B",
+                        "on-surface": "#0b1c30"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "stack-md": "16px",
+                        "stack-lg": "32px",
+                        "margin-desktop": "40px",
+                        "stack-xl": "64px",
+                        "margin-mobile": "16px",
+                        "container-max": "1280px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["Inter"],
+                        "label-sm": ["JetBrains Mono"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "body-md": ["Inter"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "headline-lg-mobile": ["Hanken Grotesk"],
+                        "body-lg": ["Inter"],
+                        "display-lg-mobile": ["Hanken Grotesk"],
+                        "label-md": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "display-lg-mobile": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        /* Hide scrollbar for clean mobile look */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-text-primary font-body-md antialiased pb-24 h-screen overflow-y-auto">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/70 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm flex justify-between items-center px-margin-mobile py-4 w-full">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container">
+<img alt="User Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDeAfebLaQMyj6uRflgODiHe5Ae5-wFMnqGXsu68rKHCUe1QYGaSHcGgj2RBnAv2MJCeMr6aw-OeUFwbKYhAm-HlB0fk_Z1bl6YZiItnA-lhBtNSS4UXWagZysuy6HMKnoiJnImzmcFlD1jq2ZnkTOlOZBsaKN_SoLygLvMsEqK9BwJhTwecmeCFoWyewsJnog4MtHc-xRlcIuad2N6hzBmhc3Jh84p3yoeVynB1FixoLp-eIjUJNIyoib5DkgMYBrYlrOmmxTE0D_m"/>
+</div>
+<span class="font-headline-md text-headline-md font-bold text-primary">LearnLoom</span>
+</div>
+<div class="flex items-center gap-1 bg-surface-container px-3 py-1.5 rounded-full border border-border-base">
+<span class="font-label-sm text-label-sm text-warning">5 Day Streak</span>
+<span class="material-symbols-outlined text-warning text-sm" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+</div>
+</header>
+<main class="pt-[88px] px-margin-mobile flex flex-col gap-stack-lg max-w-container-max mx-auto md:hidden">
+<!-- Header -->
+<section class="mt-stack-sm">
+<h1 class="font-display-lg-mobile text-display-lg-mobile text-text-primary">Good morning, Alex!</h1>
+<p class="font-body-md text-body-md text-text-secondary mt-2">You're 75% through your AI Foundations course.</p>
+</section>
+<!-- Continue Learning -->
+<section>
+<div class="rounded-[24px] overflow-hidden shadow-[0_8px_16px_-4px_rgba(37,99,235,0.2)] relative p-6 bg-gradient-to-br from-[#2563EB] to-[#06B6D4] text-white">
+<div class="absolute top-0 right-0 opacity-20 transform translate-x-1/4 -translate-y-1/4">
+<span class="material-symbols-outlined text-[120px]">psychology</span>
+</div>
+<div class="relative z-10 flex flex-col gap-4">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider opacity-80">Continue Learning</span>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile mt-1">Advanced Machine Learning</h2>
+</div>
+<div class="mt-4">
+<div class="flex justify-between mb-2">
+<span class="font-label-sm text-label-sm">Progress</span>
+<span class="font-label-sm text-label-sm font-bold">75%</span>
+</div>
+<div class="w-full h-2 bg-white/20 rounded-full overflow-hidden">
+<div class="h-full bg-white rounded-full" style="width: 75%;"></div>
+</div>
+</div>
+<button class="mt-2 bg-white text-primary-container font-label-md text-label-md py-3 px-6 rounded-full w-full hover:bg-surface-bright transition-colors shadow-sm font-bold">
+                        Resume Course
+                    </button>
+</div>
+</div>
+</section>
+<!-- Main Content Grid -->
+<div class="flex flex-col gap-stack-md">
+<!-- Daily Streak -->
+<section class="bg-surface rounded-[24px] p-5 border border-border-base shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05),0_2px_4px_-2px_rgba(0,0,0,0.05)]">
+<div class="flex justify-between items-center mb-4">
+<h3 class="font-headline-md text-headline-md text-text-primary text-[18px]">Daily Activity</h3>
+<span class="material-symbols-outlined text-text-secondary">calendar_month</span>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex flex-col items-center gap-1 opacity-50">
+<span class="font-label-sm text-label-sm">M</span>
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center"></div>
+</div>
+<div class="flex flex-col items-center gap-1 opacity-50">
+<span class="font-label-sm text-label-sm">T</span>
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center"></div>
+</div>
+<div class="flex flex-col items-center gap-1">
+<span class="font-label-sm text-label-sm">W</span>
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-sm text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<div class="flex flex-col items-center gap-1">
+<span class="font-label-sm text-label-sm">T</span>
+<div class="w-8 h-8 rounded-full bg-[#8B5CF6] text-white flex items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+</div>
+</div>
+<div class="flex flex-col items-center gap-1">
+<span class="font-label-sm text-label-sm">F</span>
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center"></div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-xl bg-surface/70 backdrop-blur-xl border-t border-outline-variant/30 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 md:hidden">
+<a class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-xl px-4 py-1 hover:text-primary active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-label-sm text-label-sm mt-1">Learn</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-label-sm text-label-sm mt-1">Insights</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">emoji_events</span>
+<span class="font-label-sm text-label-sm mt-1">Awards</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-sm text-label-sm mt-1">Community</span>
+</a>
+</nav>
+</body></html>

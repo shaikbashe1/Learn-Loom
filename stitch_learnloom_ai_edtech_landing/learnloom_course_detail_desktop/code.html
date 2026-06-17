@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Course Detail</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "surface-bright": "#f8f9ff",
+                "secondary-fixed-dim": "#4cd7f6",
+                "primary-fixed": "#dbe1ff",
+                "on-primary": "#ffffff",
+                "on-primary-container": "#eeefff",
+                "border-base": "#E2E8F0",
+                "text-primary": "#0F172A",
+                "on-tertiary": "#ffffff",
+                "error": "#EF4444",
+                "surface-container-lowest": "#ffffff",
+                "surface-container-highest": "#d3e4fe",
+                "primary-container": "#2563eb",
+                "on-secondary-fixed": "#001f26",
+                "error-container": "#ffdad6",
+                "primary": "#004ac6",
+                "tertiary-container": "#7d4ce7",
+                "on-primary-fixed-variant": "#003ea8",
+                "surface": "#FFFFFF",
+                "inverse-primary": "#b4c5ff",
+                "on-tertiary-fixed": "#23005c",
+                "outline-variant": "#c3c6d7",
+                "on-secondary-fixed-variant": "#004e5c",
+                "on-primary-fixed": "#00174b",
+                "success": "#22C55E",
+                "on-background": "#0b1c30",
+                "surface-dim": "#cbdbf5",
+                "on-tertiary-fixed-variant": "#5516be",
+                "on-error-container": "#93000a",
+                "on-secondary-container": "#006172",
+                "surface-tint": "#0053db",
+                "on-surface": "#0b1c30",
+                "tertiary": "#632ecd",
+                "inverse-on-surface": "#eaf1ff",
+                "tertiary-fixed": "#e9ddff",
+                "surface-container-high": "#dce9ff",
+                "background": "#F8FAFC",
+                "warning": "#F59E0B",
+                "tertiary-fixed-dim": "#d0bcff",
+                "on-error": "#ffffff",
+                "surface-variant": "#d3e4fe",
+                "on-tertiary-container": "#f6edff",
+                "text-secondary": "#64748B",
+                "surface-container": "#e5eeff",
+                "secondary": "#00687a",
+                "primary-fixed-dim": "#b4c5ff",
+                "secondary-container": "#57dffe",
+                "on-surface-variant": "#434655",
+                "outline": "#737686",
+                "surface-container-low": "#eff4ff",
+                "secondary-fixed": "#acedff",
+                "on-secondary": "#ffffff",
+                "inverse-surface": "#213145"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "stack-lg": "32px",
+                "margin-mobile": "16px",
+                "margin-desktop": "40px",
+                "stack-sm": "8px",
+                "gutter": "24px",
+                "stack-xl": "64px",
+                "stack-md": "16px",
+                "container-max": "1280px"
+        },
+        "fontFamily": {
+                "body-lg": [
+                        "Inter"
+                ],
+                "body-sm": [
+                        "Inter"
+                ],
+                "label-sm": [
+                        "JetBrains Mono"
+                ],
+                "headline-lg": [
+                        "Hanken Grotesk"
+                ],
+                "display-lg-mobile": [
+                        "Hanken Grotesk"
+                ],
+                "display-lg": [
+                        "Hanken Grotesk"
+                ],
+                "headline-md": [
+                        "Hanken Grotesk"
+                ],
+                "headline-lg-mobile": [
+                        "Hanken Grotesk"
+                ],
+                "body-md": [
+                        "Inter"
+                ],
+                "label-md": [
+                        "JetBrains Mono"
+                ]
+        },
+        "fontSize": {
+                "body-lg": [
+                        "18px",
+                        {
+                                "lineHeight": "28px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "body-sm": [
+                        "14px",
+                        {
+                                "lineHeight": "20px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "label-sm": [
+                        "12px",
+                        {
+                                "lineHeight": "16px",
+                                "letterSpacing": "0.04em",
+                                "fontWeight": "500"
+                        }
+                ],
+                "headline-lg": [
+                        "32px",
+                        {
+                                "lineHeight": "40px",
+                                "letterSpacing": "-0.01em",
+                                "fontWeight": "600"
+                        }
+                ],
+                "display-lg-mobile": [
+                        "36px",
+                        {
+                                "lineHeight": "44px",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "display-lg": [
+                        "48px",
+                        {
+                                "lineHeight": "56px",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "headline-md": [
+                        "24px",
+                        {
+                                "lineHeight": "32px",
+                                "fontWeight": "600"
+                        }
+                ],
+                "headline-lg-mobile": [
+                        "24px",
+                        {
+                                "lineHeight": "32px",
+                                "fontWeight": "600"
+                        }
+                ],
+                "body-md": [
+                        "16px",
+                        {
+                                "lineHeight": "24px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "label-md": [
+                        "14px",
+                        {
+                                "lineHeight": "20px",
+                                "letterSpacing": "0.02em",
+                                "fontWeight": "500"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .glass-panel {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+    }
+    .shadow-level-1 {
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+    }
+</style>
+</head>
+<body class="bg-background text-text-primary font-body-md text-body-md antialiased min-h-screen pb-[100px] md:pb-0">
+<!-- TopAppBar (Desktop) -->
+<header class="hidden md:flex bg-white/70 dark:bg-surface-container-lowest/70 backdrop-blur-md border-b border-border-base dark:border-outline-variant shadow-sm fixed top-0 w-full z-50 transition-colors duration-200">
+<div class="flex justify-between items-center px-gutter h-16 w-full max-w-container-max mx-auto">
+<div class="flex items-center gap-stack-md cursor-pointer hover:bg-surface-container-low transition-colors rounded-lg p-2 active:scale-95 duration-200">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed" data-icon="workspace_premium">workspace_premium</span>
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">My Achievements</span>
+</div>
+<nav class="flex gap-gutter items-center">
+<a class="font-label-md text-label-md text-primary dark:text-primary-fixed font-semibold hover:bg-surface-container-low transition-colors px-3 py-2 rounded-lg active:scale-95 duration-200" href="#">Learn</a>
+<a class="font-label-md text-label-md text-text-secondary dark:text-on-surface-variant hover:bg-surface-container-low transition-colors px-3 py-2 rounded-lg active:scale-95 duration-200" href="#">Insights</a>
+<a class="font-label-md text-label-md text-text-secondary dark:text-on-surface-variant hover:bg-surface-container-low transition-colors px-3 py-2 rounded-lg active:scale-95 duration-200" href="#">Awards</a>
+</nav>
+<div class="flex items-center">
+<button class="p-2 text-text-secondary hover:bg-surface-container-low transition-colors rounded-full active:scale-95 duration-200">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed" data-icon="notifications">notifications</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="max-w-container-max mx-auto pt-0 md:pt-stack-xl px-margin-mobile md:px-margin-desktop w-full">
+<!-- Hero Section -->
+<section class="mt-stack-md md:mt-stack-lg rounded-xl overflow-hidden relative shadow-level-1 mb-stack-xl">
+<div class="h-[250px] md:h-[350px] w-full bg-surface-container-low relative">
+<img alt="Course Hero Image" class="w-full h-full object-cover opacity-90" data-alt="A sophisticated abstract technological background featuring glowing neural network pathways in high-key white and primary blue tones. The scene is illuminated by soft, modern light conveying a premium, AI-driven educational SaaS environment. Subtle glassmorphism overlays and deep translucent shadows add physical weight and clarity. The overall mood is intelligent, calm, and visionary, perfectly suited for an advanced modern learning platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0Nu5bSEFcIogyEtY31PimD8TDTOG62auCuM2W-6cbLD0yAd4KZTCtwtXIcebzp11pvqSomMc9D51kemSN_iKwBcS05OAjOqVl3G3XG-dhExO_deLJVl8kZjub7yXtQt-icl8L9bhVoIFsLd8rsDeJSOpWG3Q6ZfFYrWZt1cw28Y8GOIy3aqggDh-CV36Y4UIhOmxti6LG2NMECoWbCclNlrlihteDzXGkIBo0OM9hK3lWSqRqTv0W1X-2TI_eaO4kPphvAiP9p9yO"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+</div>
+<div class="absolute bottom-0 left-0 w-full p-gutter md:p-stack-lg text-white">
+<div class="flex flex-wrap gap-2 mb-stack-sm">
+<span class="bg-secondary-container text-on-secondary-container font-label-sm text-label-sm px-3 py-1 rounded-full backdrop-blur-sm bg-opacity-90">AI Generated</span>
+<span class="bg-tertiary-container text-on-tertiary font-label-sm text-label-sm px-3 py-1 rounded-full backdrop-blur-sm bg-opacity-90">Premium</span>
+</div>
+<h1 class="font-display-lg-mobile text-display-lg-mobile md:font-display-lg md:text-display-lg text-white mb-stack-sm tracking-tight">Advanced Generative AI for Engineers</h1>
+<p class="font-body-lg text-body-lg text-white/90 max-w-3xl mb-stack-md hidden md:block">Master the architecture and implementation of large language models, stable diffusion, and advanced prompting techniques in this intensive masterclass.</p>
+<div class="flex items-center gap-stack-md flex-wrap">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-warning" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-md text-label-md text-white">4.9 (2.4k ratings)</span>
+</div>
+<span class="text-white/50 hidden md:inline">•</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-white/80" data-icon="group">group</span>
+<span class="font-label-md text-label-md text-white/90">14,200 already enrolled</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter pb-stack-xl">
+<!-- Main Content Area -->
+<div class="md:col-span-8 flex flex-col gap-stack-xl">
+<!-- Overview -->
+<section>
+<h2 class="font-headline-lg text-headline-lg text-text-primary mb-stack-md">Course Overview</h2>
+<p class="font-body-md text-body-md text-text-secondary leading-relaxed mb-stack-md">
+                        This comprehensive program dives deep into the mechanisms behind today's most powerful AI models. Designed for software engineers and data scientists, you will learn not just how to consume AI APIs, but how to architect, fine-tune, and deploy custom generative solutions.
+                    </p>
+<h3 class="font-headline-md text-headline-md text-text-primary mt-stack-lg mb-stack-sm">Skills You'll Master</h3>
+<div class="flex flex-wrap gap-2">
+<span class="bg-surface-container text-text-primary border border-border-base font-label-md text-label-md px-4 py-2 rounded-full">LLM Architecture</span>
+<span class="bg-surface-container text-text-primary border border-border-base font-label-md text-label-md px-4 py-2 rounded-full">Vector Databases</span>
+<span class="bg-surface-container text-text-primary border border-border-base font-label-md text-label-md px-4 py-2 rounded-full">Fine-tuning</span>
+<span class="bg-surface-container text-text-primary border border-border-base font-label-md text-label-md px-4 py-2 rounded-full">Prompt Engineering</span>
+<span class="bg-surface-container text-text-primary border border-border-base font-label-md text-label-md px-4 py-2 rounded-full">RAG Systems</span>
+</div>
+</section>
+<!-- Curriculum -->
+<section>
+<div class="flex justify-between items-end mb-stack-md">
+<h2 class="font-headline-lg text-headline-lg text-text-primary">Curriculum</h2>
+<span class="font-label-md text-label-md text-text-secondary">24 Modules • 48 Hours</span>
+</div>
+<div class="flex flex-col gap-stack-sm">
+<!-- Module 1 -->
+<div class="bg-surface border border-border-base rounded-xl shadow-level-1 overflow-hidden">
+<div class="p-stack-md flex justify-between items-center cursor-pointer hover:bg-surface-bright transition-colors">
+<div class="flex items-center gap-stack-md">
+<div class="w-10 h-10 rounded-full bg-primary-container/10 flex items-center justify-center">
+<span class="font-label-md text-label-md text-primary font-bold">1</span>
+</div>
+<div>
+<h4 class="font-headline-md text-headline-md text-text-primary text-lg">Foundations of Transformer Models</h4>
+<p class="font-body-sm text-body-sm text-text-secondary">4 lessons • 2 hours</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-text-secondary" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+<!-- Module 2 (Expanded state mockup) -->
+<div class="bg-surface border border-primary/20 rounded-xl shadow-level-1 overflow-hidden ring-1 ring-primary/10">
+<div class="p-stack-md flex justify-between items-center border-b border-border-base bg-surface-bright">
+<div class="flex items-center gap-stack-md">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center">
+<span class="font-label-md text-label-md font-bold">2</span>
+</div>
+<div>
+<h4 class="font-headline-md text-headline-md text-primary text-lg">Implementing RAG Architectures</h4>
+<p class="font-body-sm text-body-sm text-text-secondary">6 lessons • 4.5 hours</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary" data-icon="expand_less">expand_less</span>
+</div>
+<div class="p-0 flex flex-col">
+<div class="flex items-center justify-between p-stack-md hover:bg-surface-container-lowest border-b border-border-base/50 pl-[72px]">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-text-secondary" data-icon="play_circle">play_circle</span>
+<span class="font-body-md text-body-md text-text-primary">Introduction to Vector Embeddings</span>
+</div>
+<span class="font-body-sm text-body-sm text-text-secondary">15:00</span>
+</div>
+<div class="flex items-center justify-between p-stack-md hover:bg-surface-container-lowest border-b border-border-base/50 pl-[72px]">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-text-secondary" data-icon="play_circle">play_circle</span>
+<span class="font-body-md text-body-md text-text-primary">Choosing a Vector Database</span>
+</div>
+<span class="font-body-sm text-body-sm text-text-secondary">22:30</span>
+</div>
+<div class="flex items-center justify-between p-stack-md hover:bg-surface-container-lowest bg-surface-container-low pl-[72px]">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="assignment">assignment</span>
+<span class="font-body-md text-body-md text-primary font-medium">Project: Build a Semantic Search Engine</span>
+</div>
+<span class="bg-secondary-container text-on-secondary-container font-label-sm text-label-sm px-2 py-0.5 rounded-md">Required</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Instructor -->
+<section>
+<h2 class="font-headline-lg text-headline-lg text-text-primary mb-stack-md">Your Instructor</h2>
+<div class="bg-surface border border-border-base rounded-xl p-stack-lg shadow-level-1 flex flex-col md:flex-row gap-stack-lg items-start">
+<img alt="Instructor Profile" class="w-24 h-24 rounded-full object-cover border-2 border-surface shadow-sm" data-alt="A professional, well-lit headshot of a confident female instructor in her 40s. She is smiling subtly, wearing smart casual business attire. The background is a clean, slightly blurred modern office space with bright natural light, aligning with a premium, intelligent SaaS brand identity. Colors are crisp, with cool undertones and soft glass-like highlights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhD3ky6_gj4Y04lKt5HT_HjAk_Ipisvf3gpVsbd3dbHe1jTzGbplieuqrpL6YQa7kSQq17n5iqbgPzEc9alUv7HT68CiXAfrylub_VWR_063VBH0idffM-tbq6CRo5uckCSXAYP1JPe4RhcHmZ-w9F9aTHN2y5SZigy8v8dpR_gXs-mhIZnPXTC0eMQJf9yfnn1liMjYNyxqCdd5QXiG36SsOe7QMYRvX3TINUvznotMz-yyR59El0Jclfc7U5YIlQDFemlJMTaFDs"/>
+<div>
+<h3 class="font-headline-md text-headline-md text-text-primary">Dr. Elena Rostova</h3>
+<p class="font-body-md text-body-md text-text-secondary mb-stack-sm">Former Head of AI Research at TechNova • PhD in Cognitive Computing</p>
+<p class="font-body-md text-body-md text-text-primary leading-relaxed mb-stack-md">
+                                Elena has over 15 years of experience bridging the gap between theoretical machine learning and scalable production systems. She has authored multiple patents in neural architecture search.
+                            </p>
+<div class="flex gap-stack-lg">
+<div>
+<p class="font-headline-md text-headline-md text-primary">4.9</p>
+<p class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider">Avg Rating</p>
+</div>
+<div>
+<p class="font-headline-md text-headline-md text-primary">50k+</p>
+<p class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider">Students</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Sidebar -->
+<div class="md:col-span-4 mt-stack-lg md:mt-0">
+<div class="sticky top-[100px] bg-surface border border-border-base rounded-xl p-stack-lg shadow-level-1">
+<div class="mb-stack-lg pb-stack-md border-b border-border-base">
+<h2 class="font-display-lg-mobile text-display-lg-mobile text-text-primary mb-1">$299</h2>
+<p class="font-body-md text-body-md text-success flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="bolt">bolt</span> Full Lifetime Access
+                        </p>
+</div>
+<button class="w-full bg-primary-container hover:bg-primary text-on-primary-container font-label-md text-label-md py-4 rounded-xl mb-stack-sm transition-all duration-200 active:scale-95 shadow-md flex items-center justify-center gap-2">
+<span>Enroll Now</span>
+<span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<button class="w-full bg-surface hover:bg-surface-container-low text-text-primary border border-border-base font-label-md text-label-md py-3 rounded-xl transition-all duration-200 active:scale-95 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" data-icon="favorite_border">favorite_border</span>
+<span>Save for Later</span>
+</button>
+<div class="mt-stack-lg flex flex-col gap-stack-sm">
+<div class="flex items-center gap-3 text-text-secondary">
+<span class="material-symbols-outlined" data-icon="schedule">schedule</span>
+<span class="font-body-md text-body-md">48 Hours of Video Context</span>
+</div>
+<div class="flex items-center gap-3 text-text-secondary">
+<span class="material-symbols-outlined" data-icon="signal_cellular_alt">signal_cellular_alt</span>
+<span class="font-body-md text-body-md">Advanced Level</span>
+</div>
+<div class="flex items-center gap-3 text-text-secondary">
+<span class="material-symbols-outlined" data-icon="workspace_premium">workspace_premium</span>
+<span class="font-body-md text-body-md">Certificate of Completion</span>
+</div>
+<div class="flex items-center gap-3 text-text-secondary">
+<span class="material-symbols-outlined" data-icon="closed_caption">closed_caption</span>
+<span class="font-body-md text-body-md">English, Spanish, French [CC]</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile) -->
+<nav class="md:hidden bg-white/70 dark:bg-surface-container-lowest/70 backdrop-blur-md border-t border-border-base dark:border-outline-variant shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] fixed bottom-0 w-full z-50 rounded-t-xl pb-safe">
+<div class="flex justify-around items-center py-2 px-margin-mobile">
+<a class="flex flex-col items-center justify-center bg-primary-container dark:bg-primary-fixed-dim text-on-primary-container dark:text-on-primary-fixed rounded-full px-4 py-1 active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="school">school</span>
+<span class="font-label-sm text-label-sm mt-1">Learn</span>
+</a>
+<a class="flex flex-col items-center justify-center text-text-secondary dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed active:scale-90 transition-transform duration-200 px-4 py-1" href="#">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+<span class="font-label-sm text-label-sm mt-1">Insights</span>
+</a>
+<a class="flex flex-col items-center justify-center text-text-secondary dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed active:scale-90 transition-transform duration-200 px-4 py-1" href="#">
+<span class="material-symbols-outlined" data-icon="emoji_events">emoji_events</span>
+<span class="font-label-sm text-label-sm mt-1">Awards</span>
+</a>
+<a class="flex flex-col items-center justify-center text-text-secondary dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed active:scale-90 transition-transform duration-200 px-4 py-1" href="#">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+<span class="font-label-sm text-label-sm mt-1">Profile</span>
+</a>
+</div>
+</nav>
+</body></html>

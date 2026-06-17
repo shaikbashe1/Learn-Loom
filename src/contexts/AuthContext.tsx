@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { supabase } from '@/db/supabase';
 import type { Profile } from '@/types/types';
 import { toast } from 'sonner';
+import { logUserActivity } from '@/lib/activity';
 
 export async function getProfile(userId?: string): Promise<Profile | null> {
   let query = supabase.from('profiles').select('*');
@@ -73,9 +74,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
+        if (event === 'SIGNED_IN') {
+          void logUserActivity(session.user.id, 'login');
+        }
         setLoading(true);
         getProfile(session.user.id).then(data => {
           setProfile(applyRoleOverride(session.user, data));

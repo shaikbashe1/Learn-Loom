@@ -1,31 +1,36 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
 export function TopAppBar() {
+  const [scrolled, setScrolled] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <header className="bg-background/80 backdrop-blur-md fixed top-0 w-full z-50 border-b border-outline-variant/30 shadow-[0_0_20px_rgba(128,131,255,0.1)]">
-      <div className="flex justify-between items-center px-gutter py-md max-w-[1440px] mx-auto">
-        <div className="font-headline-md text-headline-md font-bold text-primary tracking-tight">LearnLoom</div>
-        
-        {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center space-x-lg font-label-md text-label-md">
-          <Link className="text-primary border-b-2 border-primary pb-1" to="/courses">Curriculum</Link>
-          <a className="text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-all duration-200 px-sm py-xs rounded" href="#features">Features</a>
-          <a className="text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-all duration-200 px-sm py-xs rounded" href="#enterprise">Enterprise</a>
-          <Link className="text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-all duration-200 px-sm py-xs rounded" to="/pricing">Pricing</Link>
-        </nav>
-        
-        <div className="hidden md:flex items-center space-x-md font-label-md text-label-md">
-          <Link className="text-on-surface-variant hover:text-primary transition-colors" to="/login">Sign In</Link>
-          <Link className="bg-primary text-on-primary px-lg py-sm rounded hover:scale-95 duration-100 font-bold shadow-[0_0_8px_rgba(192,193,255,0.5)]" to="/signup">
-            Get Started
-          </Link>
-        </div>
-        
-        {/* Mobile Menu Toggle */}
-        <button className="md:hidden text-primary">
-          <span className="material-symbols-outlined text-[24px]">menu</span>
-        </button>
+    <nav className={`fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 backdrop-blur-md border-b border-border-base transition-all duration-300 ${scrolled ? 'shadow-md bg-surface/90' : 'shadow-sm bg-surface/70'}`} id="main-nav">
+      <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
+        <span className="material-symbols-outlined text-primary text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>schema</span>
+        <span className="font-headline-md text-headline-md font-bold text-primary tracking-tight">LearnLoom</span>
       </div>
-    </header>
+      <div className="hidden md:flex items-center gap-8">
+        <Link className="font-body-md text-body-md text-text-secondary hover:text-primary transition-colors duration-200" to="/">Platform</Link>
+        <Link className="font-body-md text-body-md text-text-secondary hover:text-primary transition-colors duration-200" to="/courses">Curriculum</Link>
+        <Link className="font-body-md text-body-md text-text-secondary hover:text-primary transition-colors duration-200" to="/pricing">Pricing</Link>
+        <Link className="font-body-md text-body-md text-text-secondary hover:text-primary transition-colors duration-200" to="/community">Resources</Link>
+      </div>
+      <div className="flex items-center gap-4">
+        <Link className="hidden sm:inline-flex font-label-md text-label-md text-primary font-medium hover:opacity-80 transition-opacity" to="/login">Sign In</Link>
+        <Link className="inline-flex items-center justify-center px-6 py-2.5 rounded-full bg-primary-container text-on-primary font-label-md text-label-md font-medium hover:bg-primary transition-colors shadow-sm cursor-pointer active:opacity-80" to="/signup">
+          Join for Free
+        </Link>
+      </div>
+    </nav>
   );
 }

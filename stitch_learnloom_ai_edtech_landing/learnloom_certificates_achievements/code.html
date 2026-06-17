@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LearnLoom - Achievements &amp; Certificates</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-high": "#dce9ff",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "inverse-surface": "#213145",
+                        "surface-dim": "#cbdbf5",
+                        "surface-container-low": "#eff4ff",
+                        "on-background": "#0b1c30",
+                        "secondary-fixed": "#acedff",
+                        "on-tertiary-container": "#f6edff",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed": "#00174b",
+                        "primary": "#004ac6",
+                        "on-secondary-fixed": "#001f26",
+                        "surface": "#FFFFFF",
+                        "inverse-primary": "#b4c5ff",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed": "#e9ddff",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-container": "#eeefff",
+                        "surface-container": "#e5eeff",
+                        "surface-tint": "#0053db",
+                        "warning": "#F59E0B",
+                        "on-primary": "#ffffff",
+                        "tertiary": "#632ecd",
+                        "border-base": "#E2E8F0",
+                        "background": "#F8FAFC",
+                        "text-secondary": "#64748B",
+                        "on-tertiary-fixed-variant": "#5516be",
+                        "surface-variant": "#d3e4fe",
+                        "on-tertiary-fixed": "#23005c",
+                        "surface-bright": "#f8f9ff",
+                        "on-surface": "#0b1c30",
+                        "tertiary-container": "#7d4ce7",
+                        "error": "#EF4444",
+                        "outline-variant": "#c3c6d7",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#4cd7f6",
+                        "on-secondary-container": "#006172",
+                        "secondary": "#00687a",
+                        "inverse-on-surface": "#eaf1ff",
+                        "primary-container": "#2563eb",
+                        "on-secondary-fixed-variant": "#004e5c",
+                        "surface-container-lowest": "#ffffff",
+                        "outline": "#737686",
+                        "text-primary": "#0F172A",
+                        "on-surface-variant": "#434655",
+                        "on-error": "#ffffff",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "tertiary-fixed-dim": "#d0bcff",
+                        "secondary-container": "#57dffe",
+                        "success": "#22C55E",
+                        "surface-container-highest": "#d3e4fe",
+                        "primary-fixed": "#dbe1ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-lg": "32px",
+                        "stack-md": "16px",
+                        "gutter": "24px",
+                        "stack-xl": "64px",
+                        "margin-desktop": "40px",
+                        "stack-sm": "8px",
+                        "container-max": "1280px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Hanken Grotesk"],
+                        "display-lg-mobile": ["Hanken Grotesk"],
+                        "label-sm": ["JetBrains Mono"],
+                        "body-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "label-md": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "display-lg-mobile": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .premium-gradient {
+            background: linear-gradient(135deg, #004ac6 0%, #4cd7f6 50%, #7d4ce7 100%);
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, #004ac6 0%, #7d4ce7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .shadow-soft {
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+        }
+        .shadow-premium {
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen font-body-md pb-24 md:pb-0">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white/70 dark:bg-surface-container-lowest/70 backdrop-blur-md border-b border-border-base dark:border-outline-variant shadow-sm flex justify-between items-center px-gutter h-16 max-w-container-max mx-auto">
+<button class="text-primary dark:text-primary-fixed active:scale-95 duration-200 p-2 rounded-full hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">workspace_premium</span>
+</button>
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">My Achievements</h1>
+<button class="text-text-secondary dark:text-on-surface-variant active:scale-95 duration-200 p-2 rounded-full hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">notifications</span>
+</button>
+</header>
+<main class="pt-24 px-margin-mobile md:px-gutter max-w-[800px] mx-auto space-y-stack-xl">
+<!-- Header Section -->
+<section class="text-center space-y-stack-sm">
+<h2 class="font-display-lg-mobile text-display-lg-mobile text-text-primary">Your Achievements</h2>
+<p class="font-body-md text-body-md text-text-secondary">You have earned <span class="font-bold text-primary">12</span> certificates</p>
+</section>
+<!-- Featured Certificate -->
+<section class="space-y-stack-md">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-text-primary">Featured Certificate</h3>
+<div class="relative rounded-xl p-[2px] premium-gradient shadow-premium group cursor-pointer hover:-translate-y-1 transition-transform duration-300">
+<div class="bg-surface rounded-[10px] overflow-hidden relative">
+<!-- Glassmorphic Preview Header -->
+<div class="relative h-48 w-full bg-surface-container-high overflow-hidden">
+<img alt="An abstract, modern digital artwork featuring flowing, translucent waves of deep blue, cyan, and subtle violet light against a clean white background. The composition is dynamic and ethereal, suggesting advanced AI processes and high-tech elegance. The lighting is soft and diffused, creating a premium, sophisticated aesthetic perfect for a high-end educational platform." class="w-full h-full object-cover opacity-80 mix-blend-overlay" data-alt="An abstract, modern digital artwork featuring flowing, translucent waves of deep blue, cyan, and subtle violet light against a clean white background. The composition is dynamic and ethereal, suggesting advanced AI processes and high-tech elegance. The lighting is soft and diffused, creating a premium, sophisticated aesthetic perfect for a high-end educational platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHh6NvdH9zlggs5sXX51u-hYl_DQmmGLfLR_XZcXLkID-ft4Vv9ht5jsbh7KM2uHmbXC3T6JqvoIOW9hRi45hfpEb4NMJEZ494oyNJ6GgB4pbH43kKp53ICDEn3YaLq3TlRLTn_aAJPO7NoIjj046998odrVigGQRlPp3L3RZwnPptqumLlOdb4GULpXCLEih6Rdkx8FwacBWdkXIK0Sv66VkGGtaacH7pMTJfnjrboPmDoxZ-Sx8DGhrxYlWwJtGcNlTIYPah-a2Y"/>
+<div class="absolute inset-0 glass-panel flex flex-col justify-center items-center text-center p-6 border-none">
+<span class="material-symbols-outlined text-4xl text-primary mb-2" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+<h4 class="font-headline-md text-headline-md text-text-primary mb-1">Advanced Machine Learning Architecture</h4>
+<p class="font-label-sm text-label-sm text-text-secondary uppercase tracking-widest">Mastery Level</p>
+</div>
+<!-- Verified Badge -->
+<div class="absolute top-4 right-4 bg-secondary/10 backdrop-blur-md border border-secondary/20 rounded-full px-3 py-1 flex items-center space-x-1">
+<span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="font-label-sm text-label-sm text-secondary font-semibold">Verified</span>
+</div>
+</div>
+<!-- Content Details -->
+<div class="p-6 space-y-stack-md bg-surface">
+<div class="flex justify-between items-end border-b border-border-base pb-4">
+<div>
+<p class="font-body-sm text-body-sm text-text-secondary mb-1">Issued by LearnLoom</p>
+<p class="font-label-md text-label-md text-text-primary font-medium">Oct 15, 2023</p>
+</div>
+<div class="text-right">
+<p class="font-body-sm text-body-sm text-text-secondary mb-1">Credential ID</p>
+<p class="font-label-md text-label-md text-text-primary font-mono">LL-8472-MX</p>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex flex-col sm:flex-row gap-4 pt-2">
+<button class="flex-1 bg-primary text-on-primary font-label-md text-label-md font-medium py-3 px-4 rounded-lg flex items-center justify-center space-x-2 hover:bg-primary/90 transition-colors shadow-soft">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">download</span>
+<span>Download PDF</span>
+</button>
+<button class="flex-1 bg-surface-container text-on-surface font-label-md text-label-md font-medium py-3 px-4 rounded-lg flex items-center justify-center space-x-2 border border-border-base hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[#0A66C2]" style="font-variation-settings: 'FILL' 1;">share</span>
+<span>Share to LinkedIn</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Certificate Gallery -->
+<section class="space-y-stack-md">
+<div class="flex justify-between items-center">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-text-primary">Certificate Gallery</h3>
+<button class="text-primary font-label-sm text-label-sm hover:underline">View All</button>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<!-- Gallery Item 1 -->
+<div class="bg-surface rounded-xl border border-border-base shadow-soft p-4 flex gap-4 items-center hover:-translate-y-1 hover:shadow-premium transition-all duration-300">
+<div class="w-16 h-16 rounded-lg bg-surface-container-high flex items-center justify-center shrink-0 border border-primary/10">
+<span class="material-symbols-outlined text-3xl text-secondary" style="font-variation-settings: 'FILL' 1;">bar_chart</span>
+</div>
+<div class="flex-1 min-w-0">
+<h4 class="font-label-md text-label-md text-text-primary font-bold truncate">Data Visualization Mastery</h4>
+<p class="font-body-sm text-body-sm text-text-secondary mt-1">Sep 2023</p>
+</div>
+<button aria-label="Verify Certificate" class="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">open_in_new</span>
+</button>
+</div>
+<!-- Gallery Item 2 -->
+<div class="bg-surface rounded-xl border border-border-base shadow-soft p-4 flex gap-4 items-center hover:-translate-y-1 hover:shadow-premium transition-all duration-300">
+<div class="w-16 h-16 rounded-lg bg-tertiary/10 flex items-center justify-center shrink-0 border border-tertiary/20">
+<span class="material-symbols-outlined text-3xl text-tertiary" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<div class="flex-1 min-w-0">
+<h4 class="font-label-md text-label-md text-text-primary font-bold truncate">Generative AI Foundations</h4>
+<p class="font-body-sm text-body-sm text-text-secondary mt-1">Aug 2023</p>
+</div>
+<button aria-label="Verify Certificate" class="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">open_in_new</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Achievement Timeline -->
+<section class="space-y-stack-md bg-surface-bright rounded-xl p-6 border border-border-base">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-text-primary border-b border-border-base pb-4 mb-6">Achievement Timeline</h3>
+<div class="relative border-l-2 border-surface-container-high ml-4 space-y-8 pb-4">
+<!-- Timeline Item 1 -->
+<div class="relative pl-8">
+<div class="absolute -left-[11px] top-1 w-5 h-5 rounded-full premium-gradient border-2 border-surface"></div>
+<div class="space-y-1">
+<div class="flex items-center space-x-2">
+<span class="bg-tertiary/10 text-tertiary font-label-sm text-label-sm px-2 py-0.5 rounded-full border border-tertiary/20">Top 1%</span>
+<span class="font-body-sm text-body-sm text-text-secondary">Last Week</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-text-primary text-lg">Top 1% Learner Badge</h4>
+<p class="font-body-sm text-body-sm text-text-secondary">Awarded for exceptional performance and active participation in community discussions.</p>
+</div>
+</div>
+<!-- Timeline Item 2 -->
+<div class="relative pl-8">
+<div class="absolute -left-[11px] top-1 w-5 h-5 rounded-full bg-primary border-2 border-surface"></div>
+<div class="space-y-1">
+<div class="flex items-center space-x-2">
+<span class="bg-secondary/10 text-secondary font-label-sm text-label-sm px-2 py-0.5 rounded-full border border-secondary/20">Streak</span>
+<span class="font-body-sm text-body-sm text-text-secondary">Oct 10, 2023</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-text-primary text-lg">10-Day Learning Streak</h4>
+<p class="font-body-sm text-body-sm text-text-secondary">Maintained consistent daily learning habits for 10 consecutive days.</p>
+</div>
+</div>
+<!-- Timeline Item 3 -->
+<div class="relative pl-8">
+<div class="absolute -left-[11px] top-1 w-5 h-5 rounded-full bg-outline-variant border-2 border-surface"></div>
+<div class="space-y-1">
+<div class="flex items-center space-x-2">
+<span class="bg-surface-container-high text-text-secondary font-label-sm text-label-sm px-2 py-0.5 rounded-full border border-border-base">Milestone</span>
+<span class="font-body-sm text-body-sm text-text-secondary">Jul 01, 2023</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-text-primary text-lg">First Course Completed</h4>
+<p class="font-body-sm text-body-sm text-text-secondary">Successfully finished "Introduction to Deep Learning Concepts".</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 rounded-t-xl bg-white/70 dark:bg-surface-container-lowest/70 backdrop-blur-md border-t border-border-base dark:border-outline-variant shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+<div class="w-full flex justify-around items-center py-2 px-margin-mobile">
+<button class="flex flex-col items-center justify-center text-text-secondary dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">school</span>
+<span class="font-label-sm text-label-sm mt-1">Learn</span>
+</button>
+<button class="flex flex-col items-center justify-center text-text-secondary dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">auto_awesome</span>
+<span class="font-label-sm text-label-sm mt-1">Insights</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-primary-container dark:bg-primary-fixed-dim text-on-primary-container dark:text-on-primary-fixed rounded-full px-4 py-1 active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">emoji_events</span>
+<span class="font-label-sm text-label-sm mt-1">Awards</span>
+</button>
+<button class="flex flex-col items-center justify-center text-text-secondary dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">account_circle</span>
+<span class="font-label-sm text-label-sm mt-1">Profile</span>
+</button>
+</div>
+</nav>
+</body></html>

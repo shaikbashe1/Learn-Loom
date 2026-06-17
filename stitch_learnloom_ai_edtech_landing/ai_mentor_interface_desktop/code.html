@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LearnLoom AI Mentor</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary": "#ffffff",
+                    "on-secondary-container": "#006172",
+                    "tertiary": "#632ecd",
+                    "border-base": "#E2E8F0",
+                    "on-tertiary-fixed-variant": "#5516be",
+                    "on-primary-container": "#eeefff",
+                    "error": "#EF4444",
+                    "background": "#F8FAFC",
+                    "surface-container-low": "#eff4ff",
+                    "error-container": "#ffdad6",
+                    "tertiary-fixed-dim": "#d0bcff",
+                    "on-secondary-fixed-variant": "#004e5c",
+                    "inverse-on-surface": "#eaf1ff",
+                    "surface-variant": "#d3e4fe",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-fixed": "#00174b",
+                    "on-surface-variant": "#434655",
+                    "on-error-container": "#93000a",
+                    "on-tertiary-container": "#f6edff",
+                    "on-primary-fixed-variant": "#003ea8",
+                    "primary-fixed": "#dbe1ff",
+                    "outline-variant": "#c3c6d7",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "text-secondary": "#64748B",
+                    "surface-bright": "#f8f9ff",
+                    "on-secondary-fixed": "#001f26",
+                    "primary": "#004ac6",
+                    "tertiary-fixed": "#e9ddff",
+                    "surface": "#FFFFFF",
+                    "secondary-fixed-dim": "#4cd7f6",
+                    "outline": "#737686",
+                    "text-primary": "#0F172A",
+                    "inverse-surface": "#213145",
+                    "surface-container-highest": "#d3e4fe",
+                    "warning": "#F59E0B",
+                    "secondary-container": "#57dffe",
+                    "tertiary-container": "#7d4ce7",
+                    "surface-container-high": "#dce9ff",
+                    "secondary-fixed": "#acedff",
+                    "on-tertiary-fixed": "#23005c",
+                    "on-surface": "#0b1c30",
+                    "inverse-primary": "#b4c5ff",
+                    "surface-tint": "#0053db",
+                    "on-background": "#0b1c30",
+                    "surface-dim": "#cbdbf5",
+                    "on-error": "#ffffff",
+                    "surface-container": "#e5eeff",
+                    "on-primary": "#ffffff",
+                    "secondary": "#00687a",
+                    "success": "#22C55E",
+                    "primary-container": "#2563eb"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-mobile": "16px",
+                    "stack-md": "16px",
+                    "stack-lg": "32px",
+                    "gutter": "24px",
+                    "stack-sm": "8px",
+                    "margin-desktop": "40px",
+                    "stack-xl": "64px",
+                    "container-max": "1280px"
+            },
+            "fontFamily": {
+                    "body-md": ["Inter"],
+                    "headline-md": ["Hanken Grotesk"],
+                    "headline-lg-mobile": ["Hanken Grotesk"],
+                    "label-sm": ["JetBrains Mono"],
+                    "display-lg-mobile": ["Hanken Grotesk"],
+                    "body-lg": ["Inter"],
+                    "label-md": ["JetBrains Mono"],
+                    "body-sm": ["Inter"],
+                    "headline-lg": ["Hanken Grotesk"],
+                    "display-lg": ["Hanken Grotesk"]
+            },
+            "fontSize": {
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}],
+                    "display-lg-mobile": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.5);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+        }
+        .ai-gradient-text {
+            background: linear-gradient(to right, #004ac6, #00687a, #632ecd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .ai-border-gradient {
+            position: relative;
+            background: clip-padding-box white;
+            border: 2px solid transparent;
+        }
+        .ai-border-gradient::before {
+            content: '';
+            position: absolute;
+            top: -2px; right: -2px; bottom: -2px; left: -2px;
+            z-index: -1;
+            border-radius: inherit;
+            background: linear-gradient(to right, #004ac6, #00687a, #632ecd);
+        }
+        /* Markdown/Code styling basics */
+        pre {
+            background-color: #0b1c30;
+            color: #dbe1ff;
+            padding: 16px;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+        }
+        code {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .prose p { margin-bottom: 1em; }
+        .prose ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
+    </style>
+</head>
+<body class="bg-background text-text-primary font-body-md h-screen flex flex-col overflow-hidden">
+<!-- Top Navigation (Shell structure based on JSON rules) -->
+<header class="bg-surface/70 backdrop-blur-xl fixed w-full top-0 z-50 shadow-sm border-b border-border-base/50 h-16 flex justify-between items-center px-margin-desktop">
+<div class="flex items-center gap-gutter">
+<div class="font-headline-md text-headline-md font-bold text-on-surface tracking-tight flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">psychology</span>
+                LearnLoom <span class="ai-gradient-text text-sm ml-1">AI Mentor</span>
+</div>
+<nav class="hidden md:flex gap-gutter items-center ml-8">
+<a class="text-text-secondary hover:text-primary transition-colors duration-200 font-label-md text-label-md" href="#">Platform</a>
+<a class="text-text-secondary hover:text-primary transition-colors duration-200 font-label-md text-label-md" href="#">Curriculum</a>
+<a class="text-primary font-bold border-b-2 border-primary pb-[20px] pt-[20px] transition-transform font-label-md text-label-md" href="#">AI Features</a>
+<a class="text-text-secondary hover:text-primary transition-colors duration-200 font-label-md text-label-md" href="#">Pricing</a>
+</nav>
+</div>
+<div class="flex items-center gap-stack-md">
+<button class="font-label-md text-label-md text-text-secondary hover:text-primary transition-colors duration-200 hidden md:block">Log In</button>
+<button class="bg-primary-container text-on-primary font-label-md text-label-md px-4 py-2 rounded-lg hover:bg-primary transition-colors shadow-sm hidden md:block">Get Started</button>
+</div>
+</header>
+<!-- Main Workspace Layout -->
+<main class="flex-1 flex pt-16 h-full overflow-hidden">
+<!-- Left Sidebar: Recent Chats -->
+<aside class="w-64 bg-surface border-r border-border-base flex-shrink-0 flex flex-col overflow-y-auto hidden lg:flex shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+<div class="p-stack-md border-b border-border-base/50">
+<button class="w-full flex items-center justify-center gap-2 bg-surface border border-border-base rounded-lg py-2 hover:-translate-y-[1px] hover:shadow-md transition-all text-primary font-label-md text-label-md group">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">add</span>
+                    New Chat
+                </button>
+</div>
+<div class="p-stack-md flex-1 overflow-y-auto">
+<h3 class="font-label-sm text-label-sm text-text-secondary mb-stack-sm uppercase tracking-wider">Today</h3>
+<ul class="space-y-1 mb-stack-md">
+<li>
+<button class="w-full text-left px-3 py-2 rounded-md bg-surface-container-low text-primary font-label-md text-label-md truncate border border-primary-fixed">
+                            Explain React Hooks
+                        </button>
+</li>
+<li>
+<button class="w-full text-left px-3 py-2 rounded-md hover:bg-surface-container-lowest text-on-surface-variant font-label-md text-label-md truncate transition-colors">
+                            Calculus Practice Problems
+                        </button>
+</li>
+</ul>
+<h3 class="font-label-sm text-label-sm text-text-secondary mb-stack-sm uppercase tracking-wider mt-stack-md">Yesterday</h3>
+<ul class="space-y-1 mb-stack-md">
+<li>
+<button class="w-full text-left px-3 py-2 rounded-md hover:bg-surface-container-lowest text-on-surface-variant font-label-md text-label-md truncate transition-colors">
+                            World War II Causes
+                        </button>
+</li>
+<li>
+<button class="w-full text-left px-3 py-2 rounded-md hover:bg-surface-container-lowest text-on-surface-variant font-label-md text-label-md truncate transition-colors">
+                            Essay Outline: Macbeth
+                        </button>
+</li>
+</ul>
+</div>
+<!-- User Mini Profile -->
+<div class="p-stack-md border-t border-border-base/50 mt-auto flex items-center gap-3 hover:bg-surface-container-lowest cursor-pointer transition-colors">
+<div class="w-8 h-8 rounded-full bg-tertiary-container flex items-center justify-center text-on-tertiary-container font-label-md">
+                    JD
+                </div>
+<div class="flex-1 truncate">
+<div class="font-label-md text-label-md text-text-primary">Jane Doe</div>
+<div class="font-label-sm text-label-sm text-text-secondary truncate">Free Plan</div>
+</div>
+<span class="material-symbols-outlined text-outline">settings</span>
+</div>
+</aside>
+<!-- Center: Chat Canvas -->
+<section class="flex-1 flex flex-col relative bg-surface-container-lowest overflow-hidden">
+<!-- Background Decorative Element for depth -->
+<div class="absolute inset-0 pointer-events-none opacity-20">
+<div class="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-gradient-to-br from-secondary-container to-tertiary-container blur-[100px] mix-blend-multiply"></div>
+<div class="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-gradient-to-tr from-surface-tint to-primary-container blur-[80px] mix-blend-multiply"></div>
+</div>
+<!-- Chat Area -->
+<div class="flex-1 overflow-y-auto p-stack-lg flex flex-col gap-stack-lg max-w-container-max mx-auto w-full z-10 scroll-smooth">
+<!-- Initial State Greeting (Optional, but good for context) -->
+<!-- <div class="flex flex-col items-center justify-center h-full text-center max-w-2xl mx-auto space-y-4">
+                    <span class="material-symbols-outlined text-6xl text-tertiary">robot_2</span>
+                    <h2 class="font-display-lg text-display-lg">How can I help you learn today?</h2>
+                </div> -->
+<!-- User Message -->
+<div class="flex justify-end w-full">
+<div class="max-w-[80%] bg-surface border border-border-base rounded-2xl rounded-tr-sm p-4 shadow-[0_4px_6px_-1px_rgb(0_0_0_/_0.05)] hover:-translate-y-[2px] transition-transform duration-300">
+<p class="font-body-md text-body-md text-text-primary">Can you explain how useEffect works in React with a simple example? I'm trying to fetch data when a component mounts.</p>
+</div>
+</div>
+<!-- AI Response -->
+<div class="flex justify-start w-full gap-4">
+<div class="w-10 h-10 rounded-full flex-shrink-0 bg-gradient-to-br from-primary to-tertiary flex items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-on-primary" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+</div>
+<div class="max-w-[85%] glass-panel rounded-2xl rounded-tl-sm p-6 prose relative group">
+<!-- AI Generated Badge -->
+<div class="absolute -top-3 left-4 bg-secondary-container text-on-secondary-container font-label-sm text-label-sm px-2 py-0.5 rounded-full border border-secondary shadow-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">auto_awesome</span>
+                            AI Generated
+                        </div>
+<p class="font-body-md text-body-md text-text-primary mt-2">Absolutely! Think of <code>useEffect</code> as a way to tell React, "Hey, after you render this component on the screen, I need you to do something extra."</p>
+<p class="font-body-md text-body-md text-text-primary">When fetching data on mount, you use an empty dependency array <code>[]</code> as the second argument. This tells React to only run the effect once, just like <code>componentDidMount</code> in older class components.</p>
+<div class="my-stack-md rounded-lg overflow-hidden border border-on-surface-variant/20 shadow-sm">
+<div class="bg-inverse-surface text-inverse-on-surface px-4 py-2 flex justify-between items-center border-b border-on-surface-variant/40">
+<span class="font-label-sm text-label-sm">jsx</span>
+<button class="flex items-center gap-1 text-surface-variant hover:text-white transition-colors font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px]">content_copy</span> Copy
+                                </button>
+</div>
+<pre><code>import React, { useState, useEffect } from 'react';
+
+function UserProfile() {
+  const [data, setData] = useState(null);
+
+  useEffect(() =&gt; {
+    // This runs ONCE after initial render
+    fetch('https://api.example.com/user')
+      .then(response =&gt; response.json())
+      .then(userData =&gt; setData(userData));
+      
+    // Optional cleanup function
+    return () =&gt; {
+       console.log("Cleanup if component unmounts");
+    };
+  }, []); // &lt;-- Empty array is the key!
+
+  if (!data) return &lt;div&gt;Loading...&lt;/div&gt;;
+  
+  return &lt;div&gt;Hello, {data.name}!&lt;/div&gt;;
+}</code></pre>
+</div>
+<p class="font-body-md text-body-md text-text-primary">Does this example make sense, or would you like to see how to handle errors during the fetch?</p>
+<!-- Feedback Actions -->
+<div class="flex gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-text-secondary hover:text-success transition-colors"><span class="material-symbols-outlined text-[20px]">thumb_up</span></button>
+<button class="text-text-secondary hover:text-error transition-colors"><span class="material-symbols-outlined text-[20px]">thumb_down</span></button>
+<button class="text-text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">refresh</span></button>
+</div>
+</div>
+</div>
+<!-- Suggested Prompts Chips -->
+<div class="flex flex-wrap gap-2 justify-center mt-stack-md mb-stack-lg">
+<button class="bg-surface border border-outline-variant rounded-full px-4 py-2 font-label-md text-label-md text-text-primary hover:border-primary hover:text-primary transition-colors shadow-sm">Handle fetch errors</button>
+<button class="bg-surface border border-outline-variant rounded-full px-4 py-2 font-label-md text-label-md text-text-primary hover:border-primary hover:text-primary transition-colors shadow-sm">What about async/await?</button>
+<button class="bg-surface border border-outline-variant rounded-full px-4 py-2 font-label-md text-label-md text-text-primary hover:border-primary hover:text-primary transition-colors shadow-sm">useEffect vs useMemo</button>
+</div>
+</div>
+<!-- Input Area -->
+<div class="p-stack-md border-t border-border-base/50 bg-surface/80 backdrop-blur-md z-20">
+<div class="max-w-3xl mx-auto relative ai-border-gradient rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] bg-surface">
+<div class="flex flex-col rounded-xl overflow-hidden bg-surface">
+<!-- Toolbar -->
+<div class="flex items-center gap-2 px-3 pt-3 pb-1 border-b border-transparent">
+<button class="p-1.5 text-text-secondary hover:text-primary rounded-md hover:bg-surface-container-low transition-colors" title="Upload File">
+<span class="material-symbols-outlined">attach_file</span>
+</button>
+<button class="p-1.5 text-text-secondary hover:text-tertiary rounded-md hover:bg-surface-container-low transition-colors" title="Voice Input">
+<span class="material-symbols-outlined">mic</span>
+</button>
+<div class="ml-auto flex items-center gap-2 px-2 py-1 bg-surface-container-low rounded-md border border-primary-fixed-dim">
+<span class="material-symbols-outlined text-[16px] text-primary">model_training</span>
+<span class="font-label-sm text-label-sm text-primary">GPT-4 Turbo</span>
+</div>
+</div>
+<!-- Textarea -->
+<textarea class="w-full bg-transparent border-none focus:ring-0 resize-none font-body-md text-body-md p-4 text-text-primary placeholder:text-text-secondary max-h-[200px]" placeholder="Message LearnLoom AI..." rows="2"></textarea>
+<!-- Send Action -->
+<div class="flex justify-end p-3 pt-1">
+<button class="bg-primary text-on-primary rounded-lg p-2 hover:bg-primary-container hover:shadow-md transition-all flex items-center justify-center h-10 w-10 disabled:opacity-50">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+</div>
+</div>
+<div class="text-center mt-2 font-label-sm text-label-sm text-text-secondary">
+                    LearnLoom AI can make mistakes. Verify important information.
+                </div>
+</div>
+</section>
+<!-- Right Sidebar: Learning Context / Study Plan -->
+<aside class="w-80 bg-surface border-l border-border-base flex-shrink-0 flex flex-col overflow-y-auto hidden xl:flex shadow-[-4px_0_24px_rgba(0,0,0,0.02)]">
+<div class="p-stack-md border-b border-border-base/50 sticky top-0 bg-surface/90 backdrop-blur z-10 flex justify-between items-center">
+<h3 class="font-headline-md text-headline-md text-text-primary">Study Context</h3>
+<span class="material-symbols-outlined text-outline cursor-pointer hover:text-primary">menu_book</span>
+</div>
+<div class="p-stack-md space-y-stack-lg">
+<!-- Current Module Card -->
+<div class="bg-surface border border-border-base rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-secondary"></div>
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-sm text-label-sm text-secondary font-bold uppercase">Current Module</span>
+<span class="material-symbols-outlined text-text-secondary text-[18px]">more_horiz</span>
+</div>
+<h4 class="font-headline-md text-[18px] leading-tight text-text-primary mb-2">Advanced React Patterns</h4>
+<div class="w-full bg-surface-container h-2 rounded-full mt-4 overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 45%;"></div>
+</div>
+<div class="flex justify-between mt-1">
+<span class="font-label-sm text-label-sm text-text-secondary">45% Completed</span>
+<span class="font-label-sm text-label-sm text-primary font-medium hover:underline cursor-pointer">Resume</span>
+</div>
+</div>
+<!-- Reference Materials Bento -->
+<div>
+<h4 class="font-label-md text-label-md text-text-primary font-bold mb-stack-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary text-[18px]">bookmark</span>
+                        Reference Materials
+                    </h4>
+<div class="grid grid-cols-2 gap-2">
+<div class="bg-surface-container-low border border-primary-fixed-dim rounded-lg p-3 hover:bg-surface-container cursor-pointer transition-colors flex flex-col items-center text-center gap-1">
+<span class="material-symbols-outlined text-primary">description</span>
+<span class="font-label-sm text-label-sm text-on-surface">React Docs</span>
+</div>
+<div class="bg-surface-container-low border border-primary-fixed-dim rounded-lg p-3 hover:bg-surface-container cursor-pointer transition-colors flex flex-col items-center text-center gap-1">
+<span class="material-symbols-outlined text-primary">code_blocks</span>
+<span class="font-label-sm text-label-sm text-on-surface">Code Sandbox</span>
+</div>
+<div class="col-span-2 bg-tertiary-fixed border border-tertiary-fixed-dim rounded-lg p-3 hover:bg-tertiary-fixed-dim cursor-pointer transition-colors flex items-center gap-3">
+<span class="material-symbols-outlined text-on-tertiary-fixed-variant" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+<span class="font-label-md text-label-md text-on-tertiary-fixed flex-1">Video: Hooks Deep Dive</span>
+</div>
+</div>
+</div>
+<!-- AI Study Goals -->
+<div>
+<h4 class="font-label-md text-label-md text-text-primary font-bold mb-stack-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">flag</span>
+                        Session Goals
+                    </h4>
+<ul class="space-y-2">
+<li class="flex items-start gap-2 bg-surface p-2 rounded-md border border-border-base">
+<input checked="" class="mt-1 rounded text-primary focus:ring-primary border-outline-variant" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-text-secondary line-through">Understand basic useState</span>
+</li>
+<li class="flex items-start gap-2 bg-surface p-2 rounded-md border border-border-base border-l-2 border-l-primary shadow-sm">
+<input class="mt-1 rounded text-primary focus:ring-primary border-outline-variant" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-text-primary">Master useEffect dependencies</span>
+</li>
+<li class="flex items-start gap-2 bg-surface p-2 rounded-md border border-border-base opacity-70">
+<input class="mt-1 rounded text-primary focus:ring-primary border-outline-variant" disabled="" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-text-secondary">Custom Hooks</span>
+</li>
+</ul>
+</div>
+</div>
+</aside>
+</main>
+</body></html>

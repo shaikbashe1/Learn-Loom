@@ -282,4 +282,15 @@ export interface ChatMessage {
   timestamp: string;
 }
 
+export interface DBActivityLog {
+  id: string;
+  user_id: string;
+  action_type: 'login' | 'code_run' | 'course_completed' | 'module_completed';
+  description?: string;
+  created_at: string;
+}
 
+export interface ActivityHeatmapItem {
+  activity_date: string;
+  activity_count: number;
+}

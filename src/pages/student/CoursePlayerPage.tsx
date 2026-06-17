@@ -4,6 +4,7 @@ import { AppLayout } from '@/components/layouts/AppLayout';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { getCourseModuleProgress, completeModule, getEnrollment } from '@/lib/progress';
+import { logUserActivity } from '@/lib/activity';
 import { toast } from 'sonner';
 import { buildYouTubeEmbedUrl } from '@/lib/youtube';
 import type { DBCourse, DBModule, DBModuleProgress } from '@/types/types';
@@ -71,7 +72,12 @@ export default function CoursePlayerPage() {
     }
 
     toast.success(isCourseDone ? '🎉 Course completed!' : 'Module completed — next one unlocked!');
-    if (isCourseDone) setCourseDone(true);
+    void logUserActivity(user.id, 'module_completed', `Completed module: ${activeModule.title}`);
+    
+    if (isCourseDone) {
+      setCourseDone(true);
+      void logUserActivity(user.id, 'course_completed', `Completed course: ${course?.title}`);
+    }
 
     await loadData();
     setCompleting(false);
@@ -81,7 +87,7 @@ export default function CoursePlayerPage() {
 
   if (loading) return (
     <AppLayout title="Course Player">
-      <div className="max-w-[1440px] mx-auto p-xl flex justify-center items-center h-64">
+      <div className="flex-1 flex justify-center items-center h-full">
         <span className="material-symbols-outlined animate-spin text-[48px] text-primary">autorenew</span>
       </div>
     </AppLayout>
@@ -90,218 +96,195 @@ export default function CoursePlayerPage() {
   const completedCount = modules.filter(m => m.status === 'completed').length;
 
   return (
-    <AppLayout title={course?.title ?? 'Course Player'}>
-      <div className="max-w-[1440px] mx-auto flex flex-col h-[calc(100vh-80px)]">
+    <AppLayout title={course?.title ?? 'Course Player'} noPadding>
+      <div className="flex-1 flex w-full h-[calc(100vh-80px)] overflow-hidden bg-background">
         
-        {/* Header */}
-        <div className="flex items-center justify-between mb-md shrink-0">
-          <Link to={`/courses/${courseId}`} className="inline-flex items-center gap-2 font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors">
-            <span className="material-symbols-outlined text-[18px]">arrow_back</span> Back to Course
-          </Link>
-          <div className="flex items-center gap-md w-full max-w-sm ml-auto">
-            <div className="flex-1 h-2 bg-surface-container-highest rounded-full overflow-hidden relative">
-              <div className="absolute left-0 top-0 h-full bg-primary progress-glow transition-all duration-500" style={{ width: `${progressPercent}%` }}></div>
+        {/* Left Sidebar: Curriculum */}
+        <aside className="w-80 bg-surface border-r border-border-base flex flex-col h-full z-10 shrink-0 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]">
+          <div className="p-6 border-b border-border-base/50">
+            <Link to={`/courses/${courseId}`} className="flex items-center gap-2 text-text-secondary font-label-sm text-label-sm mb-2 uppercase tracking-widest hover:text-primary transition-colors w-fit">
+              <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+              <span>Course Overview</span>
+            </Link>
+            <h1 className="font-headline-sm text-headline-sm font-bold text-text-primary leading-tight line-clamp-2" title={course?.title}>{course?.title ?? 'Course Player'}</h1>
+            <div className="mt-4">
+              <div className="flex justify-between items-end mb-1">
+                <span className="font-label-sm text-label-sm text-text-secondary">Progress</span>
+                <span className="font-label-sm text-label-sm font-bold text-primary">{progressPercent}%</span>
+              </div>
+              <div className="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-primary via-secondary-fixed-dim to-tertiary-container rounded-full transition-all duration-500" style={{ width: `${progressPercent}%` }}></div>
+              </div>
             </div>
-            <span className="font-label-md text-label-md text-primary font-bold shrink-0">{progressPercent}%</span>
-            {courseDone && (
-              <span className="font-label-sm text-label-sm px-2 py-1 rounded bg-primary/20 text-primary border border-primary/30 shrink-0 flex items-center gap-1">
-                <span className="material-symbols-outlined text-[14px]">workspace_premium</span> Completed
-              </span>
-            )}
           </div>
-        </div>
-
-        {/* Main Layout */}
-        <div className="flex flex-col lg:flex-row gap-xl flex-1 min-h-0">
           
-          {/* Main Content (Video + Tabs) */}
-          <div className="flex-1 flex flex-col min-w-0 bg-surface-container-lowest border border-outline-variant/60 rounded-xl overflow-hidden">
-            
-            {/* Video Player Area */}
-            <div className="aspect-video w-full bg-surface-container-lowest relative group border-b border-outline-variant/60">
-              {(() => {
-                const videoUrl = activeModule?.content_url || activeModule?.youtube_url || null;
-                if (!videoUrl) return (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-container-low">
-                    <span className="material-symbols-outlined text-[64px] text-outline-variant mb-4">menu_book</span>
-                    <p className="font-body-md text-on-surface-variant">No video for this module</p>
-                  </div>
-                );
-                const embedUrl = buildYouTubeEmbedUrl(videoUrl);
-                const videoId = embedUrl?.match(/embed\/([a-zA-Z0-9_-]{11})/)?.[1];
-                const cleanWatchUrl = videoId ? `https://www.youtube.com/watch?v=${videoId}` : videoUrl;
-                
+          <div className="flex-1 overflow-y-auto p-4 space-y-2">
+            {modules.map((mod, idx) => {
+              const isActive = mod.id === activeModule?.id;
+              
+              if (mod.status === 'completed') {
                 return (
-                  <div className="w-full h-full relative">
-                    {/* Top title bar overlay */}
-                    <div className="absolute top-0 left-0 w-full bg-gradient-to-b from-surface/80 to-transparent p-md flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
-                      <span className="font-label-md text-label-md font-bold text-white shadow-sm pointer-events-auto truncate pr-4">{activeModule?.title}</span>
-                      <a href={cleanWatchUrl} target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white transition-colors pointer-events-auto">
-                        <span className="material-symbols-outlined text-[20px]">open_in_new</span>
-                      </a>
-                    </div>
-
-                    {embedUrl ? (
-                      <iframe
-                        src={embedUrl}
-                        title={activeModule?.title}
-                        className="w-full h-full"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowFullScreen
-                      />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center gap-4 bg-surface-container-low">
-                        <span className="material-symbols-outlined text-[48px] text-outline-variant">smart_display</span>
-                        <p className="font-body-sm text-on-surface-variant">Unable to load video</p>
-                        <a href={videoUrl} target="_blank" rel="noopener noreferrer" className="font-label-sm text-primary underline">Watch on YouTube</a>
+                  <button key={mod.id} onClick={() => setActiveModule(mod)} className={`w-full flex flex-col gap-1 p-3 rounded-xl transition-colors text-left ${isActive ? 'bg-primary-fixed/20 border border-primary/30 shadow-sm' : 'hover:bg-surface-container-low border border-transparent'}`}>
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        <span className="material-symbols-outlined text-success shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                        <span className={`font-label-md text-label-md font-semibold truncate ${isActive ? 'text-primary' : 'text-text-primary'}`}>{idx + 1}. {mod.title}</span>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  </button>
                 );
-              })()}
-            </div>
-
-            {/* Below Video Content */}
-            <div className="flex-1 overflow-y-auto">
-              {activeModule && (
-                <div className="p-xl max-w-4xl mx-auto w-full">
-                  <h1 className="font-headline-lg text-headline-lg font-bold text-on-surface mb-2">{activeModule.title}</h1>
-                  <div className="flex items-center gap-4 mb-xl pb-md border-b border-outline-variant/60">
-                    <div className="flex items-center gap-2 text-on-surface-variant font-label-sm text-label-sm">
-                      <span className="material-symbols-outlined text-[16px]">person</span>
-                      <span>Instructor: {course?.instructor ?? 'LearnLoom'}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-on-surface-variant font-label-sm text-label-sm">
-                      <span className="material-symbols-outlined text-[16px]">schedule</span>
-                      <span>{activeModule.duration_minutes} mins</span>
-                    </div>
-                  </div>
-
-                  {/* Tabs */}
-                  <div className="flex gap-lg border-b border-outline-variant/60 mb-lg overflow-x-auto whitespace-nowrap">
-                    <button onClick={() => setActiveTab('overview')} className={`pb-2 border-b-2 font-label-md text-label-md transition-colors ${activeTab === 'overview' ? 'border-primary text-primary font-bold' : 'border-transparent text-on-surface-variant hover:text-on-surface'}`}>Overview</button>
-                    <button onClick={() => setActiveTab('resources')} className={`pb-2 border-b-2 font-label-md text-label-md transition-colors ${activeTab === 'resources' ? 'border-primary text-primary font-bold' : 'border-transparent text-on-surface-variant hover:text-on-surface'}`}>Resources</button>
-                    <button onClick={() => setActiveTab('discussion')} className={`pb-2 border-b-2 font-label-md text-label-md transition-colors ${activeTab === 'discussion' ? 'border-primary text-primary font-bold' : 'border-transparent text-on-surface-variant hover:text-on-surface'}`}>Discussion</button>
-                  </div>
-
-                  {/* Tab Content */}
-                  <div className="font-body-md text-on-surface-variant">
-                    {activeTab === 'overview' && (
-                      <>
-                        <div className="mb-xl text-balance whitespace-pre-wrap">{activeModule.description}</div>
-                        
-                        <div className="flex flex-wrap gap-4 mt-xl">
-                          {(activeModule.notes_url || (activeModule.type === 'reading' && activeModule.content_url)) && (
-                            <a href={activeModule.notes_url || activeModule.content_url || '#'} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-lg border border-outline-variant/60 bg-surface-container hover:bg-surface-container-highest transition-colors font-label-md text-on-surface">
-                              <span className="material-symbols-outlined text-[18px] text-secondary">file_download</span> Download Notes
-                            </a>
-                          )}
-
-                          {activeModule.status !== 'completed' && !courseDone ? (
-                            <button onClick={handleComplete} disabled={completing} className="flex items-center gap-2 px-6 py-2 rounded-lg bg-primary text-on-primary font-label-md font-bold hover:brightness-110 transition-all disabled:opacity-50 ml-auto">
-                              {completing ? <span className="material-symbols-outlined animate-spin text-[18px]">autorenew</span> : <span className="material-symbols-outlined text-[18px]">check_circle</span>}
-                              Mark as Complete
-                            </button>
-                          ) : (
-                            <div className="flex items-center gap-2 px-6 py-2 rounded-lg border border-primary/30 bg-primary/10 text-primary font-label-md font-bold ml-auto">
-                              <span className="material-symbols-outlined text-[18px] fill">check_circle</span> Module Completed
-                            </div>
-                          )}
-                        </div>
-
-                        {courseDone && (
-                          <div className="mt-xl p-md rounded-lg bg-primary/10 border border-primary/30 flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
-                            <span className="material-symbols-outlined text-[40px] text-primary">workspace_premium</span>
-                            <div className="flex-1">
-                              <h4 className="font-headline-sm text-headline-sm font-bold text-primary mb-1">Course Completed! 🎉</h4>
-                              <p className="font-body-sm text-on-surface-variant mb-4 sm:mb-0">You've finished all modules. Check your certificates page.</p>
-                            </div>
-                            <Link to="/certificates" className="px-4 py-2 bg-primary text-on-primary rounded font-label-sm font-bold shrink-0">View Certificate</Link>
-                          </div>
-                        )}
-                      </>
-                    )}
-                    {activeTab === 'resources' && (
-                      <div className="flex flex-col gap-sm">
-                        <p className="mb-4">Resources and references for this module.</p>
-                        {activeModule.notes_url && (
-                          <a href={activeModule.notes_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 p-md rounded-lg border border-outline-variant/60 bg-surface-container hover:border-primary/50 transition-colors group">
-                            <span className="material-symbols-outlined text-[24px] text-on-surface">description</span>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-label-md text-label-md font-bold text-on-surface group-hover:text-primary transition-colors">Module Notes (PDF)</h4>
-                              <p className="font-label-sm text-label-sm text-on-surface-variant">Downloadable study material</p>
-                            </div>
-                            <span className="material-symbols-outlined text-on-surface-variant">download</span>
-                          </a>
-                        )}
+              }
+              
+              if (isActive || mod.status === 'unlocked') {
+                return (
+                  <button key={mod.id} onClick={() => setActiveModule(mod)} className={`w-full flex flex-col gap-1 p-3 rounded-xl transition-colors text-left ${isActive ? 'bg-primary-fixed/20 border border-primary/30 shadow-sm' : 'hover:bg-surface-container-low border border-transparent'}`}>
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        <span className={`material-symbols-outlined shrink-0 ${isActive ? 'text-primary' : 'text-text-secondary'}`} style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}>play_circle</span>
+                        <span className={`font-label-md text-label-md font-semibold truncate ${isActive ? 'text-primary' : 'text-text-primary'}`}>{idx + 1}. {mod.title}</span>
                       </div>
-                    )}
-                    {activeTab === 'discussion' && (
-                      <div className="text-center py-xl">
-                        <span className="material-symbols-outlined text-[48px] text-outline-variant mb-4">forum</span>
-                        <h4 className="font-headline-sm text-on-surface mb-2">Discussions</h4>
-                        <p className="font-body-sm text-on-surface-variant">Community discussions for this module will appear here.</p>
-                      </div>
-                    )}
+                    </div>
+                  </button>
+                );
+              }
+              
+              // Locked
+              return (
+                <div key={mod.id} className="w-full flex flex-col gap-1 p-3 rounded-xl border border-border-base/50 bg-surface opacity-75">
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <span className="material-symbols-outlined text-text-secondary shrink-0">lock</span>
+                      <span className="font-label-md text-label-md font-semibold text-text-secondary truncate">{idx + 1}. {mod.title}</span>
+                    </div>
                   </div>
                 </div>
-              )}
-            </div>
+              );
+            })}
           </div>
+        </aside>
 
-          {/* Right Sidebar: Curriculum Playlist */}
-          <div className="w-full lg:w-80 bg-surface-container-high border border-outline-variant/60 rounded-xl flex flex-col shrink-0 overflow-hidden">
-            <div className="p-md border-b border-outline-variant/60 flex justify-between items-center bg-surface-container-highest">
-              <h3 className="font-label-md text-label-md font-bold text-on-surface">Module Contents</h3>
-              <span className="font-label-sm text-label-sm text-primary">{completedCount}/{modules.length}</span>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-1">
-              {modules.map((mod, idx) => {
-                const isActive = mod.id === activeModule?.id;
-                const accessible = canAccess(mod);
-                
-                if (mod.status === 'completed') {
-                  return (
-                    <button key={mod.id} onClick={() => setActiveModule(mod)} className={`flex items-start text-left gap-3 p-3 rounded-lg hover:bg-surface-container transition-colors cursor-pointer ${isActive ? 'bg-surface-container border-l-2 border-l-primary' : 'opacity-70'}`}>
-                      <div className="mt-0.5 shrink-0"><span className="material-symbols-outlined text-primary text-[20px] fill">check_circle</span></div>
-                      <div className="min-w-0">
-                        <h4 className={`font-label-md text-label-md truncate ${isActive ? 'text-primary font-bold' : 'text-on-surface line-through'}`}>{idx + 1}. {mod.title}</h4>
-                        <p className="font-label-sm text-label-sm text-on-surface-variant">{mod.duration_minutes} min</p>
-                      </div>
-                    </button>
-                  );
-                }
-                
-                if (isActive || mod.status === 'unlocked') {
-                  return (
-                    <button key={mod.id} onClick={() => setActiveModule(mod)} className={`flex items-start text-left gap-3 p-3 rounded-lg transition-colors cursor-pointer ${isActive ? 'bg-primary/10 border border-primary/30' : 'hover:bg-surface-container border border-transparent'}`}>
-                      <div className="mt-0.5 relative flex items-center justify-center w-5 h-5 shrink-0">
-                        <span className={`material-symbols-outlined text-[20px] absolute ${isActive ? 'text-primary fill' : 'text-on-surface-variant'}`}>play_circle</span>
-                      </div>
-                      <div className="min-w-0">
-                        <h4 className={`font-label-md text-label-md truncate ${isActive ? 'text-primary font-bold' : 'text-on-surface font-bold'}`}>{idx + 1}. {mod.title}</h4>
-                        <p className={`font-label-sm text-label-sm truncate ${isActive ? 'text-primary/80' : 'text-on-surface-variant'}`}>{mod.duration_minutes} min {isActive && '• Playing'}</p>
-                      </div>
-                    </button>
-                  );
-                }
-                
-                // Locked
-                return (
-                  <div key={mod.id} className="flex items-start text-left gap-3 p-3 rounded-lg hover:bg-surface-container transition-colors cursor-not-allowed opacity-60">
-                    <div className="mt-0.5 shrink-0"><span className="material-symbols-outlined text-outline-variant text-[20px]">lock</span></div>
-                    <div className="min-w-0">
-                      <h4 className="font-label-md text-label-md text-on-surface-variant truncate">{idx + 1}. {mod.title}</h4>
-                      <p className="font-label-sm text-label-sm text-outline-variant">{mod.duration_minutes} min</p>
-                    </div>
+        {/* Center: Video Player & Content */}
+        <section className="flex-1 flex flex-col h-full bg-background overflow-y-auto relative">
+          
+          {/* Video Container Area */}
+          <div className="w-full bg-black relative flex-shrink-0 flex items-center justify-center min-h-[400px] max-h-[716px] border-b border-border-base">
+            {(() => {
+              const videoUrl = activeModule?.content_url || activeModule?.youtube_url || null;
+              if (!videoUrl) return (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-container-low text-text-primary">
+                  <span className="material-symbols-outlined text-[64px] text-outline-variant mb-4">menu_book</span>
+                  <p className="font-body-md text-text-secondary">No video for this module</p>
+                </div>
+              );
+              const embedUrl = buildYouTubeEmbedUrl(videoUrl);
+              const videoId = embedUrl?.match(/embed\/([a-zA-Z0-9_-]{11})/)?.[1];
+              const cleanWatchUrl = videoId ? `https://www.youtube.com/watch?v=${videoId}` : videoUrl;
+              
+              return (
+                <div className="w-full h-full relative group">
+                  {/* Top title bar overlay */}
+                  <div className="absolute top-0 left-0 w-full bg-gradient-to-b from-black/80 to-transparent p-6 flex items-start justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none">
+                    <h2 className="text-white font-headline-md text-headline-md font-bold drop-shadow-md truncate pr-4 pointer-events-auto">{activeModule?.title}</h2>
+                    <a href={cleanWatchUrl} target="_blank" rel="noopener noreferrer" className="bg-surface/20 hover:bg-surface/30 backdrop-blur-md text-white p-2 rounded-full transition-colors pointer-events-auto shrink-0 flex items-center justify-center">
+                      <span className="material-symbols-outlined text-[20px]">open_in_new</span>
+                    </a>
                   </div>
-                );
-              })}
-            </div>
+
+                  {embedUrl ? (
+                    <iframe
+                      src={embedUrl}
+                      title={activeModule?.title}
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center gap-4 bg-surface-container-low text-text-primary">
+                      <span className="material-symbols-outlined text-[48px] text-outline-variant">smart_display</span>
+                      <p className="font-body-sm text-text-secondary">Unable to load video</p>
+                      <a href={videoUrl} target="_blank" rel="noopener noreferrer" className="font-label-sm text-primary underline">Watch on YouTube</a>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
 
-        </div>
+          {/* Content Area Below Video */}
+          <div className="max-w-4xl w-full mx-auto p-8 pb-32">
+            {activeModule && (
+              <>
+                <div className="flex items-center justify-between mb-8">
+                  <h1 className="font-headline-lg text-headline-lg font-bold text-text-primary">{activeModule.title}</h1>
+                  {activeModule.status !== 'completed' && !courseDone ? (
+                    <button onClick={handleComplete} disabled={completing} className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-primary text-on-primary font-label-md text-label-md font-bold hover:brightness-110 transition-all shadow-md hover:shadow-lg disabled:opacity-50 shrink-0">
+                      {completing ? <span className="material-symbols-outlined animate-spin text-[20px]">autorenew</span> : <span className="material-symbols-outlined text-[20px]">check_circle</span>}
+                      Mark as Complete
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-primary/30 bg-primary-fixed/30 text-primary font-label-md text-label-md font-bold shrink-0">
+                      <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span> Completed
+                    </div>
+                  )}
+                </div>
+
+                {/* Tabs */}
+                <div className="flex gap-8 border-b border-border-base mb-8">
+                  <button onClick={() => setActiveTab('overview')} className={`pb-4 font-label-md text-label-md font-bold transition-colors ${activeTab === 'overview' ? 'text-primary border-b-2 border-primary' : 'text-text-secondary hover:text-text-primary'}`}>Overview & Notes</button>
+                  <button onClick={() => setActiveTab('resources')} className={`pb-4 font-label-md text-label-md transition-colors ${activeTab === 'resources' ? 'text-primary border-b-2 border-primary font-bold' : 'text-text-secondary hover:text-text-primary font-bold'}`}>Resources</button>
+                  <button onClick={() => setActiveTab('discussion')} className={`pb-4 font-label-md text-label-md transition-colors ${activeTab === 'discussion' ? 'text-primary border-b-2 border-primary font-bold' : 'text-text-secondary hover:text-text-primary font-bold'}`}>Discussion</button>
+                </div>
+
+                {/* Tab Content */}
+                <div className="space-y-8">
+                  {activeTab === 'overview' && (
+                    <div className="prose prose-slate max-w-none font-body-lg text-body-lg text-text-primary">
+                      <div className="mb-4 whitespace-pre-wrap">{activeModule.description}</div>
+                      
+                      {courseDone && (
+                        <div className="bg-surface-bright p-6 rounded-2xl border border-border-base my-6 shadow-sm flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left mt-8">
+                          <span className="material-symbols-outlined text-[40px] text-primary">workspace_premium</span>
+                          <div className="flex-1">
+                            <h4 className="font-headline-sm text-headline-sm font-bold text-primary mb-1">Course Completed! 🎉</h4>
+                            <p className="font-body-sm text-text-secondary mb-4 sm:mb-0">You've finished all modules. Check your certificates page.</p>
+                          </div>
+                          <Link to="/certificates" className="px-6 py-2.5 bg-primary text-on-primary rounded-full font-label-sm font-bold shadow-md hover:shadow-lg shrink-0 transition-all hover:-translate-y-0.5">View Certificate</Link>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {activeTab === 'resources' && (
+                    <div className="flex flex-col gap-4">
+                      <p className="font-body-md text-text-secondary">Resources and references for this module.</p>
+                      {activeModule.notes_url && (
+                        <a href={activeModule.notes_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 p-5 rounded-xl border border-border-base bg-surface hover:shadow-md transition-shadow group cursor-pointer">
+                          <div className="w-12 h-12 rounded-lg bg-surface-container-low flex items-center justify-center text-primary group-hover:bg-primary-container group-hover:text-on-primary transition-colors">
+                            <span className="material-symbols-outlined text-[24px]">description</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-label-md text-label-md font-bold text-text-primary group-hover:text-primary transition-colors">Module Notes (PDF)</h4>
+                            <p className="font-label-sm text-label-sm text-text-secondary">Downloadable study material</p>
+                          </div>
+                          <span className="material-symbols-outlined text-text-secondary group-hover:text-primary transition-colors">download</span>
+                        </a>
+                      )}
+                    </div>
+                  )}
+                  
+                  {activeTab === 'discussion' && (
+                    <div className="text-center py-xl">
+                      <span className="material-symbols-outlined text-[48px] text-outline-variant mb-4">forum</span>
+                      <h4 className="font-headline-sm text-headline-sm font-bold text-text-primary mb-2">Discussions</h4>
+                      <p className="font-body-md text-body-md text-text-secondary">Community discussions for this module will appear here.</p>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </section>
+        
       </div>
     </AppLayout>
   );

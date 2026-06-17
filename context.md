@@ -23,6 +23,12 @@ LearnLoom is an advanced, AI-driven learning ecosystem designed for software eng
 ### 3. Frontend Component Refactoring
 - **Landing Page Modularization:** Extracted monolithic JSX blocks from `LandingPage.tsx` into smaller, reusable components (`TopAppBar`, `HeroSection`, `PricingSection`, etc.) utilizing data mapping to drastically reduce repetition.
 
+### 4. Global UI/UX Redesign (Premium Glassmorphism)
+- **Design System Overhaul:** Migrated the entire project to a new premium glassmorphism design system using updated HTML/CSS templates from the `stitch_learnloom_ai_edtech_landing` source.
+- **Global CSS & Typography:** Replaced generic styles with a structured HSL color system in `index.css`. Adopted modern fonts (Inter, JetBrains Mono, Hanken Grotesk).
+- **Layout Upgrades:** Restyled the core `AppLayout`, `TopAppBar`, `SideNav`, and mobile `BottomNavBar` to feature backdrop blurring, dynamic floating effects, and rich hover animations.
+- **Page Migrations (Completed Batches):** Updated several core views including Auth pages, Dashboards, Course Player, Course Catalog, Course Detail, Pricing, and the entirety of Batch 3 (Student Tools) containing `AIRoadmapPage`, `CodingPracticePage`, `QuizPage`, `AssignmentPage`, and `GrandTestPage` with the sophisticated glassmorphism aesthetic.
+- **Admin Dashboard & Extension Pages:** Successfully migrated all enterprise admin views, including `AdminDashboard`, `AdminCoursesPage`, `AdminStudentsPage`, `AdminReportsPage`, `AdminCommunityPage`, `AdminCertificatesPage`, `AdminRoadmapsPage`, `AdminSubmissionsPage`, `AdminJobsPage`, `AdminNotificationsPage`, `AdminOrganizationsPage`, `AdminResumesPage`, `AdminRewardsPage`, `AdminCompilerPage`, `AdminAISettingsPage`, and `AdminGrandTestPage`, to utilize the premium `AppLayout` wrapper and glass-panel utility classes.
 ## Issues Faced & Resolutions
 
 ### Issue 1: Authentication Profile & UUID Mismatches
@@ -32,8 +38,16 @@ LearnLoom is an advanced, AI-driven learning ecosystem designed for software eng
 2. Created a database migration (`00025_add_clerk_id_to_profiles.sql`) to safely map legacy Clerk IDs to the new Supabase UUIDs.
 
 ### Issue 2: Code Execution Environment Connectivity
-**Problem:** The frontend was struggling to securely and consistently hit the self-hosted Piston execution environment, particularly in deployed contexts (like Vercel).
+**Problem:** The frontend was struggling to securely and consistently hit the self-hosted Piston environment, particularly in deployed contexts (like Vercel).
 **Resolution:** Modified `vercel.json` and added a Vite proxy to securely proxy API requests to the Piston environment.
+
+### Issue 3: UI Layout & Theme Inconsistencies during Redesign
+**Problem:** The introduction of the new design system caused clashes with existing Tailwind utility classes, leading to inconsistent backgrounds (dark mode artifacts on light mode) and misaligned layouts on responsive screens.
+**Resolution:** 
+1. Consolidated all Tailwind color variables into a unified CSS variables structure within `index.css`.
+2. Explicitly forced the `light` theme to ensure consistency across the design templates.
+3. Used robust `container-queries` and structured padding/margins (e.g., `stack-lg`, `margin-desktop`) from the new design blueprints.
+4. Added custom CSS utility classes like `.glass-panel` to abstract complex `backdrop-filter` logic.
 
 ## Reference File & Folder Structure
 

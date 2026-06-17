@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LearnLoom - Community</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-background": "#0b1c30",
+                        "outline": "#737686",
+                        "inverse-surface": "#213145",
+                        "warning": "#F59E0B",
+                        "primary-container": "#2563eb",
+                        "surface-container-highest": "#d3e4fe",
+                        "secondary-fixed": "#acedff",
+                        "secondary-container": "#57dffe",
+                        "surface-dim": "#cbdbf5",
+                        "on-secondary-fixed-variant": "#004e5c",
+                        "inverse-primary": "#b4c5ff",
+                        "surface-tint": "#0053db",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed-dim": "#4cd7f6",
+                        "on-primary": "#ffffff",
+                        "tertiary": "#632ecd",
+                        "on-tertiary-fixed": "#23005c",
+                        "background": "#F8FAFC",
+                        "secondary": "#00687a",
+                        "on-error": "#ffffff",
+                        "text-primary": "#0F172A",
+                        "on-tertiary-fixed-variant": "#5516be",
+                        "on-secondary": "#ffffff",
+                        "surface-variant": "#d3e4fe",
+                        "on-surface": "#0b1c30",
+                        "on-secondary-fixed": "#001f26",
+                        "tertiary-container": "#7d4ce7",
+                        "surface": "#FFFFFF",
+                        "border-base": "#E2E8F0",
+                        "surface-container": "#e5eeff",
+                        "on-tertiary-container": "#f6edff",
+                        "on-primary-container": "#eeefff",
+                        "surface-bright": "#f8f9ff",
+                        "text-secondary": "#64748B",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "outline-variant": "#c3c6d7",
+                        "error-container": "#ffdad6",
+                        "success": "#22C55E",
+                        "inverse-on-surface": "#eaf1ff",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "error": "#EF4444",
+                        "tertiary-fixed": "#e9ddff",
+                        "primary-fixed": "#dbe1ff",
+                        "on-secondary-container": "#006172",
+                        "surface-container-high": "#dce9ff",
+                        "on-surface-variant": "#434655",
+                        "on-error-container": "#93000a",
+                        "surface-container-low": "#eff4ff",
+                        "on-tertiary": "#ffffff",
+                        "primary": "#004ac6",
+                        "on-primary-fixed": "#00174b",
+                        "tertiary-fixed-dim": "#d0bcff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-xl": "64px",
+                        "gutter": "24px",
+                        "stack-sm": "8px",
+                        "container-max": "1280px",
+                        "margin-desktop": "40px",
+                        "margin-mobile": "16px",
+                        "stack-md": "16px",
+                        "stack-lg": "32px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "body-sm": ["Inter"],
+                        "headline-lg-mobile": ["Hanken Grotesk"],
+                        "label-sm": ["JetBrains Mono"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "body-md": ["Inter"],
+                        "label-md": ["JetBrains Mono"],
+                        "body-lg": ["Inter"],
+                        "display-lg-mobile": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "display-lg-mobile": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .bg-glass {
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .brand-gradient {
+            background: linear-gradient(135deg, #004ac6, #57dffe, #7d4ce7);
+        }
+        .brand-gradient-text {
+            background: linear-gradient(135deg, #004ac6, #7d4ce7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-text-primary antialiased min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white/70 dark:bg-on-background/70 backdrop-blur-xl border-b border-white/20 dark:border-white/10 shadow-sm flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 max-w-container-max mx-auto">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full overflow-hidden border border-border-base bg-surface-container">
+<img alt="Student Profile Photo" class="w-full h-full object-cover" data-alt="A close-up studio portrait of a young male student with a bright, engaged expression. He is wearing modern casual clothing. The lighting is soft and flattering, set against a pristine white background. The overall aesthetic is clean, professional, and optimistic, matching a modern SaaS educational platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAiOdvzfcvQCdj0wlJ8f-s96gP_5DnCAD24t4159lNsiqVkGAGSaCLSe9LvAssTxSdVeY-BcDrHDmYhQiQMayq5zLQXzN9AYnFMxz5tRD-kxBBRBfpLgNY0vqmVzUlHhkgfoUBWKhfi_gF1oLoS-vbtSs3foyVD0g7Wa7eTxW8zB8W9dDLyELbLO-PVuswVegEuW9e6Lfol0cPj7DZmIoNDnINpHfhXjKAQXzfW7XMDsioosDqFoZe_aq63DNpx-xSHRmV8S0z-UQM3"/>
+</div>
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed tracking-tight">LearnLoom</h1>
+</div>
+<button class="text-primary dark:text-primary-fixed hover:opacity-80 transition-opacity active:scale-95 transition-transform duration-150 flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container-highest/50">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">notifications</span>
+</button>
+</header>
+<!-- Main Canvas -->
+<main class="pt-[88px] px-margin-mobile flex flex-col gap-stack-lg max-w-[800px] mx-auto">
+<!-- Search Bar -->
+<section class="relative w-full">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-text-secondary">search</span>
+</div>
+<input class="w-full pl-12 pr-4 py-4 rounded-xl border border-border-base bg-surface font-body-md text-body-md text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary focus:ring-opacity-20 shadow-sm transition-all shadow-[0_4px_6px_-1px_rgba(0,0,0,0.02)]" placeholder="Search posts, groups, students..." type="text"/>
+</section>
+<!-- Community Groups (Horizontal Scroll) -->
+<section class="flex flex-col gap-stack-sm">
+<h2 class="font-headline-md text-headline-md text-text-primary">Community Groups</h2>
+<div class="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-2 no-scrollbar -mx-margin-mobile px-margin-mobile">
+<!-- Group Item 1 -->
+<div class="flex flex-col items-center gap-2 snap-start shrink-0">
+<button class="w-16 h-16 rounded-2xl bg-surface border border-border-base shadow-sm flex items-center justify-center hover:-translate-y-1 transition-transform group">
+<div class="w-12 h-12 rounded-xl bg-primary-container/10 flex items-center justify-center group-hover:bg-primary-container/20 transition-colors">
+<span class="material-symbols-outlined text-primary text-[28px]">psychology</span>
+</div>
+</button>
+<span class="font-label-sm text-label-sm text-text-secondary text-center w-20 leading-tight">AI<br/>Researchers</span>
+</div>
+<!-- Group Item 2 -->
+<div class="flex flex-col items-center gap-2 snap-start shrink-0">
+<button class="w-16 h-16 rounded-2xl bg-surface border border-border-base shadow-sm flex items-center justify-center hover:-translate-y-1 transition-transform group">
+<div class="w-12 h-12 rounded-xl bg-secondary-container/20 flex items-center justify-center group-hover:bg-secondary-container/40 transition-colors">
+<span class="material-symbols-outlined text-secondary text-[28px]">design_services</span>
+</div>
+</button>
+<span class="font-label-sm text-label-sm text-text-secondary text-center w-20 leading-tight">UX<br/>Designers</span>
+</div>
+<!-- Group Item 3 -->
+<div class="flex flex-col items-center gap-2 snap-start shrink-0">
+<button class="w-16 h-16 rounded-2xl bg-surface border border-border-base shadow-sm flex items-center justify-center hover:-translate-y-1 transition-transform group">
+<div class="w-12 h-12 rounded-xl bg-tertiary-container/10 flex items-center justify-center group-hover:bg-tertiary-container/20 transition-colors">
+<span class="material-symbols-outlined text-tertiary text-[28px]">terminal</span>
+</div>
+</button>
+<span class="font-label-sm text-label-sm text-text-secondary text-center w-20 leading-tight">Python<br/>Pros</span>
+</div>
+<!-- Group Item 4 -->
+<div class="flex flex-col items-center gap-2 snap-start shrink-0">
+<button class="w-16 h-16 rounded-2xl bg-surface border border-border-base shadow-sm flex items-center justify-center hover:-translate-y-1 transition-transform group">
+<div class="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center group-hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined text-text-primary text-[28px]">calculate</span>
+</div>
+</button>
+<span class="font-label-sm text-label-sm text-text-secondary text-center w-20 leading-tight">Math<br/>Elite</span>
+</div>
+<!-- Group Item 5 -->
+<div class="flex flex-col items-center gap-2 snap-start shrink-0">
+<button class="w-16 h-16 rounded-2xl border-2 border-dashed border-border-base flex items-center justify-center hover:border-primary transition-colors text-text-secondary hover:text-primary">
+<span class="material-symbols-outlined text-[28px]">add</span>
+</button>
+<span class="font-label-sm text-label-sm text-text-secondary text-center w-20 leading-tight">Explore<br/>More</span>
+</div>
+</div>
+</section>
+<!-- Trending Now Feed -->
+<section class="flex flex-col gap-stack-md">
+<div class="flex justify-between items-end">
+<h2 class="font-headline-md text-headline-md text-text-primary">Trending Now</h2>
+<button class="font-label-md text-label-md text-primary hover:text-primary-container transition-colors">View All</button>
+</div>
+<!-- Glassmorphic Card 1 -->
+<article class="bg-glass rounded-xl border border-white/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-5 flex flex-col gap-4 relative overflow-hidden">
+<!-- Subtle Gradient Accent -->
+<div class="absolute top-0 left-0 w-full h-1 brand-gradient opacity-80"></div>
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<img alt="Sarah Chen" class="w-10 h-10 rounded-full border border-border-base object-cover" data-alt="A portrait of a young female student with dark hair, looking directly at the camera with a gentle smile. She is outdoors with a softly blurred background. The image has high-key, natural lighting, creating a bright and modern aesthetic suitable for a high-end educational application." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCkLAm4uZEGv5BYG5oj1XpzGnKeh2dVMpGuuDV_DERJzlvZSJq25Xs5wDUJOCrRh8Q1CYjPFuqK7bSod3iMNLiFytIXMCLGqy7JVWGGLor51pulWb_ES4mpxFgUiDDJ0VUZ0MKheQMECkb7FwvK0ys-6-MsDplTvQE9g-zXhxSC3fJ46d0hPoGy55UDrCJTx1ee5eS8pbJvwimvgkBrT6lu9QpTdqSmOEG57Q7D7MaBgg8q_-JJXQHpM2qt1J2sR8NteXhj_VxHwEd4"/>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary font-semibold">Sarah Chen</span>
+<span class="font-body-sm text-body-sm text-text-secondary text-[12px]">2 hours ago • AI Researchers</span>
+</div>
+</div>
+<button class="text-text-secondary hover:text-text-primary">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+<div class="flex flex-col gap-2">
+<div class="inline-flex w-max items-center px-2.5 py-1 rounded-full bg-secondary-container/20 text-secondary font-label-sm text-[10px] tracking-wider uppercase">
+                        #MachineLearning
+                    </div>
+<h3 class="font-headline-md text-[18px] leading-[24px] text-text-primary font-bold">Optimizing Neural Networks for Edge Devices</h3>
+<p class="font-body-md text-body-md text-text-secondary line-clamp-2">I've been experimenting with quantization techniques on Raspberry Pi 4. Has anyone managed to get sub-50ms inference times on MobileNetV3 without catastrophic accuracy drop?</p>
+</div>
+<div class="flex items-center justify-between pt-2 border-t border-border-base/50">
+<div class="flex items-center gap-1 bg-surface-container-lowest rounded-full border border-border-base px-1 py-1 shadow-sm">
+<button class="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary hover:bg-primary-container/10 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px] font-bold">arrow_upward</span>
+</button>
+<span class="font-label-md text-label-md text-text-primary px-1">248</span>
+<button class="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary hover:bg-error-container/50 hover:text-error transition-colors">
+<span class="material-symbols-outlined text-[20px] font-bold">arrow_downward</span>
+</button>
+</div>
+<button class="flex items-center gap-2 text-text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">chat_bubble</span>
+<span class="font-label-md text-label-md">42 Comments</span>
+</button>
+</div>
+</article>
+<!-- Glassmorphic Card 2 -->
+<article class="bg-glass rounded-xl border border-white/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-5 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full border border-border-base bg-surface-container-high flex items-center justify-center text-primary font-bold">
+                            MJ
+                        </div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary font-semibold">Marcus Johnson</span>
+<span class="font-body-sm text-body-sm text-text-secondary text-[12px]">5 hours ago • UX Designers</span>
+</div>
+</div>
+<button class="text-text-secondary hover:text-text-primary">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+<div class="flex flex-col gap-2">
+<div class="inline-flex w-max items-center px-2.5 py-1 rounded-full bg-tertiary-container/10 text-tertiary font-label-sm text-[10px] tracking-wider uppercase">
+                        #PortfolioReview
+                    </div>
+<h3 class="font-headline-md text-[18px] leading-[24px] text-text-primary font-bold">Seeking feedback on my recent Case Study layout</h3>
+<p class="font-body-md text-body-md text-text-secondary line-clamp-2">I tried incorporating a bento grid style for the outcomes section, but I'm worried it might be too distracting from the actual metrics. Thoughts?</p>
+</div>
+<div class="flex items-center justify-between pt-2 border-t border-border-base/50">
+<div class="flex items-center gap-1 bg-surface-container-lowest rounded-full border border-border-base px-1 py-1 shadow-sm">
+<button class="w-8 h-8 rounded-full flex items-center justify-center text-primary bg-primary-container/10 transition-colors">
+<span class="material-symbols-outlined text-[20px] font-bold">arrow_upward</span>
+</button>
+<span class="font-label-md text-label-md text-primary px-1 font-bold">156</span>
+<button class="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary hover:bg-error-container/50 hover:text-error transition-colors">
+<span class="material-symbols-outlined text-[20px] font-bold">arrow_downward</span>
+</button>
+</div>
+<button class="flex items-center gap-2 text-text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">chat_bubble</span>
+<span class="font-label-md text-label-md">18 Comments</span>
+</button>
+</div>
+</article>
+</section>
+<!-- Global Leaderboard Preview -->
+<section class="flex flex-col gap-stack-sm mb-4">
+<div class="flex justify-between items-end mb-2">
+<h2 class="font-headline-md text-headline-md text-text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-warning" style="font-variation-settings: 'FILL' 1;">trophy</span>
+                    Global Leaderboard
+                </h2>
+<button class="font-label-md text-label-md text-primary hover:text-primary-container transition-colors">Full Rankings</button>
+</div>
+<div class="bg-surface rounded-xl border border-border-base shadow-sm overflow-hidden">
+<!-- Rank 1 -->
+<div class="flex items-center justify-between p-4 border-b border-border-base hover:bg-surface-container-lowest transition-colors bg-gradient-to-r from-warning/10 to-transparent">
+<div class="flex items-center gap-4">
+<span class="font-headline-md text-headline-md font-bold text-warning w-6 text-center">1</span>
+<img alt="David Kim" class="w-10 h-10 rounded-full border-2 border-warning object-cover" data-alt="A portrait of a male student with short hair and glasses, wearing a casual sweater. The background is a slightly out-of-focus modern library or campus setting. The lighting is soft and natural, emphasizing a bright, intelligent, and approachable persona fitting a modern educational app." src="https://lh3.googleusercontent.com/aida-public/AB6AXuANtc6sA2OWMbqytomeNQ_lop0fvRFHAe_nNIHyH-FUJR7oRgucV4rEMY3omP0vUWyXUm0s7r7FiWC1Ye8jZcWte3EEuoz1M7SYx6TlFxbs_H8g_gfEM2rDNwRYtJ4yzx041C93g8UYediMvuyn9I0HyEWNNmdw-EiMqAbjIeqep1oRJpnqSD3gBMuf2gwkq_0lEDYVWby_Tm1iV9t110cRBxl8WGTHiBRAFUWsehGmZo5iaiMNQPAnwHBorniz-rQL98Gsv_xPHm6R"/>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary font-semibold">David Kim</span>
+<div class="flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-secondary-container"></span>
+<span class="font-label-sm text-label-sm text-text-secondary text-[10px]">AI Master</span>
+</div>
+</div>
+</div>
+<span class="font-label-md text-label-md font-bold text-text-primary">12,450 pts</span>
+</div>
+<!-- Rank 2 -->
+<div class="flex items-center justify-between p-4 border-b border-border-base hover:bg-surface-container-lowest transition-colors">
+<div class="flex items-center gap-4">
+<span class="font-headline-md text-headline-md font-bold text-outline-variant w-6 text-center">2</span>
+<div class="w-10 h-10 rounded-full bg-tertiary-container/20 flex items-center justify-center text-tertiary font-bold border-2 border-outline-variant">
+                            EL
+                        </div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary font-semibold">Elena Rostova</span>
+<div class="flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span class="font-label-sm text-label-sm text-text-secondary text-[10px]">UX Visionary</span>
+</div>
+</div>
+</div>
+<span class="font-label-md text-label-md font-bold text-text-primary">11,200 pts</span>
+</div>
+<!-- Rank 3 -->
+<div class="flex items-center justify-between p-4 hover:bg-surface-container-lowest transition-colors">
+<div class="flex items-center gap-4">
+<span class="font-headline-md text-headline-md font-bold text-outline-variant w-6 text-center">3</span>
+<img alt="Aisha Patel" class="w-10 h-10 rounded-full border border-border-base object-cover" data-alt="A bright, professional headshot of a young female student with dark curly hair. She is wearing a light-colored top. The background is a clean, solid light grey, providing a high-contrast, modern SaaS look. The overall tone is confident and smart." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqfm5U9jn3BG3YE7Aw8Y--trz__JXPEGzM1ZM-QIvae8L0T9Fvi5xACsTm9-MxvTMshV7xObPMmutyPirq5io6infSRD55O3664v1UQtj_I4S-KX5VfO_oZQJ24w93CQLrrmcuc8Go4jFZku083M7pOauDq0nLUUlwa81qaTRqzi1vgiW94iDdwQDlBOgrV64gv3KKToZzMQnbYze0gPlzjDktls5Wg67ttWhpadk_HFYeIUaqXr7gSd7drF9hPlBwmKDAmhhA2qHj"/>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary font-semibold">Aisha Patel</span>
+<div class="flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="font-label-sm text-label-sm text-text-secondary text-[10px]">Code Ninja</span>
+</div>
+</div>
+</div>
+<span class="font-label-md text-label-md font-bold text-text-primary">10,850 pts</span>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-white/70 dark:bg-on-background/70 backdrop-blur-xl shadow-lg flex justify-around items-center py-2 px-4 pb-safe md:hidden border-t-0 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+<!-- Feed (Active) -->
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-4 py-1 scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dynamic_feed</span>
+<span class="font-label-sm text-label-sm mt-1">Feed</span>
+</a>
+<!-- Groups -->
+<a class="flex flex-col items-center justify-center text-text-secondary dark:text-outline px-4 py-1 hover:bg-surface-container-highest/50 transition-colors rounded-xl" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">group</span>
+<span class="font-label-sm text-label-sm mt-1">Groups</span>
+</a>
+<!-- Rankings -->
+<a class="flex flex-col items-center justify-center text-text-secondary dark:text-outline px-4 py-1 hover:bg-surface-container-highest/50 transition-colors rounded-xl" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">leaderboard</span>
+<span class="font-label-sm text-label-sm mt-1">Rankings</span>
+</a>
+<!-- Profile -->
+<a class="flex flex-col items-center justify-center text-text-secondary dark:text-outline px-4 py-1 hover:bg-surface-container-highest/50 transition-colors rounded-xl" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">person</span>
+<span class="font-label-sm text-label-sm mt-1">Profile</span>
+</a>
+</nav>
+</body></html>

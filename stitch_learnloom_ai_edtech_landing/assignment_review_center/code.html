@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LearnLoom - Assignment Review Center</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;500&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "text-secondary": "#64748B",
+                        "text-primary": "#0F172A",
+                        "surface-tint": "#0053db",
+                        "secondary-fixed-dim": "#4cd7f6",
+                        "outline-variant": "#c3c6d7",
+                        "secondary-fixed": "#acedff",
+                        "error-container": "#ffdad6",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed-variant": "#004e5c",
+                        "on-error-container": "#93000a",
+                        "primary": "#004ac6",
+                        "surface-variant": "#d3e4fe",
+                        "secondary-container": "#57dffe",
+                        "tertiary-fixed": "#e9ddff",
+                        "surface-container": "#e5eeff",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "primary-container": "#2563eb",
+                        "on-tertiary-fixed-variant": "#5516be",
+                        "surface-container-high": "#dce9ff",
+                        "success": "#22C55E",
+                        "on-background": "#0b1c30",
+                        "on-secondary-fixed": "#001f26",
+                        "on-tertiary-container": "#f6edff",
+                        "inverse-primary": "#b4c5ff",
+                        "surface-bright": "#f8f9ff",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#006172",
+                        "tertiary-container": "#7d4ce7",
+                        "inverse-surface": "#213145",
+                        "border-base": "#E2E8F0",
+                        "warning": "#F59E0B",
+                        "on-error": "#ffffff",
+                        "on-primary-container": "#eeefff",
+                        "on-primary-fixed": "#00174b",
+                        "background": "#F8FAFC",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-tertiary": "#ffffff",
+                        "secondary": "#00687a",
+                        "on-surface-variant": "#434655",
+                        "error": "#EF4444",
+                        "tertiary": "#632ecd",
+                        "surface-container-low": "#eff4ff",
+                        "surface": "#FFFFFF",
+                        "surface-dim": "#cbdbf5",
+                        "on-surface": "#0b1c30",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "primary-fixed": "#dbe1ff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "tertiary-fixed-dim": "#d0bcff",
+                        "outline": "#737686",
+                        "on-tertiary-fixed": "#23005c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "margin-desktop": "40px",
+                        "gutter": "24px",
+                        "stack-xl": "64px",
+                        "stack-md": "16px",
+                        "stack-lg": "32px",
+                        "margin-mobile": "16px",
+                        "container-max": "1280px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["JetBrains Mono"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "body-sm": ["Inter"],
+                        "label-sm": ["JetBrains Mono"],
+                        "headline-lg-mobile": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "body-lg": ["Inter"],
+                        "display-lg-mobile": ["Hanken Grotesk"],
+                        "body-md": ["Inter"],
+                        "headline-md": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "display-lg-mobile": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: theme('colors.background'); color: theme('colors.text-primary'); -webkit-font-smoothing: antialiased; }
+        .glass-panel { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid theme('colors.border-base'); }
+        .card-elevation { box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05); }
+        .ai-gradient-border { border-top: 2px solid transparent; border-image: linear-gradient(to right, theme('colors.tertiary-container'), theme('colors.secondary-container')) 1; }
+        
+        /* Hide scrollbar for a cleaner mobile look */
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-text-primary pb-24 md:pb-0 pt-[72px]">
+<!-- TopAppBar (Shared Component JSON) -->
+<header class="bg-surface/70 backdrop-blur-xl fixed top-0 w-full z-50 shadow-sm flex justify-between items-center px-margin-mobile py-4 w-full border-b border-outline-variant/30">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-variant flex items-center justify-center">
+<img alt="User profile photo" class="w-full h-full object-cover" data-alt="A professional headshot of a female educator in her late 30s with warm, approachable features, wearing a modern dark blazer over a light blue blouse. The lighting is soft and flattering, typical of a high-end corporate portrait, shot against a subtly blurred office background. The overall tone is confident and competent, fitting a premium SaaS platform persona." src="https://lh3.googleusercontent.com/aida-public/AB6AXuALXVmaggDXOpCVC3Uspko6z65x6RTOp_OKqb-Z9iYPXBAPDOmSpz1iIjXEKEqhW7dTwssCZBQmKoC51fhz8z4onpJUWG9JFq_pvQD9OH-xhFpODj0MjFUxRkYJqydMCu-ddRL6gO_ZpBf2gZp1u9Lc8sqxh5LAClEl7MjrRx7c1Oz1FlitPFI4AcVIx8B64PwwWYo7aJ1_om7Ti1dYy4_wPi8H6V0tEOcGPrfTL4-OfYpeex21u9_OQLd5ullria0lRV-ZDxhEDTzs"/>
+</div>
+<span class="font-headline-md text-headline-md font-bold text-primary">LearnLoom</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-text-secondary bg-surface-container-low px-3 py-1 rounded-full">5 Day Streak</span>
+</div>
+</header>
+<main class="max-w-[800px] mx-auto px-margin-mobile flex flex-col gap-stack-lg mt-stack-md">
+<!-- Dashboard Metrics Grid -->
+<section class="grid grid-cols-3 gap-3">
+<div class="bg-surface rounded-xl p-4 card-elevation flex flex-col items-start border border-border-base">
+<span class="material-symbols-outlined text-text-secondary text-[20px] mb-2" data-icon="inbox">inbox</span>
+<span class="font-headline-md text-headline-md text-text-primary mb-1">12</span>
+<span class="font-label-sm text-label-sm text-text-secondary">Pending</span>
+</div>
+<div class="bg-surface rounded-xl p-4 card-elevation flex flex-col items-start border border-border-base">
+<span class="material-symbols-outlined text-text-secondary text-[20px] mb-2" data-icon="grading">grading</span>
+<span class="font-headline-md text-headline-md text-text-primary mb-1">B+</span>
+<span class="font-label-sm text-label-sm text-text-secondary">Avg Grade</span>
+</div>
+<div class="bg-surface rounded-xl p-4 card-elevation flex flex-col items-start border border-border-base">
+<span class="material-symbols-outlined text-text-secondary text-[20px] mb-2" data-icon="timer">timer</span>
+<span class="font-headline-md text-headline-md text-text-primary mb-1">4m</span>
+<span class="font-label-sm text-label-sm text-text-secondary">Avg Time</span>
+</div>
+</section>
+<!-- Queue Header -->
+<div class="flex justify-between items-end mb-[-8px]">
+<div>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-text-primary">Submission Queue</h2>
+<p class="font-body-sm text-body-sm text-text-secondary mt-1">CS101 - Algorithms Midterm</p>
+</div>
+<button class="flex items-center gap-1 text-primary font-label-md text-label-md hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined text-[18px]" data-icon="filter_list">filter_list</span>
+                Filter
+            </button>
+</div>
+<!-- Submission List -->
+<section class="flex flex-col gap-3">
+<!-- List Item 1 -->
+<button class="bg-surface rounded-xl p-4 card-elevation border border-border-base flex items-center justify-between text-left hover:-translate-y-[2px] transition-transform w-full" onclick="document.getElementById('review-modal').classList.remove('translate-y-full'); document.getElementById('review-overlay').classList.remove('opacity-0', 'pointer-events-none');">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary font-label-md text-label-md font-bold">JD</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary">John Doe</span>
+<span class="font-body-sm text-body-sm text-text-secondary line-clamp-1">Dynamic Programming Assignment</span>
+</div>
+</div>
+<div class="flex flex-col items-end gap-2">
+<span class="bg-warning/10 text-warning font-label-sm text-label-sm px-2 py-1 rounded-full border border-warning/20">Needs Review</span>
+<span class="font-label-sm text-label-sm text-text-secondary">2h ago</span>
+</div>
+</button>
+<!-- List Item 2 -->
+<button class="bg-surface rounded-xl p-4 card-elevation border border-border-base flex items-center justify-between text-left hover:-translate-y-[2px] transition-transform w-full opacity-60">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary font-label-md text-label-md font-bold">AS</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary">Alice Smith</span>
+<span class="font-body-sm text-body-sm text-text-secondary line-clamp-1">Sorting Algorithms Essay</span>
+</div>
+</div>
+<div class="flex flex-col items-end gap-2">
+<span class="bg-success/10 text-success font-label-sm text-label-sm px-2 py-1 rounded-full border border-success/20">Graded</span>
+<span class="font-label-sm text-label-sm text-text-secondary">A-</span>
+</div>
+</button>
+<!-- List Item 3 -->
+<button class="bg-surface rounded-xl p-4 card-elevation border border-border-base flex items-center justify-between text-left hover:-translate-y-[2px] transition-transform w-full">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary font-label-md text-label-md font-bold">MJ</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary">Marcus Johnson</span>
+<span class="font-body-sm text-body-sm text-text-secondary line-clamp-1">Graph Theory Implementation</span>
+</div>
+</div>
+<div class="flex flex-col items-end gap-2">
+<span class="bg-surface-variant text-text-primary font-label-sm text-label-sm px-2 py-1 rounded-full border border-outline-variant/50">Draft</span>
+<span class="font-label-sm text-label-sm text-text-secondary">5h ago</span>
+</div>
+</button>
+</section>
+</main>
+<!-- BottomNavBar (Shared Component JSON - MOBILE ONLY) -->
+<!-- Logic: Intent is Task-Focused (grading workspace), normally we'd suppress, but since it's a top-level "Center" for the instructor, and the prompt asks for it, we map to "Insights" as the closest instructor-facing tab, but standard JSON dictates exact matching. Since this is an instructor view and tabs are student-facing ("Learn", "Insights", etc.), we will leave "Insights" active. -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 bg-surface/70 backdrop-blur-xl border-t border-outline-variant/30 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="home">home</span>
+<span class="font-label-sm text-label-sm">Learn</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-xl px-4 py-1 hover:text-primary active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="insights" data-weight="fill" style="font-variation-settings: 'FILL' 1;">insights</span>
+<span class="font-label-sm text-label-sm">Insights</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="emoji_events">emoji_events</span>
+<span class="font-label-sm text-label-sm">Awards</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="group">group</span>
+<span class="font-label-sm text-label-sm">Community</span>
+</a>
+</nav>
+<!-- Review Modal Overlay -->
+<div class="fixed inset-0 bg-text-primary/40 backdrop-blur-sm z-[60] opacity-0 pointer-events-none transition-opacity duration-300" id="review-overlay" onclick="document.getElementById('review-modal').classList.add('translate-y-full'); this.classList.add('opacity-0', 'pointer-events-none');"></div>
+<!-- Review Modal Content (Bottom Sheet) -->
+<div class="fixed bottom-0 left-0 w-full z-[70] bg-surface rounded-t-3xl shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.15)] transform translate-y-full transition-transform duration-300 ease-out max-h-[795px] overflow-y-auto flex flex-col pb-6" id="review-modal">
+<!-- Handle -->
+<div class="w-full flex justify-center py-3" onclick="document.getElementById('review-modal').classList.add('translate-y-full'); document.getElementById('review-overlay').classList.add('opacity-0', 'pointer-events-none');">
+<div class="w-12 h-1.5 bg-outline-variant/50 rounded-full"></div>
+</div>
+<div class="px-margin-mobile flex flex-col gap-stack-lg">
+<!-- Student Context -->
+<div class="flex items-center justify-between">
+<div>
+<h3 class="font-headline-md text-headline-md text-text-primary">John Doe</h3>
+<p class="font-body-sm text-body-sm text-text-secondary">Dynamic Programming Assignment</p>
+</div>
+<button class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined" data-icon="open_in_new">open_in_new</span>
+</button>
+</div>
+<!-- AI Evaluation Assistant Card -->
+<div class="glass-panel ai-gradient-border rounded-xl p-5 relative overflow-hidden bg-surface-container-low/50">
+<!-- Decorative AI background glow -->
+<div class="absolute top-0 right-0 w-32 h-32 bg-secondary-container/20 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+<div class="flex items-center gap-2 mb-4 relative z-10">
+<span class="material-symbols-outlined text-secondary font-bold text-[20px]" data-icon="auto_awesome">auto_awesome</span>
+<span class="font-label-md text-label-md font-bold text-secondary tracking-wide uppercase text-[10px]">AI Evaluation Assistant</span>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-4 relative z-10">
+<div class="flex flex-col bg-surface/80 rounded-lg p-3 border border-border-base/50">
+<span class="font-label-sm text-label-sm text-text-secondary mb-1">Plagiarism Check</span>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-success text-[16px]" data-icon="check_circle">check_circle</span>
+<span class="font-label-md text-label-md text-text-primary">98% Original</span>
+</div>
+</div>
+<div class="flex flex-col bg-surface/80 rounded-lg p-3 border border-border-base/50">
+<span class="font-label-sm text-label-sm text-text-secondary mb-1">Suggested Grade</span>
+<div class="flex items-center gap-1">
+<span class="font-headline-md text-headline-md text-primary leading-none">B+</span>
+<span class="font-label-sm text-label-sm text-text-secondary">(88/100)</span>
+</div>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-text-primary/80 relative z-10 leading-relaxed">
+                    Solid implementation of memoization. However, the base case logic in <code class="bg-surface px-1 py-0.5 rounded text-xs text-tertiary font-label-sm">fibonacci_opt()</code> lacks bounds checking for negative inputs.
+                </p>
+</div>
+<!-- Simplified Rubric -->
+<div class="flex flex-col gap-4">
+<h4 class="font-label-md text-label-md text-text-primary font-bold border-b border-border-base pb-2">Scoring Rubric</h4>
+<!-- Rubric Row 1 -->
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-text-primary">Accuracy</span>
+<span class="font-label-sm text-label-sm text-text-secondary">Code runs correctly</span>
+</div>
+<div class="flex gap-1 text-primary">
+<span class="material-symbols-outlined text-[24px] cursor-pointer" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[24px] cursor-pointer" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[24px] cursor-pointer" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[24px] cursor-pointer text-outline-variant" data-icon="star">star</span>
+</div>
+</div>
+<!-- Rubric Row 2 -->
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-text-primary">Completeness</span>
+<span class="font-label-sm text-label-sm text-text-secondary">All requirements met</span>
+</div>
+<div class="flex gap-1 text-primary">
+<span class="material-symbols-outlined text-[24px] cursor-pointer" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[24px] cursor-pointer" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[24px] cursor-pointer" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[24px] cursor-pointer" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+<!-- Feedback Input -->
+<div class="mt-2">
+<textarea class="w-full bg-surface-container-low border border-border-base rounded-xl p-3 font-body-sm text-body-sm text-text-primary focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none h-24 placeholder:text-text-secondary/60" placeholder="Add custom feedback here..."></textarea>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex gap-3 mt-4">
+<button class="flex-1 bg-surface border border-border-base text-text-primary font-label-md text-label-md py-3 rounded-xl hover:bg-surface-variant transition-colors">Save Draft</button>
+<button class="flex-1 bg-primary-container text-on-primary font-label-md text-label-md py-3 rounded-xl shadow-sm hover:opacity-90 transition-opacity" onclick="document.getElementById('review-modal').classList.add('translate-y-full'); document.getElementById('review-overlay').classList.add('opacity-0', 'pointer-events-none');">Submit Grade</button>
+</div>
+</div>
+</div>
+</body></html>

@@ -2,10 +2,8 @@ import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { supabase } from '@/db/supabase';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Building, CheckCircle, XCircle, Globe, RefreshCw } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 
 interface Organization {
   id: string;
@@ -53,72 +51,101 @@ export default function AdminOrganizationsPage() {
 
   return (
     <AppLayout title="Organization Management" isAdmin>
-      <div className="max-w-[1440px] mx-auto w-full space-y-xl pb-xl">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-xl mb-2xl">
-          <div className="space-y-2">
-            <h1 className="font-display text-display text-on-surface">Organizations</h1>
-            <p className="text-on-surface-variant text-body-lg max-w-2xl">Approve, reject, and manage corporate and educational partners.</p>
+      <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-xl flex flex-col gap-stack-lg w-full">
+        
+        {/* Header Section */}
+        <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="font-display-lg-mobile md:font-display-lg text-[32px] md:text-[40px] font-bold text-text-primary tracking-tight">Organizations</h1>
+            <p className="font-body-md text-[16px] text-text-secondary mt-2 max-w-2xl">
+              Approve, reject, and manage corporate and educational partners.
+            </p>
           </div>
-          <div className="flex gap-md items-center">
-            <Button variant="ghost" size="sm" onClick={fetchOrgs} className="border border-outline-variant text-on-surface hover:bg-surface-variant h-11 w-11 rounded-xl">
-              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-            </Button>
+          <div className="flex flex-wrap items-center gap-3">
+             <button onClick={fetchOrgs} className="flex items-center justify-center w-11 h-11 rounded-xl border border-border-base bg-surface text-text-secondary hover:text-primary hover:border-primary/30 transition-all card-lift shadow-sm">
+               <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+             </button>
+             <div className="flex flex-col justify-center px-5 py-2 bg-surface border border-border-base rounded-xl shadow-sm h-11">
+               <div className="flex items-center gap-2">
+                 <span className="w-2 h-2 rounded-full bg-success"></span>
+                 <span className="text-[12px] font-bold text-text-secondary uppercase tracking-wider">Approved</span>
+                 <span className="text-[14px] font-bold text-text-primary ml-1">{organizations.filter(o => o.status === 'approved').length}</span>
+               </div>
+             </div>
+             <div className="flex flex-col justify-center px-5 py-2 bg-surface border border-border-base rounded-xl shadow-sm h-11">
+               <div className="flex items-center gap-2">
+                 <span className="w-2 h-2 rounded-full bg-warning animate-pulse"></span>
+                 <span className="text-[12px] font-bold text-text-secondary uppercase tracking-wider">Pending</span>
+                 <span className="text-[14px] font-bold text-text-primary ml-1">{organizations.filter(o => o.status === 'pending').length}</span>
+               </div>
+             </div>
           </div>
-        </div>
+        </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg">
+        {/* Organizations Grid */}
+        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-4">
           {loading ? (
             Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="glass-panel p-lg rounded-xl h-[240px]">
-                <Skeleton className="h-12 w-12 rounded-lg bg-surface border border-outline-variant/30 mb-4" />
-                <Skeleton className="h-6 w-3/4 bg-surface border border-outline-variant/30 mb-2" />
-                <Skeleton className="h-4 w-1/2 bg-surface border border-outline-variant/30 mb-6" />
-                <div className="flex gap-2">
-                  <Skeleton className="h-8 w-20 bg-surface border border-outline-variant/30 rounded" />
-                  <Skeleton className="h-8 w-20 bg-surface border border-outline-variant/30 rounded" />
+              <div key={i} className="glass-panel p-6 rounded-2xl h-[260px] border border-border-base shadow-sm">
+                <Skeleton className="h-14 w-14 rounded-xl bg-surface-container mb-4" />
+                <Skeleton className="h-6 w-3/4 bg-surface-container mb-3" />
+                <Skeleton className="h-16 w-full bg-surface-container mb-6" />
+                <div className="flex gap-3">
+                  <Skeleton className="h-10 w-full bg-surface-container rounded-lg" />
+                  <Skeleton className="h-10 w-full bg-surface-container rounded-lg" />
                 </div>
               </div>
             ))
           ) : organizations.length === 0 ? (
-            <div className="col-span-full py-16 text-center text-on-surface-variant">No organizations found.</div>
+            <div className="col-span-full py-20 text-center glass-panel rounded-2xl border border-border-base shadow-sm">
+               <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mx-auto mb-4 border border-border-base">
+                 <Building className="w-6 h-6 text-text-secondary" />
+               </div>
+               <p className="font-headline-md text-[18px] font-bold text-text-primary">No organizations found</p>
+            </div>
           ) : (
             organizations.map(org => (
-              <div key={org.id} className="glass-panel p-lg rounded-xl flex flex-col justify-between">
-                <div>
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-surface-container-high border border-outline-variant/50 flex items-center justify-center text-on-surface-variant">
+              <div key={org.id} className="glass-panel p-6 rounded-2xl flex flex-col justify-between border border-border-base shadow-sm card-lift hover:border-primary/50 transition-all group overflow-hidden relative">
+                <div className={`absolute top-0 right-0 w-32 h-32 rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-110 ${
+                   org.status === 'approved' ? 'bg-success/5' : org.status === 'pending' ? 'bg-warning/5' : 'bg-error/5'
+                }`}></div>
+                
+                <div className="relative z-10">
+                  <div className="flex justify-between items-start mb-5">
+                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-surface-container border border-border-base flex items-center justify-center text-text-secondary shadow-inner">
                       {org.logo_url ? <img src={org.logo_url} alt={org.name} className="w-full h-full object-cover" /> : <Building className="w-6 h-6" />}
                     </div>
-                    {org.status === 'pending' && <Badge className="bg-tertiary/20 text-tertiary border border-tertiary/30">Pending</Badge>}
-                    {org.status === 'approved' && <Badge className="bg-[#4ade80]/20 text-[#4ade80] border border-[#4ade80]/30">Approved</Badge>}
-                    {org.status === 'rejected' && <Badge className="bg-error/20 text-error border border-error/30">Rejected</Badge>}
+                    {org.status === 'pending' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-warning/10 border border-warning/20 text-warning"><span className="w-1.5 h-1.5 bg-warning rounded-full animate-pulse"></span> Pending</span>}
+                    {org.status === 'approved' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-success/10 border border-success/20 text-success"><span className="w-1.5 h-1.5 bg-success rounded-full"></span> Approved</span>}
+                    {org.status === 'rejected' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-error/10 border border-error/20 text-error"><span className="w-1.5 h-1.5 bg-error rounded-full"></span> Rejected</span>}
                   </div>
-                  <h3 className="font-headline-md text-on-surface mb-1">{org.name}</h3>
-                  <p className="text-body-sm text-on-surface-variant mb-4 line-clamp-2">{org.description || 'No description provided.'}</p>
+                  
+                  <h3 className="font-headline-md text-[20px] font-bold text-text-primary mb-2 line-clamp-1 group-hover:text-primary transition-colors">{org.name}</h3>
+                  <p className="text-[14px] text-text-secondary mb-4 line-clamp-2 min-h-[40px] leading-relaxed">{org.description || 'No description provided.'}</p>
                   
                   {org.website && (
-                    <a href={org.website} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-label-sm text-primary hover:underline mb-4">
+                    <a href={org.website} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-[13px] font-bold text-primary hover:text-primary-container transition-colors mb-5 w-fit">
                       <Globe className="w-4 h-4" /> {org.website.replace(/^https?:\/\//, '')}
                     </a>
                   )}
                 </div>
                 
-                <div className="flex gap-2 border-t border-outline-variant/30 pt-4 mt-2">
+                <div className="flex gap-3 border-t border-border-base pt-5 mt-2 relative z-10">
                   {org.status !== 'approved' && (
-                    <Button onClick={() => updateStatus(org.id, 'approved')} className="flex-1 bg-[#4ade80]/10 text-[#4ade80] hover:bg-[#4ade80]/20 border border-[#4ade80]/30" size="sm">
-                      <CheckCircle className="w-4 h-4 mr-2" /> Approve
-                    </Button>
+                    <button onClick={() => updateStatus(org.id, 'approved')} className="flex-1 flex items-center justify-center gap-2 bg-success/10 text-success hover:bg-success hover:text-white border border-success/30 font-bold text-[13px] h-10 rounded-lg transition-all shadow-sm">
+                      <CheckCircle className="w-4 h-4" /> Approve
+                    </button>
                   )}
                   {org.status !== 'rejected' && (
-                    <Button onClick={() => updateStatus(org.id, 'rejected')} className="flex-1 bg-error/10 text-error hover:bg-error/20 border border-error/30" size="sm">
-                      <XCircle className="w-4 h-4 mr-2" /> Reject
-                    </Button>
+                    <button onClick={() => updateStatus(org.id, 'rejected')} className="flex-1 flex items-center justify-center gap-2 bg-error/10 text-error hover:bg-error hover:text-white border border-error/30 font-bold text-[13px] h-10 rounded-lg transition-all shadow-sm">
+                      <XCircle className="w-4 h-4" /> Reject
+                    </button>
                   )}
                 </div>
               </div>
             ))
           )}
-        </div>
+        </section>
       </div>
     </AppLayout>
   );

@@ -24,13 +24,13 @@ FOR ALL TO authenticated
 USING (
   EXISTS (
     SELECT 1 FROM public.profiles 
-    WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
+    WHERE profiles.id::text = auth.uid()::text AND profiles.role = 'admin'
   )
 )
 WITH CHECK (
   EXISTS (
     SELECT 1 FROM public.profiles 
-    WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
+    WHERE profiles.id::text = auth.uid()::text AND profiles.role = 'admin'
   )
 );
 

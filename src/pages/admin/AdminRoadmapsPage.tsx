@@ -4,8 +4,8 @@ import { supabase } from '@/db/supabase';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Map, Plus, Trash2, Edit2, Loader2, Save, ChevronDown, ChevronRight } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Map, Plus, Trash2, Edit2, Loader2, Save, ChevronDown, ChevronRight, GraduationCap } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -94,76 +94,121 @@ export default function AdminRoadmapsPage() {
 
   return (
     <AppLayout title="Roadmaps Management" isAdmin>
-      <div className="max-w-[1440px] mx-auto w-full space-y-xl pb-xl">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-xl mb-2xl">
-          <div className="space-y-2">
-            <h1 className="font-display text-display text-on-surface">Roadmaps Management</h1>
-            <p className="text-on-surface-variant text-body-lg max-w-2xl">Manage AI-generated standard roadmaps for students. Control the curriculum templates for various domains.</p>
+      <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-xl flex flex-col gap-stack-lg w-full">
+        
+        {/* Header Section */}
+        <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="font-display-lg-mobile md:font-display-lg text-[32px] md:text-[40px] font-bold text-text-primary tracking-tight">Roadmaps Management</h1>
+            <p className="font-body-md text-[16px] text-text-secondary mt-2 max-w-2xl">
+              Design and manage AI-generated standard learning roadmaps for students.
+            </p>
           </div>
-          <Button onClick={() => { setEditingId(null); setForm({ title: '', domain: '', description: '', total_weeks: 4 }); setDialogOpen(true); }} className="px-lg py-md rounded-xl bg-primary text-on-primary font-bold hover:opacity-90 flex items-center gap-2">
-            <Plus className="w-5 h-5" /> Create Roadmap
-          </Button>
-        </div>
+          <div className="flex flex-wrap items-center gap-3">
+             <button onClick={() => { setEditingId(null); setForm({ title: '', domain: '', description: '', total_weeks: 4 }); setDialogOpen(true); }} className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white hover:bg-primary-container hover:text-on-primary-container font-label-md text-[14px] font-bold shadow-sm transition-all card-lift">
+                <Plus className="w-5 h-5" /> Create Roadmap
+             </button>
+          </div>
+        </section>
 
-        <div className="glass-panel rounded-xl overflow-hidden flex flex-col">
-          <div className="p-lg border-b border-outline-variant/60 flex items-center gap-2">
-            <Map className="w-5 h-5 text-primary" />
-            <h2 className="font-headline-md text-on-surface">Standard Roadmaps</h2>
+        {/* Roadmaps List Container */}
+        <section className="glass-panel border border-border-base rounded-2xl shadow-sm overflow-hidden flex flex-col mt-4">
+          <div className="p-6 md:px-8 py-5 border-b border-border-base flex justify-between items-center bg-surface/50">
+            <h3 className="font-headline-md text-[20px] font-bold text-text-primary flex items-center gap-2">
+               <Map className="w-5 h-5 text-primary" />
+               Standard Roadmaps
+            </h3>
           </div>
 
-          <div className="divide-y divide-outline-variant/30">
+          <div className="divide-y divide-border-base">
             {loading ? (
-              <div className="p-lg space-y-4">
-                <Skeleton className="h-16 w-full rounded-lg" />
-                <Skeleton className="h-16 w-full rounded-lg" />
+              <div className="p-6 md:p-8 space-y-4">
+                <Skeleton className="h-20 w-full rounded-xl bg-surface-container" />
+                <Skeleton className="h-20 w-full rounded-xl bg-surface-container" />
+                <Skeleton className="h-20 w-full rounded-xl bg-surface-container" />
               </div>
             ) : templates.length === 0 ? (
-              <div className="p-16 text-center text-on-surface-variant">No roadmap templates found.</div>
+              <div className="p-16 text-center">
+                 <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mx-auto mb-4 border border-border-base">
+                   <Map className="w-6 h-6 text-text-secondary" />
+                 </div>
+                 <p className="font-headline-md text-[18px] font-bold text-text-primary">No templates defined</p>
+                 <p className="text-[14px] text-text-secondary mt-1">Click "Create Roadmap" to build your first template.</p>
+              </div>
             ) : (
               templates.map((t) => (
-                <div key={t.id} className="flex flex-col">
-                  <div className="p-lg hover:bg-surface-variant/10 transition-colors flex items-center justify-between cursor-pointer" onClick={() => toggleExpand(t.id)}>
+                <div key={t.id} className="flex flex-col group transition-colors">
+                  <div className="p-6 md:px-8 hover:bg-surface-container/30 transition-colors flex items-center justify-between cursor-pointer" onClick={() => toggleExpand(t.id)}>
                     <div className="flex items-center gap-4">
-                      {expanded === t.id ? <ChevronDown className="w-5 h-5 text-on-surface-variant" /> : <ChevronRight className="w-5 h-5 text-on-surface-variant" />}
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center bg-surface border border-border-base shadow-sm shrink-0">
+                         {expanded === t.id ? <ChevronDown className="w-4 h-4 text-text-primary" /> : <ChevronRight className="w-4 h-4 text-text-secondary" />}
+                      </div>
                       <div>
-                        <p className="font-body-lg font-medium text-on-surface">{t.title}</p>
-                        <p className="text-sm text-on-surface-variant">{t.domain} • {t.total_weeks} Weeks</p>
+                        <p className="font-body-lg text-[16px] font-bold text-text-primary group-hover:text-primary transition-colors">{t.title}</p>
+                        <p className="text-[13px] font-medium text-text-secondary mt-0.5 flex items-center gap-2">
+                           <span className="px-2 py-0.5 bg-surface border border-border-base rounded shadow-sm text-[11px] font-bold uppercase tracking-wider">{t.domain}</span>
+                           <span>•</span>
+                           <span>{t.total_weeks} Weeks</span>
+                        </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
-                      <Button variant="ghost" size="sm" onClick={() => { setEditingId(t.id); setForm({ title: t.title, domain: t.domain, description: t.description || '', total_weeks: t.total_weeks }); setDialogOpen(true); }} className="p-2 text-on-surface-variant hover:text-primary">
+                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+                      <button onClick={() => { setEditingId(t.id); setForm({ title: t.title, domain: t.domain, description: t.description || '', total_weeks: t.total_weeks }); setDialogOpen(true); }} className="w-10 h-10 flex items-center justify-center rounded-full text-text-secondary hover:text-primary hover:bg-surface shadow-sm border border-transparent hover:border-border-base transition-all">
                         <Edit2 className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleDelete(t.id)} className="p-2 text-on-surface-variant hover:text-error">
+                      </button>
+                      <button onClick={() => handleDelete(t.id)} className="w-10 h-10 flex items-center justify-center rounded-full text-text-secondary hover:text-error hover:bg-surface shadow-sm border border-transparent hover:border-border-base transition-all">
                         <Trash2 className="w-4 h-4" />
-                      </Button>
+                      </button>
                     </div>
                   </div>
+                  
                   {expanded === t.id && (
-                    <div className="bg-surface-container-lowest border-t border-outline-variant/30 p-lg pl-14">
-                      <p className="text-sm text-on-surface-variant mb-4">{t.description}</p>
-                      <div className="space-y-3">
+                    <div className="bg-surface-container/20 border-t border-border-base p-6 md:px-8 md:pl-20">
+                      <p className="text-[14px] font-medium text-text-primary mb-6 bg-surface p-4 rounded-xl border border-border-base shadow-sm">{t.description}</p>
+                      
+                      <div className="space-y-4">
                         {nodes[t.id] ? (
                           nodes[t.id].length === 0 ? (
-                            <p className="text-sm text-on-surface-variant italic">No nodes defined for this roadmap yet.</p>
+                            <div className="p-8 border-2 border-dashed border-border-base rounded-xl text-center bg-surface/50">
+                               <p className="text-[14px] text-text-secondary italic">No curriculum nodes defined for this roadmap yet.</p>
+                            </div>
                           ) : (
-                            nodes[t.id].map(n => (
-                              <div key={n.id} className="flex items-start gap-4 p-4 border border-outline-variant/40 rounded-lg bg-surface">
-                                <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold shrink-0">W{n.week}</div>
-                                <div>
-                                  <p className="font-medium text-on-surface">{n.title}</p>
-                                  <p className="text-sm text-on-surface-variant mb-2">{n.goal}</p>
-                                  <ul className="list-disc list-inside text-xs text-on-surface-variant">
-                                    {n.tasks.map((task, idx) => <li key={idx}>{task}</li>)}
-                                  </ul>
+                            <div className="relative border-l-2 border-border-base ml-5 space-y-6 pb-4">
+                              {nodes[t.id].map(n => (
+                                <div key={n.id} className="relative pl-8">
+                                  <div className="absolute -left-[17px] top-1 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-[12px] font-bold shadow-md border-2 border-surface">
+                                    W{n.week}
+                                  </div>
+                                  <div className="bg-surface border border-border-base rounded-xl p-5 shadow-sm hover:border-primary/30 transition-colors">
+                                    <h4 className="font-bold text-[16px] text-text-primary mb-1">{n.title}</h4>
+                                    <p className="text-[14px] text-text-secondary mb-4 italic">Goal: {n.goal}</p>
+                                    
+                                    {n.tasks && n.tasks.length > 0 && (
+                                      <div className="bg-surface-container/30 rounded-lg p-4 border border-border-base">
+                                        <h5 className="text-[11px] font-bold text-text-secondary uppercase tracking-widest mb-3 flex items-center gap-1"><GraduationCap className="w-4 h-4" /> Weekly Tasks</h5>
+                                        <ul className="space-y-2">
+                                          {n.tasks.map((task, idx) => (
+                                            <li key={idx} className="text-[13px] text-text-primary flex items-start gap-2">
+                                              <span className="w-1.5 h-1.5 rounded-full bg-primary/50 shrink-0 mt-1.5"></span>
+                                              <span>{task}</span>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            ))
+                              ))}
+                            </div>
                           )
                         ) : (
-                          <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                          <div className="flex justify-center p-8">
+                            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                          </div>
                         )}
-                        <Button variant="outline" size="sm" className="mt-2 text-primary border-primary/30"><Plus className="w-4 h-4 mr-1" /> Add Week</Button>
+                        <button className="flex items-center gap-2 mt-4 ml-5 px-4 py-2 text-[13px] font-bold text-primary bg-primary/5 hover:bg-primary/10 border border-primary/20 rounded-lg transition-colors">
+                           <Plus className="w-4 h-4" /> Add Week Module
+                        </button>
                       </div>
                     </div>
                   )}
@@ -171,34 +216,39 @@ export default function AdminRoadmapsPage() {
               ))
             )}
           </div>
-        </div>
+        </section>
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="bg-surface-container border-outline-variant">
-          <DialogHeader><DialogTitle className="text-on-surface">{editingId ? 'Edit Roadmap' : 'Create Roadmap'}</DialogTitle></DialogHeader>
-          <form onSubmit={handleSave} className="space-y-4">
+        <DialogContent className="bg-surface border-border-base text-text-primary rounded-2xl shadow-2xl overflow-hidden p-0 max-w-lg">
+          <DialogHeader className="p-6 md:p-8 border-b border-border-base bg-surface-container/30">
+            <DialogTitle className="font-headline-md text-[24px] font-bold text-text-primary">{editingId ? 'Edit Roadmap Template' : 'Create Roadmap Template'}</DialogTitle>
+            <DialogDescription className="text-text-secondary text-[14px] mt-1">
+               Define the high-level metadata for this learning path.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSave} className="p-6 md:p-8 space-y-5">
             <div className="space-y-2">
-              <Label className="text-on-surface">Title</Label>
-              <Input className="bg-surface-container-lowest border-outline-variant text-on-surface" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} required />
+              <Label className="text-[13px] font-bold text-text-primary">Roadmap Title *</Label>
+              <Input className="bg-surface border-border-base text-text-primary h-11" placeholder="e.g. Full Stack Web Development" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} required />
             </div>
             <div className="space-y-2">
-              <Label className="text-on-surface">Domain</Label>
-              <Input className="bg-surface-container-lowest border-outline-variant text-on-surface" placeholder="e.g. Data Science, Web Dev" value={form.domain} onChange={e => setForm(f => ({ ...f, domain: e.target.value }))} required />
+              <Label className="text-[13px] font-bold text-text-primary">Domain/Category *</Label>
+              <Input className="bg-surface border-border-base text-text-primary h-11" placeholder="e.g. Software Engineering" value={form.domain} onChange={e => setForm(f => ({ ...f, domain: e.target.value }))} required />
             </div>
             <div className="space-y-2">
-              <Label className="text-on-surface">Description</Label>
-              <Textarea className="bg-surface-container-lowest border-outline-variant text-on-surface" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+              <Label className="text-[13px] font-bold text-text-primary">Description</Label>
+              <Textarea className="bg-surface border-border-base text-text-primary resize-none min-h-[100px]" placeholder="Brief overview of what students will achieve..." value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
             </div>
             <div className="space-y-2">
-              <Label className="text-on-surface">Total Weeks</Label>
-              <Input type="number" min={1} className="bg-surface-container-lowest border-outline-variant text-on-surface" value={form.total_weeks} onChange={e => setForm(f => ({ ...f, total_weeks: parseInt(e.target.value) || 1 }))} required />
+              <Label className="text-[13px] font-bold text-text-primary">Total Duration (Weeks) *</Label>
+              <Input type="number" min={1} max={52} className="bg-surface border-border-base text-text-primary h-11 w-full max-w-[200px]" value={form.total_weeks} onChange={e => setForm(f => ({ ...f, total_weeks: parseInt(e.target.value) || 1 }))} required />
             </div>
-            <div className="flex gap-3 pt-4">
-              <Button type="button" variant="ghost" onClick={() => setDialogOpen(false)} className="flex-1">Cancel</Button>
-              <Button type="submit" disabled={saving} className="flex-1 bg-primary text-on-primary">
+            <div className="flex gap-3 pt-6 border-t border-border-base mt-8 justify-end">
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="w-full sm:w-auto h-11 px-6 border-border-base text-text-primary hover:bg-surface-container font-bold rounded-xl">Cancel</Button>
+              <Button type="submit" disabled={saving} className="w-full sm:w-auto h-11 px-8 bg-primary text-white font-bold rounded-xl shadow-sm hover:opacity-90">
                 {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                {editingId ? 'Save' : 'Create'}
+                {editingId ? 'Save Changes' : 'Create Template'}
               </Button>
             </div>
           </form>

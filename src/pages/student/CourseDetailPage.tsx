@@ -31,9 +31,9 @@ interface QuizWithState extends DBQuiz {
 }
 
 const getDifficultyColor = (diff: string) => {
-  if (diff === 'Beginner') return 'text-secondary';
-  if (diff === 'Intermediate') return 'text-primary';
-  return 'text-gold-tier';
+  if (diff === 'Beginner') return 'text-secondary-fixed-dim';
+  if (diff === 'Intermediate') return 'text-primary-fixed-dim';
+  return 'text-tertiary-fixed-dim';
 };
 
 const getDifficultyIcon = (diff: string) => {
@@ -269,291 +269,305 @@ export default function CourseDetailPage() {
   );
 
   return (
-    <AppLayout title={course.title}>
-      <div className="max-w-[1440px] mx-auto w-full relative">
-        <div className="absolute top-0 left-1/4 w-1/2 h-[500px] bg-primary/5 blur-[120px] rounded-full pointer-events-none z-0"></div>
-        <div className="p-md sm:p-xl lg:p-2xl relative z-10 grid gap-2xl">
-          <Link to="/courses" className="inline-flex items-center gap-2 font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors w-fit">
-            <span className="material-symbols-outlined text-[18px]">arrow_back</span> Back to Catalog
-          </Link>
-
-          <section className="grid lg:grid-cols-[1fr_400px] gap-xl items-start">
-            <div className="flex flex-col gap-lg">
-              <div className="flex flex-wrap gap-sm items-center">
-                <span className="bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm px-md py-xs rounded-full border border-outline-variant/60 flex items-center gap-xs">
-                  <span className="material-symbols-outlined text-xs text-secondary">code</span>
-                  {course.category}
-                </span>
-                <span className="bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm px-md py-xs rounded-full border border-outline-variant/60 flex items-center gap-xs">
-                  <span className={`material-symbols-outlined text-xs ${getDifficultyColor(course.difficulty)}`}>{getDifficultyIcon(course.difficulty)}</span>
-                  {course.difficulty}
-                </span>
+    <AppLayout title={course.title} noPadding>
+      <main className="max-w-container-max mx-auto pt-0 md:pt-stack-xl px-margin-mobile md:px-margin-desktop w-full">
+        {/* Link back */}
+        <Link to="/courses" className="inline-flex items-center gap-2 font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors w-fit mb-stack-sm mt-stack-md md:mt-0">
+          <span className="material-symbols-outlined text-[18px]">arrow_back</span> Back to Catalog
+        </Link>
+        
+        {/* Hero Section */}
+        <section className="rounded-xl overflow-hidden relative shadow-[0_4px_20px_rgba(0,0,0,0.05)] mb-stack-xl">
+          <div className="h-[250px] md:h-[350px] w-full bg-surface-container-low relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-tertiary/30 mix-blend-multiply z-10 pointer-events-none"></div>
+            {course.thumbnail_url ? (
+               <img src={course.thumbnail_url} alt="Course Hero" className="w-full h-full object-cover opacity-90" />
+            ) : (
+               <div className="w-full h-full bg-surface-container-high flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[80px] text-outline-variant opacity-30">code_blocks</span>
+               </div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
+          </div>
+          
+          <div className="absolute bottom-0 left-0 w-full p-gutter md:p-stack-lg text-white z-20">
+            <div className="flex flex-wrap gap-2 mb-stack-sm">
+              <span className="bg-primary/80 text-on-primary font-label-sm text-label-sm px-3 py-1 rounded-full backdrop-blur-sm border border-primary/20">{course.category}</span>
+              <span className="bg-tertiary/80 text-on-tertiary font-label-sm text-label-sm px-3 py-1 rounded-full backdrop-blur-sm border border-tertiary/20 flex items-center gap-1">
+                 <span className={`material-symbols-outlined text-[14px]`}>{getDifficultyIcon(course.difficulty)}</span>
+                 {course.difficulty}
+              </span>
+            </div>
+            <h1 className="font-display-lg-mobile text-display-lg-mobile md:font-display-lg md:text-display-lg text-white mb-stack-sm tracking-tight">{course.title}</h1>
+            <div className="flex items-center gap-stack-md flex-wrap mt-4">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-warning" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                <span className="font-label-md text-label-md text-white">{course.rating.toFixed(1)}</span>
               </div>
-              
-              <h1 className="font-display text-display font-bold text-on-surface tracking-tight leading-tight hidden md:block">
-                {course.title.split(':').map((part, i, arr) => (
-                  <span key={i}>
-                    {i === 0 && arr.length > 1 ? <>{part}:<br/><span className="text-gradient">{arr.slice(1).join(':')}</span></> : part}
-                  </span>
-                ))}
-              </h1>
-              <h1 className="font-headline-lg-mobile text-headline-lg-mobile font-bold text-on-surface md:hidden">
-                {course.title}
-              </h1>
-              
-              <p className="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">
+              <span className="text-white/50 hidden md:inline">•</span>
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-white/80">group</span>
+                <span className="font-label-md text-label-md text-white/90">{course.student_count.toLocaleString()} already enrolled</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Grid Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter pb-stack-xl">
+          {/* Main Content Area */}
+          <div className="lg:col-span-8 flex flex-col gap-stack-xl">
+            {/* Overview */}
+            <section>
+              <h2 className="font-headline-lg text-headline-lg text-on-surface mb-stack-md">Course Overview</h2>
+              <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed mb-stack-md text-balance">
                 {course.description}
               </p>
-
-              <div className="flex items-center gap-lg border-y border-outline-variant/30 py-md mt-sm">
-                <div className="flex items-center gap-sm">
-                  <div className="flex text-gold-tier">
-                    <span className="material-symbols-outlined fill text-[18px]">star</span>
-                    <span className="font-body-md text-body-md font-bold text-on-surface ml-1">{course.rating.toFixed(1)}</span>
-                  </div>
-                </div>
-                <div className="w-px h-6 bg-outline-variant/60 hidden sm:block"></div>
-                <div className="flex items-center gap-sm hidden sm:flex">
-                  <span className="material-symbols-outlined text-on-surface-variant text-[18px]">group</span>
-                  <span className="font-label-md text-label-md text-on-surface">{course.student_count.toLocaleString()} Students</span>
-                </div>
-              </div>
-
+              
               {course.topics && course.topics.length > 0 && (
-                <div className="mt-xl">
-                  <h2 className="font-headline-md text-headline-md font-bold text-on-surface mb-md">Topics Covered</h2>
-                  <div className="flex flex-wrap gap-md">
-                    {course.topics.map((topic, i) => {
-                      const colors = ['text-primary', 'text-[#3178c6]', 'text-secondary'];
-                      return (
-                        <span key={topic} className={`bg-surface-container px-sm py-xs rounded border border-outline-variant/40 font-label-sm text-label-sm flex items-center gap-xs ${colors[i % colors.length]}`}>
-                          {topic}
-                        </span>
-                      );
-                    })}
+                <>
+                  <h3 className="font-headline-md text-headline-md text-on-surface mt-stack-lg mb-stack-sm">Skills You'll Master</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {course.topics.map(topic => (
+                      <span key={topic} className="bg-surface-container text-on-surface border border-border-base font-label-md text-label-md px-4 py-2 rounded-full hover:bg-surface-container-high transition-colors cursor-default">
+                        {topic}
+                      </span>
+                    ))}
                   </div>
-                </div>
+                </>
               )}
+            </section>
 
-              <div className="mt-xl">
-                <div className="flex items-center justify-between mb-md">
-                  <h2 className="font-headline-md text-headline-md font-bold text-on-surface">Curriculum & Tasks</h2>
-                  <span className="font-label-sm text-label-sm text-on-surface-variant">{modules.length} Modules</span>
-                </div>
-                
-                <Tabs defaultValue="modules" className="w-full">
-                  <TabsList className="w-full justify-start bg-transparent border-b border-outline-variant/30 overflow-x-auto whitespace-nowrap rounded-none p-0 h-auto gap-4">
-                    <TabsTrigger value="modules" className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-primary data-[state=active]:shadow-none border-b-2 border-transparent rounded-none px-2 py-3 text-on-surface-variant">Modules</TabsTrigger>
-                    <TabsTrigger value="assignments" className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-primary data-[state=active]:shadow-none border-b-2 border-transparent rounded-none px-2 py-3 text-on-surface-variant">Assignments</TabsTrigger>
-                    <TabsTrigger value="quiz" className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-primary data-[state=active]:shadow-none border-b-2 border-transparent rounded-none px-2 py-3 text-on-surface-variant">Quizzes</TabsTrigger>
-                    <TabsTrigger value="grandtest" className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-primary data-[state=active]:shadow-none border-b-2 border-transparent rounded-none px-2 py-3 text-on-surface-variant">Grand Test</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="modules" className="mt-4 flex flex-col gap-sm">
-                    {modules.map((mod, idx) => {
-                      const accessible = mod.status !== 'locked';
-                      return (
-                        <div key={mod.id} className="bg-surface-container-lowest border border-outline-variant/50 rounded-lg overflow-hidden group">
-                          <div 
-                            onClick={() => {
-                              setPreviewModule(mod);
-                              if (accessible && isEnrolled) navigate(`/courses/${courseId}/learn/${mod.id}`);
-                            }}
-                            className={`p-md flex items-center justify-between transition-colors ${accessible || isEnrolled ? 'cursor-pointer hover:bg-surface-container bg-surface-container-low' : 'bg-surface-container-lowest opacity-60'}`}
-                          >
-                            <div className="flex items-center gap-md min-w-0">
-                              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-label-sm text-label-sm shrink-0
-                                ${mod.status === 'completed' ? 'bg-primary/20 text-primary border border-primary/30' : 
-                                  mod.status === 'unlocked' || isEnrolled ? 'bg-surface-variant text-on-surface' : 'bg-surface-variant/50 text-on-surface-variant'}`}>
-                                {mod.status === 'completed' ? <span className="material-symbols-outlined text-[16px]">check</span> : mod.status === 'locked' && !isEnrolled ? <span className="material-symbols-outlined text-[16px]">lock</span> : idx + 1}
-                              </div>
-                              <div className="min-w-0">
-                                <h3 className={`font-label-md text-label-md font-bold truncate ${mod.status === 'completed' ? 'text-primary' : 'text-on-surface'}`}>{mod.title}</h3>
-                                <p className="text-[12px] text-on-surface-variant truncate mt-0.5">{mod.description}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-sm font-label-sm text-label-sm text-on-surface-variant shrink-0 ml-4">
-                              <span className="hidden sm:inline">{mod.duration_minutes} min</span>
-                              <span className={`material-symbols-outlined text-[18px] ml-sm transition-transform duration-200 ${(accessible || isEnrolled) ? 'group-hover:translate-x-1 group-hover:text-primary' : ''}`}>play_circle</span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </TabsContent>
-
-                  <TabsContent value="assignments" className="mt-4 flex flex-col gap-sm">
-                    {!isEnrolled ? (
-                      <div className="text-center py-10 text-on-surface-variant">
-                        <span className="material-symbols-outlined text-[48px] opacity-40 mb-3">assignment</span>
-                        <p className="font-body-md">Enroll in this course to view assignments.</p>
-                      </div>
-                    ) : assignments.length === 0 ? (
-                      <div className="text-center py-10 text-on-surface-variant">
-                        <span className="material-symbols-outlined text-[48px] opacity-40 mb-3">assignment_turned_in</span>
-                        <p className="font-body-md">No assignments for this course yet.</p>
-                      </div>
-                    ) : (
-                      assignments.map((asg, asgIdx) => {
-                        const sub = asg.submission;
-                        const isGraded = sub?.status === 'graded';
-                        const isSubmitted = !!sub;
-                        return (
-                          <div key={asg.id} className="bg-surface-container border border-outline-variant/40 rounded-xl p-md">
-                            <div className="flex items-start justify-between gap-3 mb-2">
-                              <div className="flex items-center gap-2">
-                                <span className="material-symbols-outlined text-primary text-[20px]">description</span>
-                                <h4 className="font-label-md text-label-md font-bold text-on-surface">{asg.title}</h4>
-                              </div>
-                              {isGraded && <span className="px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-label-sm text-[10px]">Graded</span>}
-                              {isSubmitted && !isGraded && <span className="px-2 py-0.5 rounded bg-secondary/10 text-secondary border border-secondary/20 font-label-sm text-[10px]">Submitted</span>}
-                              {!isSubmitted && <span className="px-2 py-0.5 rounded bg-surface-variant text-on-surface-variant font-label-sm text-[10px]">Pending</span>}
-                            </div>
-                            <p className="font-body-sm text-body-sm text-on-surface-variant mb-4">{asg.instructions}</p>
-                            
-                            {isGraded && (
-                              <div className="rounded-lg bg-primary/5 border border-primary/20 p-sm mb-4">
-                                <p className="font-label-sm text-label-sm font-bold text-primary mb-1">Score: {sub!.score ?? '—'}/100</p>
-                                {sub!.feedback && <p className="font-body-sm text-body-sm text-on-surface-variant">{sub!.feedback}</p>}
-                              </div>
-                            )}
-                            {isSubmitted && !isGraded && (
-                              <div className="rounded-lg bg-surface-container-high border border-outline-variant/40 p-sm mb-4">
-                                <p className="font-label-sm text-label-sm font-bold text-on-surface mb-1">Your submission:</p>
-                                <p className="font-body-sm text-body-sm text-on-surface-variant">{sub!.answer_text}</p>
-                              </div>
-                            )}
-                            {!isGraded && (
-                              <div className="space-y-2">
-                                <Textarea placeholder="Write your answer here…" value={asg.draftText} onChange={e => updateDraft(asgIdx, e.target.value)} className="min-h-[100px] bg-surface text-on-surface border-outline-variant/50 focus:border-primary resize-none font-body-sm text-body-sm" disabled={asg.submitting} />
-                                <div className="flex items-center justify-between">
-                                  <p className="text-[10px] text-on-surface-variant">{asg.draftText.length} characters</p>
-                                  <button onClick={() => submitAssignment(asgIdx)} disabled={asg.submitting || !asg.draftText.trim()} className="px-4 py-1.5 bg-primary text-on-primary rounded font-label-sm flex items-center gap-2 hover:bg-primary/90 disabled:opacity-50">
-                                    {asg.submitting ? <span className="material-symbols-outlined text-[16px] animate-spin">autorenew</span> : <span className="material-symbols-outlined text-[16px]">send</span>}
-                                    {isSubmitted ? 'Resubmit' : 'Submit'}
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })
-                    )}
-                  </TabsContent>
-
-                  <TabsContent value="quiz" className="mt-4 flex flex-col gap-sm">
-                    {!isEnrolled ? (
-                      <div className="text-center py-10 text-on-surface-variant"><span className="material-symbols-outlined text-[48px] opacity-40 mb-3">quiz</span><p className="font-body-md">Enroll to access quizzes.</p></div>
-                    ) : moduleQuizzes.length === 0 ? (
-                      <div className="text-center py-10 text-on-surface-variant"><span className="material-symbols-outlined text-[48px] opacity-40 mb-3">quiz</span><p className="font-body-md">No quizzes yet.</p></div>
-                    ) : (
-                      moduleQuizzes.map((quiz, qIdx) => {
-                        if (quiz.quizStarted && !quiz.attempt) return renderQuizInProgress(quiz, qIdx);
-                        return (
-                          <div key={quiz.id} className="bg-surface-container border border-outline-variant/40 rounded-xl p-md flex items-center justify-between gap-4 flex-wrap">
-                            <div>
-                              <h4 className="font-label-md text-label-md font-bold text-on-surface mb-1">{quiz.title}</h4>
-                              <div className="flex gap-4 text-xs text-on-surface-variant">
-                                <span>{quiz.questions.length} questions</span>
-                                <span>Pass: {quiz.passing_score}%</span>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              {quiz.attempt && (
-                                <span className={`font-label-sm text-label-sm px-2 py-1 rounded border ${quiz.attempt.passed ? 'bg-primary/10 text-primary border-primary/20' : 'bg-error/10 text-error border-error/20'}`}>
-                                  {quiz.attempt.passed ? 'Passed' : 'Failed'} ({Math.round((quiz.attempt.score / quiz.attempt.total) * 100)}%)
-                                </span>
-                              )}
-                              <button onClick={() => quiz.attempt ? retakeQuiz(qIdx) : startQuiz(qIdx)} className="px-4 py-1.5 bg-surface-container-high border border-outline-variant/60 text-on-surface hover:text-primary hover:border-primary/50 rounded font-label-sm transition-colors">
-                                {quiz.attempt ? 'Retake' : 'Start'}
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })
-                    )}
-                  </TabsContent>
-
-                  <TabsContent value="grandtest" className="mt-4">
-                    {!isEnrolled ? (
-                      <div className="text-center py-10 text-on-surface-variant"><span className="material-symbols-outlined text-[48px] opacity-40 mb-3">workspace_premium</span><p className="font-body-md">Enroll in this course to access the Grand Test.</p></div>
-                    ) : !allModulesCompleted ? (
-                      <div className="bg-surface-container border border-outline-variant/40 rounded-xl p-xl text-center flex flex-col items-center">
-                        <div className="w-16 h-16 rounded-full bg-surface-container-high border border-outline-variant/60 flex items-center justify-center mb-4"><span className="material-symbols-outlined text-[32px] text-on-surface-variant">lock</span></div>
-                        <h3 className="font-headline-sm text-headline-sm font-bold text-on-surface mb-2">Grand Test Locked</h3>
-                        <p className="font-body-md text-on-surface-variant max-w-sm mb-6">Complete all {modules.length} modules to unlock. You've completed {completedCount} so far.</p>
-                        <div className="w-full max-w-xs h-2 bg-surface-container-highest rounded-full overflow-hidden mb-6">
-                          <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${enrollment?.progress_percent ?? 0}%` }}></div>
-                        </div>
-                        <button onClick={startOrResume} className="px-6 py-2 bg-primary text-on-primary rounded-lg font-label-md hover:bg-primary/90 flex items-center gap-2">
-                          <span className="material-symbols-outlined text-[18px]">play_arrow</span> Continue Learning
-                        </button>
-                      </div>
-                    ) : !grandTest ? (
-                      <div className="text-center py-10 text-on-surface-variant"><span className="material-symbols-outlined text-[48px] opacity-40 mb-3">pending</span><p className="font-body-md">Grand Test not available yet.</p></div>
-                    ) : grandTest.quizStarted && !grandTest.attempt ? renderQuizInProgress(grandTest, 0, true)
-                    : (
-                      <div className="bg-surface-container border-2 border-gold-tier/50 rounded-xl p-lg relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-gold-tier/10 rounded-full blur-2xl pointer-events-none"></div>
-                        <div className="flex items-start gap-4 relative z-10">
-                          <div className="w-14 h-14 rounded-full bg-gold-tier/20 border border-gold-tier/40 flex items-center justify-center shrink-0">
-                            <span className="material-symbols-outlined text-gold-tier text-[28px]">workspace_premium</span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-headline-sm text-headline-sm font-bold text-on-surface mb-1">{grandTest.title}</h3>
-                            <p className="font-body-sm text-on-surface-variant mb-4">{grandTest.questions.length} questions · Pass: {grandTest.passing_score}%</p>
-                            
-                            {grandTest.attempt ? (
-                              <div className="space-y-4">
-                                <div className={`p-4 rounded-lg border ${grandTest.attempt.passed ? 'bg-primary/10 border-primary/30' : 'bg-error/10 border-error/30'}`}>
-                                  <p className={`font-bold text-lg ${grandTest.attempt.passed ? 'text-primary' : 'text-error'}`}>{grandTest.attempt.passed ? '🎉 Passed!' : '❌ Failed'}</p>
-                                  <p className="font-body-sm text-on-surface-variant mt-1">Score: {grandTest.attempt.score}/{grandTest.attempt.total} ({Math.round((grandTest.attempt.score / grandTest.attempt.total) * 100)}%)</p>
-                                  {grandTest.attempt.passed && <p className="font-label-sm text-primary mt-2 flex items-center gap-1"><span className="material-symbols-outlined text-[16px]">check_circle</span> You are eligible for your certificate!</p>}
-                                </div>
-                                <div className="flex gap-3">
-                                  <button onClick={() => retakeQuiz(0, true)} className="px-4 py-2 bg-surface-container-high text-on-surface border border-outline-variant/60 hover:bg-surface-container-highest rounded-lg font-label-md flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-[18px]">refresh</span> Retake
-                                  </button>
-                                  {grandTest.attempt.passed && (
-                                    <Link to="/certificates" className="px-4 py-2 bg-gold-tier text-on-tertiary-fixed rounded-lg font-label-md font-bold flex items-center gap-2 hover:bg-gold-tier/90">
-                                      <span className="material-symbols-outlined text-[18px]">military_tech</span> View Certificate
-                                    </Link>
-                                  )}
-                                </div>
-                              </div>
-                            ) : (
-                              <button onClick={() => startQuiz(0, true)} className="px-6 py-2 bg-gold-tier text-on-tertiary-fixed rounded-lg font-label-md font-bold flex items-center gap-2 hover:bg-gold-tier/90">
-                                <span className="material-symbols-outlined text-[20px]">workspace_premium</span> Start Grand Test
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </TabsContent>
-                </Tabs>
+            {/* Curriculum */}
+            <section>
+              <div className="flex justify-between items-end mb-stack-md border-b border-border-base pb-4">
+                <h2 className="font-headline-lg text-headline-lg text-on-surface">Curriculum & Tasks</h2>
+                <span className="font-label-md text-label-md text-on-surface-variant">{modules.length} Modules</span>
               </div>
+              
+              <Tabs defaultValue="modules" className="w-full">
+                <TabsList className="w-full justify-start bg-transparent overflow-x-auto whitespace-nowrap rounded-none p-0 h-auto gap-2 mb-6">
+                  <TabsTrigger value="modules" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 rounded-full px-4 py-2 text-on-surface-variant font-label-md">Modules</TabsTrigger>
+                  <TabsTrigger value="assignments" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 rounded-full px-4 py-2 text-on-surface-variant font-label-md">Assignments</TabsTrigger>
+                  <TabsTrigger value="quiz" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 rounded-full px-4 py-2 text-on-surface-variant font-label-md">Quizzes</TabsTrigger>
+                  <TabsTrigger value="grandtest" className="data-[state=active]:bg-tertiary/10 data-[state=active]:text-tertiary border border-transparent data-[state=active]:border-tertiary/20 rounded-full px-4 py-2 text-on-surface-variant font-label-md flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[16px]">workspace_premium</span>
+                    Grand Test
+                  </TabsTrigger>
+                </TabsList>
 
-              {course.instructor && (
-                <section className="mt-xl pt-xl border-t border-outline-variant/30">
-                  <h2 className="font-headline-md text-headline-md font-bold text-on-surface mb-lg">Your Instructor</h2>
-                  <div className="flex flex-col sm:flex-row gap-lg items-start">
-                    <div className="w-32 h-32 rounded-xl bg-surface-container-high border border-outline-variant/60 flex items-center justify-center shrink-0">
-                      <span className="material-symbols-outlined text-[48px] text-on-surface-variant">person</span>
+                <TabsContent value="modules" className="flex flex-col gap-3">
+                  {modules.map((mod, idx) => {
+                    const accessible = mod.status !== 'locked';
+                    return (
+                      <div key={mod.id} className={`glass-panel border rounded-xl overflow-hidden transition-all duration-300 ${accessible || isEnrolled ? 'border-border-base hover:border-primary/40 hover:shadow-md' : 'border-outline-variant/30 opacity-70'}`}>
+                        <div 
+                          onClick={() => {
+                            setPreviewModule(mod);
+                            if (accessible && isEnrolled) navigate(`/courses/${courseId}/learn/${mod.id}`);
+                          }}
+                          className={`p-stack-md flex justify-between items-center transition-colors ${accessible || isEnrolled ? 'cursor-pointer hover:bg-surface-bright' : 'bg-surface-container-lowest'}`}
+                        >
+                          <div className="flex items-center gap-stack-md">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0
+                              ${mod.status === 'completed' ? 'bg-success/20 text-success' : 
+                                mod.status === 'unlocked' || isEnrolled ? 'bg-primary-container text-on-primary-container' : 'bg-surface-container-high text-on-surface-variant'}`}>
+                              {mod.status === 'completed' ? <span className="material-symbols-outlined">check</span> : mod.status === 'locked' && !isEnrolled ? <span className="material-symbols-outlined">lock</span> : <span className="font-label-md font-bold">{idx + 1}</span>}
+                            </div>
+                            <div>
+                              <h4 className={`font-headline-md text-[18px] mb-1 ${mod.status === 'completed' ? 'text-primary' : 'text-on-surface'}`}>{mod.title}</h4>
+                              <p className="font-body-sm text-body-sm text-on-surface-variant truncate max-w-[300px] md:max-w-[400px]">{mod.description}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-sm">
+                            <span className="font-body-sm text-body-sm text-on-surface-variant hidden sm:block">{mod.duration_minutes} min</span>
+                            <span className={`material-symbols-outlined transition-colors ${(accessible || isEnrolled) ? 'text-primary' : 'text-on-surface-variant'}`}>play_circle</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </TabsContent>
+
+                <TabsContent value="assignments" className="flex flex-col gap-4">
+                  {!isEnrolled ? (
+                    <div className="glass-panel text-center py-10 text-on-surface-variant rounded-xl border border-border-base">
+                      <span className="material-symbols-outlined text-[48px] opacity-40 mb-3">assignment</span>
+                      <p className="font-body-md">Enroll in this course to view assignments.</p>
                     </div>
-                    <div className="flex flex-col gap-sm">
-                      <div>
-                        <h3 className="font-headline-sm text-headline-sm font-bold text-on-surface">{course.instructor}</h3>
-                        <p className="font-label-md text-label-md text-primary mt-xs">LearnLoom Educator</p>
+                  ) : assignments.length === 0 ? (
+                    <div className="glass-panel text-center py-10 text-on-surface-variant rounded-xl border border-border-base">
+                      <span className="material-symbols-outlined text-[48px] opacity-40 mb-3">assignment_turned_in</span>
+                      <p className="font-body-md">No assignments for this course yet.</p>
+                    </div>
+                  ) : (
+                    assignments.map((asg, asgIdx) => {
+                      const sub = asg.submission;
+                      const isGraded = sub?.status === 'graded';
+                      const isSubmitted = !!sub;
+                      return (
+                        <div key={asg.id} className="glass-panel border border-border-base rounded-xl p-md shadow-sm">
+                          <div className="flex items-start justify-between gap-3 mb-2 border-b border-border-base pb-3">
+                            <div className="flex items-center gap-2">
+                              <span className="material-symbols-outlined text-primary text-[20px]">description</span>
+                              <h4 className="font-headline-md text-[18px] text-on-surface">{asg.title}</h4>
+                            </div>
+                            {isGraded && <span className="px-2 py-1 rounded bg-success/10 text-success border border-success/20 font-label-sm text-[12px]">Graded</span>}
+                            {isSubmitted && !isGraded && <span className="px-2 py-1 rounded bg-secondary/10 text-secondary border border-secondary/20 font-label-sm text-[12px]">Submitted</span>}
+                            {!isSubmitted && <span className="px-2 py-1 rounded bg-surface-variant text-on-surface-variant font-label-sm text-[12px]">Pending</span>}
+                          </div>
+                          <p className="font-body-md text-body-md text-on-surface-variant mb-4 mt-4">{asg.instructions}</p>
+                          
+                          {isGraded && (
+                            <div className="rounded-lg bg-success/5 border border-success/20 p-sm mb-4">
+                              <p className="font-label-sm text-label-sm font-bold text-success mb-1">Score: {sub!.score ?? '—'}/100</p>
+                              {sub!.feedback && <p className="font-body-sm text-body-sm text-on-surface-variant">{sub!.feedback}</p>}
+                            </div>
+                          )}
+                          {isSubmitted && !isGraded && (
+                            <div className="rounded-lg bg-surface-container-low border border-border-base p-4 mb-4">
+                              <p className="font-label-sm text-label-sm font-bold text-on-surface mb-2">Your submission:</p>
+                              <p className="font-body-sm text-body-sm text-on-surface-variant whitespace-pre-wrap">{sub!.answer_text}</p>
+                            </div>
+                          )}
+                          {!isGraded && (
+                            <div className="space-y-3">
+                              <Textarea placeholder="Write your answer here…" value={asg.draftText} onChange={e => updateDraft(asgIdx, e.target.value)} className="min-h-[120px] bg-surface text-on-surface border-border-base focus:border-primary resize-none font-body-sm text-body-sm" disabled={asg.submitting} />
+                              <div className="flex items-center justify-between">
+                                <p className="text-[12px] text-on-surface-variant">{asg.draftText.length} characters</p>
+                                <button onClick={() => submitAssignment(asgIdx)} disabled={asg.submitting || !asg.draftText.trim()} className="px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md flex items-center gap-2 hover:bg-primary-container disabled:opacity-50 transition-colors">
+                                  {asg.submitting ? <span className="material-symbols-outlined text-[18px] animate-spin">autorenew</span> : <span className="material-symbols-outlined text-[18px]">send</span>}
+                                  {isSubmitted ? 'Resubmit' : 'Submit'}
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </TabsContent>
+
+                <TabsContent value="quiz" className="flex flex-col gap-4">
+                  {!isEnrolled ? (
+                    <div className="glass-panel text-center py-10 text-on-surface-variant rounded-xl border border-border-base"><span className="material-symbols-outlined text-[48px] opacity-40 mb-3">quiz</span><p className="font-body-md">Enroll to access quizzes.</p></div>
+                  ) : moduleQuizzes.length === 0 ? (
+                    <div className="glass-panel text-center py-10 text-on-surface-variant rounded-xl border border-border-base"><span className="material-symbols-outlined text-[48px] opacity-40 mb-3">quiz</span><p className="font-body-md">No quizzes yet.</p></div>
+                  ) : (
+                    moduleQuizzes.map((quiz, qIdx) => {
+                      if (quiz.quizStarted && !quiz.attempt) return renderQuizInProgress(quiz, qIdx);
+                      return (
+                        <div key={quiz.id} className="glass-panel border border-border-base rounded-xl p-md shadow-sm flex items-center justify-between gap-4 flex-wrap">
+                          <div>
+                            <h4 className="font-headline-md text-[18px] text-on-surface mb-1">{quiz.title}</h4>
+                            <div className="flex gap-4 text-sm text-on-surface-variant">
+                              <span>{quiz.questions.length} questions</span>
+                              <span>Pass: {quiz.passing_score}%</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            {quiz.attempt && (
+                              <span className={`font-label-sm text-label-sm px-3 py-1 rounded-full border ${quiz.attempt.passed ? 'bg-success/10 text-success border-success/20' : 'bg-error/10 text-error border-error/20'}`}>
+                                {quiz.attempt.passed ? 'Passed' : 'Failed'} ({Math.round((quiz.attempt.score / quiz.attempt.total) * 100)}%)
+                              </span>
+                            )}
+                            <button onClick={() => quiz.attempt ? retakeQuiz(qIdx) : startQuiz(qIdx)} className="px-5 py-2 bg-surface hover:bg-surface-container-low border border-border-base text-on-surface hover:text-primary hover:border-primary/50 rounded-lg font-label-md transition-colors shadow-sm">
+                              {quiz.attempt ? 'Retake' : 'Start'}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </TabsContent>
+
+                <TabsContent value="grandtest" className="mt-4">
+                  {!isEnrolled ? (
+                    <div className="glass-panel text-center py-10 text-on-surface-variant rounded-xl border border-border-base"><span className="material-symbols-outlined text-[48px] opacity-40 mb-3">workspace_premium</span><p className="font-body-md">Enroll in this course to access the Grand Test.</p></div>
+                  ) : !allModulesCompleted ? (
+                    <div className="glass-panel border border-border-base rounded-xl p-stack-lg text-center flex flex-col items-center">
+                      <div className="w-20 h-20 rounded-full bg-surface-container border border-border-base flex items-center justify-center mb-6 shadow-sm"><span className="material-symbols-outlined text-[40px] text-on-surface-variant">lock</span></div>
+                      <h3 className="font-headline-md text-[24px] font-bold text-on-surface mb-2">Grand Test Locked</h3>
+                      <p className="font-body-md text-on-surface-variant max-w-sm mb-8">Complete all {modules.length} modules to unlock. You've completed {completedCount} so far.</p>
+                      <div className="w-full max-w-md h-3 bg-surface-container-high rounded-full overflow-hidden mb-8 shadow-inner">
+                        <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${enrollment?.progress_percent ?? 0}%` }}></div>
+                      </div>
+                      <button onClick={startOrResume} className="px-8 py-3 bg-primary text-on-primary rounded-xl font-label-md hover:bg-primary-container transition-colors shadow-md flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[20px]">play_arrow</span> Continue Learning
+                      </button>
+                    </div>
+                  ) : !grandTest ? (
+                    <div className="glass-panel text-center py-10 text-on-surface-variant rounded-xl border border-border-base"><span className="material-symbols-outlined text-[48px] opacity-40 mb-3">pending</span><p className="font-body-md">Grand Test not available yet.</p></div>
+                  ) : grandTest.quizStarted && !grandTest.attempt ? renderQuizInProgress(grandTest, 0, true)
+                  : (
+                    <div className="bg-surface border-2 border-tertiary/40 rounded-xl p-stack-lg relative overflow-hidden shadow-lg">
+                      <div className="absolute top-0 right-0 w-64 h-64 bg-tertiary/10 rounded-full blur-3xl pointer-events-none"></div>
+                      <div className="flex flex-col md:flex-row items-center md:items-start gap-8 relative z-10">
+                        <div className="w-24 h-24 rounded-full bg-tertiary/10 border-2 border-tertiary/30 flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(99,46,205,0.2)]">
+                          <span className="material-symbols-outlined text-tertiary text-[48px]">workspace_premium</span>
+                        </div>
+                        <div className="flex-1 min-w-0 text-center md:text-left">
+                          <h3 className="font-headline-md text-[28px] font-bold text-on-surface mb-2">{grandTest.title}</h3>
+                          <p className="font-body-md text-on-surface-variant mb-6">{grandTest.questions.length} questions · Pass requirement: {grandTest.passing_score}%</p>
+                          
+                          {grandTest.attempt ? (
+                            <div className="space-y-6">
+                              <div className={`p-6 rounded-xl border ${grandTest.attempt.passed ? 'bg-success/5 border-success/30' : 'bg-error/5 border-error/30'}`}>
+                                <p className={`font-bold text-[24px] mb-2 ${grandTest.attempt.passed ? 'text-success' : 'text-error'}`}>{grandTest.attempt.passed ? '🎉 Congratulations! Passed!' : '❌ Not quite there yet.'}</p>
+                                <p className="font-body-lg text-on-surface-variant">Score: {grandTest.attempt.score}/{grandTest.attempt.total} ({Math.round((grandTest.attempt.score / grandTest.attempt.total) * 100)}%)</p>
+                                {grandTest.attempt.passed && <p className="font-label-md text-success mt-4 flex items-center justify-center md:justify-start gap-2 bg-success/10 w-fit px-4 py-2 rounded-lg border border-success/20"><span className="material-symbols-outlined text-[20px]">check_circle</span> You are eligible for your certificate!</p>}
+                              </div>
+                              <div className="flex flex-wrap justify-center md:justify-start gap-4">
+                                <button onClick={() => retakeQuiz(0, true)} className="px-6 py-3 bg-surface text-on-surface border border-border-base hover:bg-surface-container-low rounded-xl font-label-md flex items-center gap-2 shadow-sm transition-colors">
+                                  <span className="material-symbols-outlined text-[20px]">refresh</span> Retake Test
+                                </button>
+                                {grandTest.attempt.passed && (
+                                  <Link to="/certificates" className="px-6 py-3 bg-tertiary text-on-tertiary rounded-xl font-label-md font-bold flex items-center gap-2 hover:bg-tertiary/90 shadow-[0_0_15px_rgba(99,46,205,0.4)] transition-colors">
+                                    <span className="material-symbols-outlined text-[20px]">military_tech</span> View Certificate
+                                  </Link>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <button onClick={() => startQuiz(0, true)} className="px-8 py-3 bg-tertiary text-on-tertiary rounded-xl font-label-md font-bold flex items-center justify-center md:justify-start gap-2 hover:bg-tertiary/90 shadow-[0_0_15px_rgba(99,46,205,0.3)] transition-colors w-full md:w-auto">
+                              <span className="material-symbols-outlined text-[24px]">play_arrow</span> Start Grand Test
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </section>
-              )}
-            </div>
+                  )}
+                </TabsContent>
+              </Tabs>
+            </section>
 
-            <div className="bg-surface-container-low border border-outline-variant/60 rounded-xl p-lg flex flex-col gap-md sticky top-24 glow-indigo shadow-xl">
-              <div className="aspect-video bg-surface-container-highest rounded-lg overflow-hidden border border-outline-variant/30 relative flex items-center justify-center group">
+            {/* Instructor */}
+            {course.instructor && (
+              <section>
+                <h2 className="font-headline-lg text-headline-lg text-on-surface mb-stack-md">Your Instructor</h2>
+                <div className="glass-panel border border-border-base rounded-xl p-stack-lg shadow-sm flex flex-col md:flex-row gap-stack-lg items-start hover:shadow-md transition-shadow">
+                  <div className="w-24 h-24 rounded-full object-cover border-2 border-surface shadow-sm bg-surface-container flex items-center justify-center shrink-0 relative overflow-hidden">
+                     <span className="font-display-lg text-[40px] text-primary">
+                        {course.instructor.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                     </span>
+                  </div>
+                  <div>
+                    <h3 className="font-headline-md text-headline-md text-on-surface">{course.instructor}</h3>
+                    <p className="font-body-md text-body-md text-primary font-medium mb-stack-sm">LearnLoom Educator</p>
+                    <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed mb-stack-md">
+                      A dedicated professional with extensive experience in the industry, passionate about sharing knowledge and empowering the next generation of engineers through comprehensive, practical coursework.
+                    </p>
+                  </div>
+                </div>
+              </section>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="lg:col-span-4 mt-stack-lg lg:mt-0">
+            <div className="sticky top-[100px] glass-panel border border-border-base rounded-xl p-stack-lg shadow-level-1">
+              {/* Video Preview */}
+              <div className="aspect-video bg-surface-container-highest rounded-lg overflow-hidden border border-border-base relative flex items-center justify-center group mb-6 shadow-inner">
                 {previewModule?.youtube_url ? (
                   isEnrolled ? (
                     <iframe 
@@ -568,10 +582,11 @@ export default function CourseDetailPage() {
                       {(() => {
                         const videoId = getYouTubeVideoId(previewModule.youtube_url);
                         const thumbUrl = videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : null;
-                        return thumbUrl ? <img src={thumbUrl} alt="Preview" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-300" /> : <span className="material-symbols-outlined text-[48px] text-outline-variant">smart_display</span>;
+                        return thumbUrl ? <img src={thumbUrl} alt="Preview" className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300" /> : <span className="material-symbols-outlined text-[48px] text-outline-variant">smart_display</span>;
                       })()}
-                      <div onClick={handleEnroll} className="w-16 h-16 bg-surface/80 backdrop-blur-sm rounded-full flex items-center justify-center z-10 border border-outline-variant/60 group-hover:scale-110 transition-transform duration-300 cursor-pointer">
-                        <span className="material-symbols-outlined text-display text-primary fill">play_arrow</span>
+                      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors"></div>
+                      <div onClick={handleEnroll} className="w-16 h-16 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center z-10 border border-border-base group-hover:scale-110 transition-transform duration-300 cursor-pointer shadow-lg">
+                        <span className="material-symbols-outlined text-[36px] text-primary fill pl-1">play_arrow</span>
                       </div>
                     </>
                   )
@@ -581,53 +596,60 @@ export default function CourseDetailPage() {
               </div>
               
               {!isEnrolled && (
-                <div className="flex items-baseline gap-sm">
-                  <span className="font-headline-lg text-headline-lg font-bold text-on-surface">Free</span>
+                <div className="mb-stack-lg pb-stack-md border-b border-border-base">
+                  <h2 className="font-display-lg-mobile text-[36px] font-bold text-on-surface mb-1">Free</h2>
+                  <p className="font-body-md text-body-md text-success flex items-center gap-1 font-medium">
+                    <span className="material-symbols-outlined text-[18px]">bolt</span> Full Lifetime Access
+                  </p>
                 </div>
               )}
               
               {isEnrolled ? (
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center justify-between">
-                    <span className="font-label-md text-on-surface">Your Progress</span>
-                    <span className="font-label-md text-primary">{enrollment.progress_percent}%</span>
+                <div className="flex flex-col gap-4 mb-stack-lg border-b border-border-base pb-stack-md">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-label-md text-on-surface font-semibold">Your Progress</span>
+                    <span className="font-label-md text-primary font-bold">{enrollment.progress_percent}%</span>
                   </div>
-                  <div className="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
-                    <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${enrollment.progress_percent}%` }}></div>
+                  <div className="w-full h-3 bg-surface-container-high rounded-full overflow-hidden shadow-inner">
+                    <div className="h-full bg-primary rounded-full transition-all duration-500 relative" style={{ width: `${enrollment.progress_percent}%` }}>
+                       <div className="absolute inset-0 bg-white/20"></div>
+                    </div>
                   </div>
-                  <button onClick={startOrResume} className="w-full bg-primary text-on-primary font-label-md text-label-md font-bold py-md rounded-lg hover:bg-primary/90 transition-colors duration-200 active:scale-[0.98] shadow-[0_0_12px_rgba(192,193,255,0.3)] mt-2">
+                  <button onClick={startOrResume} className="w-full bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md py-4 rounded-xl transition-all duration-200 active:scale-95 shadow-[0_4px_14px_rgba(37,99,235,0.3)] mt-2 flex justify-center items-center gap-2">
                     {isCompleted ? 'Review Course' : 'Continue Learning'}
+                    <span className="material-symbols-outlined">arrow_forward</span>
                   </button>
                 </div>
               ) : (
-                <button onClick={handleEnroll} disabled={enrolling} className="w-full bg-primary text-on-primary font-label-md text-label-md font-bold py-md rounded-lg hover:bg-primary/90 transition-colors duration-200 active:scale-[0.98] shadow-[0_0_12px_rgba(192,193,255,0.3)] flex justify-center items-center gap-2">
+                <button onClick={handleEnroll} disabled={enrolling} className="w-full bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md py-4 rounded-xl mb-stack-sm transition-all duration-200 active:scale-95 shadow-[0_4px_14px_rgba(37,99,235,0.3)] flex justify-center items-center gap-2 disabled:opacity-70 disabled:pointer-events-none">
                   {enrolling ? <span className="material-symbols-outlined animate-spin text-[20px]">autorenew</span> : null}
-                  Enroll Now
+                  <span>Enroll Now</span>
+                  <span className="material-symbols-outlined">arrow_forward</span>
                 </button>
               )}
               
-              <div className="flex flex-col gap-sm font-label-sm text-label-sm text-on-surface-variant mt-sm">
-                <div className="flex items-center gap-sm">
-                  <span className="material-symbols-outlined text-sm">schedule</span>
-                  {course.duration_weeks} weeks of content
+              <div className="mt-stack-md flex flex-col gap-4">
+                <div className="flex items-center gap-3 text-on-surface-variant">
+                  <span className="material-symbols-outlined text-primary/70">schedule</span>
+                  <span className="font-body-md text-body-md">{course.duration_weeks} weeks of content</span>
                 </div>
-                <div className="flex items-center gap-sm">
-                  <span className="material-symbols-outlined text-sm">menu_book</span>
-                  {modules.length} interactive modules
+                <div className="flex items-center gap-3 text-on-surface-variant">
+                  <span className="material-symbols-outlined text-primary/70">signal_cellular_alt</span>
+                  <span className="font-body-md text-body-md">{course.difficulty} Level</span>
                 </div>
-                <div className="flex items-center gap-sm">
-                  <span className="material-symbols-outlined text-sm">workspace_premium</span>
-                  Certificate of completion
+                <div className="flex items-center gap-3 text-on-surface-variant">
+                  <span className="material-symbols-outlined text-primary/70">workspace_premium</span>
+                  <span className="font-body-md text-body-md">Certificate of Completion</span>
                 </div>
-                <div className="flex items-center gap-sm">
-                  <span className="material-symbols-outlined text-sm">all_inclusive</span>
-                  Lifetime access
+                <div className="flex items-center gap-3 text-on-surface-variant">
+                  <span className="material-symbols-outlined text-primary/70">all_inclusive</span>
+                  <span className="font-body-md text-body-md">Full Lifetime Access</span>
                 </div>
               </div>
             </div>
-          </section>
+          </div>
         </div>
-      </div>
+      </main>
     </AppLayout>
   );
 }

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LearnLoom - Student Home Screen</title>
+<!-- Tailwind & Configuration -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed": "#00174b",
+                        "surface-glass": "rgba(255, 255, 255, 0.7)",
+                        "surface-container-high": "#e2e7ff",
+                        "secondary": "#00687a",
+                        "surface-tint": "#0053db",
+                        "surface-dim": "#d2d9f4",
+                        "on-secondary-container": "#006172",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-secondary-fixed": "#001f26",
+                        "tertiary-fixed": "#e9ddff",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f2f3ff",
+                        "warning-amber": "#F59E0B",
+                        "on-surface": "#131b2e",
+                        "on-tertiary": "#ffffff",
+                        "surface-container": "#eaedff",
+                        "bg-base": "#F8FAFC",
+                        "inverse-on-surface": "#eef0ff",
+                        "success-green": "#10B981",
+                        "tertiary-container": "#7d4ce7",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed-variant": "#5516be",
+                        "primary-container": "#2563eb",
+                        "on-background": "#131b2e",
+                        "background": "#faf8ff",
+                        "on-secondary-fixed-variant": "#004e5c",
+                        "on-error": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "inverse-surface": "#283044",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#faf8ff",
+                        "tertiary-fixed-dim": "#d0bcff",
+                        "surface": "#faf8ff",
+                        "on-primary-container": "#eeefff",
+                        "secondary-fixed": "#acedff",
+                        "on-surface-variant": "#434655",
+                        "on-primary": "#ffffff",
+                        "inverse-primary": "#b4c5ff",
+                        "primary": "#004ac6",
+                        "secondary-container": "#57dffe",
+                        "secondary-fixed-dim": "#4cd7f6",
+                        "surface-container-highest": "#dae2fd",
+                        "on-tertiary-fixed": "#23005c",
+                        "outline-variant": "#c3c6d7",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "outline": "#737686",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-container": "#f6edff",
+                        "surface-variant": "#dae2fd",
+                        "primary-fixed": "#dbe1ff",
+                        "tertiary": "#632ecd"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "unit": "8px",
+                        "margin-mobile": "16px",
+                        "container-max": "1440px",
+                        "margin-desktop": "40px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "label-lg": ["Hanken Grotesk"],
+                        "display-lg-mobile": ["Hanken Grotesk"],
+                        "code": ["JetBrains Mono"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "label-md": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+                        "display-lg-mobile": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "code": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "600" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        @import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono&display=swap');
+    </style>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { font-family: 'Hanken Grotesk', sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border-radius: 24px;
+        }
+        .ai-gradient-text {
+            background: linear-gradient(135deg, #004ac6 0%, #57dffe 50%, #632ecd 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+        }
+        .ai-gradient-bg {
+            background: linear-gradient(135deg, rgba(0, 74, 198, 0.1) 0%, rgba(87, 223, 254, 0.1) 50%, rgba(99, 46, 205, 0.1) 100%);
+        }
+        .ai-pulse {
+            animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(87, 223, 254, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(87, 223, 254, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(87, 223, 254, 0); }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-bg-base text-on-background min-h-screen pb-24 selection:bg-primary selection:text-white">
+<!-- TopAppBar -->
+<header class="bg-surface-glass fixed top-0 w-full z-50 backdrop-blur-md border-b border-white/20 shadow-sm">
+<div class="flex justify-between items-center px-margin-mobile py-unit w-full max-w-container-max mx-auto h-[64px]">
+<div class="flex items-center gap-3">
+<img alt="User profile photo" class="w-10 h-10 rounded-full border-2 border-white shadow-sm object-cover" data-alt="A professional headshot of a young adult student against a clean, light grey studio background. The lighting is soft and flattering, typical of modern corporate or educational profiles. The aesthetic is bright, optimistic, and highly polished, aligning with a premium SaaS application identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWZ-OdBloKziFxgrmC2kVwP-NtDDyBtx13v6EweQ8keevufsyo5vMzWTm-Gs6Nhi311oIJ_M_i7y5654ePwsEGH6l1jE7Q0b-NAc9g_Sr3sd2UnQOeZbIoirb8DBqBBJ625UNn3PmRGdV4dbF1bI2_B3K9R8_pEjnlShqx6uISpXZ5gSnTrHxD-eAU22DQ2t-HbkiKAa9b7RY1bhMf3SFGJ_SqJV9XQG_sxLLpUIQaONyxmZ5QYNbZMUpTD3m1-auCBxe0L9o-Pxt_"/>
+<h1 class="text-headline-md font-headline-md font-bold text-primary">LearnLoom</h1>
+</div>
+<button class="flex items-center gap-1 bg-surface-container-high text-primary px-3 py-1.5 rounded-full hover:opacity-80 transition-opacity active:scale-95 duration-200">
+<span class="text-lg">🔥</span>
+<span class="font-label-lg text-label-lg">12</span>
+</button>
+</div>
+</header>
+<main class="pt-[80px] px-margin-mobile flex flex-col gap-6 max-w-md mx-auto relative z-10">
+<!-- Hero Section -->
+<section class="mt-4">
+<h2 class="font-display-lg-mobile text-display-lg-mobile text-on-background mb-2">Good Morning, <br/>Bashe 👋</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6">Ready to continue your Full Stack Developer journey?</p>
+<div class="flex gap-4 mb-6">
+<div class="glass-card flex-1 p-4 flex flex-col items-center justify-center">
+<span class="text-2xl mb-1">🔥</span>
+<span class="font-headline-md text-headline-md text-on-background">5</span>
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mt-1">Day Streak</span>
+</div>
+<div class="glass-card flex-1 p-4 flex flex-col items-center justify-center">
+<span class="text-2xl mb-1">🏆</span>
+<span class="font-headline-md text-headline-md text-on-background">12.4k</span>
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mt-1">XP Earned</span>
+</div>
+</div>
+<div class="glass-card p-4 flex items-center gap-4">
+<div class="bg-primary-container text-on-primary-container p-3 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="flag">flag</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Current Goal</p>
+<p class="font-label-lg text-label-lg text-on-background">Mastering React Hooks</p>
+</div>
+</div>
+</section>
+<!-- AI Insights Banner -->
+<section class="ai-gradient-bg rounded-[24px] p-5 border border-white/50 shadow-sm relative overflow-hidden group">
+<div class="absolute inset-0 bg-white/40 backdrop-blur-[2px]"></div>
+<div class="relative z-10 flex gap-4 items-start">
+<div class="bg-white/80 p-2 rounded-full shadow-sm text-tertiary-container flex-shrink-0">
+<span class="material-symbols-outlined" data-icon="auto_awesome" data-weight="fill" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div>
+<p class="font-body-md text-body-md text-on-background leading-relaxed">
+                        You're <strong class="ai-gradient-text">72% complete</strong> with your roadmap. Complete 2 more lessons to earn the 'React Architect' badge.
+                    </p>
+</div>
+</div>
+</section>
+<!-- Continue Learning -->
+<section>
+<h3 class="font-headline-md text-headline-md text-on-background mb-4">Continue Learning</h3>
+<div class="glass-card p-5 group hover:-translate-y-1 transition-transform duration-300 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+<div class="flex justify-between items-start mb-4 relative z-10">
+<div class="bg-surface-container text-primary p-2 rounded-lg">
+<span class="material-symbols-outlined" data-icon="neurology">neurology</span>
+</div>
+<span class="font-label-md text-label-md text-primary bg-primary/10 px-2 py-1 rounded">Module 4</span>
+</div>
+<h4 class="font-headline-lg-mobile text-headline-lg-mobile text-on-background mb-2 relative z-10">Advanced Machine Learning</h4>
+<div class="mb-5 relative z-10">
+<div class="flex justify-between font-label-md text-label-md mb-2">
+<span class="text-on-surface-variant">Progress</span>
+<span class="text-primary font-bold">65%</span>
+</div>
+<div class="h-2 w-full bg-surface-dim rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full transition-all duration-1000 ease-out" style="width: 65%;"></div>
+</div>
+</div>
+<button class="w-full bg-primary text-white font-label-lg text-label-lg py-3 rounded-full hover:bg-primary-fixed-variant active:scale-95 transition-all duration-200 relative z-10">
+                    Resume Learning
+                </button>
+</div>
+</section>
+<!-- Command Center Grid -->
+<section>
+<h3 class="font-headline-md text-headline-md text-on-background mb-4">Command Center</h3>
+<div class="grid grid-cols-2 gap-4">
+<!-- Widget 1: Focus Time -->
+<div class="glass-card p-4 flex flex-col justify-between aspect-square hover:-translate-y-1 transition-transform duration-300">
+<div class="flex justify-between items-center mb-2">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Focus Time</span>
+<span class="material-symbols-outlined text-outline text-sm" data-icon="bar_chart">bar_chart</span>
+</div>
+<div class="flex items-end gap-1.5 h-16 w-full opacity-80">
+<div class="w-full bg-surface-dim rounded-t-sm h-1/4"></div>
+<div class="w-full bg-surface-dim rounded-t-sm h-2/4"></div>
+<div class="w-full bg-primary rounded-t-sm h-full"></div>
+<div class="w-full bg-surface-dim rounded-t-sm h-3/4"></div>
+<div class="w-full bg-surface-dim rounded-t-sm h-1/2"></div>
+</div>
+<div class="mt-2 text-center">
+<span class="font-label-lg text-label-lg text-on-background">14h 20m</span>
+</div>
+</div>
+<!-- Widget 2: Skill Radar -->
+<div class="glass-card p-4 flex flex-col justify-between aspect-square hover:-translate-y-1 transition-transform duration-300">
+<div class="flex justify-between items-center mb-2">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Skill Growth</span>
+<span class="material-symbols-outlined text-outline text-sm" data-icon="radar">radar</span>
+</div>
+<div class="relative w-full h-16 flex items-center justify-center">
+<!-- Abstract Radar Representation -->
+<div class="absolute inset-0 border border-outline-variant/30 rounded-full scale-100"></div>
+<div class="absolute inset-0 border border-outline-variant/30 rounded-full scale-75"></div>
+<div class="absolute inset-0 border border-outline-variant/30 rounded-full scale-50"></div>
+<!-- Data Area (Accent Violet) -->
+<svg class="absolute inset-0 w-full h-full opacity-80 z-10 overflow-visible" viewbox="0 0 100 100">
+<polygon fill="rgba(125, 76, 231, 0.2)" points="50,10 85,35 70,85 30,85 15,35" stroke="#7d4ce7" stroke-linejoin="round" stroke-width="2"></polygon>
+</svg>
+</div>
+<div class="mt-2 text-center">
+<span class="font-label-lg text-label-lg text-tertiary-container">+12% this week</span>
+</div>
+</div>
+<!-- Widget 3: AI Recommendation -->
+<div class="glass-card p-4 col-span-2 relative overflow-hidden group">
+<div class="absolute inset-0 ai-gradient-bg opacity-30 pointer-events-none transition-opacity group-hover:opacity-50"></div>
+<div class="flex gap-3 items-start relative z-10">
+<div class="bg-surface-container p-2 rounded-full text-secondary">
+<span class="material-symbols-outlined" data-icon="tips_and_updates">tips_and_updates</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-1">AI Suggestion</p>
+<p class="font-body-md text-body-md text-on-background">
+                                Based on your activity, we suggest diving into <span class="font-bold text-secondary">'System Design 101'</span> next.
+                            </p>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="bg-surface-glass fixed bottom-0 w-full z-50 rounded-t-xl backdrop-blur-lg border-t border-white/20 shadow-[0_-4px_20px_rgba(15,23,42,0.05)] md:hidden">
+<div class="flex justify-around items-center w-full px-margin-mobile pb-unit pt-2 pb-safe-area">
+<!-- Home (Active) -->
+<button class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined" data-icon="home" data-weight="fill" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-label-md text-label-md mt-1">Home</span>
+</button>
+<!-- Insights -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-high/50 active:scale-90 transition-all duration-200 rounded-full">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-label-md text-label-md mt-1">Insights</span>
+</button>
+<!-- Awards -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-high/50 active:scale-90 transition-all duration-200 rounded-full">
+<span class="material-symbols-outlined" data-icon="emoji_events">emoji_events</span>
+<span class="font-label-md text-label-md mt-1">Awards</span>
+</button>
+<!-- Community -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-high/50 active:scale-90 transition-all duration-200 rounded-full">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-md text-label-md mt-1">Community</span>
+</button>
+</div>
+</nav>
+<!-- Floating AI Mentor Button -->
+<button class="fixed bottom-24 right-6 w-14 h-14 rounded-full bg-gradient-to-r from-primary to-secondary-container text-white shadow-lg flex items-center justify-center ai-pulse z-40 hover:scale-105 active:scale-95 transition-transform duration-200 md:bottom-10 md:right-10">
+<span class="material-symbols-outlined text-3xl" data-icon="auto_awesome" data-weight="fill" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</button>
+</body></html>

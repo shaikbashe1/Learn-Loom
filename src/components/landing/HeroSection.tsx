@@ -2,59 +2,79 @@ import { Link } from 'react-router-dom';
 
 export function HeroSection() {
   return (
-    <section className="relative px-gutter py-2xl lg:py-[120px] max-w-[1440px] mx-auto overflow-hidden">
-      {/* Decorative Background Elements */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-primary/10 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-xl items-center">
-        {/* Hero Content */}
-        <div className="space-y-lg z-10">
-          <div className="inline-flex items-center px-sm py-xs rounded-full bg-surface-container-high border border-outline-variant/60 font-label-sm text-label-sm text-primary mb-sm">
-            <span className="material-symbols-outlined text-[16px] mr-xs" style={{ fontVariationSettings: "'FILL' 1" }}>rocket_launch</span>
-            LearnLoom v2.0 is Live
+    <section className="hero-gradient min-h-[921px] flex items-center relative py-stack-xl px-margin-mobile md:px-margin-desktop">
+      <div className="hero-glow"></div>
+      <div className="hero-glow-right"></div>
+      <div className="max-w-container-max mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-stack-lg items-center relative z-10">
+        <div className="flex flex-col gap-stack-md max-w-[600px]">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface-bright border border-border-base w-max mb-4 shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-secondary-container animate-pulse"></span>
+            <span className="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Platform 2.0 Live</span>
           </div>
-          <h1 className="font-display text-display text-on-surface">Master the <span className="text-primary">Deep End</span> of Tech.</h1>
-          <p className="font-body-lg text-body-lg text-on-surface-variant max-w-[600px]">
-            Engineered for high-performance learners. Elevate your engineering skills with interactive environments, expert-led curriculum, and AI-driven insights. Stop tutorial hunting. Start building.
+          <h1 className="font-display-lg-mobile md:font-display-lg text-text-primary text-balance">
+            Learn Smarter with <span className="ai-gradient-text">AI Mentorship</span>
+          </h1>
+          <p className="font-body-lg text-body-lg text-text-secondary max-w-[500px]">
+            Personalized learning paths, interactive coding practice, and instant feedback. Elevate your career growth with intelligent curriculum design.
           </p>
-          <div className="flex flex-col sm:flex-row gap-md pt-md">
-            <Link to="/signup" className="bg-primary text-on-primary font-label-md text-label-md font-bold px-xl py-md rounded-lg shadow-[0_0_16px_rgba(192,193,255,0.4)] hover:shadow-[0_0_24px_rgba(192,193,255,0.6)] transition-all flex items-center justify-center">
-              Get Started
-              <span className="material-symbols-outlined ml-sm text-[20px]">arrow_forward</span>
+          <div className="flex flex-col sm:flex-row gap-4 mt-stack-sm">
+            <Link to="/signup" className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-primary-container text-on-primary font-label-md text-label-md font-medium hover:bg-primary transition-all shadow-md hover:shadow-lg">
+              Start Learning
+              <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
             </Link>
-            <button className="bg-surface-container-high text-on-surface border border-outline-variant/60 font-label-md text-label-md px-xl py-md rounded-lg hover:bg-surface-container-highest transition-all flex items-center justify-center">
-              <span className="material-symbols-outlined mr-sm text-[20px]">play_circle</span>
-              Watch Demo
-            </button>
+            <Link to="/courses" className="inline-flex items-center justify-center px-8 py-4 rounded-full bg-surface text-text-primary border border-border-base font-label-md text-label-md font-medium hover:bg-surface-container-low transition-all shadow-sm">
+              Explore Courses
+            </Link>
+          </div>
+          <div className="mt-stack-md flex items-center gap-4 text-text-secondary">
+            <div className="flex -space-x-3">
+              <img alt="Student avatar" className="w-10 h-10 rounded-full border-2 border-surface object-cover z-30" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbmnNddb3Kg2liKFnqlsFz-pqlUzjn-W_nicRMt_uHZhUCzbv-1u9X5IXP0QjGahoNVzMzHDVtEOpvOvGEkogkhUlg7fhYZl2LBOA9wvWnr_Uy2-0RMlKzXRcIDZT-rcg9Q643nkznUV_KbLgJ9aHyZsu4BcRHwUSDEpVx6GGCyPj6obfgTwziq4Gutd7h-A0bSHauRwY9d--kpBw_l82BdbT8AZQ7rCgbYSPUuq35vaYilT9e-vzvDxb5z_Cvbx9zexyoC2DITu-Q" />
+              <img alt="Student avatar" className="w-10 h-10 rounded-full border-2 border-surface object-cover z-20" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANx-UJtG-e85t-3X2oVwaJBlWZP0Sjob6Xn6WKOCZanzmPbB2VWydg1RpHlKgjC6n7RikK5iMXDcsSzMaUf5Hyst9ms2ra533Jm50s7sxzqZB28vUwCcBrvap7_yF0lXKGvNKAvUmJfU2DYxLb47DgE4OR4vyZLTdtFPJRWsSNhoVsN2OWplHpijtBCbBdAymSYbI8azyy0k7jxI-bb0We4iJNR9WJZxnkgesDkQzk9IDiCTRu0ZyzCtC18kK0ylq3AazypcEfBchi" />
+              <img alt="Student avatar" className="w-10 h-10 rounded-full border-2 border-surface object-cover z-10" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDXhxTxa4B-MHZ-LangbVH2Wa_E74DCNocgWuhlp5-Il5T4jN7Myxiv_8AM8wCxZFfubO6oOIlFy3eF07T9Ahr2ZLvbXxeDduHl5dkOj92_zroTvMga7lB6eXtelBN2tAPDBqZ_if8dgMjtrfH_Vjn8v9ZzCbjjDzfMjUigjc0VczZZXF-60JgpfGB_4NGUE_psCVwccZ8UFOi8e-BQ2KYw2ZV7dcoK7jbRhjm2GBtNkQOjho6cUbSIr6FiAIhF9YKqmgLhzH1wRlc4" />
+            </div>
+            <p className="font-body-sm text-body-sm">Join 10,000+ ambitious learners</p>
           </div>
         </div>
-        
-        {/* Hero Interactive Preview */}
-        <div className="relative w-full aspect-[4/3] lg:aspect-square max-h-[500px] rounded-xl border border-outline-variant/60 bg-surface-container-lowest overflow-hidden shadow-2xl z-10 group cursor-default">
-          <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-          {/* Faux Mac Header */}
-          <div className="h-8 bg-surface-container flex items-center px-md border-b border-outline-variant/30 gap-xs">
-            <div className="w-3 h-3 rounded-full bg-error"></div>
-            <div className="w-3 h-3 rounded-full bg-tertiary-container"></div>
-            <div className="w-3 h-3 rounded-full bg-primary"></div>
-            <div className="ml-auto font-label-sm text-label-sm text-on-surface-variant flex items-center gap-xs">
-              <span className="material-symbols-outlined text-[14px]">terminal</span> bash
+        <div className="relative w-full h-full min-h-[400px] flex items-center justify-center mt-stack-lg lg:mt-0">
+          <div className="glass-panel rounded-3xl p-6 w-full max-w-[500px] relative z-20 animate-fade-in">
+            <div className="flex items-center justify-between border-b border-border-base pb-4 mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center">
+                  <span className="material-symbols-outlined text-on-secondary-container">neurology</span>
+                </div>
+                <div>
+                  <h3 className="font-label-md text-label-md text-text-primary">AI Mentor Active</h3>
+                  <p className="font-body-sm text-body-sm text-text-secondary">Analyzing progress...</p>
+                </div>
+              </div>
+              <span className="w-2 h-2 rounded-full bg-success animate-pulse"></span>
             </div>
-          </div>
-          <div className="p-md font-label-md text-label-md font-mono text-on-surface-variant overflow-hidden h-[calc(100%-2rem)] flex flex-col relative">
-            <div className="mb-sm"><span className="text-primary">user@learnloom</span>:~$ npm run dev</div>
-            <div className="mb-sm text-secondary">&gt; learnloom-kernel@2.0.4 dev</div>
-            <div className="mb-sm text-secondary">&gt; starting local environment...</div>
-            <div className="mt-md text-tertiary">Compiling advanced_concurrency.rs [===================&gt;] 100%</div>
-            <div className="mt-sm text-on-surface">Successfully compiled in 0.42s</div>
-            
-            {/* Floating snippet */}
-            <div className="absolute bottom-md right-md bg-surface-container-high border border-outline-variant/60 rounded-lg p-sm shadow-lg max-w-[200px]">
-              <div className="text-label-sm font-label-sm text-primary mb-xs flex justify-between"><span>Status</span> <span>Active</span></div>
-              <div className="h-1 bg-surface-container-lowest rounded-full overflow-hidden">
-                <div className="h-full bg-primary w-3/4 shadow-[0_0_8px_rgba(192,193,255,0.8)]"></div>
+            <div className="space-y-4">
+              <div className="p-4 rounded-xl bg-surface border border-border-base shadow-sm">
+                <p className="font-body-sm text-body-sm text-text-primary mb-2">You struggled with <span className="font-medium text-primary">Recursion</span> in the last test. Want me to generate a custom practice module?</p>
+                <div className="flex gap-2">
+                  <button className="px-3 py-1.5 rounded-lg bg-surface-container-high text-primary font-label-sm text-label-sm hover:bg-primary-fixed transition-colors">Generate Module</button>
+                  <button className="px-3 py-1.5 rounded-lg bg-surface text-text-secondary border border-border-base font-label-sm text-label-sm hover:bg-surface-container-lowest transition-colors">Remind me later</button>
+                </div>
+              </div>
+              <div className="pt-2">
+                <div className="flex justify-between font-label-sm text-label-sm mb-1 text-text-secondary">
+                  <span>Python Mastery</span>
+                  <span>78%</span>
+                </div>
+                <div className="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-primary to-secondary w-[78%] rounded-full"></div>
+                </div>
               </div>
             </div>
+          </div>
+          <div className="absolute top-10 right-0 glass-panel rounded-xl p-3 flex items-center gap-2 z-30 shadow-lg animate-float">
+            <span className="material-symbols-outlined text-warning" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
+            <span className="font-label-sm text-label-sm text-text-primary">Certificate Earned</span>
+          </div>
+          <div className="absolute bottom-10 left-0 glass-panel rounded-xl p-3 flex items-center gap-2 z-10 shadow-lg animate-float" style={{ animationDirection: 'reverse' }}>
+            <span className="material-symbols-outlined text-tertiary">code_blocks</span>
+            <span className="font-label-sm text-label-sm text-text-primary">+150 XP Coding</span>
           </div>
         </div>
       </div>

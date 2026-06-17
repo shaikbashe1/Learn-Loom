@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LearnLoom - Premium Course Marketplace</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-secondary-container": "#006172",
+                      "text-secondary": "#64748B",
+                      "warning": "#F59E0B",
+                      "surface-variant": "#d3e4fe",
+                      "outline": "#737686",
+                      "surface-container-highest": "#d3e4fe",
+                      "surface-dim": "#cbdbf5",
+                      "on-tertiary-fixed-variant": "#5516be",
+                      "primary-fixed": "#dbe1ff",
+                      "on-secondary": "#ffffff",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "on-primary-fixed": "#00174b",
+                      "tertiary-container": "#7d4ce7",
+                      "primary-container": "#2563eb",
+                      "on-tertiary": "#ffffff",
+                      "outline-variant": "#c3c6d7",
+                      "on-error": "#ffffff",
+                      "on-background": "#0b1c30",
+                      "inverse-primary": "#b4c5ff",
+                      "on-tertiary-container": "#f6edff",
+                      "on-secondary-fixed-variant": "#004e5c",
+                      "background": "#F8FAFC",
+                      "secondary": "#00687a",
+                      "surface-tint": "#0053db",
+                      "primary": "#004ac6",
+                      "border-base": "#E2E8F0",
+                      "secondary-container": "#57dffe",
+                      "secondary-fixed": "#acedff",
+                      "surface": "#FFFFFF",
+                      "error": "#EF4444",
+                      "tertiary": "#632ecd",
+                      "inverse-surface": "#213145",
+                      "inverse-on-surface": "#eaf1ff",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "tertiary-fixed-dim": "#d0bcff",
+                      "secondary-fixed-dim": "#4cd7f6",
+                      "surface-container-high": "#dce9ff",
+                      "on-tertiary-fixed": "#23005c",
+                      "on-primary": "#ffffff",
+                      "text-primary": "#0F172A",
+                      "success": "#22C55E",
+                      "on-surface-variant": "#434655",
+                      "on-surface": "#0b1c30",
+                      "error-container": "#ffdad6",
+                      "on-secondary-fixed": "#001f26",
+                      "on-primary-container": "#eeefff",
+                      "surface-container": "#e5eeff",
+                      "surface-bright": "#f8f9ff",
+                      "tertiary-fixed": "#e9ddff",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-container-low": "#eff4ff",
+                      "on-error-container": "#93000a"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "stack-xl": "64px",
+                      "stack-sm": "8px",
+                      "stack-lg": "32px",
+                      "margin-mobile": "16px",
+                      "gutter": "24px",
+                      "container-max": "1280px",
+                      "stack-md": "16px",
+                      "margin-desktop": "40px"
+              },
+              "fontFamily": {
+                      "display-lg-mobile": [
+                              "Hanken Grotesk"
+                      ],
+                      "headline-md": [
+                              "Hanken Grotesk"
+                      ],
+                      "display-lg": [
+                              "Hanken Grotesk"
+                      ],
+                      "label-md": [
+                              "JetBrains Mono"
+                      ],
+                      "headline-lg-mobile": [
+                              "Hanken Grotesk"
+                      ],
+                      "headline-lg": [
+                              "Hanken Grotesk"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "label-sm": [
+                              "JetBrains Mono"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "display-lg-mobile": [
+                              "36px",
+                              {
+                                      "lineHeight": "44px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "56px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "0.02em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.04em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        body { background-color: #F8FAFC; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        .ai-gradient-text {
+            background: linear-gradient(to right, #2563eb, #06b6d4, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .ai-border {
+            position: relative;
+        }
+        .ai-border::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(to right, #8b5cf6, #06b6d4);
+            border-top-left-radius: inherit;
+            border-top-right-radius: inherit;
+        }
+    </style>
+</head>
+<body class="font-body-md text-text-primary antialiased bg-background min-h-screen flex flex-col pt-16">
+<!-- Top Navigation Bar -->
+<header class="fixed w-full top-0 z-50 bg-surface/70 dark:bg-on-background/70 backdrop-blur-xl border-b border-border-base/50 shadow-sm transition-all duration-300">
+<div class="flex justify-between items-center h-16 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+<div class="flex items-center gap-gutter">
+<a class="font-headline-md text-headline-md font-bold text-on-surface flex items-center gap-2 group" href="#">
+<div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]" data-icon="school">school</span>
+</div>
+                    LearnLoom
+                </a>
+<nav class="hidden md:flex items-center gap-stack-lg ml-stack-lg">
+<a class="font-label-md text-label-md text-text-secondary hover:text-primary transition-colors duration-200 py-4" href="#">Platform</a>
+<a class="font-label-md text-label-md text-primary font-bold border-b-2 border-primary py-4" href="#">Curriculum</a>
+<a class="font-label-md text-label-md text-text-secondary hover:text-primary transition-colors duration-200 py-4 flex items-center gap-1" href="#">
+                        AI Features
+                        <span class="px-1.5 py-0.5 rounded-full bg-secondary-container/20 text-secondary-container text-[10px] font-bold uppercase tracking-wider">New</span>
+</a>
+<a class="font-label-md text-label-md text-text-secondary hover:text-primary transition-colors duration-200 py-4" href="#">Pricing</a>
+</nav>
+</div>
+<div class="flex items-center gap-stack-md">
+<button class="hidden md:flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-variant text-text-secondary transition-colors">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+<a class="hidden md:block font-label-md text-label-md text-text-secondary hover:text-primary transition-colors duration-200" href="#">Log In</a>
+<a class="font-label-md text-label-md px-5 py-2.5 rounded-lg bg-primary-container text-white hover:bg-primary-container/90 transition-colors shadow-sm hover:shadow-md hover:-translate-y-0.5 transform duration-200 font-medium" href="#">Get Started</a>
+<button class="md:hidden flex items-center justify-center w-10 h-10 text-text-secondary">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+</div>
+</div>
+</header>
+<main class="flex-grow flex flex-col">
+<!-- Hero Section -->
+<section class="relative pt-stack-xl pb-stack-lg px-margin-mobile md:px-margin-desktop overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-br from-surface-container-low via-background to-surface-variant/30 -z-10"></div>
+<div class="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-primary-fixed/20 to-transparent blur-3xl -z-10 rounded-full translate-x-1/3 -translate-y-1/4"></div>
+<div class="max-w-container-max mx-auto text-center md:text-left flex flex-col md:flex-row items-center gap-stack-xl">
+<div class="flex-1 space-y-stack-md z-10">
+<div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface border border-border-base shadow-sm mb-4">
+<span class="w-2 h-2 rounded-full bg-success animate-pulse"></span>
+<span class="font-label-sm text-label-sm text-text-secondary uppercase tracking-wider">New AI Masterclass Available</span>
+</div>
+<h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-on-background max-w-2xl leading-tight">
+                        Master the Future with <br/>
+<span class="ai-gradient-text">Intelligent Learning</span>
+</h1>
+<p class="font-body-lg text-body-lg text-text-secondary max-w-xl">
+                        Discover premium courses curated by AI and taught by industry leaders. Elevate your skills in an immersive, personalized educational environment.
+                    </p>
+<div class="pt-stack-sm flex flex-col sm:flex-row gap-stack-md w-full max-w-md md:max-w-none">
+<div class="relative flex-grow max-w-lg">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" data-icon="search">search</span>
+<input class="w-full pl-12 pr-4 py-4 rounded-xl border border-border-base bg-surface shadow-sm focus:ring-2 focus:ring-primary-container focus:border-primary-container focus:outline-none transition-shadow font-body-md text-body-md" placeholder="What do you want to learn today?" type="text"/>
+</div>
+<button class="px-8 py-4 rounded-xl bg-on-background text-white font-label-md text-label-md font-medium hover:bg-inverse-surface transition-colors shadow-md flex items-center justify-center gap-2 whitespace-nowrap">
+                            Explore Catalog
+                            <span class="material-symbols-outlined text-[18px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+<div class="flex-1 w-full relative z-10 hidden md:block">
+<!-- Featured Course Hero Card -->
+<div class="relative rounded-2xl overflow-hidden shadow-2xl bg-surface border border-border-base transform rotate-1 hover:rotate-0 transition-transform duration-500">
+<div class="aspect-video relative bg-surface-dim">
+<img alt="A highly cinematic shot of a modern data science workspace. Dual monitors display complex, glowing blue and purple data visualizations and neural network architectures against a dark mode IDE. The desk is sleek, minimalist wood, with a cup of artisan coffee steaming slightly in soft, diffused morning light coming from a large window. The atmosphere is focused, high-tech, and aspirational, fitting a premium SaaS educational platform." class="w-full h-full object-cover" data-alt="A highly cinematic shot of a modern data science workspace. Dual monitors display complex, glowing blue and purple data visualizations and neural network architectures against a dark mode IDE. The desk is sleek, minimalist wood, with a cup of artisan coffee steaming slightly in soft, diffused morning light coming from a large window. The atmosphere is focused, high-tech, and aspirational, fitting a premium SaaS educational platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0NZQjtpbgdtcnyfHgBlvNZhvuLwguF43RCElqURjHrdtz69OunRB2UmseE9HOqMqFgjN93J8-voCdqY87FqBR1NWUJvd8iW49aTWFcASoW6w8rsiAceXC-2zrsfaoTQiq6XpZD3Ij6G2QVxV5ht3b83gvxNSlp-JLLdogruwZKpq5UNx8xu4UMuuoaeqHY7GC2-5b_o8fn2F1cakoeJWJ9IIAQl5C18sBIearzj7LTFFT-FV4yWmVQ_eMTsJhF9QHGT5LCgjnNkVL"/>
+<div class="absolute inset-0 bg-gradient-to-t from-on-background/80 via-transparent to-transparent"></div>
+<!-- Overlay Content -->
+<div class="absolute bottom-0 left-0 w-full p-stack-md text-white">
+<div class="flex items-center gap-2 mb-2">
+<span class="px-2 py-1 rounded text-xs font-bold bg-tertiary-container text-white uppercase tracking-wider backdrop-blur-md bg-opacity-80">Premium</span>
+<span class="px-2 py-1 rounded text-xs font-bold bg-secondary-container/20 text-secondary-fixed-dim border border-secondary-container/30 uppercase tracking-wider backdrop-blur-md">AI Guided</span>
+</div>
+<h3 class="font-headline-lg text-headline-lg font-bold mb-1 drop-shadow-md">Advanced Machine Learning Architecture</h3>
+<p class="font-body-sm text-body-sm text-surface-variant line-clamp-1 drop-shadow">Master neural networks with guided AI mentorship.</p>
+</div>
+<!-- Play Button -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full glass-panel flex items-center justify-center text-white cursor-pointer hover:scale-110 transition-transform hover:bg-white/20">
+<span class="material-symbols-outlined text-[32px] ml-1" data-icon="play_arrow" data-weight="fill">play_arrow</span>
+</div>
+</div>
+</div>
+<!-- Decorative elements -->
+<div class="absolute -top-6 -right-6 w-24 h-24 bg-secondary-container/20 rounded-full blur-xl -z-10"></div>
+<div class="absolute -bottom-10 -left-10 w-40 h-40 bg-tertiary-container/10 rounded-full blur-2xl -z-10"></div>
+</div>
+</div>
+</section>
+<!-- Main Content Area: Sidebar + Grid -->
+<section class="flex-grow px-margin-mobile md:px-margin-desktop py-stack-lg max-w-container-max mx-auto w-full flex flex-col md:flex-row gap-stack-lg">
+<!-- Left Sidebar Filters -->
+<aside class="w-full md:w-64 flex-shrink-0 space-y-stack-lg hidden md:block">
+<div class="sticky top-24 space-y-stack-md">
+<h3 class="font-headline-md text-headline-md font-semibold text-on-surface">Filters</h3>
+<!-- Category Filter -->
+<div class="space-y-3">
+<h4 class="font-label-md text-label-md text-text-secondary uppercase tracking-wider">Category</h4>
+<div class="space-y-2">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="w-4 h-4 rounded border-border-base text-primary-container focus:ring-primary-container" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface group-hover:text-primary transition-colors">All Categories</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="w-4 h-4 rounded border-border-base text-primary-container focus:ring-primary-container" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-text-secondary group-hover:text-primary transition-colors">Artificial Intelligence</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="w-4 h-4 rounded border-border-base text-primary-container focus:ring-primary-container" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-text-secondary group-hover:text-primary transition-colors">Data Science</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="w-4 h-4 rounded border-border-base text-primary-container focus:ring-primary-container" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-text-secondary group-hover:text-primary transition-colors">Web Development</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="w-4 h-4 rounded border-border-base text-primary-container focus:ring-primary-container" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-text-secondary group-hover:text-primary transition-colors">UX/UI Design</span>
+</label>
+</div>
+</div>
+<!-- Difficulty Filter -->
+<div class="space-y-3 pt-4 border-t border-border-base">
+<h4 class="font-label-md text-label-md text-text-secondary uppercase tracking-wider">Difficulty</h4>
+<div class="flex flex-wrap gap-2">
+<button class="px-3 py-1.5 rounded-full border border-border-base text-body-sm font-body-sm hover:border-primary-container hover:text-primary-container transition-colors bg-surface">Beginner</button>
+<button class="px-3 py-1.5 rounded-full border border-primary-container bg-primary-container/5 text-primary-container text-body-sm font-body-sm transition-colors">Intermediate</button>
+<button class="px-3 py-1.5 rounded-full border border-border-base text-body-sm font-body-sm hover:border-primary-container hover:text-primary-container transition-colors bg-surface">Advanced</button>
+</div>
+</div>
+</div>
+</aside>
+<!-- Course Grid Area -->
+<div class="flex-1 space-y-stack-lg">
+<!-- Section Header -->
+<div class="flex justify-between items-end">
+<div>
+<h2 class="font-headline-lg text-headline-lg font-semibold text-on-surface">Curriculum Catalog</h2>
+<p class="font-body-md text-body-md text-text-secondary mt-1">Explore our curated selection of expert-led courses.</p>
+</div>
+<!-- Mobile Filter Toggle -->
+<button class="md:hidden flex items-center gap-2 px-4 py-2 rounded-lg border border-border-base bg-surface text-text-secondary text-label-md font-label-md">
+<span class="material-symbols-outlined text-[20px]" data-icon="tune">tune</span>
+                        Filters
+                    </button>
+</div>
+<!-- Bento-style Course Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Card 1: Standard Card -->
+<article class="bg-surface rounded-2xl border border-border-base overflow-hidden flex flex-col shadow-[0_4px_6px_-1px_rgb(0,0,0,0.05),0_2px_4px_-2px_rgb(0,0,0,0.05)] hover:-translate-y-1 hover:shadow-lg transition-all duration-300 cursor-pointer group">
+<div class="relative aspect-[4/3] overflow-hidden bg-surface-dim">
+<img alt="A bright, modern web development environment featuring a glowing laptop screen displaying colorful HTML and CSS code. The desk is white and minimalist, with a small potted succulent and a sleek mechanical keyboard. Soft, natural daylight fills the space, creating a clean, productive, and inviting atmosphere typical of a high-end tech learning platform." class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A bright, modern web development environment featuring a glowing laptop screen displaying colorful HTML and CSS code. The desk is white and minimalist, with a small potted succulent and a sleek mechanical keyboard. Soft, natural daylight fills the space, creating a clean, productive, and inviting atmosphere typical of a high-end tech learning platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUh0VfXHxXz0pvxULVC3rDe2Gd1TmHJ1F0EyqdeQri0OqSaYRYXjYANnUvw0n0D7GggiGZ8wnd0jQyO1GT8e2PH9iOOM7-iDaj2PvyLol9YNQ22MfWM0cfik6LgRBMSttL7vuCBvwGnYNlL_REtFAIcnKSsoXTaBBgm1QXTVhGw_7OjAl9XEyQlV4cZI6Xg19BSdAukKlwFPxhvN758OQQPTyTjBhNlFC2Jm5Ey_shNIsMHHjuFjlQnz3COg1kWia6C6emjLpf4n7u"/>
+<div class="absolute top-3 left-3 flex gap-2">
+<span class="px-2.5 py-1 rounded bg-surface/90 backdrop-blur text-[11px] font-bold text-on-surface uppercase tracking-wider shadow-sm">Web Dev</span>
+</div>
+</div>
+<div class="p-5 flex flex-col flex-grow">
+<h3 class="font-headline-md text-headline-md text-on-surface font-semibold line-clamp-2 mb-2 group-hover:text-primary transition-colors text-[18px] leading-snug">Modern Full-Stack Architecture with React &amp; Node</h3>
+<p class="font-body-sm text-body-sm text-text-secondary line-clamp-2 mb-4 flex-grow">Build scalable web applications from scratch using industry-standard tools and practices.</p>
+<div class="flex items-center justify-between mt-auto pt-4 border-t border-border-base/50">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-variant">
+<img alt="Instructor avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmqiTnTaHZTG5GOfTRpdenhtzoMjCix44kUg0SQqrHk7iVZP_0ag-RiHllOHFCcGlQKhj_yrxx9SpV386ueaGUg6SkvwP6uoY2qglzlqQ1m2nqG-ooXonh_MO2XV748g2d_6ACaQM0z-xTrPRAx2J1RBoPxDD6QG3vT5WujHTVHJfP_ARmS_i1tqZUHuMFICHgjM9aSnYDBGiFHHp9QirYhW9PHPNn8AEAj22ZOXOSBCXv1DDlpEJ0mRy2CQ4UA7-3vn1Bx3mg7UJf"/>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface font-medium">Sarah J.</span>
+</div>
+<div class="flex items-center gap-1 text-warning">
+<span class="material-symbols-outlined text-[16px]" data-icon="star" data-weight="fill">star</span>
+<span class="font-label-sm text-label-sm text-on-surface font-bold">4.9 <span class="text-text-secondary font-normal">(2.4k)</span></span>
+</div>
+</div>
+</div>
+</article>
+<!-- Card 2: AI Curated (Highlighted) -->
+<article class="bg-surface rounded-2xl border border-border-base overflow-hidden flex flex-col shadow-[0_4px_6px_-1px_rgb(0,0,0,0.05),0_2px_4px_-2px_rgb(0,0,0,0.05)] hover:-translate-y-1 hover:shadow-lg transition-all duration-300 cursor-pointer group ai-border">
+<div class="relative aspect-[4/3] overflow-hidden bg-surface-dim">
+<img alt="An abstract, high-tech visualization of artificial intelligence. Glowing, ethereal cyan and violet light streams weave together into a complex neural network pattern against a deep, dark blue background. The image feels futuristic, intelligent, and deeply connected, perfectly illustrating advanced machine learning concepts for a premium educational dashboard." class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="An abstract, high-tech visualization of artificial intelligence. Glowing, ethereal cyan and violet light streams weave together into a complex neural network pattern against a deep, dark blue background. The image feels futuristic, intelligent, and deeply connected, perfectly illustrating advanced machine learning concepts for a premium educational dashboard." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkACSZOXlH6Q3oXxhDCxDC-IcZdQ21Kq-U0KlNWgBcWP3YdjAnCnrPjVuSGpE8EH9UlrmgJCOD9yymdnurKafnbxB7EMLtO-S_7jpmcPZuqgSA_FH0tPHMm1Wmyfo056Xir1m6xL0KPcZRJnvH0jv7LC6C9zagpfipDRDilyFY0egr3Cz0Z72fy4atKNiF6EK-PejBUNaWIrK8ToIEjhGLlX1CJNgU4xlbqwvT14d0ZIGNEj9-WZwvBoUlc9tY8hwwzRIxBfkzKwpK"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+<div class="absolute top-3 left-3 flex gap-2">
+<span class="px-2.5 py-1 rounded bg-secondary-container text-[11px] font-bold text-on-secondary-container uppercase tracking-wider shadow-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="auto_awesome">auto_awesome</span>
+                                    AI Curated
+                                </span>
+</div>
+<div class="absolute bottom-3 right-3 px-2 py-1 rounded bg-black/60 backdrop-blur text-white font-label-sm text-[11px]">12h 45m</div>
+</div>
+<div class="p-5 flex flex-col flex-grow relative bg-gradient-to-b from-surface to-surface-container-low/30">
+<h3 class="font-headline-md text-headline-md text-on-surface font-semibold line-clamp-2 mb-2 group-hover:text-primary transition-colors text-[18px] leading-snug">Applied Generative AI for Product Teams</h3>
+<p class="font-body-sm text-body-sm text-text-secondary line-clamp-2 mb-4 flex-grow">Leverage LLMs to accelerate product development and design workflows.</p>
+<div class="flex items-center justify-between mt-auto pt-4 border-t border-border-base/50">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-variant">
+<img alt="Instructor avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXK4Bku_1jcM7mKi1--pI0qQntNI3yNz-GAMdsMByzBA8LvFli4kmCn0uXp89dlwb3Rky6oeLgytfs51hKiBhEkXEMVdcs3qOrsAEnYiHlqrEBM7iZ9DQSZ_dByGmt4sChTqNi9A98MPYPqMKXXjczjZGc-qE7RrDeYfUv3_q7IT-sQhBZ4Gt13eCwqtZas2LosbQ86fQY35EwiK1wclwzem9WSAYKiBWNLD4ZOMF8iI6y7UH1c84nzmrQcR5FBpLQXlcPkZTA_WcA"/>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface font-medium">Dr. Chen</span>
+</div>
+<div class="flex items-center gap-1 text-warning">
+<span class="material-symbols-outlined text-[16px]" data-icon="star" data-weight="fill">star</span>
+<span class="font-label-sm text-label-sm text-on-surface font-bold">5.0 <span class="text-text-secondary font-normal">(892)</span></span>
+</div>
+</div>
+</div>
+</article>
+<!-- Card 3: Standard Card -->
+<article class="bg-surface rounded-2xl border border-border-base overflow-hidden flex flex-col shadow-[0_4px_6px_-1px_rgb(0,0,0,0.05),0_2px_4px_-2px_rgb(0,0,0,0.05)] hover:-translate-y-1 hover:shadow-lg transition-all duration-300 cursor-pointer group">
+<div class="relative aspect-[4/3] overflow-hidden bg-surface-dim">
+<img alt="A clean, analytical workspace focusing on data science. A sleek monitor displays complex data dashboards with clean bar charts, line graphs, and scatter plots in a modern SaaS UI style. The desk is tidy, featuring a notepad with handwritten mathematical formulas and a pair of modern reading glasses. The lighting is bright and professional, conveying clarity and intellectual rigor." class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A clean, analytical workspace focusing on data science. A sleek monitor displays complex data dashboards with clean bar charts, line graphs, and scatter plots in a modern SaaS UI style. The desk is tidy, featuring a notepad with handwritten mathematical formulas and a pair of modern reading glasses. The lighting is bright and professional, conveying clarity and intellectual rigor." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbep8pz-4mq9ckjeWDRXCBh-i2KRL4k14rSa0KZSvYnX63O766dXTaTPaoymH9ExmbSkbgot9CDgAPGiN8o37NM2F97_Uof9TrfIq-iBmcJx0gSlVHh3MoB9JuTcJaml2Jnp9PnjOS9SuuNLkutc8p9xStixgJgFAaZGdcNj_Fkj7XfTsXhucKIypw28LKfMvdH4jc_QyMEfVXPBkZffwBdstgU6eefCe1m_GgzhnbLLAMOZ2l_-WU3hStHpKdJOjqEd5IUKvvtzu7"/>
+<div class="absolute top-3 left-3 flex gap-2">
+<span class="px-2.5 py-1 rounded bg-surface/90 backdrop-blur text-[11px] font-bold text-on-surface uppercase tracking-wider shadow-sm">Data Science</span>
+</div>
+</div>
+<div class="p-5 flex flex-col flex-grow">
+<h3 class="font-headline-md text-headline-md text-on-surface font-semibold line-clamp-2 mb-2 group-hover:text-primary transition-colors text-[18px] leading-snug">Data Visualization Mastery with Python</h3>
+<p class="font-body-sm text-body-sm text-text-secondary line-clamp-2 mb-4 flex-grow">Transform raw data into compelling narratives using Matplotlib, Seaborn, and Plotly.</p>
+<div class="flex items-center justify-between mt-auto pt-4 border-t border-border-base/50">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-variant">
+<img alt="Instructor avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBAdWZyJonbijf4B60p1YygR9osDGKranupE42e6Y4VMHBUoP4B_HjESC-boMoOf2HXV1iB7ia9Vla7zoQBLDXcSG7YwlzHvHJcrqAn1Kvs3t1X8eIj-RT-mNYhonAu1Ti5Xauj1_ViEXJ0N4B47ux0vtHAx-Zajr3Lau9KZuUbHAMxp18-tuvv7NRDG6ypFwao56OmQ-PghQhWlCQSUFaTxPuKHn-jwaYsmNKk8KYL93Qa_Qp9XHXMyXdqicKVMXhQsAbNLcMRCcGt"/>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface font-medium">Alex Rivera</span>
+</div>
+<div class="flex items-center gap-1 text-warning">
+<span class="material-symbols-outlined text-[16px]" data-icon="star" data-weight="fill">star</span>
+<span class="font-label-sm text-label-sm text-on-surface font-bold">4.8 <span class="text-text-secondary font-normal">(1.2k)</span></span>
+</div>
+</div>
+</div>
+</article>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface dark:bg-on-background border-t border-border-base dark:border-outline/20 w-full py-stack-xl mt-auto">
+<div class="grid grid-cols-2 md:grid-cols-6 gap-gutter px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+<div class="col-span-2 md:col-span-2 space-y-4">
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface dark:text-on-background flex items-center gap-2">
+<div class="w-6 h-6 rounded bg-primary-container flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[14px]" data-icon="school">school</span>
+</div>
+                    LearnLoom
+                </div>
+<p class="font-body-sm text-body-sm text-text-secondary max-w-xs">Empowering the next generation of builders, thinkers, and creators through intelligent education.</p>
+</div>
+<div class="flex flex-col space-y-3">
+<a class="font-label-sm text-label-sm text-text-secondary dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">Product</a>
+</div>
+<div class="flex flex-col space-y-3">
+<a class="font-label-sm text-label-sm text-text-secondary dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">Solutions</a>
+</div>
+<div class="flex flex-col space-y-3">
+<a class="font-label-sm text-label-sm text-text-secondary dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">Resources</a>
+<a class="font-label-sm text-label-sm text-text-secondary dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">Company</a>
+</div>
+<div class="flex flex-col space-y-3">
+<a class="font-label-sm text-label-sm text-text-secondary dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">Privacy</a>
+<a class="font-label-sm text-label-sm text-text-secondary dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">Terms</a>
+</div>
+<div class="col-span-2 md:col-span-6 mt-8 pt-8 border-t border-border-base/50 text-center md:text-left">
+<p class="font-body-sm text-body-sm text-text-secondary">© 2024 LearnLoom AI. Built for the future of education.</p>
+</div>
+</div>
+</footer>
+</body></html>

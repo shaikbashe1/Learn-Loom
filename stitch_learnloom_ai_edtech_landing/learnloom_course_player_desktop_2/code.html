@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Course Player - Modern SaaS</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Theme Config -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-bright": "#f8f9ff",
+                    "secondary-fixed-dim": "#4cd7f6",
+                    "primary-fixed": "#dbe1ff",
+                    "on-primary": "#ffffff",
+                    "on-primary-container": "#eeefff",
+                    "border-base": "#E2E8F0",
+                    "text-primary": "#0F172A",
+                    "on-tertiary": "#ffffff",
+                    "error": "#EF4444",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-highest": "#d3e4fe",
+                    "primary-container": "#2563eb",
+                    "on-secondary-fixed": "#001f26",
+                    "error-container": "#ffdad6",
+                    "primary": "#004ac6",
+                    "tertiary-container": "#7d4ce7",
+                    "on-primary-fixed-variant": "#003ea8",
+                    "surface": "#FFFFFF",
+                    "inverse-primary": "#b4c5ff",
+                    "on-tertiary-fixed": "#23005c",
+                    "outline-variant": "#c3c6d7",
+                    "on-secondary-fixed-variant": "#004e5c",
+                    "on-primary-fixed": "#00174b",
+                    "success": "#22C55E",
+                    "on-background": "#0b1c30",
+                    "surface-dim": "#cbdbf5",
+                    "on-tertiary-fixed-variant": "#5516be",
+                    "on-error-container": "#93000a",
+                    "on-secondary-container": "#006172",
+                    "surface-tint": "#0053db",
+                    "on-surface": "#0b1c30",
+                    "tertiary": "#632ecd",
+                    "inverse-on-surface": "#eaf1ff",
+                    "tertiary-fixed": "#e9ddff",
+                    "surface-container-high": "#dce9ff",
+                    "background": "#F8FAFC",
+                    "warning": "#F59E0B",
+                    "tertiary-fixed-dim": "#d0bcff",
+                    "on-error": "#ffffff",
+                    "surface-variant": "#d3e4fe",
+                    "on-tertiary-container": "#f6edff",
+                    "text-secondary": "#64748B",
+                    "surface-container": "#e5eeff",
+                    "secondary": "#00687a",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "secondary-container": "#57dffe",
+                    "on-surface-variant": "#434655",
+                    "outline": "#737686",
+                    "surface-container-low": "#eff4ff",
+                    "secondary-fixed": "#acedff",
+                    "on-secondary": "#ffffff",
+                    "inverse-surface": "#213145"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-lg": "32px",
+                    "margin-mobile": "16px",
+                    "margin-desktop": "40px",
+                    "stack-sm": "8px",
+                    "gutter": "24px",
+                    "stack-xl": "64px",
+                    "stack-md": "16px",
+                    "container-max": "1280px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "label-sm": ["JetBrains Mono"],
+                    "headline-lg": ["Hanken Grotesk"],
+                    "display-lg-mobile": ["Hanken Grotesk"],
+                    "display-lg": ["Hanken Grotesk"],
+                    "headline-md": ["Hanken Grotesk"],
+                    "headline-lg-mobile": ["Hanken Grotesk"],
+                    "body-md": ["Inter"],
+                    "label-md": ["JetBrains Mono"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "display-lg-mobile": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1;
+        }
+        
+        /* Custom Scrollbar for inner panels to keep UI clean */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: theme('colors.outline-variant');
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body class="bg-background text-text-primary h-screen w-full flex flex-col font-body-md overflow-hidden pb-16 md:pb-0">
+<!-- Top Course Header (replaces standard TopAppBar for specific course context) -->
+<header class="h-16 w-full flex-shrink-0 bg-surface/80 backdrop-blur-md border-b border-border-base z-40 px-margin-mobile md:px-gutter flex items-center justify-between shadow-[0_2px_4px_-2px_rgba(0,0,0,0.05)]">
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-surface-container-low rounded-full transition-colors flex items-center justify-center text-text-secondary hover:text-text-primary group">
+<span class="material-symbols-outlined transition-transform group-hover:-translate-x-1">arrow_back</span>
+</button>
+<div class="hidden sm:block">
+<h1 class="font-headline-md text-headline-md-mobile md:text-headline-md text-text-primary leading-none">Advanced Neural Architecture</h1>
+<div class="flex items-center gap-2 mt-1">
+<span class="font-label-sm text-label-sm text-text-secondary bg-surface-container-low px-2 py-0.5 rounded text-[10px]">COURSE</span>
+<span class="font-body-sm text-body-sm text-text-secondary">Module 3: Transformers Deep Dive</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4 w-48 md:w-64">
+<div class="flex-1">
+<div class="flex justify-between items-center mb-1">
+<span class="font-label-sm text-label-sm text-text-secondary">Progress</span>
+<span class="font-label-sm text-label-sm text-primary font-semibold">64%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full transition-all duration-500" style="width: 64%;"></div>
+</div>
+</div>
+<button class="p-2 hover:bg-surface-container-low rounded-full text-text-secondary transition-colors relative">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="flex-1 flex w-full max-w-container-max mx-auto px-margin-mobile md:px-gutter py-4 gap-gutter overflow-hidden">
+<!-- Left Sidebar: Course Structure -->
+<aside class="w-72 flex-shrink-0 hidden lg:flex flex-col bg-surface border border-border-base shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] rounded-xl overflow-hidden h-full">
+<div class="p-4 border-b border-border-base bg-surface-bright flex justify-between items-center">
+<h2 class="font-label-md text-label-md text-text-secondary uppercase tracking-widest">Syllabus</h2>
+<span class="material-symbols-outlined text-text-secondary text-sm">filter_list</span>
+</div>
+<div class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
+<!-- Module 1 -->
+<div class="mb-2">
+<button class="w-full flex items-center justify-between p-2 hover:bg-surface-container-low rounded-lg transition-colors text-left group">
+<span class="font-body-md text-body-md text-text-primary font-medium">1. Introduction to AI</span>
+<span class="material-symbols-outlined text-text-secondary transition-transform group-hover:rotate-180">expand_more</span>
+</button>
+</div>
+<!-- Module 2 -->
+<div class="mb-2">
+<button class="w-full flex items-center justify-between p-2 hover:bg-surface-container-low rounded-lg transition-colors text-left group">
+<span class="font-body-md text-body-md text-text-primary font-medium">2. Machine Learning Basics</span>
+<span class="material-symbols-outlined text-text-secondary transition-transform group-hover:rotate-180">expand_more</span>
+</button>
+</div>
+<!-- Module 3 (Active) -->
+<div class="mb-2">
+<button class="w-full flex items-center justify-between p-2 bg-surface-container-lowest rounded-lg text-left">
+<span class="font-body-md text-body-md text-text-primary font-semibold">3. Transformers Deep Dive</span>
+<span class="material-symbols-outlined text-text-secondary rotate-180">expand_more</span>
+</button>
+<div class="pl-4 mt-1 space-y-1">
+<!-- Completed Lesson -->
+<div class="flex items-start gap-3 p-2 rounded-lg hover:bg-surface-container-low cursor-pointer group">
+<span class="material-symbols-outlined text-success text-lg mt-0.5 fill">check_circle</span>
+<div>
+<p class="font-body-sm text-body-sm text-text-primary group-hover:text-primary transition-colors">Attention is All You Need</p>
+<p class="font-label-sm text-label-sm text-text-secondary mt-0.5">12:45</p>
+</div>
+</div>
+<!-- Active Lesson -->
+<div class="flex items-start gap-3 p-2 rounded-lg bg-primary-container/10 border border-primary/20 cursor-pointer">
+<span class="material-symbols-outlined text-primary text-lg mt-0.5">play_circle</span>
+<div>
+<p class="font-body-sm text-body-sm text-primary font-semibold">Self-Attention Mechanism</p>
+<p class="font-label-sm text-label-sm text-primary/80 mt-0.5">18:20 • Playing</p>
+</div>
+</div>
+<!-- Locked Lesson -->
+<div class="flex items-start gap-3 p-2 rounded-lg opacity-60 cursor-not-allowed">
+<span class="material-symbols-outlined text-text-secondary text-lg mt-0.5">lock</span>
+<div>
+<p class="font-body-sm text-body-sm text-text-secondary">Multi-Head Attention</p>
+<p class="font-label-sm text-label-sm text-text-secondary mt-0.5">22:15</p>
+</div>
+</div>
+<!-- Quiz -->
+<div class="flex items-start gap-3 p-2 rounded-lg opacity-60 cursor-not-allowed">
+<span class="material-symbols-outlined text-text-secondary text-lg mt-0.5">assignment</span>
+<div>
+<p class="font-body-sm text-body-sm text-text-secondary">Module 3 Quiz</p>
+<p class="font-label-sm text-label-sm text-text-secondary mt-0.5">10 Questions</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- Center Content: Player & Details -->
+<section class="flex-1 flex flex-col h-full overflow-hidden rounded-xl shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] bg-surface border border-border-base relative">
+<!-- Video Container (16:9 aspect ratio simulated) -->
+<div class="w-full bg-black aspect-video relative group flex-shrink-0">
+<!-- Placeholder for Video Texture/Image -->
+<div class="absolute inset-0 bg-inverse-surface flex items-center justify-center overflow-hidden">
+<img alt="Abstract visualization of neural network data processing" class="absolute w-full h-full object-cover opacity-40 mix-blend-overlay" data-alt="A highly detailed cinematic 3D render of an abstract neural network structure. Glowing blue and cyan fiber optic cables interconnect within a dark, atmospheric void. Small bursts of bright white light signify data transfer. The visual style is highly technical, pristine, and futuristic, representing advanced artificial intelligence architecture. Deep depth of field with soft bokeh highlights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBKUfmwwEUyo2AkljG3LjJHtpXspH7cx2WvxpBwmrP_ZjhU1RDycbz58fSWlq1Vcz9xBV2rnqNXxo8HzlTbZbMGDsVAZRgxszZmw2cCHOzgaHz8aaakxSMh78uGpRoF8wEoKCGjEoUcy-YJCq_cCxuWfIN_FytFW9qKK1MwECTctZqJHs8DuZyM1cbnE_3ZhgDSlEWLoO3wrPEn02PXx47gRax_lUGSmO0zimnycPBXuU-DhTEDql2wlIe5RjwnN744ZE6V5PdgfWu2"/>
+<!-- Center Play Button -->
+<button class="w-16 h-16 bg-primary/90 hover:bg-primary backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg transition-transform transform group-hover:scale-110 z-10">
+<span class="material-symbols-outlined text-on-primary text-3xl ml-1 fill">play_arrow</span>
+</button>
+</div>
+<!-- Video Controls Overlay -->
+<div class="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-black/80 to-transparent flex items-end px-4 py-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+<div class="w-full flex flex-col gap-2">
+<!-- Scrubber -->
+<div class="w-full h-1 bg-white/30 rounded-full cursor-pointer relative">
+<div class="absolute left-0 top-0 h-full bg-primary rounded-full w-[35%]"></div>
+<div class="absolute left-[35%] top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-sm"></div>
+</div>
+<!-- Controls -->
+<div class="flex justify-between items-center text-white pb-1">
+<div class="flex items-center gap-3">
+<button><span class="material-symbols-outlined text-xl">pause</span></button>
+<button><span class="material-symbols-outlined text-xl">volume_up</span></button>
+<span class="font-label-sm text-label-sm">06:22 / 18:20</span>
+</div>
+<div class="flex items-center gap-3">
+<button><span class="material-symbols-outlined text-xl">closed_caption</span></button>
+<button><span class="material-symbols-outlined text-xl">settings</span></button>
+<button><span class="material-symbols-outlined text-xl">fullscreen</span></button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Content Tabs -->
+<div class="flex border-b border-border-base bg-surface-bright px-4 flex-shrink-0">
+<button class="px-4 py-3 font-body-sm text-body-sm font-semibold text-primary border-b-2 border-primary">Overview</button>
+<button class="px-4 py-3 font-body-sm text-body-sm font-medium text-text-secondary hover:text-text-primary transition-colors">Transcript</button>
+<button class="px-4 py-3 font-body-sm text-body-sm font-medium text-text-secondary hover:text-text-primary transition-colors">Resources (2)</button>
+<button class="px-4 py-3 font-body-sm text-body-sm font-medium text-text-secondary hover:text-text-primary transition-colors">Discussion</button>
+</div>
+<!-- Scrollable Content Area -->
+<div class="flex-1 overflow-y-auto custom-scrollbar p-6 bg-surface">
+<div class="max-w-[800px] mx-auto">
+<h2 class="font-headline-md text-headline-md text-text-primary mb-4">Self-Attention Mechanism</h2>
+<div class="prose prose-sm max-w-none text-text-secondary space-y-4 mb-stack-lg">
+<p class="font-body-md text-body-md">In this lesson, we break down the core innovation of the Transformer architecture: the self-attention mechanism. Unlike RNNs that process sequences step-by-step, self-attention allows the model to look at the entire sequence simultaneously to determine which parts are most relevant to each other.</p>
+<p class="font-body-md text-body-md">We will cover the mathematical intuition behind Queries, Keys, and Values, and how the scaled dot-product attention formula computes the attention weights.</p>
+</div>
+<!-- Notion-style AI Summary Block -->
+<div class="bg-surface-container-low border border-surface-variant rounded-xl p-4 mb-stack-lg relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-tertiary-container"></div>
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-tertiary mt-1">auto_awesome</span>
+<div>
+<h4 class="font-label-md text-label-md text-text-primary mb-1">Key Takeaways</h4>
+<ul class="list-disc list-inside space-y-1 font-body-sm text-body-sm text-text-secondary">
+<li>Self-attention solves the vanishing gradient problem in long sequences.</li>
+<li><span class="font-semibold text-text-primary">Q, K, V matrices</span> are derived from the same input embedding.</li>
+<li>Scaling by the square root of dimension size prevents softmax saturation.</li>
+</ul>
+</div>
+</div>
+</div>
+<hr class="border-border-base mb-stack-lg"/>
+<!-- Community Discussion Preview -->
+<div>
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-headline-md text-headline-md-mobile text-text-primary">Discussion</h3>
+<button class="font-body-sm text-body-sm text-primary font-medium hover:underline">View all 124 comments</button>
+</div>
+<!-- Comment Item -->
+<div class="flex gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container overflow-hidden flex-shrink-0">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="A realistic photographic headshot of a young professional woman with dark hair, smiling warmly. She is wearing a modern light blue blouse. The lighting is soft studio lighting with a neutral gray background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPiVDs5Nu_ZUM3aBf-gIHmm9sCTgJg1CPqQYBjEvnfd2DXd0Tfjs8V34Dy5P_hlKY_1ZKN0QeVh5l27zqyUhC_94pkkm1zCPITATj4eHLoZUSvhmrSRkFCsMZF7Sl7zVT2hgX1u2-NaZBvJvbvrABzYpEgjkiq1t_l7OROB5EuUnX460ievJkF-AKc1p8Rka_WOBG9GQRjvqNpPBY_CWIhvnJPIlIgiK8JZF8SqCKH0XdqFViv6za_w5t-5AOVs2GSMql1pt6BCZ_Z"/>
+</div>
+<div>
+<div class="flex items-baseline gap-2 mb-1">
+<span class="font-body-sm text-body-sm font-semibold text-text-primary">Sarah Jenkins</span>
+<span class="font-label-sm text-label-sm text-text-secondary">2 hours ago</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary mb-2">Can someone explain why we divide by the square root of dk specifically? I understand we need to scale it down, but why that exact value?</p>
+<div class="flex items-center gap-4 text-text-secondary">
+<button class="flex items-center gap-1 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm">thumb_up</span>
+<span class="font-label-sm text-label-sm">24</span>
+</button>
+<button class="flex items-center gap-1 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm">reply</span>
+<span class="font-label-sm text-label-sm">Reply</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Right Sidebar: AI Mentor Panel (Glassmorphism) -->
+<aside class="w-[340px] flex-shrink-0 hidden xl:flex flex-col bg-white/70 dark:bg-surface-container-lowest/70 backdrop-blur-[16px] border border-border-base shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-xl relative overflow-hidden h-full">
+<!-- Level 2 Glassmorphism Visual Token -->
+<div class="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-secondary-container via-tertiary-container to-primary-container z-10"></div>
+<!-- Header -->
+<div class="p-4 border-b border-border-base flex items-center justify-between bg-surface/50 relative z-20">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-lg bg-tertiary-container/10 flex items-center justify-center border border-tertiary-container/20">
+<span class="material-symbols-outlined text-tertiary fill text-xl">smart_toy</span>
+</div>
+<h2 class="font-headline-md text-headline-md-mobile text-text-primary">AI Mentor</h2>
+</div>
+<button class="p-1.5 hover:bg-surface-container-low rounded-md text-text-secondary transition-colors">
+<span class="material-symbols-outlined text-sm">open_in_full</span>
+</button>
+</div>
+<!-- Chat Area -->
+<div class="flex-1 overflow-y-auto custom-scrollbar p-4 flex flex-col gap-4">
+<!-- System Message -->
+<div class="text-center">
+<span class="font-label-sm text-label-sm text-text-secondary bg-surface px-3 py-1 rounded-full border border-border-base">Context: Self-Attention</span>
+</div>
+<!-- AI Message -->
+<div class="flex gap-3 max-w-[90%]">
+<div class="w-6 h-6 rounded bg-tertiary-container/10 flex items-center justify-center flex-shrink-0 mt-1">
+<span class="material-symbols-outlined text-tertiary text-sm">smart_toy</span>
+</div>
+<div class="bg-surface border border-border-base rounded-2xl rounded-tl-sm p-3 shadow-sm">
+<p class="font-body-sm text-body-sm text-text-primary">Hi! I'm tracking the video. Do you want me to explain the math behind the <span class="bg-surface-container px-1 rounded text-primary font-mono text-xs">softmax(QK^T / sqrt(d))</span> equation?</p>
+<!-- Suggested Actions -->
+<div class="mt-3 flex flex-wrap gap-2">
+<button class="font-label-sm text-label-sm px-2.5 py-1.5 bg-surface-container-lowest border border-outline-variant hover:border-primary text-text-secondary hover:text-primary rounded-lg transition-all flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">psychology</span>
+                                Explain simply
+                            </button>
+<button class="font-label-sm text-label-sm px-2.5 py-1.5 bg-surface-container-lowest border border-outline-variant hover:border-secondary text-text-secondary hover:text-secondary rounded-lg transition-all flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">code</span>
+                                Show PyTorch code
+                            </button>
+</div>
+</div>
+</div>
+<!-- User Message -->
+<div class="flex gap-3 max-w-[90%] self-end flex-row-reverse">
+<div class="w-6 h-6 rounded-full bg-primary-container flex items-center justify-center flex-shrink-0 mt-1">
+<span class="material-symbols-outlined text-on-primary text-sm">person</span>
+</div>
+<div class="bg-primary text-on-primary rounded-2xl rounded-tr-sm p-3 shadow-sm">
+<p class="font-body-sm text-body-sm">Yes, please show the PyTorch implementation.</p>
+</div>
+</div>
+<!-- AI Message (Code) -->
+<div class="flex gap-3 max-w-[95%]">
+<div class="w-6 h-6 rounded bg-tertiary-container/10 flex items-center justify-center flex-shrink-0 mt-1">
+<span class="material-symbols-outlined text-tertiary text-sm">smart_toy</span>
+</div>
+<div class="bg-surface border border-border-base rounded-2xl rounded-tl-sm p-3 shadow-sm overflow-hidden w-full">
+<p class="font-body-sm text-body-sm text-text-primary mb-2">Here is a basic implementation of scaled dot-product attention:</p>
+<div class="bg-inverse-surface rounded-lg p-3 overflow-x-auto">
+<pre class="font-label-sm text-label-sm text-inverse-on-surface"><code>import torch
+import torch.nn.functional as F
+
+def attention(q, k, v, d_k):
+    scores = torch.matmul(q, k.transpose(-2, -1)) 
+    scores = scores / math.sqrt(d_k)
+    weights = F.softmax(scores, dim=-1)
+    return torch.matmul(weights, v)</code></pre>
+</div>
+</div>
+</div>
+</div>
+<!-- Input Area -->
+<div class="p-4 border-t border-border-base bg-surface/80">
+<div class="relative group">
+<input class="w-full bg-surface border border-outline-variant rounded-xl py-3 pl-4 pr-12 font-body-sm text-body-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow shadow-sm group-hover:shadow group-focus-within:shadow-[0_0_0_4px_rgba(37,99,235,0.1)]" placeholder="Ask a question about this lesson..." type="text"/>
+<button class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-primary text-on-primary rounded-lg hover:bg-primary/90 transition-colors">
+<span class="material-symbols-outlined text-sm font-bold">arrow_upward</span>
+</button>
+</div>
+</div>
+</aside>
+</main>
+<!-- Bottom Navigation Bar (Shared Component - Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center py-2 px-margin-mobile bg-white/70 dark:bg-surface-container-lowest/70 backdrop-blur-md border-t border-border-base dark:border-outline-variant shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] rounded-t-xl z-50">
+<!-- Tab 1: Learn (Active) -->
+<button class="flex flex-col items-center justify-center bg-primary-container dark:bg-primary-fixed-dim text-on-primary-container dark:text-on-primary-fixed rounded-full px-4 py-1 active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined fill">school</span>
+<span class="font-label-sm text-label-sm mt-1">Learn</span>
+</button>
+<!-- Tab 2: Insights (Inactive) -->
+<button class="flex flex-col items-center justify-center text-text-secondary dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined">auto_awesome</span>
+<span class="font-label-sm text-label-sm mt-1">Insights</span>
+</button>
+<!-- Tab 3: Awards (Inactive) -->
+<button class="flex flex-col items-center justify-center text-text-secondary dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined">emoji_events</span>
+<span class="font-label-sm text-label-sm mt-1">Awards</span>
+</button>
+<!-- Tab 4: Profile (Inactive) -->
+<button class="flex flex-col items-center justify-center text-text-secondary dark:text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="font-label-sm text-label-sm mt-1">Profile</span>
+</button>
+</nav>
+</body></html>

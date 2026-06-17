@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { logUserActivity } from '@/lib/activity';
 import { toast } from 'sonner';
 
 type Lang = 'python' | 'javascript' | 'java' | 'cpp' | 'c';
@@ -161,6 +162,7 @@ export default function CodingPracticePage() {
         toast.error('Compilation Error');
       } else {
         toast.success('Execution finished');
+        void logUserActivity(user.id, 'code_run', `Ran code for: ${problem?.title}`);
       }
     } catch (err: any) {
       toast.error('Execution failed', { description: err.message });
@@ -247,6 +249,7 @@ export default function CodingPracticePage() {
 
       if (overallVerdict === 'accepted') {
         toast.success(`✅ All ${testResults.length} test cases passed!`);
+        void logUserActivity(user.id, 'code_run', `Successfully submitted: ${problem?.title}`);
       } else if (overallVerdict === 'compilation_error') {
         toast.error('Compilation Error', { description: 'Fix the syntax errors and try again.' });
       } else {
@@ -262,10 +265,10 @@ export default function CodingPracticePage() {
   if (loadingP) {
     return (
       <AppLayout title="Coding Practice">
-        <div className="flex-1 flex flex-col md:flex-row h-[calc(100vh-80px)] overflow-hidden gap-md w-full">
-          <Skeleton className="flex-1 bg-surface-container-lowest rounded-lg border border-outline-variant/30 min-w-[300px]" />
-          <Skeleton className="flex-[1.5] bg-[#1e1e1e] rounded-lg border border-outline-variant/30 min-w-[400px]" />
-          <Skeleton className="flex-1 bg-surface-container-lowest rounded-lg border border-outline-variant/30 min-w-[300px]" />
+        <div className="flex-1 flex flex-col md:flex-row h-[calc(100vh-80px)] overflow-hidden gap-4 w-full p-4">
+          <Skeleton className="flex-1 bg-surface rounded-lg border border-border-base shadow-sm min-w-[300px]" />
+          <Skeleton className="flex-[1.5] bg-[#1e1e1e] rounded-lg border border-border-base shadow-sm min-w-[400px]" />
+          <Skeleton className="flex-1 glass-panel rounded-lg border border-border-base shadow-sm min-w-[300px]" />
         </div>
       </AppLayout>
     );
@@ -284,24 +287,24 @@ export default function CodingPracticePage() {
 
   return (
     <AppLayout title="Coding Practice">
-      <div className="flex flex-col h-[calc(100vh-80px)] w-full gap-4 relative">
+      <div className="flex flex-col h-[calc(100vh-80px)] w-full gap-4 relative px-margin-mobile md:px-margin-desktop py-4">
         
         {/* Actions Bar */}
-        <div className="flex flex-wrap items-center justify-between bg-surface-container-low border border-outline-variant/30 rounded-lg p-2 shrink-0">
+        <div className="flex flex-wrap items-center justify-between bg-surface/80 backdrop-blur-md border border-border-base rounded-lg p-2 shrink-0 z-10 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]">
           <div className="flex items-center gap-4 pl-2">
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => setIdx(Math.max(0, idx - 1))} 
                 disabled={idx === 0}
-                className="text-on-surface-variant hover:text-primary transition-colors disabled:opacity-50"
+                className="text-text-secondary hover:text-primary transition-colors disabled:opacity-50"
               >
                 <span className="material-symbols-outlined text-[20px]">chevron_left</span>
               </button>
-              <span className="font-label-sm text-label-sm text-on-surface-variant">{idx + 1} / {problems.length}</span>
+              <span className="font-label-sm text-label-sm text-text-secondary">{idx + 1} / {problems.length}</span>
               <button 
                 onClick={() => setIdx(Math.min(problems.length - 1, idx + 1))} 
                 disabled={idx === problems.length - 1}
-                className="text-on-surface-variant hover:text-primary transition-colors disabled:opacity-50"
+                className="text-text-secondary hover:text-primary transition-colors disabled:opacity-50"
               >
                 <span className="material-symbols-outlined text-[20px]">chevron_right</span>
               </button>
@@ -311,26 +314,26 @@ export default function CodingPracticePage() {
                 <span className="material-symbols-outlined text-[12px]">local_fire_department</span> Daily +{problem.credits} pts
               </span>
             )}
-            <div className="h-4 w-px bg-outline-variant/30 hidden sm:block"></div>
+            <div className="h-4 w-px bg-border-base hidden sm:block"></div>
             <select 
               value={language} 
               onChange={e => changeLang(e.target.value as Lang)}
-              className="bg-surface-container border border-outline-variant/30 text-on-surface font-label-sm text-label-sm rounded px-2 py-1 focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+              className="bg-surface border border-border-base text-text-primary font-label-sm text-label-sm rounded px-3 py-1.5 focus:ring-1 focus:ring-primary focus:border-primary outline-none shadow-inner"
             >
               {(Object.keys(LANG_LABELS) as Lang[]).map(l => (
                 <option key={l} value={l}>{LANG_LABELS[l]}</option>
               ))}
             </select>
           </div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => resetCode()} className="flex items-center gap-1 px-3 py-1.5 rounded border border-outline-variant/60 text-on-surface font-label-sm text-label-sm hover:border-outline transition-colors">
+          <div className="flex items-center gap-2 pr-1">
+            <button onClick={() => resetCode()} className="flex items-center gap-1 px-4 py-1.5 rounded-md border border-border-base bg-surface text-text-primary font-label-sm text-label-sm hover:bg-surface-bright transition-colors shadow-sm">
               <span className="material-symbols-outlined text-[16px]">refresh</span> Reset
             </button>
-            <button onClick={handleRun} disabled={judging || running || !user} className="flex items-center gap-1 px-4 py-1.5 rounded border border-outline-variant/60 text-on-surface font-label-sm text-label-sm hover:border-outline transition-colors disabled:opacity-50">
+            <button onClick={handleRun} disabled={judging || running || !user} className="flex items-center gap-1 px-4 py-1.5 rounded-md border border-border-base bg-surface text-primary font-label-sm text-label-sm font-bold hover:bg-surface-bright transition-colors disabled:opacity-50 shadow-sm">
               {running ? <span className="material-symbols-outlined animate-spin text-[16px]">autorenew</span> : <span className="material-symbols-outlined text-[16px]">play_arrow</span>}
               {running ? 'Running' : 'Run'}
             </button>
-            <button onClick={handleSubmit} disabled={judging || running || !user} className="flex items-center gap-1 bg-primary text-on-primary-fixed px-4 py-1.5 rounded font-label-sm text-label-sm font-bold hover:brightness-110 transition-colors disabled:opacity-50">
+            <button onClick={handleSubmit} disabled={judging || running || !user} className="flex items-center gap-1 bg-primary text-on-primary px-5 py-1.5 rounded-md font-label-sm text-label-sm font-bold hover:bg-primary-container transition-colors disabled:opacity-50 shadow-md">
               {judging ? <span className="material-symbols-outlined animate-spin text-[16px]">autorenew</span> : <span className="material-symbols-outlined text-[16px]">publish</span>}
               {judging ? 'Judging' : 'Submit'}
             </button>
@@ -338,35 +341,35 @@ export default function CodingPracticePage() {
         </div>
 
         {/* Workspace Layout */}
-        <div className="flex-1 flex flex-col md:flex-row overflow-hidden gap-4 pb-4">
+        <div className="flex-1 flex flex-col md:flex-row overflow-hidden gap-4 pb-2">
           
           {/* Left Pane: Problem Description */}
-          <section className="flex-1 bg-surface-container-lowest rounded-lg border border-outline-variant/30 flex flex-col overflow-hidden min-w-[300px]">
-            <div className="px-md py-sm border-b border-outline-variant/30 bg-surface flex justify-between items-center">
-              <h2 className="font-label-md text-label-md text-on-surface">Description</h2>
-              <div className="flex gap-xs">
-                <span className={`px-sm py-xs rounded-full font-label-sm text-label-sm ${DIFF_COLORS[problem.difficulty]}`}>{problem.difficulty}</span>
-              </div>
+          <section className="w-1/4 min-w-[300px] flex flex-col bg-surface rounded-lg border border-border-base shadow-[0_2px_4px_rgba(0,0,0,0.02)] overflow-hidden flex-shrink-0 transition-all duration-200">
+            <div className="h-10 border-b border-border-base flex justify-between items-center px-4 bg-surface-bright shrink-0">
+              <span className="font-label-md text-label-md font-bold flex items-center gap-2 text-text-primary">
+                <span className="material-symbols-outlined text-[18px]">description</span> Description
+              </span>
+              <span className={`px-2 py-0.5 rounded-full font-label-sm text-[10px] ${DIFF_COLORS[problem.difficulty]}`}>{problem.difficulty}</span>
             </div>
-            <div className="flex-1 overflow-y-auto p-md font-body-sm text-body-sm text-on-surface-variant" style={{ scrollbarWidth: 'thin' }}>
-              <h3 className="font-headline-md text-headline-md text-on-surface mb-md">{problem.title}</h3>
-              <p className="mb-md leading-relaxed whitespace-pre-line text-pretty">{problem.description}</p>
+            <div className="flex-1 overflow-y-auto p-4 font-body-sm text-body-sm text-text-secondary custom-scrollbar">
+              <h3 className="font-headline-md text-headline-md text-text-primary mb-4">{problem.title}</h3>
+              <p className="mb-4 leading-relaxed whitespace-pre-line text-pretty">{problem.description}</p>
               
               {problem.examples.map((ex, i) => (
-                <div key={i} className="mb-md">
-                  <h4 className="font-label-sm text-label-sm text-on-surface mb-2">Example {i + 1}:</h4>
-                  <div className="bg-surface-container p-sm rounded border border-outline-variant/30 font-label-sm text-label-sm text-on-surface">
-                    <p><strong className="text-on-surface-variant">Input:</strong> {ex.input}</p>
-                    <p><strong className="text-on-surface-variant">Output:</strong> {ex.output}</p>
-                    {ex.explanation && <p className="text-on-surface-variant mt-1 text-[11px]">Explanation: {ex.explanation}</p>}
+                <div key={i} className="mb-4">
+                  <h4 className="font-label-md text-label-md font-bold text-text-primary mb-2">Example {i + 1}:</h4>
+                  <div className="bg-surface-bright border border-border-base rounded-md p-3 font-label-sm text-label-sm text-text-primary shadow-inner">
+                    <p><strong className="text-text-secondary">Input:</strong> {ex.input}</p>
+                    <p><strong className="text-text-secondary">Output:</strong> {ex.output}</p>
+                    {ex.explanation && <p className="text-text-secondary mt-1 text-[11px]">Explanation: {ex.explanation}</p>}
                   </div>
                 </div>
               ))}
               
               {problem.constraints.length > 0 && (
-                <div className="mb-lg">
-                  <h4 className="font-label-sm text-label-sm text-on-surface mb-2">Constraints:</h4>
-                  <ul className="list-disc list-inside font-label-sm text-[11px] text-on-surface-variant space-y-1 ml-1">
+                <div className="mb-4 border-t border-border-base pt-4">
+                  <h4 className="font-label-md text-label-md font-bold text-text-primary mb-2">Constraints:</h4>
+                  <ul className="list-disc pl-5 font-label-sm text-label-sm text-text-secondary space-y-1 ml-1">
                     {problem.constraints.map((c, i) => <li key={i}><code>{c}</code></li>)}
                   </ul>
                 </div>
@@ -375,14 +378,20 @@ export default function CodingPracticePage() {
           </section>
 
           {/* Middle Pane: Code Editor */}
-          <section className="flex-[1.5] bg-[#1e1e1e] rounded-lg border border-outline-variant/30 flex flex-col overflow-hidden min-w-[300px]">
-            <div className="px-md py-sm border-b border-[#333] bg-[#2d2d2d] flex items-center">
-              <span className="material-symbols-outlined text-[16px] text-tertiary mr-sm">code</span>
-              <h2 className="font-label-sm text-label-sm text-on-surface">solution.{language === 'python' ? 'py' : language === 'javascript' ? 'js' : language === 'java' ? 'java' : language === 'cpp' ? 'cpp' : 'c'}</h2>
+          <section className="flex-[1.5] bg-[#1e1e1e] rounded-lg border border-border-base flex flex-col overflow-hidden min-w-[300px] shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+            <div className="h-10 border-b border-[#333] bg-[#252526] flex items-center px-4 shrink-0">
+              <span className="font-label-sm text-label-sm text-[#cccccc] flex items-center gap-2">
+                <span className="material-symbols-outlined text-[16px] text-[#569cd6]">code</span>
+                solution.{language === 'python' ? 'py' : language === 'javascript' ? 'js' : language === 'java' ? 'java' : language === 'cpp' ? 'cpp' : 'c'}
+              </span>
             </div>
-            <div className="flex-1 overflow-auto flex relative">
+            <div className="flex-1 overflow-auto flex relative code-editor-bg">
+              {/* Line Numbers Fake */}
+              <div className="w-12 bg-[#1e1e1e] border-r border-[#333] text-[#858585] font-label-sm text-label-sm text-right pr-3 pt-4 flex flex-col select-none shrink-0 overflow-hidden" aria-hidden="true">
+                 {Array.from({length: 40}).map((_, i) => <span key={i} className="h-[21px]">{i + 1}</span>)}
+              </div>
               <textarea
-                className="w-full h-full p-4 bg-transparent text-[#d4d4d4] font-label-sm text-label-sm resize-none outline-none leading-relaxed"
+                className="w-full h-full p-4 pt-4 bg-transparent text-[#d4d4d4] font-label-sm text-label-sm resize-none outline-none leading-[21px]"
                 value={code}
                 onChange={e => setCode(e.target.value)}
                 spellCheck={false}
@@ -392,22 +401,24 @@ export default function CodingPracticePage() {
           </section>
 
           {/* Right Pane: Console/Output */}
-          <section className="flex-1 bg-surface-container-lowest rounded-lg border border-outline-variant/30 flex flex-col overflow-hidden min-w-[300px]">
-            <div className="px-md py-xs border-b border-outline-variant/30 bg-surface flex gap-md shrink-0">
+          <section className="w-1/4 min-w-[300px] flex flex-col glass-panel rounded-lg overflow-hidden flex-shrink-0 relative border border-border-base shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]">
+            <div className="absolute inset-0 bg-gradient-to-br from-tertiary-fixed/10 to-primary-fixed/20 z-0 pointer-events-none"></div>
+            
+            <div className="h-10 border-b border-border-base flex px-2 gap-1 bg-white/40 backdrop-blur-md shrink-0 relative z-10">
               <button 
                 onClick={() => setActiveTab('output')}
-                className={`font-label-md text-label-md pb-1 border-b-2 transition-colors ${activeTab === 'output' ? 'text-primary border-primary' : 'text-on-surface-variant border-transparent'}`}
+                className={`font-label-sm text-label-sm pb-1 px-4 mt-1 border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'output' ? 'text-primary border-primary font-bold' : 'text-text-secondary border-transparent hover:text-text-primary'}`}
               >
-                Output
+                <span className="material-symbols-outlined text-[16px]">terminal</span> Output
               </button>
               <button 
                 onClick={() => setActiveTab('input')}
-                className={`font-label-md text-label-md pb-1 border-b-2 transition-colors ${activeTab === 'input' ? 'text-primary border-primary' : 'text-on-surface-variant border-transparent'}`}
+                className={`font-label-sm text-label-sm pb-1 px-4 mt-1 border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'input' ? 'text-primary border-primary font-bold' : 'text-text-secondary border-transparent hover:text-text-primary'}`}
               >
-                Custom Input
+                <span className="material-symbols-outlined text-[16px]">keyboard</span> Custom Input
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-md font-label-sm text-label-sm" style={{ scrollbarWidth: 'thin' }}>
+            <div className="flex-1 overflow-y-auto p-4 font-label-sm text-label-sm relative z-10 custom-scrollbar">
               
               {activeTab === 'input' && (
                 <div className="space-y-4">
@@ -417,9 +428,9 @@ export default function CodingPracticePage() {
                       id="customInputCheck"
                       checked={useCustomInput}
                       onChange={e => setUseCustomInput(e.target.checked)}
-                      className="rounded border-outline-variant/60 text-primary focus:ring-primary h-4 w-4"
+                      className="rounded border-border-base text-primary focus:ring-primary h-4 w-4 shadow-sm"
                     />
-                    <label htmlFor="customInputCheck" className="text-on-surface-variant font-label-sm cursor-pointer select-none">
+                    <label htmlFor="customInputCheck" className="text-text-secondary font-label-sm cursor-pointer select-none">
                       Use Custom Input
                     </label>
                   </div>
@@ -428,7 +439,7 @@ export default function CodingPracticePage() {
                       value={customInput}
                       onChange={e => setCustomInput(e.target.value)}
                       placeholder="Type custom stdin here..."
-                      className="w-full h-32 p-3 bg-surface-container border border-outline-variant/30 rounded font-mono text-xs text-on-surface focus:ring-1 focus:ring-primary focus:border-primary outline-none resize-none"
+                      className="w-full h-32 p-3 bg-surface border border-border-base rounded-md font-mono text-xs text-text-primary focus:ring-2 focus:ring-primary-container outline-none resize-none shadow-inner"
                     />
                   )}
                 </div>

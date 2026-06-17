@@ -131,10 +131,10 @@ export default function QuizPage() {
   if (loading) {
     return (
       <AppLayout title="Quizzes">
-        <div className="max-w-[1440px] mx-auto space-y-md">
+        <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg space-y-stack-md">
           <Skeleton className="h-12 w-48 bg-surface-container rounded-lg" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-md">
-             <div className="space-y-sm"><Skeleton className="h-16 w-full bg-surface-container rounded-xl" /><Skeleton className="h-16 w-full bg-surface-container rounded-xl" /></div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+             <div className="space-y-4"><Skeleton className="h-20 w-full bg-surface-container rounded-xl" /><Skeleton className="h-20 w-full bg-surface-container rounded-xl" /></div>
              <Skeleton className="md:col-span-2 h-[400px] w-full bg-surface-container rounded-xl" />
           </div>
         </div>
@@ -145,11 +145,11 @@ export default function QuizPage() {
   if (quizzes.length === 0) {
     return (
       <AppLayout title="Quizzes">
-        <div className="max-w-[1440px] mx-auto flex justify-center items-center h-[calc(100vh-12rem)]">
-          <div className="text-center p-xl bg-surface-container rounded-xl border border-outline-variant/60">
-            <span className="material-symbols-outlined text-[48px] text-outline opacity-40 mb-3">quiz</span>
-            <p className="font-headline-md text-headline-md text-on-surface">No quizzes available</p>
-            <p className="font-body-md text-body-md text-on-surface-variant mt-1">Enroll in a course to unlock its quizzes.</p>
+        <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg flex justify-center items-center min-h-[60vh]">
+          <div className="text-center p-10 glass-panel rounded-xl card-lift">
+            <span className="material-symbols-outlined text-[48px] text-text-secondary opacity-40 mb-3">quiz</span>
+            <p className="font-headline-md text-headline-md text-text-primary">No quizzes available</p>
+            <p className="font-body-md text-body-md text-text-secondary mt-1">Enroll in a course to unlock its quizzes.</p>
           </div>
         </div>
       </AppLayout>
@@ -158,109 +158,144 @@ export default function QuizPage() {
 
   if (started && !showResult) {
     const q = questions[current];
+    const progressPercent = ((current + 1) / questions.length) * 100;
+    
     return (
-      <div className="min-h-screen flex flex-col font-body-md bg-background text-on-background">
+      <div className="min-h-screen flex flex-col bg-background text-text-primary overflow-hidden">
         {/* Active Quiz Header */}
-        <header className="bg-surface/80 backdrop-blur-md border-b border-outline-variant/60 fixed top-0 w-full z-50 flex justify-between items-center px-lg h-16">
-          <div className="flex items-center gap-md">
+        <header className="flex justify-between items-center h-16 px-6 bg-surface/70 backdrop-blur-md shadow-sm z-40 shrink-0 border-b border-border-base">
+          <div className="flex items-center gap-4">
             <button 
               onClick={reset}
-              className="text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center w-8 h-8 rounded-full hover:bg-surface-variant/50"
+              className="text-text-secondary hover:text-primary transition-colors flex items-center justify-center p-2 rounded-full hover:bg-surface-container-low"
               title="Exit Quiz"
             >
-              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0" }}>close</span>
+              <span className="material-symbols-outlined">close</span>
             </button>
-            <span className="font-headline-md text-headline-md font-bold text-on-surface tracking-tight truncate max-w-[200px] md:max-w-none">
-              {selectedQuiz?.title}
-            </span>
+            <div className="h-6 w-px bg-border-base mx-2 hidden md:block"></div>
+            <div className="hidden md:block">
+              <h1 className="font-headline-md text-[18px] font-bold text-primary truncate max-w-[300px] lg:max-w-md">{selectedQuiz?.title}</h1>
+              <p className="font-label-sm text-[12px] text-text-secondary">{selectedQuiz?.courses?.title}</p>
+            </div>
           </div>
-          <div className="flex items-center gap-xl">
-            {/* Progress Stepper */}
-            <div className="hidden md:flex items-center gap-sm">
-              {questions.map((_, i) => (
-                <div 
-                  key={i} 
-                  className={`w-8 h-2 rounded-full ${i <= current ? 'bg-primary shadow-[0_0_8px_rgba(192,193,255,0.4)]' : 'bg-surface-variant'}`}
-                />
-              ))}
-              <span className="font-label-sm text-label-sm text-on-surface-variant ml-sm">{current + 1}/{questions.length}</span>
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2 bg-surface-container-low px-4 py-2 rounded-full border border-primary/20">
+              <span className="material-symbols-outlined text-primary text-[18px]">timer</span>
+              <span className="font-label-md text-label-md text-primary font-bold tracking-wider">Active</span>
             </div>
-            {/* Timer placeholder */}
-            <div className="flex items-center gap-xs font-label-md text-label-md text-primary bg-primary/10 px-md py-sm rounded-full border border-primary/20">
-              <span className="material-symbols-outlined text-[18px]">timer</span>
-              <span className="text-shadow-[0_0_10px_rgba(192,193,255,0.5)]">15:00</span>
-            </div>
+            <button onClick={() => handleFinish(answers)} className="bg-primary text-on-primary px-6 py-2 rounded-lg font-label-md text-label-md hover:bg-primary-container transition-colors shadow-sm hidden md:block">
+                Finish Early
+            </button>
           </div>
         </header>
 
-        <main className="flex-1 flex justify-center items-start pt-[104px] pb-xl px-md md:px-lg overflow-y-auto">
-          <div className="w-full max-w-3xl flex flex-col gap-xl">
-            {q && (
-              <>
-                <section className="flex flex-col gap-md">
-                  <div className="flex justify-between items-start gap-md">
-                    <h1 className="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface whitespace-pre-wrap leading-tight">
-                      {q.question}
-                    </h1>
-                    <button className="shrink-0 flex items-center gap-xs font-label-sm text-label-sm text-secondary bg-secondary/10 hover:bg-secondary/20 border border-secondary/30 px-md py-sm rounded-full transition-colors">
-                      <span className="material-symbols-outlined text-[16px]">psychology</span> AI Hint
-                    </button>
+        {/* Progress Bar */}
+        <div className="w-full h-2 bg-surface-container-lowest border-b border-border-base shrink-0 relative">
+          <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-tertiary-container transition-all duration-500 rounded-r-full" style={{ width: `${progressPercent}%` }}></div>
+        </div>
+
+        <div className="flex flex-1 overflow-hidden">
+          <main className="flex-1 overflow-y-auto p-6 md:p-10 flex justify-center pb-32 relative">
+            <div className="w-full max-w-[800px] flex flex-col gap-8">
+              {q && (
+                <>
+                  {/* Question Header */}
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-start gap-4">
+                      <span className="flex items-center justify-center w-10 h-10 rounded-full bg-primary-fixed text-primary font-headline-md text-headline-md shrink-0 border border-primary/20 shadow-sm">{current + 1}</span>
+                      <h2 className="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-text-primary mt-1 whitespace-pre-wrap">
+                        {q.question}
+                      </h2>
+                    </div>
                   </div>
-                </section>
 
-                <section className="flex flex-col gap-sm mt-md">
-                  {q.options.map((option, i) => (
-                    <label 
-                      key={i} 
-                      className={`group relative flex items-center p-md rounded-lg border transition-all cursor-pointer ${selectedOpt === i ? 'bg-primary/5 border-primary shadow-[0_0_15px_rgba(192,193,255,0.05)]' : 'bg-surface-container-low border-outline-variant/60 hover:border-primary/50 hover:bg-surface-container'}`}
-                    >
-                      <input 
-                        type="radio" 
-                        name="answer" 
-                        className="sr-only peer" 
-                        checked={selectedOpt === i}
-                        onChange={() => setSelectedOpt(i)}
-                      />
-                      <div className={`flex items-center justify-center w-6 h-6 rounded border mr-md transition-colors ${selectedOpt === i ? 'bg-primary border-primary' : 'border-outline-variant'}`}>
-                        <span className={`material-symbols-outlined text-[16px] ${selectedOpt === i ? 'text-on-primary' : 'opacity-0'}`}>check</span>
-                      </div>
-                      <div className={`flex-1 font-body-md text-body-md transition-colors ${selectedOpt === i ? 'text-on-surface' : 'text-on-surface-variant group-hover:text-on-surface'}`}>
-                        {option}
-                      </div>
-                      <div className={`font-label-sm text-label-sm px-sm py-xs border rounded ml-md ${selectedOpt === i ? 'text-primary border-primary/50 bg-primary/10' : 'text-outline border-outline/30 bg-surface-container-lowest'}`}>
-                        {String.fromCharCode(65 + i)}
-                      </div>
-                    </label>
-                  ))}
-                </section>
+                  {/* Options Grid */}
+                  <div className="flex flex-col gap-4 mt-2">
+                    {q.options.map((option, i) => (
+                      <label 
+                        key={i} 
+                        className={`group relative flex items-center p-5 rounded-xl border cursor-pointer transition-all duration-200 card-lift ${selectedOpt === i ? 'bg-surface border-primary shadow-[0_0_15px_rgba(37,99,235,0.1)]' : 'bg-surface border-border-base hover:bg-surface-container-lowest'}`}
+                      >
+                        <input 
+                          type="radio" 
+                          name="answer" 
+                          className="peer sr-only" 
+                          checked={selectedOpt === i}
+                          onChange={() => setSelectedOpt(i)}
+                        />
+                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mr-4 transition-colors shrink-0 ${selectedOpt === i ? 'border-primary bg-primary' : 'border-outline-variant group-hover:border-primary/50'}`}>
+                          <span className={`material-symbols-outlined text-[16px] text-white transition-opacity ${selectedOpt === i ? 'opacity-100' : 'opacity-0'}`} style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
+                        </div>
+                        <span className="font-body-lg text-body-lg text-text-primary flex-1">{option}</span>
+                        <div className={`absolute inset-0 rounded-xl border-2 pointer-events-none transition-colors ${selectedOpt === i ? 'border-primary' : 'border-transparent'}`}></div>
+                        <div className={`absolute inset-0 rounded-xl bg-primary-fixed/10 pointer-events-none transition-opacity ${selectedOpt === i ? 'opacity-100' : 'opacity-0'}`}></div>
+                      </label>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </main>
+          
+          {/* Right Sidebar (Questions Navigator) */}
+          <aside className="w-80 bg-surface border-l border-border-base flex flex-col shrink-0 z-10 hidden lg:flex shadow-[-4px_0_15px_rgba(0,0,0,0.02)]">
+            <div className="p-6 border-b border-border-base bg-surface-bright/50">
+              <h3 className="font-headline-md text-[18px] font-bold text-text-primary">Questions overview</h3>
+              <p className="font-body-sm text-[13px] text-text-secondary mt-1">{answers.filter(a => a !== undefined && a !== null).length} of {questions.length} answered</p>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+              <div className="grid grid-cols-4 gap-3">
+                {questions.map((_, i) => {
+                  const isAnswered = answers[i] !== undefined && answers[i] !== null;
+                  const isActive = current === i;
+                  
+                  let btnClass = "aspect-square rounded-lg flex items-center justify-center font-label-md text-label-md font-bold transition-colors relative ";
+                  if (isActive) {
+                    btnClass += "bg-surface border-2 border-primary text-primary shadow-[0_0_12px_rgba(37,99,235,0.2)]";
+                  } else if (isAnswered) {
+                    btnClass += "bg-primary text-white hover:bg-primary-container border border-primary";
+                  } else {
+                    btnClass += "bg-surface border border-border-base text-text-secondary hover:border-outline-variant hover:bg-surface-container-lowest";
+                  }
 
-                <div className="flex justify-between items-center mt-xl pt-md border-t border-outline-variant/30">
-                  <button 
-                    onClick={() => { setCurrent(current - 1); setSelectedOpt(answers[current - 1] ?? null); }}
-                    disabled={current === 0 || submitting}
-                    className="font-label-md text-label-md text-on-surface-variant hover:text-on-surface px-xl py-sm transition-colors disabled:opacity-30"
-                  >
-                    Previous
-                  </button>
-                  <button 
-                    onClick={handleNext}
-                    disabled={selectedOpt === null || submitting}
-                    className="font-label-md text-label-md bg-primary text-on-primary-container px-2xl py-md rounded-lg hover:brightness-110 transition-all shadow-[0_0_15px_rgba(192,193,255,0.2)] flex items-center gap-sm disabled:opacity-50"
-                  >
-                    {submitting ? (
-                      <><span className="material-symbols-outlined text-[18px] animate-spin">autorenew</span> Saving...</>
-                    ) : (
-                      <>
-                        {current === questions.length - 1 ? 'Submit Answers' : 'Next Question'}
-                        <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </>
-            )}
+                  return (
+                    <button key={i} onClick={() => { setCurrent(i); setSelectedOpt(answers[i] ?? null); }} className={btnClass}>
+                      {i + 1}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        {/* Bottom Navigation Bar */}
+        <div className="fixed bottom-0 left-0 right-0 lg:right-80 bg-surface/90 backdrop-blur-md border-t border-border-base p-4 z-20 shadow-[0_-4px_6px_-1px_rgb(0,0,0,0.05)]">
+          <div className="max-w-[800px] mx-auto flex justify-between items-center px-4">
+            <button 
+              onClick={() => { setCurrent(current - 1); setSelectedOpt(answers[current - 1] ?? null); }}
+              disabled={current === 0 || submitting}
+              className="flex items-center gap-2 px-6 py-3 rounded-lg border border-border-base bg-surface text-text-secondary font-label-md text-label-md hover:bg-surface-container-lowest hover:text-text-primary transition-colors disabled:opacity-30 shadow-sm"
+            >
+              <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+              Previous
+            </button>
+            <button 
+              onClick={handleNext}
+              disabled={selectedOpt === null || submitting}
+              className="flex items-center gap-2 px-8 py-3 rounded-lg bg-primary text-on-primary font-label-md text-label-md font-bold hover:bg-primary-container transition-colors shadow-md disabled:opacity-50"
+            >
+              {submitting ? (
+                <><span className="material-symbols-outlined text-[18px] animate-spin">autorenew</span> Saving...</>
+              ) : (
+                <>
+                  {current === questions.length - 1 ? 'Submit Assessment' : 'Next Question'}
+                  <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                </>
+              )}
+            </button>
           </div>
-        </main>
+        </div>
       </div>
     );
   }
@@ -271,49 +306,75 @@ export default function QuizPage() {
     const correct = questions.filter((q, i) => answers[i] === q.answer_index).length;
     return (
       <AppLayout title="Quiz Results">
-        <div className="max-w-[1440px] mx-auto space-y-xl">
-          <div className="flex items-center gap-2 mb-md">
+        <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg space-y-stack-xl relative z-10">
+          <div className="flex items-center gap-2 mb-6">
             <button 
               onClick={reset}
-              className="flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md bg-surface-container px-3 py-1.5 rounded-lg border border-outline-variant/60"
+              className="flex items-center gap-1 text-text-secondary hover:text-primary transition-colors font-label-md text-label-md bg-surface px-4 py-2 rounded-lg border border-border-base shadow-sm card-lift"
             >
               <span className="material-symbols-outlined text-[18px]">arrow_back</span> Back to Quizzes
             </button>
           </div>
           
-          <div className="bg-surface-container-low border border-outline-variant/60 rounded-xl p-xl max-w-3xl mx-auto text-center shadow-[0_0_20px_rgba(0,0,0,0.2)]">
-            <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-md border-2 ${passed ? 'bg-primary/10 border-primary text-primary' : 'bg-error/10 border-error text-error'}`}>
+          <div className="glass-panel rounded-2xl p-8 md:p-12 max-w-3xl mx-auto text-center relative overflow-hidden card-lift">
+            <div className={`absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none ${passed ? 'bg-primary/10' : 'bg-error/10'}`}></div>
+            
+            <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 border-4 relative z-10 ${passed ? 'bg-surface-bright border-primary text-primary shadow-[0_0_30px_rgba(37,99,235,0.2)]' : 'bg-surface-bright border-error text-error shadow-[0_0_30px_rgba(239,68,68,0.2)]'}`}>
               <span className="material-symbols-outlined text-[48px]">{passed ? 'emoji_events' : 'sentiment_dissatisfied'}</span>
             </div>
-            <h3 className="font-display text-display text-on-surface mb-2">{passed ? 'Congratulations!' : 'Keep Practising!'}</h3>
-            <p className="font-body-md text-body-md text-on-surface-variant mb-xl">{passed ? 'You passed the quiz!' : "You didn't reach the passing score. Review your answers and try again."}</p>
             
-            <div className="text-[64px] font-bold leading-none mb-2" style={{ color: passed ? 'var(--primary)' : 'var(--error)', textShadow: passed ? '0 0 20px rgba(192,193,255,0.3)' : 'none' }}>
-              {score}%
+            <h3 className="font-display-lg text-display-lg text-text-primary mb-2 relative z-10">{passed ? 'Congratulations!' : 'Keep Practising!'}</h3>
+            <p className="font-body-lg text-body-lg text-text-secondary mb-8 relative z-10 max-w-lg mx-auto">{passed ? 'You passed the assessment with flying colors!' : "You didn't reach the passing score. Review your answers and try again."}</p>
+            
+            <div className="bg-surface rounded-xl border border-border-base p-6 mb-8 inline-block min-w-[200px] shadow-sm relative z-10">
+              <div className="text-[64px] font-bold leading-none mb-1 font-headline-md tracking-tight" style={{ color: passed ? 'var(--primary)' : 'var(--error)' }}>
+                {score}%
+              </div>
+              <p className="font-label-md text-[14px] text-text-secondary">{correct} of {questions.length} correct</p>
             </div>
-            <p className="font-label-md text-label-md text-outline mb-xl">{correct} of {questions.length} correct</p>
             
-            <div className="w-full h-3 bg-surface-container-highest rounded-full overflow-hidden mb-xl border border-outline-variant/40">
-              <div className={`h-full rounded-full ${passed ? 'bg-primary shadow-[0_0_10px_var(--primary)]' : 'bg-error'}`} style={{ width: `${score}%` }}></div>
+            <div className="w-full h-3 bg-surface-container rounded-full overflow-hidden mb-10 border border-border-base relative z-10 shadow-inner">
+              <div className={`h-full rounded-full transition-all duration-1000 ${passed ? 'bg-primary shadow-[0_0_10px_rgba(37,99,235,0.5)]' : 'bg-error'}`} style={{ width: `${score}%` }}></div>
             </div>
 
-            <div className="space-y-md text-left mb-xl">
-              <h4 className="font-headline-sm text-headline-sm text-on-surface border-b border-outline-variant/40 pb-2">Question Review</h4>
+            <div className="space-y-4 text-left mb-10 relative z-10">
+              <h4 className="font-headline-md text-[20px] font-bold text-text-primary pb-3 border-b border-border-base">Detailed Review</h4>
               {questions.map((q, i) => {
                 const isCorrect = answers[i] === q.answer_index;
                 return (
-                  <div key={i} className={`flex items-start gap-md p-md rounded-lg border ${isCorrect ? 'bg-primary/5 border-primary/30' : 'bg-error/5 border-error/30'}`}>
-                    <span className={`material-symbols-outlined text-[20px] mt-0.5 ${isCorrect ? 'text-primary' : 'text-error'}`}>
+                  <div key={i} className={`flex items-start gap-4 p-5 rounded-xl border transition-all ${isCorrect ? 'bg-surface border-primary/30 shadow-sm' : 'bg-error/5 border-error/20'}`}>
+                    <span className={`material-symbols-outlined text-[24px] mt-0.5 ${isCorrect ? 'text-success' : 'text-error'}`} style={{ fontVariationSettings: "'FILL' 1" }}>
                       {isCorrect ? 'check_circle' : 'cancel'}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="font-body-md text-body-md text-on-surface">{q.question}</p>
-                      {!isCorrect && (
-                        <div className="mt-2 p-2 bg-surface rounded border border-outline-variant/40">
-                          <p className="font-label-sm text-label-sm text-outline mb-1 uppercase tracking-wider">Correct Answer</p>
-                          <p className="font-body-sm text-body-sm text-primary">{q.options[q.answer_index]}</p>
-                        </div>
-                      )}
+                      <p className="font-body-md text-body-md text-text-primary font-medium mb-3">{q.question}</p>
+                      
+                      <div className="space-y-2">
+                        {q.options.map((opt, optIdx) => {
+                          const isUserSelected = answers[i] === optIdx;
+                          const isActuallyCorrect = q.answer_index === optIdx;
+                          let bgClass = "bg-surface border-border-base";
+                          let textClass = "text-text-secondary";
+                          let icon = null;
+
+                          if (isActuallyCorrect) {
+                            bgClass = "bg-success/10 border-success/30";
+                            textClass = "text-success font-medium";
+                            icon = <span className="material-symbols-outlined text-[16px] text-success ml-auto">check</span>;
+                          } else if (isUserSelected && !isActuallyCorrect) {
+                            bgClass = "bg-error/10 border-error/30";
+                            textClass = "text-error";
+                            icon = <span className="material-symbols-outlined text-[16px] text-error ml-auto">close</span>;
+                          }
+
+                          return (
+                            <div key={optIdx} className={`px-4 py-2 rounded-lg border text-[14px] flex items-center ${bgClass} ${textClass}`}>
+                              {String.fromCharCode(65 + optIdx)}. {opt}
+                              {icon}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 );
@@ -322,7 +383,7 @@ export default function QuizPage() {
 
             <button 
               onClick={() => { setAnswers(Array(questions.length).fill(null)); setStarted(true); setShowResult(false); setCurrent(0); }} 
-              className="bg-surface text-on-surface border border-outline-variant hover:bg-surface-variant font-label-md text-label-md px-xl py-md rounded-lg transition-colors flex items-center justify-center gap-2 mx-auto w-full sm:w-auto"
+              className="bg-primary text-on-primary hover:bg-primary-container font-label-md text-label-md px-8 py-3 rounded-lg shadow-md transition-colors flex items-center justify-center gap-2 mx-auto relative z-10"
             >
               <span className="material-symbols-outlined text-[20px]">refresh</span> Try Again
             </button>
@@ -335,90 +396,99 @@ export default function QuizPage() {
   // Pre-quiz / Listing state
   return (
     <AppLayout title="Quizzes">
-      <div className="max-w-[1440px] mx-auto space-y-xl">
-        <div>
-          <h1 className="font-display text-display text-on-surface mb-xs">Module Quizzes</h1>
-          <p className="font-body-md text-body-md text-on-surface-variant">Test your knowledge on course modules.</p>
+      <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg space-y-stack-xl relative z-10">
+        <div className="text-center md:text-left mb-8">
+          <h1 className="font-display-lg-mobile md:font-display-lg text-text-primary mb-2">Module Assessments</h1>
+          <p className="font-body-lg text-text-secondary max-w-2xl">Evaluate your understanding of the course materials and earn certifications.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-xl items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           {/* Quiz list */}
-          <div className="space-y-sm flex flex-col gap-2">
-            <h4 className="font-label-md text-label-md text-outline uppercase tracking-wider px-2">Available Quizzes</h4>
+          <div className="space-y-3 flex flex-col">
+            <h4 className="font-label-md text-[13px] text-text-secondary uppercase tracking-widest px-2 mb-2 font-bold">Available Assessments</h4>
             {quizzes.map(quiz => (
               <button
                 key={quiz.id}
                 onClick={() => setSelectedQuiz(quiz)}
-                className={`w-full text-left p-md rounded-xl border transition-all ${selectedQuiz?.id === quiz.id ? 'border-primary bg-primary/10 shadow-[0_0_10px_rgba(192,193,255,0.1)]' : 'border-outline-variant/60 bg-surface-container-low hover:border-primary/40'}`}
+                className={`w-full text-left p-5 rounded-xl border transition-all duration-200 glass-panel card-lift ${selectedQuiz?.id === quiz.id ? 'border-primary ring-1 ring-primary/20 shadow-md scale-[1.02]' : 'border-border-base hover:border-primary/40'}`}
               >
-                <div className="flex justify-between items-start mb-1">
-                  <p className="font-headline-sm text-headline-sm text-on-surface text-balance pr-2">{quiz.title}</p>
-                  <span className="material-symbols-outlined text-outline text-[18px]">chevron_right</span>
+                <div className="flex justify-between items-start mb-2">
+                  <p className={`font-headline-md text-[16px] font-bold pr-2 ${selectedQuiz?.id === quiz.id ? 'text-primary' : 'text-text-primary'}`}>{quiz.title}</p>
+                  <span className={`material-symbols-outlined text-[20px] ${selectedQuiz?.id === quiz.id ? 'text-primary' : 'text-text-secondary'}`}>chevron_right</span>
                 </div>
-                <p className="font-body-sm text-body-sm text-on-surface-variant">{quiz.courses?.title}</p>
+                <p className="font-body-sm text-[13px] text-text-secondary flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[14px]">book</span> {quiz.courses?.title}
+                </p>
               </button>
             ))}
           </div>
 
           {/* Quiz detail */}
-          <div className="md:col-span-2">
+          <div className="lg:col-span-2">
             {selectedQuiz && (
-              <div className="bg-surface-container border border-outline-variant/60 rounded-xl p-xl shadow-lg relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
+              <div className="glass-panel border border-border-base rounded-2xl p-8 md:p-10 shadow-lg relative overflow-hidden card-lift">
+                <div className="absolute top-0 right-0 w-80 h-80 bg-primary-container/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
                 
                 {loadingQuestions ? (
-                  <div className="space-y-md">
-                    <Skeleton className="h-12 w-3/4 bg-surface-container-high rounded-lg mx-auto" />
-                    <Skeleton className="h-32 w-full bg-surface-container-high rounded-xl" />
+                  <div className="space-y-6">
+                    <Skeleton className="h-12 w-2/3 bg-surface-container rounded-lg mx-auto" />
+                    <Skeleton className="h-32 w-full bg-surface-container rounded-xl" />
                   </div>
                 ) : (
                   <>
-                    <div className="text-center mb-xl">
-                      <div className="w-20 h-20 rounded-2xl bg-primary/15 border border-primary/30 flex items-center justify-center mx-auto mb-md">
-                        <span className="material-symbols-outlined text-[40px] text-primary">quiz</span>
+                    <div className="text-center mb-10 relative z-10">
+                      <div className="w-20 h-20 rounded-2xl bg-surface border-2 border-primary/20 shadow-sm flex items-center justify-center mx-auto mb-6 relative">
+                        <div className="absolute inset-0 bg-primary/5 rounded-2xl"></div>
+                        <span className="material-symbols-outlined text-[40px] text-primary relative z-10" style={{ fontVariationSettings: "'FILL' 1" }}>quiz</span>
                       </div>
-                      <h3 className="font-headline-lg text-headline-lg text-on-surface text-balance mb-2">{selectedQuiz.title}</h3>
-                      <p className="font-body-md text-body-md text-on-surface-variant">{selectedQuiz.courses?.title}</p>
+                      <h3 className="font-headline-lg text-[28px] font-bold text-text-primary text-balance mb-3">{selectedQuiz.title}</h3>
+                      <p className="font-body-md text-text-secondary inline-flex items-center gap-2 bg-surface-container px-3 py-1 rounded-full text-sm">
+                        <span className="material-symbols-outlined text-[16px]">school</span> {selectedQuiz.courses?.title}
+                      </p>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-md mb-xl">
+                    <div className="grid grid-cols-3 gap-4 mb-10 relative z-10">
                       {[
                         { label: 'Questions', value: questions.length, icon: 'format_list_bulleted' },
                         { label: 'Pass Score', value: `${selectedQuiz.passing_score}%`, icon: 'flag' },
                         { label: 'Best Score', value: pastAttempt ? `${Math.round((pastAttempt.score / pastAttempt.total) * 100)}%` : '—', icon: 'military_tech' },
                       ].map(item => (
-                        <div key={item.label} className="text-center p-md rounded-xl bg-surface-container-low border border-outline-variant/40 flex flex-col items-center">
-                          <span className="material-symbols-outlined text-outline mb-2 text-[20px]">{item.icon}</span>
-                          <div className="font-headline-md text-headline-md text-primary mb-1">{item.value}</div>
-                          <div className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">{item.label}</div>
+                        <div key={item.label} className="text-center p-5 rounded-xl bg-surface border border-border-base flex flex-col items-center shadow-sm hover:-translate-y-1 transition-transform">
+                          <span className="material-symbols-outlined text-primary mb-2 text-[24px]">{item.icon}</span>
+                          <div className="font-headline-md text-[24px] font-bold text-text-primary mb-1">{item.value}</div>
+                          <div className="font-label-sm text-[11px] text-text-secondary uppercase tracking-widest font-bold">{item.label}</div>
                         </div>
                       ))}
                     </div>
 
                     {pastAttempt && (
-                      <div className={`flex items-center gap-3 p-md rounded-xl mb-xl border ${pastAttempt.passed ? 'bg-primary/10 border-primary/40' : 'bg-surface-container-low border-outline-variant/60'}`}>
-                        <span className={`material-symbols-outlined text-[24px] shrink-0 ${pastAttempt.passed ? 'text-primary' : 'text-outline'}`}>
-                          {pastAttempt.passed ? 'verified' : 'info'}
-                        </span>
+                      <div className={`flex items-center gap-4 p-5 rounded-xl mb-10 border relative z-10 shadow-sm ${pastAttempt.passed ? 'bg-success/5 border-success/30' : 'bg-surface border-border-base'}`}>
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${pastAttempt.passed ? 'bg-success text-white' : 'bg-surface-container text-text-secondary'}`}>
+                          <span className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                            {pastAttempt.passed ? 'verified' : 'history'}
+                          </span>
+                        </div>
                         <div>
-                          <p className="font-headline-sm text-headline-sm text-on-surface">
-                            {pastAttempt.passed ? 'Previously Passed' : 'Not Yet Passed'}
+                          <p className={`font-headline-md text-[18px] font-bold ${pastAttempt.passed ? 'text-success' : 'text-text-primary'}`}>
+                            {pastAttempt.passed ? 'Assessment Passed' : 'Assessment Attempted'}
                           </p>
-                          <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
-                            Last attempt score: {Math.round((pastAttempt.score / pastAttempt.total) * 100)}%
+                          <p className="font-body-sm text-[14px] text-text-secondary mt-1">
+                            Your highest score is <strong className="text-text-primary">{Math.round((pastAttempt.score / pastAttempt.total) * 100)}%</strong>
                           </p>
                         </div>
                       </div>
                     )}
 
-                    <button
-                      onClick={() => { setAnswers(Array(questions.length).fill(null)); setStarted(true); }}
-                      disabled={questions.length === 0}
-                      className="w-full bg-primary text-on-primary-container hover:brightness-110 font-label-md text-label-md py-4 rounded-lg transition-all shadow-[0_0_15px_rgba(192,193,255,0.2)] disabled:opacity-50 flex items-center justify-center gap-2"
-                    >
-                      <span className="material-symbols-outlined text-[20px]">{pastAttempt ? 'replay' : 'play_arrow'}</span>
-                      {pastAttempt ? 'Retry Quiz' : 'Start Quiz'}
-                    </button>
+                    <div className="flex justify-center relative z-10">
+                      <button
+                        onClick={() => { setAnswers(Array(questions.length).fill(null)); setStarted(true); }}
+                        disabled={questions.length === 0}
+                        className="w-full sm:w-auto min-w-[250px] bg-primary text-on-primary font-label-md text-[16px] font-bold py-4 px-8 rounded-xl hover:bg-primary-container hover:shadow-lg transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-3 active:scale-95"
+                      >
+                        <span className="material-symbols-outlined text-[24px]">{pastAttempt ? 'replay' : 'play_arrow'}</span>
+                        {pastAttempt ? 'Retake Assessment' : 'Start Assessment'}
+                      </button>
+                    </div>
                   </>
                 )}
               </div>
@@ -429,4 +499,3 @@ export default function QuizPage() {
     </AppLayout>
   );
 }
-

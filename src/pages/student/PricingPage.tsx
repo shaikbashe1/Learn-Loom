@@ -1,8 +1,5 @@
 import { useState } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Check, Zap, Crown, Loader2, Star } from 'lucide-react';
 import { supabase } from '@/db/supabase';
@@ -30,9 +27,9 @@ interface RazorpayOptions {
 }
 
 const PLAN_ICONS: Record<string, React.ReactNode> = {
-  free:  <Star  className="w-5 h-5 text-muted-foreground" />,
-  pro:   <Zap   className="w-5 h-5 text-primary" />,
-  elite: <Crown className="w-5 h-5 text-chart-4" />,
+  free:  <Star  className="w-[20px] h-[20px]" />,
+  pro:   <Zap   className="w-[20px] h-[20px]" />,
+  elite: <Crown className="w-[20px] h-[20px]" />,
 };
 const PLAN_HIGHLIGHT: Record<string, boolean> = { pro: true };
 const PLAN_BADGE: Record<string, string> = { pro: 'Most Popular', elite: 'Best Value' };
@@ -141,143 +138,156 @@ export default function PricingPage() {
 
   return (
     <AppLayout title="Pricing">
-      <div className="max-w-5xl mx-auto space-y-8">
+      <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
 
-        {/* Header */}
-        <div className="text-center space-y-3 px-4">
-          <h2 className="text-3xl font-bold text-foreground text-balance">
-            Invest in Your Career
-          </h2>
-          <p className="text-muted-foreground max-w-xl mx-auto text-pretty">
-            Start free, upgrade when you're ready. All plans include access to AI Mentor,
-            community, and certification. No hidden fees.
+        {/* Hero Section */}
+        <section className="pt-16 pb-16 text-center relative z-0">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-gradient-to-tr from-primary-fixed-dim/20 to-tertiary-fixed-dim/20 blur-3xl -z-10 rounded-full opacity-50 pointer-events-none"></div>
+          
+          <h1 className="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface mb-stack-md max-w-3xl mx-auto tracking-tight">
+            Invest in your <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-tertiary">intellectual velocity.</span>
+          </h1>
+          <p className="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto mb-stack-lg">
+            Choose the plan that fits your learning journey. From foundational concepts to AI-accelerated mastery, LearnLoom adapts to your pace.
           </p>
+
           {activeSub && activeSub.plan_id !== 'free' && (
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-chart-3/10 border border-chart-3/30 text-chart-3 text-sm font-medium">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 border border-success/30 text-success font-label-md text-label-md mb-stack-md">
               <Check className="w-4 h-4" />
               Currently on <strong>{activeSub.plan_id.charAt(0).toUpperCase() + activeSub.plan_id.slice(1)}</strong>
               {activeSub.expires_at && (
-                <span className="text-muted-foreground font-normal">
+                <span className="text-success/80 font-normal">
                   · renews {new Date(activeSub.expires_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                 </span>
               )}
             </div>
           )}
-        </div>
+        </section>
 
-        {/* Plan cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Pricing Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center pb-stack-xl relative z-10">
           {loading
-            ? [1, 2, 3].map(i => <Skeleton key={i} className="h-96 bg-muted rounded-2xl" />)
+            ? [1, 2, 3].map(i => <Skeleton key={i} className="h-[520px] bg-surface-container rounded-2xl" />)
             : plans.map(plan => {
                 const isActive    = plan.id === currentPlanId;
                 const isHighlight = PLAN_HIGHLIGHT[plan.id];
                 const badge       = PLAN_BADGE[plan.id];
                 const isBuying    = purchasing === plan.id;
 
-                return (
-                  <Card key={plan.id}
-                    className={`relative h-full flex flex-col border-2 transition-all ${
-                      isHighlight
-                        ? 'border-primary shadow-lg shadow-primary/10 bg-primary/5'
-                        : 'border-border bg-card'
-                    }`}
-                  >
-                    {badge && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                        <span className={`text-[11px] font-semibold px-3 py-1 rounded-full border ${
-                          plan.id === 'pro'
-                            ? 'bg-primary text-primary-foreground border-primary'
-                            : 'bg-chart-4/90 text-white border-chart-4'
-                        }`}>{badge}</span>
-                      </div>
-                    )}
-
-                    <CardContent className="p-6 flex flex-col h-full gap-5">
-                      {/* Plan header */}
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          {PLAN_ICONS[plan.id]}
-                          <h3 className="font-bold text-lg text-foreground">{plan.name}</h3>
-                          {isActive && (
-                            <Badge variant="secondary" className="ml-auto text-[10px]">Current</Badge>
-                          )}
+                if (isHighlight) {
+                  return (
+                    <div key={plan.id} className="bg-gradient-to-b from-primary to-tertiary rounded-2xl p-8 shadow-xl relative z-20 md:scale-105 h-[560px] flex flex-col transform transition-transform duration-300 hover:-translate-y-2">
+                      {badge && (
+                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-secondary-container text-on-secondary-container font-label-sm text-label-sm px-4 py-1 rounded-full uppercase tracking-wider font-bold shadow-md">
+                          {badge}
                         </div>
-                        <div className="flex items-end gap-1">
-                          <span className="text-3xl font-bold text-foreground">
-                            {plan.price_inr === 0 ? '₹0' : `₹${plan.price_inr / 100}`}
-                          </span>
-                          {plan.price_inr > 0 && (
-                            <span className="text-muted-foreground text-sm mb-1">/month</span>
-                          )}
-                        </div>
-                        {plan.credits_per_month > 0 && (
-                          <p className="text-xs text-primary font-medium">
-                            +{plan.credits_per_month} credits/month
-                          </p>
-                        )}
+                      )}
+                      
+                      <div className="mb-6 flex items-center gap-3">
+                         <span className="text-secondary-container">{PLAN_ICONS[plan.id]}</span>
+                         <div>
+                            <h3 className="font-headline-md text-headline-md text-on-primary mb-1">{plan.name}</h3>
+                            <p className="font-body-sm text-body-sm text-on-primary/80">Everything you need for mastery.</p>
+                         </div>
                       </div>
+                      <div className="mb-8">
+                        <span className="font-display-lg text-display-lg text-on-primary">{plan.price_inr === 0 ? '₹0' : `₹${plan.price_inr / 100}`}</span>
+                        {plan.price_inr > 0 && <span className="font-body-sm text-body-sm text-on-primary/80">/ month</span>}
+                        {plan.credits_per_month > 0 && <p className="font-label-sm text-on-primary mt-1">+{plan.credits_per_month} AI credits/mo</p>}
+                      </div>
+                      
+                      <button 
+                        onClick={() => handleSubscribe(plan.id)}
+                        disabled={isActive || plan.id === 'free' || isBuying}
+                        className="w-full block text-center py-3 rounded-lg bg-surface text-primary font-label-md text-label-md hover:bg-surface-bright transition-colors shadow-sm mb-8 disabled:opacity-80 disabled:pointer-events-none flex justify-center items-center gap-2"
+                      >
+                         {isBuying ? <><Loader2 className="w-4 h-4 animate-spin" />Processing…</> : isActive ? 'Current Plan' : `Upgrade to ${plan.name}`}
+                      </button>
 
-                      {/* Features */}
-                      <ul className="space-y-2.5 flex-1">
+                      <ul className="space-y-4 flex-grow">
                         {plan.features.map((f: string) => (
-                          <li key={f} className="flex items-start gap-2 text-sm text-foreground/80">
-                            <Check className={`w-4 h-4 mt-0.5 shrink-0 ${isHighlight ? 'text-primary' : 'text-chart-3'}`} />
-                            <span className="text-pretty">{f}</span>
+                          <li key={f} className="flex items-start gap-3">
+                            <span className="material-symbols-outlined text-secondary-container text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                            <span className="font-body-sm text-body-sm text-on-primary">{f}</span>
                           </li>
                         ))}
                       </ul>
+                    </div>
+                  );
+                }
 
-                      {/* CTA */}
-                      <Button
-                        onClick={() => handleSubscribe(plan.id)}
-                        disabled={isActive || plan.id === 'free' || isBuying}
-                        className={`w-full mt-auto h-10 font-semibold ${
-                          isHighlight
-                            ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                            : 'border border-border text-foreground hover:bg-accent bg-transparent'
-                        }`}
-                      >
-                        {isBuying ? (
-                          <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processing…</>
-                        ) : isActive ? (
-                          'Current Plan'
-                        ) : plan.id === 'free' ? (
-                          'Always Free'
-                        ) : (
-                          `Upgrade to ${plan.name}`
-                        )}
-                      </Button>
-                    </CardContent>
-                  </Card>
+                // Normal card
+                return (
+                  <div key={plan.id} className="glass-panel border border-border-base rounded-2xl p-8 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1)] h-[520px] flex flex-col relative z-10">
+                    {badge && (
+                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-tertiary text-on-tertiary font-label-sm text-label-sm px-4 py-1 rounded-full uppercase tracking-wider font-bold shadow-sm">
+                        {badge}
+                      </div>
+                    )}
+
+                    <div className="mb-6 flex items-center gap-3">
+                       <span className="text-on-surface-variant">{PLAN_ICONS[plan.id]}</span>
+                       <div>
+                          <h3 className="font-headline-md text-headline-md text-on-surface mb-1">{plan.name}</h3>
+                          <p className="font-body-sm text-body-sm text-on-surface-variant">
+                             {plan.id === 'free' ? 'Perfect to explore the platform.' : 'For dedicated career accelerators.'}
+                          </p>
+                       </div>
+                    </div>
+                    <div className="mb-8">
+                      <span className="font-display-lg text-display-lg text-on-surface">{plan.price_inr === 0 ? '₹0' : `₹${plan.price_inr / 100}`}</span>
+                      {plan.price_inr > 0 ? <span className="font-body-sm text-body-sm text-on-surface-variant">/ month</span> : <span className="font-body-sm text-body-sm text-on-surface-variant">/ forever</span>}
+                      {plan.credits_per_month > 0 && <p className="font-label-sm text-primary mt-1">+{plan.credits_per_month} AI credits/mo</p>}
+                    </div>
+                    
+                    <button 
+                      onClick={() => handleSubscribe(plan.id)}
+                      disabled={isActive || plan.id === 'free' || isBuying}
+                      className={`w-full block text-center py-3 rounded-lg border border-border-base font-label-md text-label-md transition-colors mb-8 flex justify-center items-center gap-2 disabled:opacity-80 disabled:pointer-events-none
+                         ${plan.id === 'free' ? 'text-on-surface hover:bg-surface-container-low' : 'bg-on-surface text-surface hover:bg-on-surface-variant'}`}
+                    >
+                       {isBuying ? <><Loader2 className="w-4 h-4 animate-spin" />Processing…</> : isActive ? 'Current Plan' : plan.id === 'free' ? 'Always Free' : `Upgrade to ${plan.name}`}
+                    </button>
+
+                    <ul className="space-y-4 flex-grow">
+                      {plan.features.map((f: string) => (
+                        <li key={f} className="flex items-start gap-3">
+                          <span className="material-symbols-outlined text-primary text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                          <span className="font-body-sm text-body-sm text-on-surface">{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 );
               })
           }
         </div>
 
         {/* Trust signals */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center pt-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center pt-4 pb-12">
           {[
-            { label: 'Secure Payments', sub: 'Powered by Razorpay' },
-            { label: '30-Day Access', sub: 'Per subscription cycle' },
-            { label: 'Cancel Anytime', sub: 'No lock-in contracts' },
-            { label: 'INR Pricing', sub: 'No forex conversion' },
+            { label: 'Secure Payments', sub: 'Powered by Razorpay', icon: 'shield' },
+            { label: '30-Day Access', sub: 'Per subscription cycle', icon: 'autorenew' },
+            { label: 'Cancel Anytime', sub: 'No lock-in contracts', icon: 'event_busy' },
+            { label: 'INR Pricing', sub: 'No forex conversion', icon: 'currency_rupee' },
           ].map(t => (
-            <div key={t.label} className="p-4 rounded-xl bg-card border border-border">
-              <p className="text-sm font-semibold text-foreground text-balance">{t.label}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{t.sub}</p>
+            <div key={t.label} className="p-6 rounded-xl glass-panel border border-border-base flex flex-col items-center">
+              <span className="material-symbols-outlined text-primary text-[32px] mb-3">{t.icon}</span>
+              <p className="text-sm font-semibold text-on-surface text-balance">{t.label}</p>
+              <p className="text-xs text-on-surface-variant mt-1">{t.sub}</p>
             </div>
           ))}
         </div>
 
         {/* Payment history link */}
         {user && (
-          <div className="text-center pb-4">
-            <a href="/payment-history" className="text-sm text-primary hover:underline">
-              View payment history →
+          <div className="text-center pb-12">
+            <a href="/payment-history" className="font-label-md text-primary hover:text-primary-container transition-colors inline-flex items-center gap-1">
+              View payment history <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
             </a>
           </div>
         )}
+
       </div>
     </AppLayout>
   );

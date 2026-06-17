@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LearnLoom - Reset Password</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "text-primary": "#0F172A",
+                        "text-secondary": "#64748B",
+                        "surface-tint": "#0053db",
+                        "secondary-fixed-dim": "#4cd7f6",
+                        "outline-variant": "#c3c6d7",
+                        "secondary-fixed": "#acedff",
+                        "error-container": "#ffdad6",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "on-secondary-fixed-variant": "#004e5c",
+                        "primary": "#004ac6",
+                        "surface-variant": "#d3e4fe",
+                        "tertiary-fixed": "#e9ddff",
+                        "secondary-container": "#57dffe",
+                        "surface-container": "#e5eeff",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "primary-container": "#2563eb",
+                        "surface-container-high": "#dce9ff",
+                        "on-tertiary-fixed-variant": "#5516be",
+                        "success": "#22C55E",
+                        "on-background": "#0b1c30",
+                        "on-secondary-fixed": "#001f26",
+                        "on-tertiary-container": "#f6edff",
+                        "inverse-primary": "#b4c5ff",
+                        "on-primary": "#ffffff",
+                        "surface-bright": "#f8f9ff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#006172",
+                        "warning": "#F59E0B",
+                        "on-error": "#ffffff",
+                        "tertiary-container": "#7d4ce7",
+                        "inverse-surface": "#213145",
+                        "border-base": "#E2E8F0",
+                        "on-primary-container": "#eeefff",
+                        "on-primary-fixed": "#00174b",
+                        "background": "#F8FAFC",
+                        "secondary": "#00687a",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#434655",
+                        "error": "#EF4444",
+                        "tertiary": "#632ecd",
+                        "surface": "#FFFFFF",
+                        "surface-container-low": "#eff4ff",
+                        "surface-dim": "#cbdbf5",
+                        "on-surface": "#0b1c30",
+                        "primary-fixed": "#dbe1ff",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "outline": "#737686",
+                        "tertiary-fixed-dim": "#d0bcff",
+                        "on-tertiary-fixed": "#23005c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "margin-desktop": "40px",
+                        "stack-lg": "32px",
+                        "margin-mobile": "16px",
+                        "container-max": "1280px",
+                        "stack-md": "16px",
+                        "stack-xl": "64px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Hanken Grotesk"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "display-lg-mobile": ["Hanken Grotesk"],
+                        "label-sm": ["JetBrains Mono"],
+                        "headline-lg-mobile": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "label-md": ["JetBrains Mono"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "body-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "display-lg-mobile": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-bright min-h-screen flex items-center justify-center relative overflow-hidden font-body-md text-text-primary antialiased">
+<!-- Atmospheric Brand Background (Visionary/AI Vibe) -->
+<div class="absolute top-[-10%] right-[-10%] w-[60vw] h-[60vw] md:w-[40vw] md:h-[40vw] bg-secondary-container/20 rounded-full blur-[80px] pointer-events-none"></div>
+<div class="absolute bottom-[-10%] left-[-10%] w-[70vw] h-[70vw] md:w-[50vw] md:h-[50vw] bg-tertiary-fixed/30 rounded-full blur-[100px] pointer-events-none"></div>
+<!-- Main Container (Transactional Layout - Suppressed Nav) -->
+<main class="relative z-10 w-full max-w-md px-margin-mobile py-stack-xl flex flex-col">
+<!-- Glassmorphism Card -->
+<div class="bg-white/80 dark:bg-surface/80 backdrop-blur-xl border border-border-base rounded-xl shadow-[0_4px_6px_-1px_rgb(0,0,0,0.05),0_2px_4px_-2px_rgb(0,0,0,0.05)] p-6 sm:p-8 flex flex-col gap-stack-lg">
+<!-- Header -->
+<div class="flex flex-col gap-stack-sm text-center items-center">
+<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center mb-2 shadow-sm border border-surface-container-high">
+<span class="material-symbols-outlined text-primary text-2xl" style="font-variation-settings: 'FILL' 1;">lock_reset</span>
+</div>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-text-primary">Set new password</h1>
+<p class="font-body-md text-body-md text-text-secondary">Your new password must be different from previously used passwords.</p>
+</div>
+<!-- Form -->
+<form class="flex flex-col gap-stack-md" id="resetForm" onsubmit="event.preventDefault();">
+<!-- Password Input Group -->
+<div class="flex flex-col gap-2 relative">
+<label class="font-label-sm text-label-sm text-text-secondary uppercase" for="new-password">New Password</label>
+<div class="relative">
+<input class="w-full bg-surface border border-border-base rounded-lg py-4 px-4 pr-12 font-body-md text-text-primary focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-all shadow-sm" id="new-password" placeholder="••••••••" type="password"/>
+<button class="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-text-secondary hover:text-text-primary transition-colors focus:outline-none" id="toggle-password" type="button">
+<span class="material-symbols-outlined" id="toggle-icon">visibility</span>
+</button>
+</div>
+</div>
+<!-- Password Strength Meter -->
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-center">
+<span class="font-label-sm text-label-sm text-text-secondary">Security Level</span>
+<span class="font-label-sm text-label-sm text-text-secondary" id="strength-text">Weak</span>
+</div>
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden flex">
+<div class="h-full w-0 bg-error transition-all duration-300 ease-out" id="strength-bar"></div>
+</div>
+</div>
+<!-- Validation Checklist (Notion/Linear Style) -->
+<div class="flex flex-col gap-2 bg-surface-container-lowest border border-border-base rounded-lg p-4 mt-1">
+<ul class="flex flex-col gap-2">
+<li class="flex items-center gap-2 font-body-sm text-body-sm text-text-secondary transition-colors" id="req-length">
+<span class="material-symbols-outlined text-[18px]">radio_button_unchecked</span>
+                            Must be at least 8 characters
+                        </li>
+<li class="flex items-center gap-2 font-body-sm text-body-sm text-text-secondary transition-colors" id="req-number">
+<span class="material-symbols-outlined text-[18px]">radio_button_unchecked</span>
+                            Must contain one number
+                        </li>
+<li class="flex items-center gap-2 font-body-sm text-body-sm text-text-secondary transition-colors" id="req-special">
+<span class="material-symbols-outlined text-[18px]">radio_button_unchecked</span>
+                            Must contain one special character
+                        </li>
+</ul>
+</div>
+<!-- Confirm Password Input Group -->
+<div class="flex flex-col gap-2 relative mt-2">
+<label class="font-label-sm text-label-sm text-text-secondary uppercase" for="confirm-password">Confirm Password</label>
+<input class="w-full bg-surface border border-border-base rounded-lg py-4 px-4 font-body-md text-text-primary focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-all shadow-sm" id="confirm-password" placeholder="••••••••" type="password"/>
+</div>
+<!-- Submit Action -->
+<button class="w-full mt-stack-md bg-primary text-on-primary rounded-lg py-4 font-label-md text-label-md hover:bg-on-primary-fixed-variant transition-colors active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex justify-center items-center gap-2" disabled="" id="submit-btn" type="submit">
+<span>Reset Password</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</form>
+</div>
+<!-- Back to Login -->
+<div class="mt-stack-lg text-center">
+<a class="inline-flex items-center gap-2 font-body-sm text-body-sm text-text-secondary hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[16px]">arrow_back</span>
+                Back to log in
+            </a>
+</div>
+</main>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const newPasswordInput = document.getElementById('new-password');
+            const confirmPasswordInput = document.getElementById('confirm-password');
+            const toggleButton = document.getElementById('toggle-password');
+            const toggleIcon = document.getElementById('toggle-icon');
+            const strengthBar = document.getElementById('strength-bar');
+            const strengthText = document.getElementById('strength-text');
+            const submitBtn = document.getElementById('submit-btn');
+
+            const reqLength = document.getElementById('req-length');
+            const reqNumber = document.getElementById('req-number');
+            const reqSpecial = document.getElementById('req-special');
+
+            // Toggle Password Visibility
+            toggleButton.addEventListener('click', () => {
+                const type = newPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                newPasswordInput.setAttribute('type', type);
+                toggleIcon.textContent = type === 'password' ? 'visibility' : 'visibility_off';
+            });
+
+            // Update Validation UI Function
+            const updateRequirementUI = (element, isValid) => {
+                const icon = element.querySelector('.material-symbols-outlined');
+                if (isValid) {
+                    element.classList.replace('text-text-secondary', 'text-success');
+                    icon.textContent = 'check_circle';
+                    icon.style.fontVariationSettings = "'FILL' 1";
+                } else {
+                    element.classList.replace('text-success', 'text-text-secondary');
+                    icon.textContent = 'radio_button_unchecked';
+                    icon.style.fontVariationSettings = "'FILL' 0";
+                }
+            };
+
+            // Evaluate Password Strength
+            newPasswordInput.addEventListener('input', (e) => {
+                const val = e.target.value;
+                let score = 0;
+
+                // Checks
+                const hasLength = val.length >= 8;
+                const hasNumber = /\d/.test(val);
+                const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(val);
+
+                updateRequirementUI(reqLength, hasLength);
+                updateRequirementUI(reqNumber, hasNumber);
+                updateRequirementUI(reqSpecial, hasSpecial);
+
+                if (hasLength) score += 1;
+                if (hasNumber) score += 1;
+                if (hasSpecial) score += 1;
+                if (val.length > 12) score += 1; // Bonus for length
+
+                // Update Meter UI
+                if (val.length === 0) {
+                    strengthBar.style.width = '0%';
+                    strengthText.textContent = '';
+                } else if (score <= 1) {
+                    strengthBar.style.width = '25%';
+                    strengthBar.className = 'h-full transition-all duration-300 ease-out bg-error';
+                    strengthText.textContent = 'Weak';
+                    strengthText.className = 'font-label-sm text-label-sm text-error';
+                } else if (score === 2) {
+                    strengthBar.style.width = '50%';
+                    strengthBar.className = 'h-full transition-all duration-300 ease-out bg-warning';
+                    strengthText.textContent = 'Fair';
+                    strengthText.className = 'font-label-sm text-label-sm text-warning';
+                } else if (score === 3) {
+                    strengthBar.style.width = '75%';
+                    strengthBar.className = 'h-full transition-all duration-300 ease-out bg-primary';
+                    strengthText.textContent = 'Good';
+                    strengthText.className = 'font-label-sm text-label-sm text-primary';
+                } else {
+                    strengthBar.style.width = '100%';
+                    // Gradient for mastery/strong
+                    strengthBar.className = 'h-full transition-all duration-300 ease-out bg-gradient-to-r from-secondary-container to-tertiary-container';
+                    strengthText.textContent = 'Strong';
+                    strengthText.className = 'font-label-sm text-label-sm text-tertiary-container';
+                }
+
+                validateForm();
+            });
+
+            confirmPasswordInput.addEventListener('input', validateForm);
+
+            function validateForm() {
+                const isMatch = newPasswordInput.value === confirmPasswordInput.value && confirmPasswordInput.value.length > 0;
+                const val = newPasswordInput.value;
+                const isValidPassword = val.length >= 8 && /\d/.test(val) && /[!@#$%^&*(),.?":{}|<>]/.test(val);
+
+                if (isMatch && isValidPassword) {
+                    submitBtn.removeAttribute('disabled');
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                }
+            }
+        });
+    </script>
+</body></html>

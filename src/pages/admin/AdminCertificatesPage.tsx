@@ -1,13 +1,9 @@
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Award, CheckCircle, Download, Search, RefreshCw } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-
+import { WorkspacePremium, ShieldLock, Analytics, Search, RefreshCw, VerifiedUser, Block } from 'lucide-react';
 import { supabase } from '@/db/supabase';
 import { toast } from 'sonner';
 
@@ -55,159 +51,198 @@ export default function AdminCertificatesPage() {
     setCerts(prev => prev.map(c => c.id === id ? { ...c, is_valid: false } : c));
   };
 
+  const verificationRate = certs.length > 0 ? Math.round((certs.filter(c => c.is_valid).length / certs.length) * 100) : 0;
+  const avgScore = certs.length > 0 ? Math.round(certs.reduce((a, c) => a + c.score, 0) / certs.length) : 0;
+
   return (
     <AppLayout title="Certificate Management" isAdmin>
-      <div className="max-w-[1440px] mx-auto w-full space-y-xl pb-xl">
+      <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-xl flex flex-col gap-stack-lg w-full">
+        
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-md mb-2xl">
+        <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h1 className="font-headline-lg text-headline-lg text-on-surface">Certificates Management</h1>
-            <p className="text-on-surface-variant text-body-md mt-1">Track and manage student achievements across all LearnLoom curriculums.</p>
+            <h1 className="font-display-lg-mobile md:font-display-lg text-[32px] md:text-[40px] font-bold text-text-primary tracking-tight">Certificate Management</h1>
+            <p className="font-body-md text-[16px] text-text-secondary mt-2 max-w-2xl">
+              Track, verify, and manage student achievements and credentials across all courses.
+            </p>
           </div>
-          <div className="flex items-center gap-sm">
-            <Button variant="ghost" size="sm" onClick={fetchCerts} className="border border-outline-variant text-on-surface hover:bg-surface-variant h-11 w-11 rounded-xl">
-              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-            </Button>
-            <div className="bg-surface-container-high px-4 py-2 rounded-xl border border-outline-variant flex items-center gap-2 h-11">
-              <span className="text-primary font-bold">{certs.filter(c => c.is_valid).length}</span>
-              <span className="text-label-sm text-outline">Valid Certificates</span>
-            </div>
+          <div className="flex flex-wrap items-center gap-3">
+             <button onClick={fetchCerts} className="flex items-center justify-center w-11 h-11 rounded-xl border border-border-base bg-surface text-text-secondary hover:text-primary hover:border-primary/30 transition-all card-lift shadow-sm">
+               <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+             </button>
+             <div className="flex flex-col justify-center px-5 py-2 bg-surface border border-border-base rounded-xl shadow-sm h-11">
+               <div className="flex items-center gap-2">
+                 <span className="w-2 h-2 rounded-full bg-success"></span>
+                 <span className="text-[12px] font-bold text-text-secondary uppercase tracking-wider">Valid</span>
+                 <span className="text-[14px] font-bold text-text-primary ml-1">{certs.filter(c => c.is_valid).length}</span>
+               </div>
+             </div>
           </div>
-        </div>
+        </section>
 
         {/* Quick Stats Grid */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-md mb-2xl">
-          <div className="glass-panel p-lg rounded-xl flex flex-col justify-center">
-            <p className="text-label-sm text-outline">Total Issued</p>
-            <p className="text-display font-bold mt-2 text-on-surface">{loading ? '—' : certs.length}</p>
-            <div className="flex items-center text-primary text-[10px] mt-2 font-bold uppercase tracking-wider">
-              <span className="material-symbols-outlined text-[14px] mr-1">workspace_premium</span>
-              All Time
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="glass-panel border border-border-base rounded-2xl p-6 shadow-sm card-lift relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-110"></div>
+            <div className="flex justify-between items-start mb-4 relative z-10">
+              <span className="font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-widest">Total Issued</span>
+              <div className="p-2.5 bg-primary/10 rounded-xl text-primary border border-primary/20 shadow-inner">
+                <WorkspacePremium className="w-5 h-5" />
+              </div>
+            </div>
+            <div className="relative z-10">
+              <div className="text-headline-lg text-[36px] font-bold text-text-primary">{loading ? <Skeleton className="h-10 w-20 bg-surface-container" /> : certs.length}</div>
+              <p className="text-[12px] text-text-secondary font-bold mt-2 flex items-center gap-1 uppercase tracking-wider text-primary">All Time</p>
             </div>
           </div>
-          <div className="glass-panel p-lg rounded-xl flex flex-col justify-center">
-            <p className="text-label-sm text-outline">Verification Rate</p>
-            <p className="text-display font-bold mt-2 text-on-surface">
-              {loading || certs.length === 0 ? '—' : `${Math.round((certs.filter(c => c.is_valid).length / certs.length) * 100)}%`}
-            </p>
-            <div className="flex items-center text-success text-[10px] mt-2 font-bold uppercase tracking-wider">
-              <span className="material-symbols-outlined text-[14px] mr-1">shield_lock</span>
-              Valid Certificates
+
+          <div className="glass-panel border border-border-base rounded-2xl p-6 shadow-sm card-lift relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-success/5 rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-110"></div>
+            <div className="flex justify-between items-start mb-4 relative z-10">
+              <span className="font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-widest">Verification Rate</span>
+              <div className="p-2.5 bg-success/10 rounded-xl text-success border border-success/20 shadow-inner">
+                <ShieldLock className="w-5 h-5" />
+              </div>
+            </div>
+            <div className="relative z-10">
+              <div className="text-headline-lg text-[36px] font-bold text-text-primary">{loading ? <Skeleton className="h-10 w-20 bg-surface-container" /> : `${verificationRate}%`}</div>
+              <p className="text-[12px] text-text-secondary font-bold mt-2 flex items-center gap-1 uppercase tracking-wider text-success">Valid Certificates</p>
             </div>
           </div>
-          <div className="glass-panel p-lg rounded-xl flex flex-col justify-center">
-            <p className="text-label-sm text-outline">Avg. Score</p>
-            <p className="text-display font-bold mt-2 text-on-surface">
-              {loading || certs.length === 0 ? '—' : `${Math.round(certs.reduce((a, c) => a + c.score, 0) / certs.length)}%`}
-            </p>
-            <div className="flex items-center text-tertiary text-[10px] mt-2 font-bold uppercase tracking-wider">
-              <span className="material-symbols-outlined text-[14px] mr-1">analytics</span>
-              Overall Performance
+
+          <div className="glass-panel border border-border-base rounded-2xl p-6 shadow-sm card-lift relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-tertiary/5 rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-110"></div>
+            <div className="flex justify-between items-start mb-4 relative z-10">
+              <span className="font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-widest">Avg. Score</span>
+              <div className="p-2.5 bg-tertiary/10 rounded-xl text-tertiary border border-tertiary/20 shadow-inner">
+                <Analytics className="w-5 h-5" />
+              </div>
+            </div>
+            <div className="relative z-10">
+              <div className="text-headline-lg text-[36px] font-bold text-text-primary">{loading ? <Skeleton className="h-10 w-20 bg-surface-container" /> : `${avgScore}%`}</div>
+              <p className="text-[12px] text-text-secondary font-bold mt-2 flex items-center gap-1 uppercase tracking-wider text-tertiary">Overall Performance</p>
             </div>
           </div>
         </section>
 
-        {/* Search & Actions */}
-        <div className="glass-panel p-md rounded-xl flex flex-wrap items-center gap-md mb-xl">
-          <div className="flex-1 min-w-[250px] relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
-            <input 
-              placeholder="Search by student, course, or verification code…" 
-              className="w-full bg-surface-container border border-outline-variant rounded-lg pl-10 pr-4 py-2 text-label-md text-on-surface focus:ring-1 focus:ring-primary outline-none transition-all" 
-              value={search} 
-              onChange={e => setSearch(e.target.value)} 
-            />
+        {/* Certificates Table Area */}
+        <section className="glass-panel rounded-2xl border border-border-base shadow-sm overflow-hidden flex flex-col">
+          
+          {/* Table Filter Bar */}
+          <div className="p-6 md:p-8 border-b border-border-base flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-surface/30">
+            <div className="relative w-full lg:w-96 group">
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary transition-colors text-[20px]">search</span>
+              <input 
+                className="w-full bg-surface-container border border-border-base rounded-full py-2.5 pl-12 pr-4 text-body-sm text-[14px] focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-inner" 
+                placeholder="Search by student, course, or ID..." 
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+            </div>
           </div>
-        </div>
 
-        {/* Certificates Table */}
-        <section className="glass-panel rounded-2xl overflow-hidden mt-xl">
-          <div className="p-6 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-low/50">
-            <h3 className="font-headline-md text-headline-md">Manage Issued Certificates</h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[900px]">
+          {/* Table Content */}
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full text-left border-collapse min-w-[1000px]">
               <thead>
-                <tr className="bg-surface-container-high/50 text-label-sm text-outline uppercase tracking-wider">
-                  <th className="px-6 py-4 font-bold">Recipient</th>
-                  <th className="px-6 py-4 font-bold">Course</th>
-                  <th className="px-6 py-4 font-bold text-center">Score</th>
-                  <th className="px-6 py-4 font-bold">Issue Date</th>
-                  <th className="px-6 py-4 font-bold">Certificate ID</th>
-                  <th className="px-6 py-4 font-bold text-center">Status</th>
-                  <th className="px-6 py-4 font-bold text-right">Actions</th>
+                <tr className="bg-surface-container/50 border-b border-border-base">
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider w-[25%]">Recipient</th>
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Course</th>
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider text-center">Score</th>
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Issue Date</th>
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Certificate ID</th>
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider text-center">Status</th>
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-outline-variant/20">
-                {loading
-                  ? Array.from({ length: 5 }).map((_, i) => (
-                      <tr key={i}><td colSpan={7} className="px-6 py-4"><Skeleton className="h-10 w-full bg-surface-container" /></td></tr>
-                    ))
-                  : filtered.length === 0
-                    ? <tr><td colSpan={7} className="px-6 py-16 text-center text-label-md text-on-surface-variant">No certificates found</td></tr>
-                    : filtered.map(cert => {
-                        const name = cert.profiles?.full_name ?? 'Unknown';
-                        const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
-                        return (
-                          <tr key={cert.id} className="hover:bg-surface-variant/10 transition-colors group">
-                            <td className="px-6 py-4 flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-[12px] font-bold text-primary shrink-0">
-                                {initials}
-                              </div>
-                              <div className="min-w-0">
-                                <p className="font-label-md text-on-surface truncate">{name}</p>
-                                <p className="text-[11px] text-outline truncate">{cert.profiles?.email ?? '—'}</p>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 text-label-md text-on-surface-variant max-w-[200px] truncate" title={cert.courses?.title ?? '—'}>
-                              {cert.courses?.title ?? '—'}
-                            </td>
-                            <td className="px-6 py-4 text-center">
-                              <span className="font-label-md text-primary font-bold">{cert.score}%</span>
-                            </td>
-                            <td className="px-6 py-4 text-label-md text-outline">
-                              {new Date(cert.issued_at).toLocaleDateString()}
-                            </td>
-                            <td className="px-6 py-4 font-mono text-xs text-on-surface">
-                              {cert.verification_code}
-                            </td>
-                            <td className="px-6 py-4 text-center">
-                              {cert.is_valid ? (
-                                <span className="inline-flex items-center gap-1.5 text-success text-[12px] font-bold px-2 py-1 rounded-full bg-success/10 border border-success/20">
-                                  <span className="w-1.5 h-1.5 bg-success rounded-full"></span>
-                                  Verified
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1.5 text-error text-[12px] font-bold px-2 py-1 rounded-full bg-error/10 border border-error/20">
-                                  <span className="w-1.5 h-1.5 bg-error rounded-full"></span>
-                                  Revoked
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-6 py-4 text-right">
-                              <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button 
-                                  onClick={() => toast.info(`Verification code: ${cert.verification_code}`)} 
-                                  className="p-2 border border-outline-variant/60 rounded-lg text-on-surface hover:bg-surface-variant transition-colors"
-                                  title="Verify"
-                                >
-                                  <span className="material-symbols-outlined text-[18px]">verified</span>
-                                </button>
-                                {cert.is_valid && (
-                                  <button 
-                                    onClick={() => handleRevoke(cert.id)} 
-                                    className="p-2 border border-error/30 rounded-lg text-error hover:bg-error/10 transition-colors"
-                                    title="Revoke Certificate"
-                                  >
-                                    <span className="material-symbols-outlined text-[18px]">block</span>
-                                  </button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })
-                }
+              <tbody className="divide-y divide-border-base">
+                {loading ? (
+                  Array.from({ length: 6 }).map((_, i) => (
+                    <tr key={i}><td colSpan={7} className="px-6 py-4"><Skeleton className="h-12 w-full bg-surface-container rounded-lg" /></td></tr>
+                  ))
+                ) : filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-20 text-center">
+                       <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mx-auto mb-4 border border-border-base">
+                         <WorkspacePremium className="w-6 h-6 text-text-secondary" />
+                       </div>
+                       <p className="font-headline-md text-[18px] font-bold text-text-primary">No certificates found</p>
+                    </td>
+                  </tr>
+                ) : (
+                  filtered.map((cert, idx) => {
+                    const name = cert.profiles?.full_name ?? 'Unknown Student';
+                    const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+                    const gradients = [
+                      'from-primary to-secondary',
+                      'from-tertiary-container to-primary',
+                      'from-secondary to-primary-container',
+                    ];
+                    const gradient = gradients[idx % gradients.length];
+                    
+                    return (
+                      <tr key={cert.id} className="hover:bg-surface-container/30 transition-colors group">
+                        <td className="px-6 py-4 flex items-center gap-3">
+                          <Avatar className={`w-10 h-10 shrink-0 shadow-sm border border-border-base bg-gradient-to-br ${gradient}`}>
+                            <AvatarFallback className="bg-transparent text-white text-[13px] font-bold">{initials}</AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0">
+                            <p className="font-body-md text-[15px] font-bold text-text-primary truncate">{name}</p>
+                            <p className="font-label-sm text-[12px] text-text-secondary truncate">{cert.profiles?.email ?? '—'}</p>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="font-body-md text-[14px] font-medium text-text-primary max-w-[200px] truncate block" title={cert.courses?.title ?? '—'}>
+                            {cert.courses?.title ?? '—'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <span className="font-label-md text-[15px] font-bold text-primary">{cert.score}%</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-[14px] font-medium text-text-secondary">{new Date(cert.issued_at).toLocaleDateString()}</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="font-mono text-[13px] font-medium text-text-primary bg-surface/50 px-2.5 py-1 rounded-md border border-border-base">{cert.verification_code}</span>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          {cert.is_valid ? (
+                            <span className="inline-flex items-center gap-1.5 text-success text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-success/10 border border-success/20">
+                              <span className="w-1.5 h-1.5 bg-success rounded-full"></span>
+                              Verified
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 text-error text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-error/10 border border-error/20">
+                              <span className="w-1.5 h-1.5 bg-error rounded-full"></span>
+                              Revoked
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button 
+                              onClick={() => toast.info(`Verification code: ${cert.verification_code}`)} 
+                              className="w-10 h-10 flex items-center justify-center rounded-full text-text-secondary hover:text-primary hover:bg-surface shadow-sm border border-transparent hover:border-border-base transition-all"
+                              title="Verify"
+                            >
+                              <VerifiedUser className="w-5 h-5" />
+                            </button>
+                            {cert.is_valid && (
+                              <button 
+                                onClick={() => handleRevoke(cert.id)} 
+                                className="w-10 h-10 flex items-center justify-center rounded-full text-text-secondary hover:text-error hover:bg-surface shadow-sm border border-transparent hover:border-border-base transition-all"
+                                title="Revoke Certificate"
+                              >
+                                <Block className="w-5 h-5" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LearnLoom - Sign In</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-low": "#eff4ff",
+                      "on-primary": "#ffffff",
+                      "background": "#F8FAFC",
+                      "inverse-primary": "#b4c5ff",
+                      "on-secondary-fixed": "#001f26",
+                      "on-tertiary": "#ffffff",
+                      "on-secondary-container": "#006172",
+                      "on-secondary": "#ffffff",
+                      "on-surface-variant": "#434655",
+                      "secondary": "#00687a",
+                      "secondary-fixed": "#acedff",
+                      "outline-variant": "#c3c6d7",
+                      "border-base": "#E2E8F0",
+                      "warning": "#F59E0B",
+                      "on-primary-fixed": "#00174b",
+                      "on-secondary-fixed-variant": "#004e5c",
+                      "on-tertiary-container": "#f6edff",
+                      "surface-variant": "#d3e4fe",
+                      "surface-tint": "#0053db",
+                      "secondary-container": "#57dffe",
+                      "inverse-on-surface": "#eaf1ff",
+                      "surface-container-lowest": "#ffffff",
+                      "tertiary": "#632ecd",
+                      "secondary-fixed-dim": "#4cd7f6",
+                      "primary-fixed": "#dbe1ff",
+                      "on-surface": "#0b1c30",
+                      "on-error": "#ffffff",
+                      "tertiary-fixed-dim": "#d0bcff",
+                      "error": "#EF4444",
+                      "text-secondary": "#64748B",
+                      "tertiary-container": "#7d4ce7",
+                      "outline": "#737686",
+                      "surface-container-highest": "#d3e4fe",
+                      "inverse-surface": "#213145",
+                      "on-primary-container": "#eeefff",
+                      "on-background": "#0b1c30",
+                      "error-container": "#ffdad6",
+                      "tertiary-fixed": "#e9ddff",
+                      "on-error-container": "#93000a",
+                      "surface-container-high": "#dce9ff",
+                      "text-primary": "#0F172A",
+                      "surface": "#FFFFFF",
+                      "primary-container": "#2563eb",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "surface-dim": "#cbdbf5",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "on-tertiary-fixed": "#23005c",
+                      "surface-bright": "#f8f9ff",
+                      "success": "#22C55E",
+                      "on-tertiary-fixed-variant": "#5516be",
+                      "surface-container": "#e5eeff",
+                      "primary": "#004ac6"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "2xl": "1.5rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "stack-xl": "64px",
+                      "stack-lg": "32px",
+                      "margin-mobile": "16px",
+                      "stack-sm": "8px",
+                      "stack-md": "16px",
+                      "gutter": "24px",
+                      "margin-desktop": "40px",
+                      "container-max": "1280px"
+              },
+              "fontFamily": {
+                      "headline-lg-mobile": [
+                              "Hanken Grotesk"
+                      ],
+                      "display-lg": [
+                              "Hanken Grotesk"
+                      ],
+                      "headline-lg": [
+                              "Hanken Grotesk"
+                      ],
+                      "label-md": [
+                              "JetBrains Mono"
+                      ],
+                      "headline-md": [
+                              "Hanken Grotesk"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "display-lg-mobile": [
+                              "Hanken Grotesk"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "label-sm": [
+                              "JetBrains Mono"
+                      ]
+              },
+              "fontSize": {
+                      "headline-lg-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "56px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "0.02em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "display-lg-mobile": [
+                              "36px",
+                              {
+                                      "lineHeight": "44px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.04em",
+                                      "fontWeight": "500"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        
+        .hero-gradient {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 50%, var(--color-tertiary) 100%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen font-body-md text-body-md flex flex-col md:flex-row antialiased">
+<!-- Top/Left Section: Visuals & Brand -->
+<div class="hero-gradient flex-1 flex flex-col justify-center p-stack-lg relative overflow-hidden min-h-[353px] md:min-h-screen text-on-primary">
+<!-- Abstract Background Element -->
+<div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.8) 0%, transparent 60%);"></div>
+<div class="relative z-10 max-w-md mx-auto md:mx-0 w-full">
+<!-- Brand -->
+<div class="flex items-center gap-2 mb-stack-lg">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">school</span>
+<span class="font-headline-lg text-headline-lg font-bold tracking-tight">LearnLoom</span>
+</div>
+<!-- Headline -->
+<h1 class="font-display-lg-mobile text-display-lg-mobile md:font-display-lg md:text-display-lg font-bold mb-stack-md leading-tight text-white">
+                Master the Future with AI-Powered Learning
+            </h1>
+<!-- Benefits -->
+<ul class="space-y-stack-sm mt-stack-md hidden md:block">
+<li class="flex items-center gap-3 text-white/90">
+<span class="material-symbols-outlined text-secondary-container bg-white/10 p-1 rounded-full text-sm">auto_awesome</span>
+<span class="font-body-lg text-body-lg">Personalized Mentors</span>
+</li>
+<li class="flex items-center gap-3 text-white/90">
+<span class="material-symbols-outlined text-secondary-container bg-white/10 p-1 rounded-full text-sm">explore</span>
+<span class="font-body-lg text-body-lg">Industry-Ready Paths</span>
+</li>
+<li class="flex items-center gap-3 text-white/90">
+<span class="material-symbols-outlined text-secondary-container bg-white/10 p-1 rounded-full text-sm">public</span>
+<span class="font-body-lg text-body-lg">Global Community</span>
+</li>
+</ul>
+</div>
+<!-- Decorative 3D-ish graphic -->
+<div class="absolute bottom-0 right-0 w-64 h-64 bg-white/10 rounded-tl-full blur-2xl pointer-events-none mix-blend-overlay"></div>
+</div>
+<!-- Bottom/Right Section: Form Container -->
+<div class="flex-1 flex items-center justify-center p-margin-mobile md:p-margin-desktop bg-background md:bg-transparent relative -mt-8 md:mt-0 z-20">
+<!-- Glass/Card Panel -->
+<div class="glass-panel w-full max-w-md rounded-2xl p-stack-lg shadow-[0_8px_30px_rgb(0,0,0,0.08)] bg-surface">
+<div class="mb-stack-lg text-center">
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg font-bold text-text-primary">Welcome Back</h2>
+<p class="text-text-secondary mt-2 font-body-sm text-body-sm">Sign in to continue your learning journey.</p>
+</div>
+<!-- Social Login -->
+<div class="space-y-3 mb-stack-md">
+<button class="w-full flex items-center justify-center gap-3 py-3 px-4 border border-border-base rounded-lg hover:bg-surface-container-low transition-colors text-text-primary font-label-md text-label-md font-medium">
+<svg class="w-5 h-5" fill="none" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
+<path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
+<path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path>
+<path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
+</svg>
+                    Continue with Google
+                </button>
+<button class="w-full flex items-center justify-center gap-3 py-3 px-4 border border-border-base rounded-lg hover:bg-surface-container-low transition-colors text-text-primary font-label-md text-label-md font-medium">
+<svg class="w-5 h-5 text-text-primary" fill="currentColor" viewbox="0 0 24 24">
+<path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12c0-5.523-4.477-10-10-10z"></path>
+</svg>
+                    Continue with Apple
+                </button>
+</div>
+<!-- Divider -->
+<div class="relative flex items-center mb-stack-md">
+<div class="flex-grow border-t border-border-base"></div>
+<span class="flex-shrink-0 mx-4 text-text-secondary font-label-sm text-label-sm uppercase tracking-wider">Or continue with email</span>
+<div class="flex-grow border-t border-border-base"></div>
+</div>
+<!-- Form -->
+<form class="space-y-4">
+<div>
+<label class="block font-label-md text-label-md text-text-primary mb-1" for="email">Email</label>
+<input class="w-full px-4 py-3 rounded-lg border border-border-base bg-surface focus:outline-none focus:ring-2 focus:ring-primary-container focus:border-transparent transition-shadow text-body-md" id="email" placeholder="you@example.com" required="" type="email"/>
+</div>
+<div>
+<div class="flex justify-between items-center mb-1">
+<label class="block font-label-md text-label-md text-text-primary" for="password">Password</label>
+<a class="font-label-sm text-label-sm text-primary hover:text-primary-container transition-colors" href="#">Forgot Password?</a>
+</div>
+<input class="w-full px-4 py-3 rounded-lg border border-border-base bg-surface focus:outline-none focus:ring-2 focus:ring-primary-container focus:border-transparent transition-shadow text-body-md" id="password" placeholder="••••••••" required="" type="password"/>
+</div>
+<button class="w-full py-3 px-4 rounded-lg bg-gradient-to-r from-primary to-tertiary text-white font-label-md text-label-md font-semibold hover:opacity-90 transition-opacity mt-2 flex justify-center items-center gap-2 shadow-md" type="submit">
+                    Sign In
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</form>
+<div class="mt-stack-md text-center">
+<p class="font-body-sm text-body-sm text-text-secondary">
+                    Don't have an account? <a class="text-primary font-medium hover:underline" href="#">Create one</a>
+</p>
+</div>
+</div>
+</div>
+</body></html>

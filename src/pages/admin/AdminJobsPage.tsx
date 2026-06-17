@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Briefcase, MapPin, Building2, Clock, Plus, Edit2, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface Job {
@@ -65,90 +64,107 @@ export default function AdminJobsPage() {
 
   return (
     <AppLayout title="Job Board Management" isAdmin>
-      <div className="max-w-[1440px] mx-auto w-full space-y-xl pb-xl">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-xl mb-2xl">
-          <div className="space-y-2">
-            <h1 className="font-display text-display text-on-surface">Jobs Portal</h1>
-            <p className="text-on-surface-variant text-body-lg max-w-2xl">Manage job postings, review applicants, and track hiring pipelines.</p>
+      <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-xl flex flex-col gap-stack-lg w-full">
+        
+        {/* Header Section */}
+        <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="font-display-lg-mobile md:font-display-lg text-[32px] md:text-[40px] font-bold text-text-primary tracking-tight">Jobs Portal</h1>
+            <p className="font-body-md text-[16px] text-text-secondary mt-2 max-w-2xl">
+              Manage job postings, review applicants, and track hiring pipelines.
+            </p>
           </div>
-          <div className="flex gap-md items-center">
-            <Button variant="ghost" size="sm" onClick={fetchJobs} className="border border-outline-variant text-on-surface hover:bg-surface-variant h-11 w-11 rounded-xl">
+          <div className="flex flex-wrap items-center gap-3">
+            <button onClick={fetchJobs} className="flex items-center justify-center w-11 h-11 rounded-xl border border-border-base bg-surface text-text-secondary hover:text-primary hover:border-primary/30 transition-all card-lift shadow-sm">
               <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-            </Button>
-            <Button className="px-lg py-md rounded-xl bg-primary text-on-primary font-bold hover:opacity-90 transition-all flex items-center gap-2 shadow-[0_0_8px_rgba(192,193,255,0.3)]">
+            </button>
+            <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white hover:bg-primary-container hover:text-on-primary-container font-label-md text-[14px] font-bold shadow-sm transition-all card-lift">
               <Plus className="w-5 h-5" /> Post New Job
-            </Button>
+            </button>
           </div>
-        </div>
+        </section>
 
-        <div className="glass-panel rounded-xl overflow-hidden flex flex-col">
-          <div className="overflow-x-auto">
+        {/* Jobs Table */}
+        <section className="glass-panel border border-border-base rounded-2xl shadow-sm overflow-hidden flex flex-col mt-4">
+          <div className="p-6 md:px-8 py-5 border-b border-border-base flex justify-between items-center bg-surface/50">
+            <h3 className="font-headline-md text-[20px] font-bold text-text-primary flex items-center gap-2">
+               <Briefcase className="w-5 h-5 text-primary" />
+               Job Listings
+            </h3>
+          </div>
+          
+          <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse min-w-[1000px]">
               <thead>
-                <tr className="bg-surface-container-high/30 border-b border-outline-variant/40">
-                  <th className="px-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Job Title</th>
-                  <th className="px-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Company & Location</th>
-                  <th className="px-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Type</th>
-                  <th className="px-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Status</th>
-                  <th className="px-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Date Posted</th>
-                  <th className="px-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-right">Actions</th>
+                <tr className="bg-surface-container/50 border-b border-border-base">
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Job Title</th>
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Company & Location</th>
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Type</th>
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Date Posted</th>
+                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-outline-variant/20">
+              <tbody className="divide-y divide-border-base">
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <tr key={i}>
-                      <td colSpan={6} className="px-lg py-4"><Skeleton className="h-10 w-full bg-surface border border-outline-variant/40" /></td>
+                      <td colSpan={6} className="px-6 py-4"><Skeleton className="h-12 w-full bg-surface-container rounded-lg" /></td>
                     </tr>
                   ))
                 ) : jobs.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-lg py-16 text-center text-sm text-on-surface-variant">No jobs found.</td>
+                    <td colSpan={6} className="px-6 py-16 text-center">
+                       <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mx-auto mb-4 border border-border-base">
+                         <Briefcase className="w-6 h-6 text-text-secondary" />
+                       </div>
+                       <p className="font-headline-md text-[18px] font-bold text-text-primary">No jobs found</p>
+                    </td>
                   </tr>
                 ) : (
                   jobs.map(job => (
-                    <tr key={job.id} className="hover:bg-surface-variant/20 transition-colors group">
-                      <td className="px-lg py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 shrink-0 border border-outline-variant/40 rounded bg-primary/10 flex items-center justify-center text-primary">
+                    <tr key={job.id} className="hover:bg-surface-container/50 transition-colors group">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 shrink-0 border border-border-base rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-sm group-hover:bg-primary group-hover:text-white transition-colors">
                             <Briefcase className="w-5 h-5" />
                           </div>
-                          <p className="font-body-md text-body-md font-bold text-on-surface truncate">{job.title}</p>
+                          <p className="font-body-md text-[15px] font-bold text-text-primary truncate">{job.title}</p>
                         </div>
                       </td>
-                      <td className="px-lg py-4">
+                      <td className="px-6 py-4">
                         <div className="space-y-1">
-                          <p className="flex items-center gap-1 text-body-sm text-on-surface"><Building2 className="w-3.5 h-3.5 text-on-surface-variant" /> {job.company_name}</p>
-                          <p className="flex items-center gap-1 text-label-sm text-on-surface-variant"><MapPin className="w-3.5 h-3.5" /> {job.location || 'Remote'}</p>
+                          <p className="flex items-center gap-1.5 text-[14px] font-medium text-text-primary"><Building2 className="w-4 h-4 text-text-secondary" /> {job.company_name}</p>
+                          <p className="flex items-center gap-1.5 text-[12px] text-text-secondary"><MapPin className="w-3.5 h-3.5" /> {job.location || 'Remote'}</p>
                         </div>
                       </td>
-                      <td className="px-lg py-4">
-                        <span className="text-body-sm text-on-surface capitalize">{job.job_type.replace('-', ' ')}</span>
+                      <td className="px-6 py-4">
+                        <span className="text-[13px] font-bold text-text-primary capitalize bg-surface border border-border-base px-2.5 py-1 rounded-md">{job.job_type.replace('-', ' ')}</span>
                       </td>
-                      <td className="px-lg py-4">
-                        {job.status === 'draft' && <Badge className="bg-surface-variant text-on-surface-variant border-outline-variant">Draft</Badge>}
-                        {job.status === 'published' && <Badge className="bg-[#4ade80]/20 text-[#4ade80] border border-[#4ade80]/30">Published</Badge>}
-                        {job.status === 'closed' && <Badge className="bg-error/20 text-error border border-error/30">Closed</Badge>}
+                      <td className="px-6 py-4">
+                        {job.status === 'draft' && <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-surface-container border border-border-base text-text-secondary">Draft</span>}
+                        {job.status === 'published' && <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-success/10 border border-success/20 text-success">Published</span>}
+                        {job.status === 'closed' && <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-error/10 border border-error/20 text-error">Closed</span>}
                       </td>
-                      <td className="px-lg py-4">
-                        <p className="flex items-center gap-1 text-label-md text-on-surface-variant">
+                      <td className="px-6 py-4">
+                        <p className="flex items-center gap-1.5 text-[13px] text-text-secondary font-medium">
                           <Clock className="w-4 h-4" /> {new Date(job.created_at).toLocaleDateString()}
                         </p>
                       </td>
-                      <td className="px-lg py-4 text-right">
-                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button variant="ghost" size="sm" className="p-2 h-auto text-on-surface-variant hover:text-primary" title="Edit">
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button className="w-10 h-10 flex items-center justify-center rounded-full text-text-secondary hover:text-primary hover:bg-surface shadow-sm border border-transparent hover:border-border-base transition-all" title="Edit">
                             <Edit2 className="w-4 h-4" />
-                          </Button>
+                          </button>
                           {job.status !== 'published' && (
-                            <Button variant="ghost" size="sm" onClick={() => updateStatus(job.id, 'published')} className="p-2 h-auto text-on-surface-variant hover:text-[#4ade80]" title="Publish">
+                            <button onClick={() => updateStatus(job.id, 'published')} className="w-10 h-10 flex items-center justify-center rounded-full text-text-secondary hover:text-success hover:bg-surface shadow-sm border border-transparent hover:border-border-base transition-all" title="Publish">
                               <CheckCircle className="w-4 h-4" />
-                            </Button>
+                            </button>
                           )}
                           {job.status !== 'closed' && (
-                            <Button variant="ghost" size="sm" onClick={() => updateStatus(job.id, 'closed')} className="p-2 h-auto text-on-surface-variant hover:text-error" title="Close">
+                            <button onClick={() => updateStatus(job.id, 'closed')} className="w-10 h-10 flex items-center justify-center rounded-full text-text-secondary hover:text-error hover:bg-surface shadow-sm border border-transparent hover:border-border-base transition-all" title="Close">
                               <XCircle className="w-4 h-4" />
-                            </Button>
+                            </button>
                           )}
                         </div>
                       </td>
@@ -158,7 +174,7 @@ export default function AdminJobsPage() {
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
       </div>
     </AppLayout>
   );

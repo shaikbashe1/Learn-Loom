@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Verify LearnLoom Certificates</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "text-secondary": "#64748B",
+                      "tertiary-fixed-dim": "#d0bcff",
+                      "on-tertiary-fixed": "#23005c",
+                      "on-secondary-fixed": "#001f26",
+                      "surface": "#FFFFFF",
+                      "surface-container-highest": "#d3e4fe",
+                      "on-surface-variant": "#434655",
+                      "on-tertiary-fixed-variant": "#5516be",
+                      "background": "#F8FAFC",
+                      "secondary-container": "#57dffe",
+                      "secondary-fixed": "#acedff",
+                      "tertiary": "#632ecd",
+                      "on-error": "#ffffff",
+                      "surface-tint": "#0053db",
+                      "inverse-surface": "#213145",
+                      "error": "#EF4444",
+                      "surface-container-high": "#dce9ff",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "primary": "#004ac6",
+                      "text-primary": "#0F172A",
+                      "primary-fixed": "#dbe1ff",
+                      "border-base": "#E2E8F0",
+                      "on-tertiary-container": "#f6edff",
+                      "tertiary-fixed": "#e9ddff",
+                      "primary-container": "#2563eb",
+                      "secondary": "#00687a",
+                      "surface-bright": "#f8f9ff",
+                      "on-surface": "#0b1c30",
+                      "on-secondary": "#ffffff",
+                      "inverse-primary": "#b4c5ff",
+                      "on-primary-container": "#eeefff",
+                      "error-container": "#ffdad6",
+                      "on-primary": "#ffffff",
+                      "on-secondary-container": "#006172",
+                      "surface-container-low": "#eff4ff",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "inverse-on-surface": "#eaf1ff",
+                      "on-primary-fixed": "#00174b",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-container": "#e5eeff",
+                      "outline": "#737686",
+                      "on-secondary-fixed-variant": "#004e5c",
+                      "outline-variant": "#c3c6d7",
+                      "surface-dim": "#cbdbf5",
+                      "surface-variant": "#d3e4fe",
+                      "on-tertiary": "#ffffff",
+                      "warning": "#F59E0B",
+                      "on-error-container": "#93000a",
+                      "success": "#22C55E",
+                      "tertiary-container": "#7d4ce7",
+                      "secondary-fixed-dim": "#4cd7f6",
+                      "on-background": "#0b1c30"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "stack-lg": "32px",
+                      "container-max": "1280px",
+                      "stack-sm": "8px",
+                      "stack-md": "16px",
+                      "stack-xl": "64px",
+                      "margin-desktop": "40px",
+                      "margin-mobile": "16px",
+                      "gutter": "24px"
+              },
+              "fontFamily": {
+                      "headline-lg": [
+                              "Hanken Grotesk"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Hanken Grotesk"
+                      ],
+                      "display-lg": [
+                              "Hanken Grotesk"
+                      ],
+                      "headline-lg-mobile": [
+                              "Hanken Grotesk"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "label-md": [
+                              "JetBrains Mono"
+                      ],
+                      "display-lg-mobile": [
+                              "Hanken Grotesk"
+                      ],
+                      "label-sm": [
+                              "JetBrains Mono"
+                      ]
+              },
+              "fontSize": {
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "56px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "0.02em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "display-lg-mobile": [
+                              "36px",
+                              {
+                                      "lineHeight": "44px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.04em",
+                                      "fontWeight": "500"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .soft-shadow {
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+        }
+        .soft-shadow-hover:hover {
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            transform: translateY(-2px);
+        }
+      </style>
+</head>
+<body class="bg-background text-text-primary font-body-md min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="bg-surface/70 dark:bg-inverse-surface/70 backdrop-blur-xl text-primary dark:text-primary-fixed docked full-width top-0 z-40 border-b border-border-base dark:border-outline-variant shadow-sm flex justify-between items-center w-full px-margin-desktop h-20 sticky top-0">
+<div class="flex items-center gap-stack-lg">
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed">LearnLoom</span>
+<nav class="hidden md:flex gap-stack-md">
+<a class="font-label-md text-label-md text-text-secondary dark:text-on-surface-variant hover:text-primary hover:opacity-80 transition-opacity" href="#">Dashboard</a>
+<a class="font-label-md text-label-md text-text-secondary dark:text-on-surface-variant hover:text-primary hover:opacity-80 transition-opacity" href="#">AI Roadmap</a>
+<a class="font-label-md text-label-md text-text-secondary dark:text-on-surface-variant hover:text-primary hover:opacity-80 transition-opacity" href="#">Community</a>
+</nav>
+</div>
+<div class="flex items-center gap-stack-md">
+<button class="bg-primary-container text-on-primary-container px-4 py-2 rounded-lg font-label-md text-label-md hover:opacity-80 transition-opacity">Ask AI</button>
+<div class="flex gap-stack-sm">
+<button class="text-text-secondary hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-container-low"><span class="material-symbols-outlined">notifications</span></button>
+<button class="text-text-secondary hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-container-low"><span class="material-symbols-outlined">account_circle</span></button>
+</div>
+</div>
+</header>
+<div class="flex flex-1 w-full max-w-container-max mx-auto">
+<!-- SideNavBar -->
+<aside class="bg-surface/70 dark:bg-inverse-surface/70 backdrop-blur-xl text-primary dark:text-primary-fixed h-screen w-64 fixed left-0 top-0 overflow-y-auto border-r border-border-base dark:border-outline-variant shadow-sm hidden lg:flex flex-col p-stack-md gap-stack-md z-30 pt-24">
+<div class="mb-stack-lg px-4">
+<h2 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed">LearnLoom</h2>
+<p class="font-body-sm text-body-sm text-text-secondary">Premium AI Learning</p>
+</div>
+<nav class="flex-1 flex flex-col gap-stack-sm">
+<a class="font-label-md text-label-md flex items-center gap-3 px-4 py-3 rounded-xl text-text-secondary dark:text-on-surface-variant hover:bg-surface-container-low transition-colors hover:bg-surface-container-high dark:hover:bg-on-surface-variant transition-all duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                     Dashboard
+                 </a>
+<a class="font-label-md text-label-md flex items-center gap-3 px-4 py-3 rounded-xl text-text-secondary dark:text-on-surface-variant hover:bg-surface-container-low transition-colors hover:bg-surface-container-high dark:hover:bg-on-surface-variant transition-all duration-200" href="#">
+<span class="material-symbols-outlined">school</span>
+                     Courses
+                 </a>
+<a class="font-label-md text-label-md flex items-center gap-3 px-4 py-3 rounded-xl text-text-secondary dark:text-on-surface-variant hover:bg-surface-container-low transition-colors hover:bg-surface-container-high dark:hover:bg-on-surface-variant transition-all duration-200" href="#">
+<span class="material-symbols-outlined">map</span>
+                     AI Roadmap
+                 </a>
+<a class="font-label-md text-label-md flex items-center gap-3 px-4 py-3 rounded-xl text-text-secondary dark:text-on-surface-variant hover:bg-surface-container-low transition-colors hover:bg-surface-container-high dark:hover:bg-on-surface-variant transition-all duration-200" href="#">
+<span class="material-symbols-outlined">psychology</span>
+                     AI Mentor
+                 </a>
+<a class="font-label-md text-label-md flex items-center gap-3 px-4 py-3 rounded-xl text-text-secondary dark:text-on-surface-variant hover:bg-surface-container-low transition-colors hover:bg-surface-container-high dark:hover:bg-on-surface-variant transition-all duration-200" href="#">
+<span class="material-symbols-outlined">code</span>
+                     Coding Practice
+                 </a>
+<a class="font-label-md text-label-md flex items-center gap-3 px-4 py-3 rounded-xl text-text-secondary dark:text-on-surface-variant hover:bg-surface-container-low transition-colors hover:bg-surface-container-high dark:hover:bg-on-surface-variant transition-all duration-200" href="#">
+<span class="material-symbols-outlined">assignment</span>
+                     Assignments
+                 </a>
+<a class="font-label-md text-label-md flex items-center gap-3 px-4 py-3 rounded-xl text-text-secondary dark:text-on-surface-variant hover:bg-surface-container-low transition-colors hover:bg-surface-container-high dark:hover:bg-on-surface-variant transition-all duration-200" href="#">
+<span class="material-symbols-outlined">groups</span>
+                     Community
+                 </a>
+<a class="font-label-md text-label-md flex items-center gap-3 px-4 py-3 rounded-xl bg-primary-container text-on-primary-container font-semibold scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+                     Certificates
+                 </a>
+<a class="font-label-md text-label-md flex items-center gap-3 px-4 py-3 rounded-xl text-text-secondary dark:text-on-surface-variant hover:bg-surface-container-low transition-colors hover:bg-surface-container-high dark:hover:bg-on-surface-variant transition-all duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+                     Settings
+                 </a>
+</nav>
+<div class="mt-auto flex flex-col gap-stack-sm">
+<button class="bg-secondary-container text-on-secondary-container font-label-md text-label-md py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity">Upgrade to Pro</button>
+<a class="font-label-md text-label-md flex items-center gap-3 px-4 py-2 rounded-xl text-text-secondary hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined">help</span> Help Center
+                 </a>
+<a class="font-label-md text-label-md flex items-center gap-3 px-4 py-2 rounded-xl text-text-secondary hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span> Logout
+                 </a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 lg:ml-64 p-margin-mobile md:p-margin-desktop w-full max-w-[900px] mx-auto pt-stack-xl flex flex-col gap-stack-xl">
+<!-- Hero Section -->
+<section class="text-center flex flex-col items-center gap-stack-md">
+<span class="material-symbols-outlined text-primary text-6xl mb-stack-sm" style="font-variation-settings: 'FILL' 1;">verified</span>
+<h1 class="font-display-lg text-display-lg text-text-primary">Verify LearnLoom Certificates</h1>
+<p class="font-body-lg text-body-lg text-text-secondary max-w-[600px]">
+                    Ensure the authenticity of LearnLoom credentials. Enter a Certificate ID, Verification Code, or upload a QR code image to confirm validity.
+                </p>
+</section>
+<!-- Search/Verification Area -->
+<section class="bg-surface border border-border-base rounded-xl p-stack-lg soft-shadow relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-secondary-container"></div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-stack-lg">
+<!-- Manual Entry -->
+<div class="flex flex-col gap-stack-md border-b md:border-b-0 md:border-r border-border-base pb-stack-lg md:pb-0 md:pr-stack-lg">
+<h3 class="font-headline-md text-headline-md text-text-primary">Manual Verification</h3>
+<div class="flex flex-col gap-stack-sm">
+<label class="font-label-md text-label-md text-text-secondary">Certificate ID</label>
+<input class="p-4 border border-border-base rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-body-md text-body-md bg-background" placeholder="e.g. LL-2023-XXXXX" type="text"/>
+</div>
+<div class="flex flex-col gap-stack-sm">
+<label class="font-label-md text-label-md text-text-secondary">Verification Code</label>
+<input class="p-4 border border-border-base rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none font-body-md text-body-md bg-background" placeholder="Enter 6-digit code" type="text"/>
+</div>
+<button class="mt-stack-sm bg-primary-container text-on-primary-container font-label-md text-label-md py-4 rounded-lg font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">search</span>
+                            Verify Certificate
+                        </button>
+</div>
+<!-- QR Upload -->
+<div class="flex flex-col gap-stack-md pt-stack-lg md:pt-0 md:pl-stack-lg">
+<h3 class="font-headline-md text-headline-md text-text-primary">QR Code Scanner</h3>
+<div class="flex-1 border-2 border-dashed border-border-base rounded-xl flex flex-col items-center justify-center p-stack-lg text-center hover:bg-surface-container-low transition-colors cursor-pointer bg-background">
+<span class="material-symbols-outlined text-4xl text-text-secondary mb-stack-sm">qr_code_scanner</span>
+<p class="font-label-md text-label-md text-text-primary font-semibold">Upload QR Image</p>
+<p class="font-body-sm text-body-sm text-text-secondary mt-1">Drag &amp; drop or click to browse</p>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary text-center">Supported formats: JPG, PNG, PDF</p>
+</div>
+</div>
+</section>
+<!-- Verification Result Card (Mock Active State) -->
+<section class="bg-surface border border-border-base rounded-xl overflow-hidden soft-shadow transition-all duration-300">
+<div class="bg-success/10 p-stack-md border-b border-border-base flex items-center gap-stack-md">
+<div class="bg-success text-on-primary p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-success font-semibold">Certificate Verified</h3>
+<p class="font-body-sm text-body-sm text-text-secondary">This is a valid, officially recognized LearnLoom credential.</p>
+</div>
+</div>
+<div class="p-stack-lg grid grid-cols-1 md:grid-cols-2 gap-stack-lg bg-background">
+<div class="flex flex-col gap-stack-sm">
+<span class="font-label-md text-label-md text-text-secondary uppercase">Student Name</span>
+<span class="font-body-lg text-body-lg text-text-primary font-medium">Alex Chen</span>
+</div>
+<div class="flex flex-col gap-stack-sm">
+<span class="font-label-md text-label-md text-text-secondary uppercase">Course Name</span>
+<span class="font-body-lg text-body-lg text-text-primary font-medium">Advanced Machine Learning Architecture</span>
+</div>
+<div class="flex flex-col gap-stack-sm">
+<span class="font-label-md text-label-md text-text-secondary uppercase">Completion Date</span>
+<span class="font-body-lg text-body-lg text-text-primary font-medium">October 15, 2023</span>
+</div>
+<div class="flex flex-col gap-stack-sm">
+<span class="font-label-md text-label-md text-text-secondary uppercase">Grade Achieved</span>
+<span class="font-body-lg text-body-lg text-text-primary font-medium">98% (Distinction)</span>
+</div>
+<div class="flex flex-col gap-stack-sm md:col-span-2 pt-stack-sm border-t border-border-base">
+<span class="font-label-md text-label-md text-text-secondary uppercase">Certificate ID</span>
+<span class="font-label-md text-label-md text-primary font-mono bg-surface-container-low p-2 rounded inline-block w-fit">LL-2023-AML-84729</span>
+</div>
+</div>
+</section>
+</main>
+</div>
+</body></html>

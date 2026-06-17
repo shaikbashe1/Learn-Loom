@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+  </style>
+</head>
+<body>
+<!-- STITCH_THREEJS_START:ANIMATION_4 class="fixed inset-0 w-full h-full bg-transparent" -->
+<div class="fixed inset-0 w-full h-full bg-transparent" style="display:block;">
+<script src="https://ajax.googleapis.com/ajax/libs/threejs/r125/three.min.js"></script>
+<div id="threejs-container-ANIMATION_4" style="width:100%;height:100%"></div>
+<script>
+(function() {
+  const container = document.getElementById('threejs-container-ANIMATION_4');
+  const devicePixelRatio = window.devicePixelRatio || 1;
+  const width = container.clientWidth || window.innerWidth;
+const height = container.clientHeight || window.innerHeight;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+renderer.setSize(width, height);
+container.appendChild(renderer.domElement);
+
+// Create a modern dashboard mockup frame
+const group = new THREE.Group();
+scene.add(group);
+
+const frameGeom = new THREE.BoxGeometry(4, 2.5, 0.1);
+const frameMat = new THREE.MeshPhongMaterial({ 
+    color: 0xffffff, 
+    transparent: true, 
+    opacity: 0.9,
+    shininess: 100 
+});
+const dashboard = new THREE.Mesh(frameGeom, frameMat);
+group.add(dashboard);
+
+// Add "floating elements" around it
+const sphereGeom = new THREE.SphereGeometry(0.2, 32, 32);
+const accentMat = new THREE.MeshPhongMaterial({ color: 0x8B5CF6 }); // Violet
+const spheres = [];
+
+for(let i = 0; i < 5; i++) {
+    const s = new THREE.Mesh(sphereGeom, accentMat);
+    s.position.set(
+        (Math.random() - 0.5) * 6,
+        (Math.random() - 0.5) * 4,
+        (Math.random() - 0.5) * 2
+    );
+    group.add(s);
+    spheres.push({ mesh: s, offset: Math.random() * Math.PI * 2 });
+}
+
+const light = new THREE.DirectionalLight(0xffffff, 1);
+light.position.set(5, 5, 5);
+scene.add(light);
+scene.add(new THREE.AmbientLight(0x404040, 2));
+
+camera.position.z = 5;
+
+function animate(time) {
+    requestAnimationFrame(animate);
+    const t = time * 0.001;
+    
+    group.rotation.y = Math.sin(t * 0.5) * 0.1;
+    group.rotation.x = Math.cos(t * 0.3) * 0.05;
+    
+    spheres.forEach(s => {
+        s.mesh.position.y += Math.sin(t + s.offset) * 0.005;
+    });
+    
+    renderer.render(scene, camera);
+}
+
+window.addEventListener('resize', () => {
+    const w = container.clientWidth || window.innerWidth;
+    const h = container.clientHeight || window.innerHeight;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+});
+
+animate(0);
+})();
+</script>
+</div>
+<!-- STITCH_THREEJS_END:ANIMATION_4 -->
+</body>
+</html>

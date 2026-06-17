@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LearnLoom - Pricing</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "text-secondary": "#64748B",
+                      "tertiary-fixed-dim": "#d0bcff",
+                      "on-tertiary-fixed": "#23005c",
+                      "on-secondary-fixed": "#001f26",
+                      "surface": "#FFFFFF",
+                      "surface-container-highest": "#d3e4fe",
+                      "on-surface-variant": "#434655",
+                      "on-tertiary-fixed-variant": "#5516be",
+                      "background": "#F8FAFC",
+                      "secondary-container": "#57dffe",
+                      "secondary-fixed": "#acedff",
+                      "tertiary": "#632ecd",
+                      "on-error": "#ffffff",
+                      "surface-tint": "#0053db",
+                      "inverse-surface": "#213145",
+                      "error": "#EF4444",
+                      "surface-container-high": "#dce9ff",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "primary": "#004ac6",
+                      "text-primary": "#0F172A",
+                      "primary-fixed": "#dbe1ff",
+                      "border-base": "#E2E8F0",
+                      "on-tertiary-container": "#f6edff",
+                      "tertiary-fixed": "#e9ddff",
+                      "primary-container": "#2563eb",
+                      "secondary": "#00687a",
+                      "surface-bright": "#f8f9ff",
+                      "on-surface": "#0b1c30",
+                      "on-secondary": "#ffffff",
+                      "inverse-primary": "#b4c5ff",
+                      "on-primary-container": "#eeefff",
+                      "error-container": "#ffdad6",
+                      "on-primary": "#ffffff",
+                      "on-secondary-container": "#006172",
+                      "surface-container-low": "#eff4ff",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "inverse-on-surface": "#eaf1ff",
+                      "on-primary-fixed": "#00174b",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-container": "#e5eeff",
+                      "outline": "#737686",
+                      "on-secondary-fixed-variant": "#004e5c",
+                      "outline-variant": "#c3c6d7",
+                      "surface-dim": "#cbdbf5",
+                      "surface-variant": "#d3e4fe",
+                      "on-tertiary": "#ffffff",
+                      "warning": "#F59E0B",
+                      "on-error-container": "#93000a",
+                      "success": "#22C55E",
+                      "tertiary-container": "#7d4ce7",
+                      "secondary-fixed-dim": "#4cd7f6",
+                      "on-background": "#0b1c30"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "stack-lg": "32px",
+                      "container-max": "1280px",
+                      "stack-sm": "8px",
+                      "stack-md": "16px",
+                      "stack-xl": "64px",
+                      "margin-desktop": "40px",
+                      "margin-mobile": "16px",
+                      "gutter": "24px"
+              },
+              "fontFamily": {
+                      "headline-lg": [
+                              "Hanken Grotesk"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Hanken Grotesk"
+                      ],
+                      "display-lg": [
+                              "Hanken Grotesk"
+                      ],
+                      "headline-lg-mobile": [
+                              "Hanken Grotesk"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "label-md": [
+                              "JetBrains Mono"
+                      ],
+                      "display-lg-mobile": [
+                              "Hanken Grotesk"
+                      ],
+                      "label-sm": [
+                              "JetBrains Mono"
+                      ]
+              },
+              "fontSize": {
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "56px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "0.02em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "display-lg-mobile": [
+                              "36px",
+                              {
+                                      "lineHeight": "44px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.04em",
+                                      "fontWeight": "500"
+                              }
+                      ]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .soft-shadow {
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+        }
+        .hover-lift {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        /* Hide scrollbar for neatness in tables */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-text-primary font-body-md antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar Shared Component -->
+<header class="bg-surface/70 dark:bg-inverse-surface/70 backdrop-blur-xl full-width z-40 shadow-sm flex justify-between items-center w-full px-margin-desktop h-20 sticky top-0 transition-all duration-300">
+<div class="flex items-center gap-stack-lg">
+<div class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed tracking-tight">
+                LearnLoom
+            </div>
+<nav class="hidden md:flex items-center gap-stack-md ml-stack-xl">
+<!-- None are active as this is a contextual/destination page outside main flow -->
+<a class="text-text-secondary dark:text-on-surface-variant hover:text-primary transition-opacity hover:opacity-80 font-label-md text-label-md" href="#">Dashboard</a>
+<a class="text-text-secondary dark:text-on-surface-variant hover:text-primary transition-opacity hover:opacity-80 font-label-md text-label-md" href="#">AI Roadmap</a>
+<a class="text-text-secondary dark:text-on-surface-variant hover:text-primary transition-opacity hover:opacity-80 font-label-md text-label-md" href="#">Community</a>
+</nav>
+</div>
+<div class="flex items-center gap-stack-md">
+<!-- search_bar: on_right -->
+<div class="relative hidden lg:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-[20px]" data-icon="search">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container-lowest border border-border-base rounded-full font-body-sm text-body-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent w-64 transition-all" placeholder="Search courses..." type="text"/>
+</div>
+<button class="hidden md:flex items-center gap-2 bg-secondary-container text-on-secondary-container px-4 py-2 rounded-full font-label-md text-label-md hover:bg-secondary-fixed transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="smart_toy">smart_toy</span>
+                Ask AI
+            </button>
+<div class="flex items-center gap-2 text-text-secondary border-l border-border-base pl-stack-md ml-stack-sm">
+<button class="p-2 rounded-full hover:bg-surface-container-low transition-colors group">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 rounded-full hover:bg-surface-container-low transition-colors group">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<main class="w-full pb-32">
+<!-- Hero Section -->
+<section class="max-w-container-max mx-auto px-margin-desktop pt-24 pb-16 text-center relative">
+<!-- Abstract background decorative element -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-gradient-to-tr from-primary-fixed-dim/20 to-tertiary-fixed-dim/20 blur-3xl -z-10 rounded-full opacity-50 pointer-events-none"></div>
+<h1 class="font-display-lg text-display-lg text-text-primary mb-stack-md max-w-3xl mx-auto">
+                Invest in your <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-tertiary">intellectual velocity.</span>
+</h1>
+<p class="font-body-lg text-body-lg text-text-secondary max-w-2xl mx-auto mb-stack-lg">
+                Choose the plan that fits your learning journey. From foundational concepts to AI-accelerated mastery, LearnLoom adapts to your pace.
+            </p>
+<!-- Toggle -->
+<div class="inline-flex items-center bg-surface-container border border-border-base rounded-full p-1 shadow-sm mb-stack-xl">
+<button class="px-6 py-2 rounded-full font-label-md text-label-md bg-surface text-primary shadow-sm transition-all duration-300" id="toggle-monthly">Monthly</button>
+<button class="px-6 py-2 rounded-full font-label-md text-label-md text-text-secondary hover:text-text-primary transition-all duration-300 flex items-center gap-2" id="toggle-annual">
+                    Annual <span class="bg-success/10 text-success px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-bold">Save 20%</span>
+</button>
+</div>
+</section>
+<!-- Pricing Cards -->
+<section class="max-w-container-max mx-auto px-margin-desktop mb-stack-xl">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+<!-- FREE Plan -->
+<div class="bg-surface rounded-2xl border border-border-base p-8 soft-shadow hover-lift h-[520px] flex flex-col relative z-10">
+<div class="mb-6">
+<h3 class="font-headline-md text-headline-md text-text-primary mb-2">Free</h3>
+<p class="font-body-sm text-body-sm text-text-secondary">Perfect to explore the platform.</p>
+</div>
+<div class="mb-8">
+<span class="font-display-lg text-display-lg text-text-primary">$0</span>
+<span class="font-body-sm text-body-sm text-text-secondary">/ forever</span>
+</div>
+<a class="w-full block text-center py-3 rounded-lg border border-border-base text-text-primary font-label-md text-label-md hover:bg-surface-container-low transition-colors mb-8" href="#">Get Started</a>
+<ul class="space-y-4 flex-grow">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-[20px]" data-icon="check_circle" data-weight="fill">check_circle</span>
+<span class="font-body-sm text-body-sm text-text-primary">Limited core courses</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-[20px]" data-icon="check_circle" data-weight="fill">check_circle</span>
+<span class="font-body-sm text-body-sm text-text-primary">Basic learning roadmap</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-[20px]" data-icon="check_circle" data-weight="fill">check_circle</span>
+<span class="font-body-sm text-body-sm text-text-primary">Community access</span>
+</li>
+</ul>
+</div>
+<!-- PRO Plan (Featured) -->
+<div class="bg-gradient-to-b from-primary to-tertiary rounded-2xl p-8 shadow-xl relative z-20 md:scale-105 h-[560px] flex flex-col transform transition-transform duration-300 hover:-translate-y-2">
+<div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-secondary-container text-on-secondary-container font-label-sm text-label-sm px-4 py-1 rounded-full uppercase tracking-wider font-bold shadow-md">
+                        Most Popular
+                    </div>
+<div class="mb-6">
+<h3 class="font-headline-md text-headline-md text-on-primary mb-2">Pro</h3>
+<p class="font-body-sm text-body-sm text-on-primary/80">Everything you need for mastery.</p>
+</div>
+<div class="mb-8">
+<span class="font-display-lg text-display-lg text-on-primary price-display" data-annual="$24" data-monthly="$29">$29</span>
+<span class="font-body-sm text-body-sm text-on-primary/80">/ month</span>
+</div>
+<a class="w-full block text-center py-3 rounded-lg bg-surface text-primary font-label-md text-label-md hover:bg-surface-bright transition-colors shadow-sm mb-8" href="#">Upgrade to Pro</a>
+<ul class="space-y-4 flex-grow">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-secondary-container text-[20px]" data-icon="check_circle" data-weight="fill">check_circle</span>
+<span class="font-body-sm text-body-sm text-on-primary">Unlimited premium courses</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-secondary-container text-[20px]" data-icon="check_circle" data-weight="fill">check_circle</span>
+<span class="font-body-sm text-body-sm text-on-primary">Personalized AI Mentor access</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-secondary-container text-[20px]" data-icon="check_circle" data-weight="fill">check_circle</span>
+<span class="font-body-sm text-body-sm text-on-primary">Interactive coding practice</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-secondary-container text-[20px]" data-icon="check_circle" data-weight="fill">check_circle</span>
+<span class="font-body-sm text-body-sm text-on-primary">Verified certificates</span>
+</li>
+</ul>
+</div>
+<!-- PREMIUM Plan -->
+<div class="bg-surface rounded-2xl border border-border-base p-8 soft-shadow hover-lift h-[520px] flex flex-col relative z-10">
+<div class="mb-6">
+<h3 class="font-headline-md text-headline-md text-text-primary mb-2">Premium</h3>
+<p class="font-body-sm text-body-sm text-text-secondary">For dedicated career accelerators.</p>
+</div>
+<div class="mb-8">
+<span class="font-display-lg text-display-lg text-text-primary price-display" data-annual="$79" data-monthly="$99">$99</span>
+<span class="font-body-sm text-body-sm text-text-secondary">/ month</span>
+</div>
+<a class="w-full block text-center py-3 rounded-lg bg-text-primary text-surface font-label-md text-label-md hover:bg-on-surface-variant transition-colors mb-8" href="#">Contact Sales</a>
+<ul class="space-y-4 flex-grow">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-[20px]" data-icon="check_circle" data-weight="fill">check_circle</span>
+<span class="font-body-sm text-body-sm text-text-primary">Everything in Pro</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-[20px]" data-icon="check_circle" data-weight="fill">check_circle</span>
+<span class="font-body-sm text-body-sm text-text-primary">Career Accelerator program</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-[20px]" data-icon="check_circle" data-weight="fill">check_circle</span>
+<span class="font-body-sm text-body-sm text-text-primary">Weekly live masterclasses</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-[20px]" data-icon="check_circle" data-weight="fill">check_circle</span>
+<span class="font-body-sm text-body-sm text-text-primary">Priority 1-on-1 AI support</span>
+</li>
+</ul>
+</div>
+</div>
+</section>
+</main>
+<script>
+        // Simple toggle logic for pricing (Monthly/Annual)
+        const btnMonthly = document.getElementById('toggle-monthly');
+        const btnAnnual = document.getElementById('toggle-annual');
+        const priceDisplays = document.querySelectorAll('.price-display');
+
+        function setMonthly() {
+            btnMonthly.className = "px-6 py-2 rounded-full font-label-md text-label-md bg-surface text-primary shadow-sm transition-all duration-300";
+            btnAnnual.className = "px-6 py-2 rounded-full font-label-md text-label-md text-text-secondary hover:text-text-primary transition-all duration-300 flex items-center gap-2";
+            
+            priceDisplays.forEach(el => {
+                el.textContent = el.getAttribute('data-monthly');
+            });
+        }
+
+        function setAnnual() {
+            btnAnnual.className = "px-6 py-2 rounded-full font-label-md text-label-md bg-surface text-primary shadow-sm transition-all duration-300 flex items-center gap-2";
+            btnMonthly.className = "px-6 py-2 rounded-full font-label-md text-label-md text-text-secondary hover:text-text-primary transition-all duration-300";
+            
+            priceDisplays.forEach(el => {
+                el.textContent = el.getAttribute('data-annual');
+            });
+        }
+
+        btnMonthly.addEventListener('click', setMonthly);
+        btnAnnual.addEventListener('click', setAnnual);
+    </script>
+</body></html>
