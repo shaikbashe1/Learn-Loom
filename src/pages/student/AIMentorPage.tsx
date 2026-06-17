@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { createParser } from 'eventsource-parser';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -358,9 +359,11 @@ YOUR ROLE:
   return (
     <AppLayout title="AI Mentor" noPadding>
       <div className="flex-1 flex h-[calc(100vh-80px)] overflow-hidden w-full font-body-md text-text-primary bg-background">
+        <ResizablePanelGroup direction="horizontal">
         
         {/* Left Sidebar: Recent Chats (Hidden on smaller screens) */}
-        <aside className="w-64 bg-surface border-r border-border-base shrink-0 hidden lg:flex flex-col overflow-y-auto shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+        <ResizablePanel defaultSize={20} minSize={15} maxSize={30} collapsible={true} className="hidden lg:flex flex-col bg-surface border-r border-border-base shadow-[4px_0_24px_rgba(0,0,0,0.02)] overflow-hidden">
+          <aside className="w-full h-full flex flex-col overflow-y-auto">
           <div className="p-4 border-b border-border-base/50">
             <button onClick={handleReset} className="w-full flex items-center justify-center gap-2 bg-surface border border-border-base rounded-lg py-2 hover:-translate-y-[1px] hover:shadow-md transition-all text-primary font-label-md text-label-md group">
               <span className="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">add</span>
@@ -389,10 +392,14 @@ YOUR ROLE:
             </div>
             <span className="material-symbols-outlined text-outline">settings</span>
           </div>
-        </aside>
+          </aside>
+        </ResizablePanel>
+
+        <ResizableHandle withHandle className="hidden lg:flex" />
 
         {/* Center: Chat Canvas */}
-        <section className="flex-1 flex flex-col relative bg-surface-container-lowest overflow-hidden">
+        <ResizablePanel defaultSize={55} minSize={30} className="flex flex-col relative bg-surface-container-lowest overflow-hidden">
+          <section className="flex-1 flex flex-col relative h-full overflow-hidden">
           {/* Background Decorative Element for depth */}
           <div className="absolute inset-0 pointer-events-none opacity-20">
             <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-gradient-to-br from-secondary-container to-tertiary-container blur-[100px] mix-blend-multiply"></div>
@@ -513,10 +520,14 @@ YOUR ROLE:
                 LearnLoom AI can make mistakes. Verify important information.
             </div>
           </div>
-        </section>
+          </section>
+        </ResizablePanel>
+
+        <ResizableHandle withHandle className="hidden xl:flex" />
 
         {/* Right Sidebar: Learning Context / Study Plan */}
-        <aside className="w-80 bg-surface border-l border-border-base shrink-0 hidden xl:flex flex-col overflow-y-auto shadow-[-4px_0_24px_rgba(0,0,0,0.02)] relative z-20">
+        <ResizablePanel defaultSize={25} minSize={20} maxSize={40} collapsible={true} className="hidden xl:flex flex-col bg-surface border-l border-border-base shadow-[-4px_0_24px_rgba(0,0,0,0.02)] overflow-hidden relative z-20">
+          <aside className="w-full h-full flex flex-col overflow-y-auto">
           <div className="p-4 border-b border-border-base/50 sticky top-0 bg-surface/90 backdrop-blur flex justify-between items-center z-10">
             <h3 className="font-headline-md text-[20px] font-bold text-text-primary">Study Context</h3>
             <span className="material-symbols-outlined text-outline cursor-pointer hover:text-primary">menu_book</span>
@@ -589,8 +600,10 @@ YOUR ROLE:
               </ul>
             </div>
           </div>
-        </aside>
+          </aside>
+        </ResizablePanel>
 
+        </ResizablePanelGroup>
       </div>
     </AppLayout>
   );
