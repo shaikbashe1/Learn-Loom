@@ -52,3 +52,6 @@ backend/.env
 scraping_engine/venv/
 scraping_engine/node_modules/
 scraping_engine/.env
+
+# Local AI Stitching Folder
+stitch_learnloom_ai_edtech_landing/
