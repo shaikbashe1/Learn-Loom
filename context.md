@@ -28,7 +28,9 @@ LearnLoom is an advanced, AI-driven learning ecosystem designed for software eng
 - **Global CSS & Typography:** Replaced generic styles with a structured HSL color system in `index.css`. Adopted modern fonts (Inter, JetBrains Mono, Hanken Grotesk).
 - **Layout Upgrades:** Restyled the core `AppLayout`, `TopAppBar`, `SideNav`, and mobile `BottomNavBar` to feature backdrop blurring, dynamic floating effects, and rich hover animations.
 - **Page Migrations (Completed Batches):** Updated several core views including Auth pages, Dashboards, Course Player, Course Catalog, Course Detail, Pricing, and the entirety of Batch 3 (Student Tools) containing `AIRoadmapPage`, `CodingPracticePage`, `QuizPage`, `AssignmentPage`, and `GrandTestPage` with the sophisticated glassmorphism aesthetic.
+- **Bug Fixes:** Fixed Vite build errors related to invalid `lucide-react` icon exports in Admin pages (`AdminCertificatesPage`, `AdminReportsPage`, `AdminCommunityPage`, `AdminSubmissionsPage`).
 - **Admin Dashboard & Extension Pages:** Successfully migrated all enterprise admin views, including `AdminDashboard`, `AdminCoursesPage`, `AdminStudentsPage`, `AdminReportsPage`, `AdminCommunityPage`, `AdminCertificatesPage`, `AdminRoadmapsPage`, `AdminSubmissionsPage`, `AdminJobsPage`, `AdminNotificationsPage`, `AdminOrganizationsPage`, `AdminResumesPage`, `AdminRewardsPage`, `AdminCompilerPage`, `AdminAISettingsPage`, and `AdminGrandTestPage`, to utilize the premium `AppLayout` wrapper and glass-panel utility classes.
+
 ## Issues Faced & Resolutions
 
 ### Issue 1: Authentication Profile & UUID Mismatches
