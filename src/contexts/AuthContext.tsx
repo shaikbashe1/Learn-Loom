@@ -45,13 +45,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Strict RBAC Override: Enforce super_admin ONLY for the authorized email
+  const applyRoleOverride = (u: any, p: Profile | null): Profile | null => {
+    if (!p) return null;
+    if (u?.email === 'shaikbashe2222@gmail.com') {
+      return { ...p, role: 'super_admin' };
+    }
+    // Downgrade any unauthorized super_admins to normal users
+    if (p.role === 'super_admin' || p.role === 'admin') {
+      return { ...p, role: 'user' };
+    }
+    return p;
+  };
+
   useEffect(() => {
     // Initial session fetch
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         getProfile(session.user.id).then(data => {
-          setProfile(data);
+          setProfile(applyRoleOverride(session.user, data));
           setLoading(false);
         });
       } else {
@@ -65,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (session?.user) {
         setLoading(true);
         getProfile(session.user.id).then(data => {
-          setProfile(data);
+          setProfile(applyRoleOverride(session.user, data));
           setLoading(false);
         });
       } else {
@@ -80,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshProfile = async () => {
     if (!user) { setProfile(null); return; }
     const profileData = await getProfile(user.id);
-    setProfile(profileData);
+    setProfile(applyRoleOverride(user, profileData));
   };
 
   const signInWithGoogle = async (): Promise<{ error: Error | null }> => {

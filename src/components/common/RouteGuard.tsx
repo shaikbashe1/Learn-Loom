@@ -28,7 +28,8 @@ export function RouteGuard({ children }: RouteGuardProps) {
     const isPublic = isPublicPath(location.pathname);
     const isAuthPage = ['/login', '/signup'].includes(location.pathname);
 
-    const isAdminUser = profile?.role === 'admin' || profile?.role === 'super_admin' || profile?.role === 'org_admin';
+    // Strict RBAC: Only shaikbashe2222@gmail.com has Admin Dashboard access
+    const isAdminUser = user?.email === 'shaikbashe2222@gmail.com' && profile?.role === 'super_admin';
 
     if (user && isAuthPage) {
       navigate(isAdminUser ? '/admin' : '/dashboard', { replace: true });
