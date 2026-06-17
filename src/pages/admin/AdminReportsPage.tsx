@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RefreshCw, Download, Calendar, Group, School, TaskAlt, WorkspacePremium, Bolt, BarChart, Assignment, Forum, Star } from 'lucide-react';
+import { RefreshCw, Download, Calendar, Users, GraduationCap, CheckCircle, Award, Bolt, BarChart, FileText, MessageSquare, Star } from 'lucide-react';
 import { supabase } from '@/db/supabase';
 import { toast } from 'sonner';
 
@@ -113,7 +113,7 @@ export default function AdminReportsPage() {
             <div className="flex justify-between items-start mb-4 relative z-10">
               <span className="font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-widest">Total Students</span>
               <div className="p-2.5 bg-primary/10 rounded-xl text-primary border border-primary/20 shadow-inner">
-                <Group className="w-5 h-5" />
+                <Users className="w-5 h-5" />
               </div>
             </div>
             <div className="relative z-10">
@@ -127,7 +127,7 @@ export default function AdminReportsPage() {
             <div className="flex justify-between items-start mb-4 relative z-10">
               <span className="font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-widest">Completion Rate</span>
               <div className="p-2.5 bg-secondary/10 rounded-xl text-secondary border border-secondary/20 shadow-inner">
-                <TaskAlt className="w-5 h-5" />
+                <CheckCircle className="w-5 h-5" />
               </div>
             </div>
             <div className="relative z-10">
@@ -143,7 +143,7 @@ export default function AdminReportsPage() {
             <div className="flex justify-between items-start mb-4 relative z-10">
               <span className="font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-widest">Certificates</span>
               <div className="p-2.5 bg-warning/10 rounded-xl text-warning border border-warning/20 shadow-inner">
-                <WorkspacePremium className="w-5 h-5" />
+                <Award className="w-5 h-5" />
               </div>
             </div>
             <div className="relative z-10">
@@ -182,7 +182,7 @@ export default function AdminReportsPage() {
 
           <div className="glass-panel border border-border-base rounded-2xl p-6 shadow-sm flex items-start gap-5 hover:bg-surface-container/20 transition-colors">
             <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-secondary to-tertiary-container flex items-center justify-center shrink-0 shadow-inner text-white">
-              <Assignment className="w-6 h-6" />
+              <FileText className="w-6 h-6" />
             </div>
             <div>
               <div className="text-[28px] font-bold text-text-primary leading-none mb-1">{loading ? <Skeleton className="h-8 w-20 bg-surface-container" /> : (stats?.total_submissions ?? 0).toLocaleString()}</div>
@@ -193,7 +193,7 @@ export default function AdminReportsPage() {
 
           <div className="glass-panel border border-border-base rounded-2xl p-6 shadow-sm flex items-start gap-5 hover:bg-surface-container/20 transition-colors">
             <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-warning to-error flex items-center justify-center shrink-0 shadow-inner text-white">
-              <Forum className="w-6 h-6" />
+              <MessageSquare className="w-6 h-6" />
             </div>
             <div>
               <div className="text-[28px] font-bold text-text-primary leading-none mb-1">{loading ? <Skeleton className="h-8 w-20 bg-surface-container" /> : (stats?.forum_posts_count ?? 0).toLocaleString()}</div>
@@ -207,7 +207,7 @@ export default function AdminReportsPage() {
         <section className="glass-panel border border-border-base rounded-2xl overflow-hidden shadow-sm">
           <div className="px-6 md:px-8 py-5 border-b border-border-base flex justify-between items-center bg-surface/50">
             <h3 className="font-headline-md text-[20px] font-bold text-text-primary flex items-center gap-2">
-              <School className="w-5 h-5 text-primary" />
+              <GraduationCap className="w-5 h-5 text-primary" />
               Top Course Engagement
             </h3>
           </div>

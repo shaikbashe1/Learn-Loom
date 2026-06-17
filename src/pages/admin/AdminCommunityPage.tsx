@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/db/supabase';
 import { toast } from 'sonner';
-import { RefreshCw, TrendingUp, Timer, Forum, Visibility, VisibilityOff, Delete } from 'lucide-react';
+import { RefreshCw, TrendingUp, Timer, MessageSquare, Eye, EyeOff, Trash2 } from 'lucide-react';
 
 interface ForumPost {
   id: string;
@@ -149,7 +149,7 @@ export default function AdminCommunityPage() {
         <section className="glass-panel rounded-2xl border border-border-base shadow-sm overflow-hidden flex flex-col">
           <div className="p-6 md:px-8 py-5 border-b border-border-base flex justify-between items-center bg-surface/50">
             <h3 className="font-headline-md text-[20px] font-bold text-text-primary flex items-center gap-2">
-               <Forum className="w-5 h-5 text-primary" />
+               <MessageSquare className="w-5 h-5 text-primary" />
                Forum Directory
             </h3>
           </div>
@@ -173,7 +173,7 @@ export default function AdminCommunityPage() {
                   <tr>
                     <td colSpan={5} className="px-6 py-16 text-center">
                        <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mx-auto mb-4 border border-border-base">
-                         <Forum className="w-6 h-6 text-text-secondary" />
+                         <MessageSquare className="w-6 h-6 text-text-secondary" />
                        </div>
                        <p className="font-headline-md text-[18px] font-bold text-text-primary">No forum posts found</p>
                     </td>
@@ -197,7 +197,7 @@ export default function AdminCommunityPage() {
                         </td>
                         <td className="px-6 py-4 text-center">
                           <div className="flex items-center justify-center gap-1.5 text-text-primary font-bold text-[15px]">
-                            <Forum className="w-4 h-4 text-text-secondary" />
+                            <MessageSquare className="w-4 h-4 text-text-secondary" />
                             {p.reply_count}
                           </div>
                         </td>
@@ -224,14 +224,14 @@ export default function AdminCommunityPage() {
                                   : 'text-warning hover:text-warning hover:bg-surface'
                               }`}
                             >
-                              {p.is_hidden ? <Visibility className="w-5 h-5" /> : <VisibilityOff className="w-5 h-5" />}
+                              {p.is_hidden ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
                             </button>
                             <button
                               onClick={() => deletePost(p.id)}
                               title="Delete post permanently"
                               className="w-10 h-10 rounded-full text-text-secondary hover:text-error hover:bg-surface flex items-center justify-center transition-all shadow-sm border border-transparent hover:border-border-base"
                             >
-                              <Delete className="w-5 h-5" />
+                              <Trash2 className="w-5 h-5" />
                             </button>
                           </div>
                         </td>

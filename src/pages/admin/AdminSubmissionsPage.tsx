@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/db/supabase';
 import { toast } from 'sonner';
-import { RefreshCw, Assignment, TaskAlt, TrendingUp, Code, Description, OpenInNew } from 'lucide-react';
+import { RefreshCw, FileText, CheckCircle, TrendingUp, Code, File, ExternalLink } from 'lucide-react';
 
 interface Submission {
   id: string;
@@ -127,7 +127,7 @@ export default function AdminSubmissionsPage() {
             <div className="flex justify-between items-start mb-4 relative z-10">
               <span className="font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-widest">Total Submissions</span>
               <div className="p-2.5 bg-primary/10 rounded-xl text-primary border border-primary/20 shadow-inner">
-                <Assignment className="w-5 h-5" />
+                <FileText className="w-5 h-5" />
               </div>
             </div>
             <div className="relative z-10">
@@ -140,7 +140,7 @@ export default function AdminSubmissionsPage() {
             <div className="flex justify-between items-start mb-4 relative z-10">
               <span className="font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-widest">Graded Today</span>
               <div className="p-2.5 bg-tertiary/10 rounded-xl text-tertiary border border-tertiary/20 shadow-inner">
-                <TaskAlt className="w-5 h-5" />
+                <CheckCircle className="w-5 h-5" />
               </div>
             </div>
             <div className="relative z-10">
@@ -168,7 +168,7 @@ export default function AdminSubmissionsPage() {
         <section className="glass-panel border border-border-base rounded-2xl shadow-sm overflow-hidden flex flex-col">
           <div className="p-6 md:px-8 py-5 border-b border-border-base flex justify-between items-center bg-surface/50">
             <h3 className="font-headline-md text-[20px] font-bold text-text-primary flex items-center gap-2">
-               <Assignment className="w-5 h-5 text-primary" />
+               <FileText className="w-5 h-5 text-primary" />
                Recent Submissions
             </h3>
           </div>
@@ -192,7 +192,7 @@ export default function AdminSubmissionsPage() {
                   <tr>
                     <td colSpan={5} className="px-6 py-16 text-center">
                        <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mx-auto mb-4 border border-border-base">
-                         <Assignment className="w-6 h-6 text-text-secondary" />
+                         <FileText className="w-6 h-6 text-text-secondary" />
                        </div>
                        <p className="font-headline-md text-[18px] font-bold text-text-primary">No submissions found</p>
                     </td>
@@ -275,14 +275,14 @@ export default function AdminSubmissionsPage() {
                     <a href={selectedSub.file_url} target="_blank" rel="noreferrer" className="mt-6 flex items-center justify-between p-4 rounded-xl border border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors group">
                       <div className="flex items-center gap-3">
                          <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
-                            <Description className="w-5 h-5" />
+                            <File className="w-5 h-5" />
                          </div>
                          <div>
                             <span className="font-bold text-[14px] text-text-primary group-hover:text-primary transition-colors block">View Attached File</span>
                             <span className="text-[12px] text-text-secondary">Click to open in new tab</span>
                          </div>
                       </div>
-                      <OpenInNew className="w-5 h-5 text-primary opacity-50 group-hover:opacity-100 transition-opacity" />
+                      <ExternalLink className="w-5 h-5 text-primary opacity-50 group-hover:opacity-100 transition-opacity" />
                     </a>
                   )}
                 </div>

@@ -3,7 +3,7 @@ import { AppLayout } from '@/components/layouts/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { WorkspacePremium, ShieldLock, Analytics, Search, RefreshCw, VerifiedUser, Block } from 'lucide-react';
+import { Award, ShieldCheck, BarChart, Search, RefreshCw, UserCheck, Ban } from 'lucide-react';
 import { supabase } from '@/db/supabase';
 import { toast } from 'sonner';
 
@@ -87,7 +87,7 @@ export default function AdminCertificatesPage() {
             <div className="flex justify-between items-start mb-4 relative z-10">
               <span className="font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-widest">Total Issued</span>
               <div className="p-2.5 bg-primary/10 rounded-xl text-primary border border-primary/20 shadow-inner">
-                <WorkspacePremium className="w-5 h-5" />
+                <Award className="w-5 h-5" />
               </div>
             </div>
             <div className="relative z-10">
@@ -101,7 +101,7 @@ export default function AdminCertificatesPage() {
             <div className="flex justify-between items-start mb-4 relative z-10">
               <span className="font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-widest">Verification Rate</span>
               <div className="p-2.5 bg-success/10 rounded-xl text-success border border-success/20 shadow-inner">
-                <ShieldLock className="w-5 h-5" />
+                <ShieldCheck className="w-5 h-5" />
               </div>
             </div>
             <div className="relative z-10">
@@ -115,7 +115,7 @@ export default function AdminCertificatesPage() {
             <div className="flex justify-between items-start mb-4 relative z-10">
               <span className="font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-widest">Avg. Score</span>
               <div className="p-2.5 bg-tertiary/10 rounded-xl text-tertiary border border-tertiary/20 shadow-inner">
-                <Analytics className="w-5 h-5" />
+                <BarChart className="w-5 h-5" />
               </div>
             </div>
             <div className="relative z-10">
@@ -165,7 +165,7 @@ export default function AdminCertificatesPage() {
                   <tr>
                     <td colSpan={7} className="px-6 py-20 text-center">
                        <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mx-auto mb-4 border border-border-base">
-                         <WorkspacePremium className="w-6 h-6 text-text-secondary" />
+                         <Award className="w-6 h-6 text-text-secondary" />
                        </div>
                        <p className="font-headline-md text-[18px] font-bold text-text-primary">No certificates found</p>
                     </td>
@@ -226,7 +226,7 @@ export default function AdminCertificatesPage() {
                               className="w-10 h-10 flex items-center justify-center rounded-full text-text-secondary hover:text-primary hover:bg-surface shadow-sm border border-transparent hover:border-border-base transition-all"
                               title="Verify"
                             >
-                              <VerifiedUser className="w-5 h-5" />
+                              <UserCheck className="w-5 h-5" />
                             </button>
                             {cert.is_valid && (
                               <button 
@@ -234,7 +234,7 @@ export default function AdminCertificatesPage() {
                                 className="w-10 h-10 flex items-center justify-center rounded-full text-text-secondary hover:text-error hover:bg-surface shadow-sm border border-transparent hover:border-border-base transition-all"
                                 title="Revoke Certificate"
                               >
-                                <Block className="w-5 h-5" />
+                                <Ban className="w-5 h-5" />
                               </button>
                             )}
                           </div>
