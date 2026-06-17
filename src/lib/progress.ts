@@ -151,12 +151,19 @@ export async function completeModule(
 
   // 7. Auto-award certificate if course is newly completed
   if (isCourseDone) {
-    await supabase.from('certificates').insert({
+    const { error: certErr } = await supabase.from('certificates').insert({
       user_id: userId,
       course_id: courseId,
       score: 100,
       verification_code: ''
     });
+    if (certErr) {
+      console.error('Failed to auto-award certificate:', certErr);
+      // Fallback: alert the user
+      if (typeof window !== 'undefined') {
+        alert('Failed to generate certificate: ' + certErr.message);
+      }
+    }
   }
 
   return { error: null, isCourseDone };
