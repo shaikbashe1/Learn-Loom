@@ -73,7 +73,7 @@ function PostCard({
     setLoadingR(true);
     const { data } = await supabase
       .from('forum_replies')
-      .select('*, profiles!forum_replies_user_id_fkey(full_name, avatar_url)')
+      .select('*, profiles(full_name, avatar_url)')
       .eq('post_id', post.id)
       .is('parent_id', null)
       .order('created_at', { ascending: true })
@@ -314,7 +314,7 @@ export default function CommunityPage() {
     try {
       const { data, error: fetchErr } = await supabase
         .from('forum_posts')
-        .select('*, profiles!forum_posts_user_id_fkey(full_name, avatar_url)')
+        .select('*, profiles(full_name, avatar_url)')
         .order('is_pinned', { ascending: false })
         .order('created_at', { ascending: false })
         .limit(100);
