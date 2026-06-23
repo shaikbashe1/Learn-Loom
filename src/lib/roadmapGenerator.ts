@@ -9,7 +9,23 @@ export async function generateAndSaveRoadmap(
   difficulty: 'beginner' | 'intermediate' | 'advanced'
 ) {
   // 1. Fetch template
-  const template = staticRoadmaps[domain] || staticRoadmaps['web-development'];
+  let template;
+  try {
+    const res = await fetch('/api/ai-roadmap', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ domain, role: targetRole, difficulty })
+    });
+    if (res.ok) {
+      template = await res.json();
+    } else {
+      console.warn("AI generation failed, falling back to static roadmap.");
+      template = staticRoadmaps[domain] || staticRoadmaps['web-development'];
+    }
+  } catch (err) {
+    console.warn("Failed to fetch AI roadmap, falling back to static roadmap.", err);
+    template = staticRoadmaps[domain] || staticRoadmaps['web-development'];
+  }
   
   const roadmapId = uuidv4();
   
@@ -17,7 +33,7 @@ export async function generateAndSaveRoadmap(
   if (difficulty === 'intermediate') multiplier = 0.8;
   if (difficulty === 'advanced') multiplier = 0.5;
 
-  const totalWeeks = Math.max(4, Math.round(template.estimated_weeks * multiplier));
+  const totalWeeks = template.estimated_weeks ? Math.max(4, Math.round(template.estimated_weeks * multiplier)) : 12;
 
   // 2. Insert Roadmap
   const { error: rError } = await supabase.from('user_roadmaps').insert({
@@ -53,7 +69,7 @@ export async function generateAndSaveRoadmap(
     const items = [];
     
     // Convert topics into items
-    phase.topics.forEach((topic, idx) => {
+    (phase.topics || []).forEach((topic: string, idx: number) => {
       items.push({
         id: uuidv4(),
         stage_id: stageId,
@@ -66,7 +82,7 @@ export async function generateAndSaveRoadmap(
     });
 
     // Convert assignments
-    phase.assignments.forEach((asg, idx) => {
+    (phase.assignments || []).forEach((asg: string, idx: number) => {
       items.push({
         id: uuidv4(),
         stage_id: stageId,
