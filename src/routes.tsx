@@ -21,6 +21,7 @@ const AIMentorPage        = lazy(() => import('./pages/student/AIMentorPage'));
 const CodingPracticePage  = lazy(() => import('./pages/student/CodingPracticePage'));
 const CodingAssessmentPage = lazy(() => import('./pages/student/CodingAssessmentPage'));
 const QuizPage            = lazy(() => import('./pages/student/QuizPage'));
+const GrandTestPage       = lazy(() => import('./pages/student/GrandTestPage'));
 const AssignmentPage      = lazy(() => import('./pages/student/AssignmentPage'));
 const LeaderboardPage     = lazy(() => import('./pages/student/LeaderboardPage'));
 const CommunityPage       = lazy(() => import('./pages/student/CommunityPage'));
@@ -71,6 +72,7 @@ export const routes: RouteConfig[] = [
   { name: 'Coding Practice',      path: '/coding',                  component: CodingPracticePage },
   { name: 'Coding Assessment',    path: '/courses/:id/coding-assessment', component: CodingAssessmentPage },
   { name: 'Quiz',                 path: '/quiz/:id',                component: QuizPage },
+  { name: 'Grand Test',           path: '/grand-test',              component: GrandTestPage },
   { name: 'Assignment',           path: '/assignments/:id',         component: AssignmentPage },
   { name: 'Assignments',          path: '/assignments',             component: AssignmentPage },
   { name: 'Leaderboard',          path: '/leaderboard',             component: LeaderboardPage },
