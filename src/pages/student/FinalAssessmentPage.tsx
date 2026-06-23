@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { checkAndAwardCertificate } from '@/lib/progress';
 
 type TestStage = 'instructions' | 'camera' | 'exam' | 'submitted';
 
@@ -16,7 +17,9 @@ interface ExamQuestion {
   explanation?: string;
 }
 
-export default function GrandTestPage() {
+export default function FinalAssessmentPage() {
+  const { id: courseId } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [stage, setStage] = useState<TestStage>('instructions');
   const [cameraOn, setCameraOn] = useState(false);
@@ -44,18 +47,18 @@ export default function GrandTestPage() {
       setCheckingCooldown(true);
       try {
         const { data, error } = await supabase
-          .from('grand_test_attempts')
-          .select('submitted_at')
+          .from('assessment_attempts')
+          .select('created_at')
           .eq('user_id', user.id)
-          .is('course_id', null)
-          .order('submitted_at', { ascending: false })
+          .eq('course_id', courseId)
+          .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle();
 
         if (error) {
           console.error('Error checking cooldown:', error);
         } else if (data && active) {
-          const lastAttemptTime = new Date(data.submitted_at).getTime();
+          const lastAttemptTime = new Date(data.created_at).getTime();
           const elapsedSec = (Date.now() - lastAttemptTime) / 1000;
           const remainingSec = Math.ceil(3600 - elapsedSec);
           if (remainingSec > 0) {
@@ -98,13 +101,13 @@ export default function GrandTestPage() {
     supabase
       .from('grand_test_questions')
       .select('id, question, options, correct_idx, explanation')
-      .is('course_id', null)
+      .eq('course_id', courseId)
       .order('sort_order', { ascending: true })
-      .limit(10)
+      .limit(30)
       .then(({ data, error }) => {
         if (error || !data || data.length === 0) {
-          toast.error('Failed to load exam questions');
-          setStage('instructions');
+          toast.error('No assessment questions found for this course.');
+          navigate(`/courses/${courseId}`);
           return;
         }
         const mapped: ExamQuestion[] = data.map(q => ({
@@ -114,11 +117,15 @@ export default function GrandTestPage() {
           correct: q.correct_idx,
           explanation: q.explanation ?? undefined,
         }));
-        setQuestions(mapped);
-        setAnswers(Array(mapped.length).fill(null));
+        // Randomize questions for the assessment
+        const shuffled = mapped.sort(() => 0.5 - Math.random());
+        const selected = shuffled.slice(0, 20); // Pick up to 20 random questions
+
+        setQuestions(selected);
+        setAnswers(Array(selected.length).fill(null));
         setLoadingQ(false);
       });
-  }, [stage, questions.length]);
+  }, [stage, questions.length, courseId, navigate]);
 
   // Timer
   useEffect(() => {
@@ -196,24 +203,33 @@ export default function GrandTestPage() {
     const passed = questions.length > 0 && scoreVal / questions.length >= 0.6;
 
     // Persist attempt to DB
-    if (user) {
-      const answerLog = questions.map((q, i) => ({
-        question_id: q.id,
-        selected_idx: finalAnswers[i] ?? -1,
-        correct: finalAnswers[i] === q.correct,
-      }));
-      await supabase.from('grand_test_attempts').insert({
-        user_id: user.id,
-        score: scoreVal,
-        total: questions.length,
-        passed,
+    if (user && courseId) {
+      const scorePercentage = Math.round((scoreVal / questions.length) * 100);
+      
+      const metrics = {
+        type: 'mcq',
         tab_switches: tabSwitchesRef.current,
-        answers: answerLog,
+        total_questions: questions.length,
+        answers_log: questions.map((q, i) => ({
+          question_id: q.id,
+          selected_idx: finalAnswers[i] ?? -1,
+          correct: finalAnswers[i] === q.correct,
+        }))
+      };
+
+      await supabase.from('assessment_attempts').insert({
+        user_id: user.id,
+        course_id: courseId,
+        score_percentage: scorePercentage,
+        is_passed: passed,
+        metrics: metrics,
       });
 
       // Award credits if passed
       if (passed) {
-        try { await supabase.rpc('increment_credits', { p_user_id: user.id, p_amount: 50 }); } catch { /* best-effort */ }
+        try { await supabase.rpc('increment_credits', { p_user_id: user.id, p_amount: 100 }); } catch { /* best-effort */ }
+        // Check and award certificate if both assessments are passed
+        await checkAndAwardCertificate(user.id, courseId);
       }
     }
 
@@ -228,7 +244,7 @@ export default function GrandTestPage() {
 
   if (stage === 'instructions') {
     return (
-      <AppLayout title="Grand Test">
+      <AppLayout title="Final Assessment">
         <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg flex justify-center items-center min-h-[calc(100vh-100px)]">
           <div className="glass-panel rounded-2xl p-8 md:p-12 max-w-2xl w-full relative overflow-hidden shadow-lg card-lift">
             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
@@ -237,16 +253,16 @@ export default function GrandTestPage() {
                 <div className="absolute inset-0 bg-primary/5 rounded-2xl"></div>
                 <span className="material-symbols-outlined text-[40px] text-primary relative z-10" style={{ fontVariationSettings: "'FILL' 1" }}>school</span>
               </div>
-              <h2 className="font-display-lg text-display-lg-mobile md:text-display-lg text-text-primary">LearnLoom Grand Test</h2>
-              <p className="font-body-lg text-body-lg text-text-secondary mt-2">Full Stack Development — Certification Exam</p>
+              <h2 className="font-display-lg text-display-lg-mobile md:text-display-lg text-text-primary">Final Assessment</h2>
+              <p className="font-body-lg text-body-lg text-text-secondary mt-2">Comprehensive Certification Exam</p>
             </div>
             
             <div className="grid grid-cols-2 gap-4 mb-10 relative z-10">
               {[
-                { label: 'Questions', value: '10', icon: 'format_list_bulleted' },
+                { label: 'Questions', value: '20', icon: 'format_list_bulleted' },
                 { label: 'Duration', value: '30 min', icon: 'timer' },
                 { label: 'Passing Score', value: '60%', icon: 'flag' },
-                { label: 'Attempts', value: '1 (Proctored)', icon: 'videocam' },
+                { label: 'Attempts', value: 'Proctored', icon: 'videocam' },
               ].map(item => (
                 <div key={item.label} className="p-5 rounded-xl bg-surface border border-border-base text-center flex flex-col items-center shadow-sm">
                   <span className="material-symbols-outlined text-primary mb-2 text-[24px]">{item.icon}</span>
@@ -288,7 +304,7 @@ export default function GrandTestPage() {
                     <div>
                       <p className="font-headline-md text-[18px] font-bold mb-1">Cooldown Active</p>
                       <p className="font-body-sm text-[14px] text-error/80">
-                        You must wait 1 hour between Grand Test attempts. Please try again after the cooldown expires.
+                        You must wait 1 hour between Final Assessment attempts. Please try again after the cooldown expires.
                       </p>
                     </div>
                   </div>
@@ -402,7 +418,7 @@ export default function GrandTestPage() {
             
             <h3 className="font-display-lg text-[40px] font-bold text-text-primary mb-3 relative z-10">{passed ? 'You Passed!' : 'Not Quite Yet'}</h3>
             <p className="font-body-lg text-[16px] text-text-secondary mb-8 relative z-10 max-w-lg mx-auto leading-relaxed">
-              {passed ? 'Congratulations! You have successfully completed the Grand Test and earned your certification.' : 'Keep practicing and try again when you feel ready. Review your mistakes to improve.'}
+              {passed ? 'Congratulations! You have successfully completed the Final Assessment and earned your certification.' : 'Keep practicing and try again when you feel ready. Review your mistakes to improve.'}
             </p>
             
             <div className="bg-surface rounded-xl border border-border-base p-6 mb-8 inline-block min-w-[200px] shadow-sm relative z-10">
@@ -425,10 +441,10 @@ export default function GrandTestPage() {
                 </Link>
               )}
               <button 
-                onClick={() => { setStage('instructions'); setAnswers(Array(questions.length).fill(null)); setQuestions([]); setCurrent(0); }} 
+                onClick={() => navigate(`/courses/${courseId}`)} 
                 className="w-full bg-surface text-text-secondary hover:text-text-primary border border-border-base h-14 rounded-xl font-label-md text-[16px] transition-colors flex justify-center items-center gap-3 shadow-sm card-lift"
               >
-                <span className="material-symbols-outlined text-[20px]">home</span> Back to Instructions
+                <span className="material-symbols-outlined text-[20px]">home</span> Back to Course
               </button>
             </div>
           </div>
@@ -460,7 +476,7 @@ export default function GrandTestPage() {
           <span className="font-headline-md text-[24px] font-bold text-primary">LearnLoom</span>
           <div className="h-6 w-px bg-border-base mx-2 hidden md:block"></div>
           <div className="hidden md:block">
-            <h1 className="font-headline-md text-[18px] font-bold text-text-primary">Certification Grand Test</h1>
+            <h1 className="font-headline-md text-[18px] font-bold text-text-primary">Final Assessment</h1>
             <p className="font-label-sm text-[12px] text-text-secondary flex items-center gap-1">
               <span className="material-symbols-outlined text-[14px]">cloud_done</span> Auto-saving
             </p>

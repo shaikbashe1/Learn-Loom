@@ -62,6 +62,14 @@ export interface DBModule {
   youtube_url?: string | null;
   notes_url?: string | null;
   sort_order?: number;
+  
+  // LMS Strict Progression extensions
+  learning_objectives?: string | null;
+  content?: string | null;
+  diagrams?: Record<string, any>[] | null;
+  code_blocks?: Record<string, any>[] | null;
+  reference_links?: Record<string, any>[] | null;
+  key_takeaways?: Record<string, any>[] | null;
 }
 
 export interface DBAssignment {
@@ -86,6 +94,10 @@ export interface DBQuiz {
   time_limit_minutes?: number;
   passing_score: number;
   created_at: string;
+  // LMS additions
+  pass_percentage?: number;
+  is_randomized?: boolean;
+  randomize_options?: boolean;
 }
 
 export interface DBAssignmentSubmission {
@@ -122,6 +134,9 @@ export interface DBQuizQuestion {
   correct_index?: number;
   explanation?: string | null;
   sort_order: number;
+  // LMS extensions
+  is_multiple_correct?: boolean;
+  correct_options?: number[];
 }
 
 export interface DBCertificate {
@@ -166,6 +181,39 @@ export interface DBCodingProblem {
   starter_code: Record<string, string>;
   is_daily?: boolean;
   credits?: number;
+}
+
+export interface DBCodingQuestion {
+  id: string;
+  course_id: string;
+  title: string;
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  problem_statement: string;
+  constraints: any[];
+  starter_code: Record<string, string>;
+  is_assessment: boolean;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface DBCodingTestCase {
+  id: string;
+  question_id: string;
+  input: string;
+  expected_output: string;
+  is_hidden: boolean;
+  created_at: string;
+}
+
+export interface DBAssessmentAttempt {
+  id: string;
+  user_id: string;
+  course_id: string;
+  score_percentage: number;
+  is_passed: boolean;
+  attempt_number: number;
+  metrics: Record<string, any>;
+  created_at: string;
 }
 
 export interface DBGrandTestQuestion {

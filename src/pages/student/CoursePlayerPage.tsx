@@ -24,6 +24,7 @@ export default function CoursePlayerPage() {
   const [loading, setLoading] = useState(true);
   const [courseDone, setCourseDone] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const [moduleQuizId, setModuleQuizId] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     if (!courseId || !user) return;
@@ -52,10 +53,24 @@ export default function CoursePlayerPage() {
 
     const lastMod = enriched.find(m => m.id === enrollment.last_module_id);
     const firstUnlocked = enriched.find(m => m.status === 'unlocked');
-    setActiveModule(lastMod ?? firstUnlocked ?? enriched[0] ?? null);
+    const currentActive = lastMod ?? firstUnlocked ?? enriched[0] ?? null;
+    setActiveModule(currentActive);
+
+    if (currentActive) {
+      const { data: qData } = await supabase.from('quizzes').select('id').eq('module_id', currentActive.id).maybeSingle();
+      setModuleQuizId(qData?.id ?? null);
+    }
 
     setLoading(false);
   }, [courseId, user, navigate]);
+
+  // Load quiz id when active module changes by clicking sidebar
+  useEffect(() => {
+    if (!activeModule) return;
+    supabase.from('quizzes').select('id').eq('module_id', activeModule.id).maybeSingle().then(({ data }) => {
+      setModuleQuizId(data?.id ?? null);
+    });
+  }, [activeModule?.id]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -217,10 +232,17 @@ export default function CoursePlayerPage() {
                 <div className="flex items-center justify-between mb-8">
                   <h1 className="font-headline-lg text-headline-lg font-bold text-text-primary">{activeModule.title}</h1>
                   {activeModule.status !== 'completed' && !courseDone ? (
-                    <button onClick={handleComplete} disabled={completing} className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-primary text-on-primary font-label-md text-label-md font-bold hover:brightness-110 transition-all shadow-md hover:shadow-lg disabled:opacity-50 shrink-0">
-                      {completing ? <span className="material-symbols-outlined animate-spin text-[20px]">autorenew</span> : <span className="material-symbols-outlined text-[20px]">check_circle</span>}
-                      Mark as Complete
-                    </button>
+                    moduleQuizId ? (
+                      <Link to={`/quiz/${moduleQuizId}`} className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-primary text-on-primary font-label-md text-label-md font-bold hover:brightness-110 transition-all shadow-md hover:shadow-lg shrink-0">
+                        <span className="material-symbols-outlined text-[20px]">quiz</span>
+                        Take Knowledge Check
+                      </Link>
+                    ) : (
+                      <button onClick={handleComplete} disabled={completing} className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-primary text-on-primary font-label-md text-label-md font-bold hover:brightness-110 transition-all shadow-md hover:shadow-lg disabled:opacity-50 shrink-0">
+                        {completing ? <span className="material-symbols-outlined animate-spin text-[20px]">autorenew</span> : <span className="material-symbols-outlined text-[20px]">check_circle</span>}
+                        Mark as Complete
+                      </button>
+                    )
                   ) : (
                     <div className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-primary/30 bg-primary-fixed/30 text-primary font-label-md text-label-md font-bold shrink-0">
                       <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span> Completed
@@ -239,16 +261,37 @@ export default function CoursePlayerPage() {
                 <div className="space-y-8">
                   {activeTab === 'overview' && (
                     <div className="prose prose-slate max-w-none font-body-lg text-body-lg text-text-primary">
-                      <div className="mb-4 whitespace-pre-wrap">{activeModule.description}</div>
+                      {activeModule.learning_objectives && (
+                        <div className="mb-6 p-6 bg-surface-container-lowest border border-border-base rounded-2xl shadow-sm">
+                          <h3 className="text-xl font-bold text-primary mb-3 flex items-center gap-2">
+                            <span className="material-symbols-outlined">flag</span> Learning Objectives
+                          </h3>
+                          <div className="whitespace-pre-wrap">{activeModule.learning_objectives}</div>
+                        </div>
+                      )}
+
+                      {activeModule.content && (
+                        <div className="mb-8" dangerouslySetInnerHTML={{ __html: activeModule.content }} />
+                      )}
+                      {!activeModule.content && (
+                        <div className="mb-4 whitespace-pre-wrap">{activeModule.description}</div>
+                      )}
                       
                       {courseDone && (
                         <div className="bg-surface-bright p-6 rounded-2xl border border-border-base my-6 shadow-sm flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left mt-8">
-                          <span className="material-symbols-outlined text-[40px] text-primary">workspace_premium</span>
+                          <span className="material-symbols-outlined text-[40px] text-primary">school</span>
                           <div className="flex-1">
-                            <h4 className="font-headline-sm text-headline-sm font-bold text-primary mb-1">Course Completed! 🎉</h4>
-                            <p className="font-body-sm text-text-secondary mb-4 sm:mb-0">You've finished all modules. Check your certificates page.</p>
+                            <h4 className="font-headline-sm text-headline-sm font-bold text-primary mb-1">Modules Completed! 🎉</h4>
+                            <p className="font-body-sm text-text-secondary mb-4 sm:mb-0">You've finished all learning modules. Complete the final assessments to earn your certificate.</p>
                           </div>
-                          <Link to="/certificates" className="px-6 py-2.5 bg-primary text-on-primary rounded-full font-label-sm font-bold shadow-md hover:shadow-lg shrink-0 transition-all hover:-translate-y-0.5">View Certificate</Link>
+                          <div className="flex flex-col sm:flex-row gap-3">
+                            <Link to={`/courses/${courseId}/assessment`} className="px-6 py-2.5 bg-primary text-on-primary rounded-full font-label-sm font-bold shadow-md hover:shadow-lg shrink-0 transition-all hover:-translate-y-0.5 text-center flex items-center gap-2 justify-center">
+                               <span className="material-symbols-outlined text-[18px]">quiz</span> MCQ Test
+                            </Link>
+                            <Link to={`/courses/${courseId}/coding-assessment`} className="px-6 py-2.5 bg-surface text-primary border border-primary rounded-full font-label-sm font-bold shadow-sm hover:bg-primary/5 shrink-0 transition-all hover:-translate-y-0.5 text-center flex items-center gap-2 justify-center">
+                               <span className="material-symbols-outlined text-[18px]">code</span> Coding Test
+                            </Link>
+                          </div>
                         </div>
                       )}
                     </div>

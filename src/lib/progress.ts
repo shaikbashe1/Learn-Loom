@@ -169,6 +169,47 @@ export async function completeModule(
   return { error: null, isCourseDone };
 }
 
+/**
+ * Checks if a user has passed both MCQ and Coding final assessments.
+ * If so, automatically awards them a certificate for the course.
+ */
+export async function checkAndAwardCertificate(userId: string, courseId: string) {
+  const { data: attempts } = await supabase
+    .from('assessment_attempts')
+    .select('is_passed, metrics, score_percentage')
+    .eq('user_id', userId)
+    .eq('course_id', courseId)
+    .eq('is_passed', true);
+
+  if (!attempts || attempts.length === 0) return;
+
+  const hasMCQ = attempts.find(a => a.metrics?.type === 'mcq');
+  const hasCoding = attempts.find(a => a.metrics?.type === 'coding');
+
+  if (hasMCQ && hasCoding) {
+    // Average score
+    const avgScore = Math.round((hasMCQ.score_percentage + hasCoding.score_percentage) / 2);
+    
+    // Check if certificate already exists
+    const { data: existing } = await supabase
+      .from('certificates')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('course_id', courseId)
+      .maybeSingle();
+
+    if (!existing) {
+      await supabase.from('certificates').insert({
+        user_id: userId,
+        course_id: courseId,
+        score: avgScore,
+        verification_code: Math.random().toString(36).substr(2, 9).toUpperCase(),
+        is_valid: true
+      });
+    }
+  }
+}
+
 // ── Dashboard helpers ─────────────────────────────────────────────────────────
 
 /** Get all enrollments for a user with joined course data. */

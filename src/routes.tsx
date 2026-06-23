@@ -19,11 +19,12 @@ const CoursePlayerPage    = lazy(() => import('./pages/student/CoursePlayerPage'
 const AIRoadmapPage       = lazy(() => import('./pages/student/AIRoadmapPage'));
 const AIMentorPage        = lazy(() => import('./pages/student/AIMentorPage'));
 const CodingPracticePage  = lazy(() => import('./pages/student/CodingPracticePage'));
+const CodingAssessmentPage = lazy(() => import('./pages/student/CodingAssessmentPage'));
 const QuizPage            = lazy(() => import('./pages/student/QuizPage'));
 const AssignmentPage      = lazy(() => import('./pages/student/AssignmentPage'));
 const LeaderboardPage     = lazy(() => import('./pages/student/LeaderboardPage'));
 const CommunityPage       = lazy(() => import('./pages/student/CommunityPage'));
-const GrandTestPage       = lazy(() => import('./pages/student/GrandTestPage'));
+const FinalAssessmentPage = lazy(() => import('./pages/student/FinalAssessmentPage'));
 const CertificatePage     = lazy(() => import('./pages/student/CertificatePage'));
 const ProfilePage         = lazy(() => import('./pages/student/ProfilePage'));
 const PricingPage         = lazy(() => import('./pages/student/PricingPage'));
@@ -38,9 +39,7 @@ const AdminReportsPage    = lazy(() => import('./pages/admin/AdminReportsPage'))
 const AdminCommunityPage  = lazy(() => import('./pages/admin/AdminCommunityPage'));
 const AdminSubmissionsPage = lazy(() => import('./pages/admin/AdminSubmissionsPage'));
 const AdminRoadmapsPage   = lazy(() => import('./pages/admin/AdminRoadmapsPage'));
-const AdminScrapingPage   = lazy(() => import('./pages/admin/AdminScrapingPage').then(module => ({ default: module.AdminScrapingPage })));
 const AdminDraftCoursesPage = lazy(() => import('./pages/admin/AdminDraftCoursesPage').then(module => ({ default: module.AdminDraftCoursesPage })));
-const AdminAutomationPage   = lazy(() => import('./pages/admin/AdminAutomationPage').then(module => ({ default: module.AdminAutomationPage })));
 
 export interface RouteConfig {
   name: string;
@@ -70,12 +69,13 @@ export const routes: RouteConfig[] = [
   { name: 'AI Roadmap',           path: '/ai-roadmap',              component: AIRoadmapPage },
   { name: 'AI Mentor',            path: '/ai-mentor',               component: AIMentorPage },
   { name: 'Coding Practice',      path: '/coding',                  component: CodingPracticePage },
+  { name: 'Coding Assessment',    path: '/courses/:id/coding-assessment', component: CodingAssessmentPage },
   { name: 'Quiz',                 path: '/quiz/:id',                component: QuizPage },
   { name: 'Assignment',           path: '/assignments/:id',         component: AssignmentPage },
   { name: 'Assignments',          path: '/assignments',             component: AssignmentPage },
   { name: 'Leaderboard',          path: '/leaderboard',             component: LeaderboardPage },
   { name: 'Community',            path: '/community',               component: CommunityPage },
-  { name: 'Grand Test',           path: '/grand-test',              component: GrandTestPage },
+  { name: 'Final Assessment',     path: '/courses/:id/assessment',  component: FinalAssessmentPage },
   { name: 'Certificates',         path: '/certificates',            component: CertificatePage },
   { name: 'Profile',              path: '/profile',                 component: ProfilePage },
   { name: 'Pricing',              path: '/pricing',                 component: PricingPage,       public: true },
@@ -90,7 +90,5 @@ export const routes: RouteConfig[] = [
   { name: 'Admin Community',      path: '/admin/community',         component: AdminCommunityPage },
   { name: 'Admin Submissions',    path: '/admin/submissions',       component: AdminSubmissionsPage },
   { name: 'Admin Roadmaps',       path: '/admin/roadmaps',          component: AdminRoadmapsPage },
-  { name: 'Auto-Import Courses',  path: '/admin/scraping',          component: AdminScrapingPage },
   { name: 'Review Drafts',        path: '/admin/courses/drafts',    component: AdminDraftCoursesPage },
-  { name: 'Factory Automation',   path: '/admin/automation',        component: AdminAutomationPage },
 ];

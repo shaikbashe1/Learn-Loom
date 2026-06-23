@@ -3,13 +3,16 @@ import { AppLayout } from '@/components/layouts/AppLayout';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { completeModule } from '@/lib/progress';
 
 interface Quiz {
   id: string;
   title: string;
   passing_score: number;
   course_id: string;
+  module_id: string | null;
   is_grand_test: boolean;
   courses?: { title: string };
 }
@@ -30,6 +33,7 @@ interface Attempt {
 
 export default function QuizPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -118,6 +122,11 @@ export default function QuizPage() {
       toast[passed ? 'success' : 'info'](passed ? `Passed! Score: ${score}%` : `Score: ${score}% — Keep practising!`);
       // Log activity for streak tracking (fire-and-forget)
       void supabase.rpc('log_activity', { p_user_id: user.id, p_type: 'quiz', p_value: 1 }).then(() => {});
+
+      if (passed && selectedQuiz.module_id) {
+        // Unlock next module
+        void completeModule(user.id, selectedQuiz.course_id, selectedQuiz.module_id);
+      }
     }
     setSubmitting(false);
     setShowResult(true);
@@ -309,10 +318,13 @@ export default function QuizPage() {
         <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg space-y-stack-xl relative z-10">
           <div className="flex items-center gap-2 mb-6">
             <button 
-              onClick={reset}
+              onClick={() => {
+                if (selectedQuiz) navigate(`/courses/${selectedQuiz.course_id}`);
+                else reset();
+              }}
               className="flex items-center gap-1 text-text-secondary hover:text-primary transition-colors font-label-md text-label-md bg-surface px-4 py-2 rounded-lg border border-border-base shadow-sm card-lift"
             >
-              <span className="material-symbols-outlined text-[18px]">arrow_back</span> Back to Quizzes
+              <span className="material-symbols-outlined text-[18px]">arrow_back</span> Back to Course
             </button>
           </div>
           
