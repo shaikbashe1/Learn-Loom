@@ -51,7 +51,15 @@ export default function SignupPage() {
     setLoading(true);
     const { error, needsVerification } = await signUpWithEmail(email, password, name);
     setLoading(false);
-    if (error) { toast.error('Sign up failed', { description: error.message }); return; }
+    if (error) { 
+      if (error.message === 'User already exists') {
+        toast.error('Account already exists!', { description: 'Please log in instead.' });
+        setTimeout(() => navigate('/login'), 2000);
+      } else {
+        toast.error('Sign up failed', { description: error.message }); 
+      }
+      return; 
+    }
     if (needsVerification) {
       setSubmittedEmail(email);
       setStage('verify-sent');
