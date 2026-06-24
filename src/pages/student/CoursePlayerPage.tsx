@@ -26,6 +26,11 @@ export default function CoursePlayerPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [moduleQuizId, setModuleQuizId] = useState<string | null>(null);
 
+  // AI Learning Assistant state
+  const [aiTutorOpen, setAiTutorOpen] = useState(false);
+  const [aiTutorResponse, setAiTutorResponse] = useState('');
+  const [aiTutorLoading, setAiTutorLoading] = useState(false);
+
   const loadData = useCallback(async () => {
     if (!courseId || !user) return;
 
@@ -57,19 +62,38 @@ export default function CoursePlayerPage() {
     setActiveModule(currentActive);
 
     if (currentActive) {
-      const { data: qData } = await supabase.from('quizzes').select('id').eq('module_id', currentActive.id).maybeSingle();
-      setModuleQuizId(qData?.id ?? null);
+      // Load all quizzes for this module
+      const { data: qData } = await supabase.from('quizzes').select('*').eq('module_id', currentActive.id).order('quiz_type');
+      
+      // Load coding assessment for this module
+      const { data: cData } = await supabase.from('coding_questions').select('id').eq('module_id', currentActive.id).maybeSingle();
+      
+      currentActive.quizzes = qData || [];
+      currentActive.codingId = cData?.id || null;
+
+      // Check which are passed
+      const qIds = currentActive.quizzes.map((q: any) => q.id);
+      if (qIds.length > 0) {
+        const { data: attempts } = await supabase.from('quiz_attempts').select('quiz_id, passed').in('quiz_id', qIds).eq('user_id', user.id).eq('passed', true);
+        currentActive.passedQuizzes = (attempts || []).map((a: any) => a.quiz_id);
+      } else {
+        currentActive.passedQuizzes = [];
+      }
+
+      // Check if coding is passed
+      if (currentActive.codingId) {
+         const { data: cAtt } = await supabase.from('assessment_attempts').select('is_passed').eq('user_id', user.id).eq('module_id', currentActive.id).eq('is_passed', true).maybeSingle();
+         currentActive.codingPassed = !!cAtt?.is_passed;
+      }
     }
 
     setLoading(false);
   }, [courseId, user, navigate]);
 
-  // Load quiz id when active module changes by clicking sidebar
+  // Load quizzes when active module changes
   useEffect(() => {
     if (!activeModule) return;
-    supabase.from('quizzes').select('id').eq('module_id', activeModule.id).maybeSingle().then(({ data }) => {
-      setModuleQuizId(data?.id ?? null);
-    });
+    loadData(); // Re-run load data to get the new active module's details
   }, [activeModule?.id]);
 
   useEffect(() => { loadData(); }, [loadData]);
@@ -99,6 +123,33 @@ export default function CoursePlayerPage() {
   };
 
   const canAccess = (mod: ModuleWithStatus) => mod.status !== 'locked';
+
+  const askAiTutor = async (action: 'simplify' | 'explain' | 'example') => {
+    if (!activeModule) return;
+    setAiTutorOpen(true);
+    setAiTutorLoading(true);
+    try {
+      const promptMap = {
+        simplify: 'Please simplify the core concepts of this module for a beginner.',
+        explain: 'Please explain this module in more depth with step-by-step reasoning.',
+        example: 'Please provide a real-world example applying the concepts of this module.'
+      };
+      // In a real implementation this would hit an API endpoint that has the Gemini key
+      // For demo purposes within the strict time constraints, we'll hit the ai-roadmap endpoint with a tailored prompt
+      const res = await fetch('/api/ai-roadmap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain: activeModule.title, role: promptMap[action], difficulty: 'Beginner' })
+      });
+      if (!res.ok) throw new Error('Failed to reach AI Tutor');
+      const data = await res.json();
+      setAiTutorResponse(data.description || data.title || JSON.stringify(data));
+    } catch (err: any) {
+      setAiTutorResponse(`Sorry, I couldn't process that request: ${err.message}`);
+    } finally {
+      setAiTutorLoading(false);
+    }
+  };
 
   if (loading) return (
     <AppLayout title="Course Player">
@@ -229,24 +280,101 @@ export default function CoursePlayerPage() {
           <div className="max-w-4xl w-full mx-auto p-8 pb-32">
             {activeModule && (
               <>
-                <div className="flex items-center justify-between mb-8">
-                  <h1 className="font-headline-lg text-headline-lg font-bold text-text-primary">{activeModule.title}</h1>
-                  {activeModule.status !== 'completed' && !courseDone ? (
-                    moduleQuizId ? (
-                      <Link to={`/quiz/${moduleQuizId}`} className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-primary text-on-primary font-label-md text-label-md font-bold hover:brightness-110 transition-all shadow-md hover:shadow-lg shrink-0">
-                        <span className="material-symbols-outlined text-[20px]">quiz</span>
-                        Take Knowledge Check
-                      </Link>
-                    ) : (
-                      <button onClick={handleComplete} disabled={completing} className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-primary text-on-primary font-label-md text-label-md font-bold hover:brightness-110 transition-all shadow-md hover:shadow-lg disabled:opacity-50 shrink-0">
-                        {completing ? <span className="material-symbols-outlined animate-spin text-[20px]">autorenew</span> : <span className="material-symbols-outlined text-[20px]">check_circle</span>}
-                        Mark as Complete
-                      </button>
-                    )
-                  ) : (
-                    <div className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-primary/30 bg-primary-fixed/30 text-primary font-label-md text-label-md font-bold shrink-0">
-                      <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span> Completed
-                    </div>
+                <div className="flex flex-col gap-4 mb-8">
+                  <div className="flex items-center justify-between">
+                    <h1 className="font-headline-lg text-headline-lg font-bold text-text-primary">{activeModule.title}</h1>
+                    {activeModule.status === 'completed' && (
+                      <div className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-primary/30 bg-primary-fixed/30 text-primary font-label-md text-label-md font-bold shrink-0">
+                        <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span> Completed
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Strict Learning Locks UI */}
+                  {activeModule.status !== 'completed' && !courseDone && (
+                     <div className="bg-surface-container-low border border-border-base rounded-xl p-6 flex flex-col gap-4">
+                        <h3 className="font-bold text-text-primary text-[16px] flex items-center gap-2">
+                           <span className="material-symbols-outlined text-tertiary">lock</span> Module Requirements
+                        </h3>
+                        <div className="flex flex-wrap gap-4">
+                           {/* Render Quiz 1 if exists */}
+                           {activeModule.quizzes?.find((q: any) => q.quiz_type === 'quiz_1') && (() => {
+                              const q = activeModule.quizzes.find((q: any) => q.quiz_type === 'quiz_1');
+                              const passed = activeModule.passedQuizzes?.includes(q.id);
+                              return (
+                                 <Link to={`/quiz/${q.id}`} className={`flex items-center gap-2 px-5 py-2 rounded-lg font-bold text-sm shadow-sm transition-all ${passed ? 'bg-success/20 text-success border border-success/30 pointer-events-none' : 'bg-primary text-on-primary hover:brightness-110'}`}>
+                                    <span className="material-symbols-outlined text-[18px]">{passed ? 'check_circle' : 'quiz'}</span>
+                                    {passed ? 'Quiz 1 Passed' : 'Take Quiz 1'}
+                                 </Link>
+                              );
+                           })()}
+
+                           {/* Render Quiz 2 if exists (Locked behind Quiz 1) */}
+                           {activeModule.quizzes?.find((q: any) => q.quiz_type === 'quiz_2') && (() => {
+                              const q1 = activeModule.quizzes.find((q: any) => q.quiz_type === 'quiz_1');
+                              const q2 = activeModule.quizzes.find((q: any) => q.quiz_type === 'quiz_2');
+                              const q1Passed = !q1 || activeModule.passedQuizzes?.includes(q1.id);
+                              const passed = activeModule.passedQuizzes?.includes(q2.id);
+                              
+                              if (!q1Passed) {
+                                return (
+                                   <div className="flex items-center gap-2 px-5 py-2 rounded-lg font-bold text-sm border border-border-base bg-surface text-text-secondary opacity-60 cursor-not-allowed">
+                                      <span className="material-symbols-outlined text-[18px]">lock</span> Quiz 2 (Locked)
+                                   </div>
+                                );
+                              }
+                              return (
+                                 <Link to={`/quiz/${q2.id}`} className={`flex items-center gap-2 px-5 py-2 rounded-lg font-bold text-sm shadow-sm transition-all ${passed ? 'bg-success/20 text-success border border-success/30 pointer-events-none' : 'bg-tertiary text-on-tertiary hover:brightness-110'}`}>
+                                    <span className="material-symbols-outlined text-[18px]">{passed ? 'check_circle' : 'psychology'}</span>
+                                    {passed ? 'Quiz 2 Passed' : 'Take Quiz 2 (Scenario)'}
+                                 </Link>
+                              );
+                           })()}
+
+                           {/* Render Coding Assessment if exists (Locked behind Quiz 2) */}
+                           {activeModule.codingId && (() => {
+                              const q2 = activeModule.quizzes?.find((q: any) => q.quiz_type === 'quiz_2');
+                              const q2Passed = !q2 || activeModule.passedQuizzes?.includes(q2.id);
+                              const passed = activeModule.codingPassed;
+
+                              if (!q2Passed) {
+                                return (
+                                   <div className="flex items-center gap-2 px-5 py-2 rounded-lg font-bold text-sm border border-border-base bg-surface text-text-secondary opacity-60 cursor-not-allowed">
+                                      <span className="material-symbols-outlined text-[18px]">lock</span> Coding Test (Locked)
+                                   </div>
+                                );
+                              }
+                              return (
+                                 <Link to={`/courses/${courseId}/coding-assessment?moduleId=${activeModule.id}`} className={`flex items-center gap-2 px-5 py-2 rounded-lg font-bold text-sm shadow-sm transition-all ${passed ? 'bg-success/20 text-success border border-success/30 pointer-events-none' : 'bg-secondary text-on-secondary hover:brightness-110'}`}>
+                                    <span className="material-symbols-outlined text-[18px]">{passed ? 'check_circle' : 'code'}</span>
+                                    {passed ? 'Coding Passed' : 'Take Coding Test'}
+                                 </Link>
+                              );
+                           })()}
+
+                           {/* Complete Module Button (Locked behind all others) */}
+                           {(() => {
+                              const q1 = activeModule.quizzes?.find((q: any) => q.quiz_type === 'quiz_1');
+                              const q2 = activeModule.quizzes?.find((q: any) => q.quiz_type === 'quiz_2');
+                              const q1Passed = !q1 || activeModule.passedQuizzes?.includes(q1.id);
+                              const q2Passed = !q2 || activeModule.passedQuizzes?.includes(q2.id);
+                              const codingPassed = !activeModule.codingId || activeModule.codingPassed;
+                              
+                              const allPassed = q1Passed && q2Passed && codingPassed;
+
+                              return (
+                                 <button 
+                                   onClick={handleComplete} 
+                                   disabled={completing || !allPassed} 
+                                   className="flex items-center gap-2 px-5 py-2 rounded-lg font-bold text-sm shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white ml-auto"
+                                 >
+                                    {completing ? <span className="material-symbols-outlined animate-spin text-[18px]">autorenew</span> : <span className="material-symbols-outlined text-[18px]">{allPassed ? 'arrow_forward' : 'lock'}</span>}
+                                    {allPassed ? 'Mark Complete & Continue' : 'Finish requirements to unlock'}
+                                 </button>
+                              );
+                           })()}
+                        </div>
+                     </div>
                   )}
                 </div>
 
@@ -326,6 +454,38 @@ export default function CoursePlayerPage() {
               </>
             )}
           </div>
+
+          {/* AI Tutor Widget */}
+          {activeModule && (
+            <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4">
+               {aiTutorOpen && (
+                 <div className="bg-surface border border-border-base rounded-2xl shadow-2xl p-6 w-80 max-h-96 overflow-y-auto card-lift">
+                    <div className="flex justify-between items-center mb-4">
+                       <h4 className="font-bold text-tertiary flex items-center gap-2"><span className="material-symbols-outlined text-[18px]">smart_toy</span> AI Tutor</h4>
+                       <button onClick={() => setAiTutorOpen(false)} className="text-text-secondary hover:text-text-primary"><span className="material-symbols-outlined text-[18px]">close</span></button>
+                    </div>
+                    {aiTutorLoading ? (
+                       <div className="flex items-center gap-2 text-text-secondary">
+                          <span className="material-symbols-outlined animate-spin text-[18px]">autorenew</span> Thinking...
+                       </div>
+                    ) : (
+                       <div className="text-sm text-text-primary whitespace-pre-wrap">{aiTutorResponse}</div>
+                    )}
+                 </div>
+               )}
+               
+               {!aiTutorOpen && (
+                 <div className="flex flex-col items-end gap-2">
+                   <button onClick={() => askAiTutor('simplify')} className="bg-surface text-text-primary border border-border-base px-4 py-2 rounded-full text-xs font-bold shadow-md hover:bg-surface-container transition-all flex items-center gap-2">
+                     <span className="material-symbols-outlined text-[14px]">psychology</span> Simplify
+                   </button>
+                   <button onClick={() => askAiTutor('example')} className="bg-surface text-text-primary border border-border-base px-4 py-2 rounded-full text-xs font-bold shadow-md hover:bg-surface-container transition-all flex items-center gap-2">
+                     <span className="material-symbols-outlined text-[14px]">lightbulb</span> Give Example
+                   </button>
+                 </div>
+               )}
+            </div>
+          )}
         </section>
         
       </div>

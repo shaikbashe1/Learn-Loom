@@ -124,8 +124,7 @@ export default function QuizPage() {
       void supabase.rpc('log_activity', { p_user_id: user.id, p_type: 'quiz', p_value: 1 }).then(() => {});
 
       if (passed && selectedQuiz.module_id) {
-        // Unlock next module
-        void completeModule(user.id, selectedQuiz.course_id, selectedQuiz.module_id);
+        // Progression is handled by CoursePlayerPage which requires all quizzes/assessments to be passed before marking complete
       }
     }
     setSubmitting(false);

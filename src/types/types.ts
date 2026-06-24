@@ -95,6 +95,7 @@ export interface DBQuiz {
   passing_score: number;
   created_at: string;
   // LMS additions
+  quiz_type?: 'quiz_1' | 'quiz_2' | 'final_assessment' | 'standard';
   pass_percentage?: number;
   is_randomized?: boolean;
   randomize_options?: boolean;
@@ -186,6 +187,7 @@ export interface DBCodingProblem {
 export interface DBCodingQuestion {
   id: string;
   course_id: string;
+  module_id?: string | null;
   title: string;
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
   problem_statement: string;
