@@ -151,6 +151,7 @@ export default function LoginPage() {
                     required 
                     type="email"
                     value={email}
+                    autoComplete="username"
                     onChange={e => setEmail(e.target.value)}
                   />
                 </div>
@@ -169,6 +170,7 @@ export default function LoginPage() {
                     required 
                     type={showPassword ? 'text' : 'password'}
                     value={password}
+                    autoComplete="current-password"
                     onChange={e => setPassword(e.target.value)}
                   />
                   <button onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-4 flex items-center text-text-secondary hover:text-primary transition-colors" type="button">

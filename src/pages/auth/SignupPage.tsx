@@ -240,6 +240,7 @@ export default function SignupPage() {
                         required 
                         type="text"
                         value={name}
+                        autoComplete="name"
                         onChange={e => setName(e.target.value)}
                       />
                     </div>
@@ -258,6 +259,7 @@ export default function SignupPage() {
                         required 
                         type="email"
                         value={email}
+                        autoComplete="email"
                         onChange={e => setEmail(e.target.value)}
                       />
                     </div>
@@ -276,6 +278,7 @@ export default function SignupPage() {
                         required 
                         type={showPassword ? 'text' : 'password'}
                         value={password}
+                        autoComplete="new-password"
                         onChange={e => setPassword(e.target.value)}
                       />
                       <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-secondary hover:text-primary transition-colors">
