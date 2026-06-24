@@ -137,7 +137,11 @@ export default function LoginPage() {
               </div>
             )}
 
-            <form onSubmit={handleLogin} className="space-y-stack-md">
+            <form onSubmit={handleLogin} className="space-y-stack-md" autoComplete="off">
+              {/* Dummy hidden inputs to defeat aggressive browser autofill */}
+              <input type="email" style={{ display: 'none' }} name="fake_email_autofill" />
+              <input type="password" style={{ display: 'none' }} name="fake_password_autofill" />
+
               <div>
                 <label className="block font-label-md text-label-md text-text-primary mb-2" htmlFor="email">Email Address</label>
                 <div className="relative">

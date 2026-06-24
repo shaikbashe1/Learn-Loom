@@ -226,7 +226,11 @@ export default function SignupPage() {
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSignup} className="space-y-4">
+                <form onSubmit={handleSignup} className="space-y-stack-md" autoComplete="off">
+                  {/* Dummy hidden inputs to defeat aggressive browser autofill */}
+                  <input type="email" style={{ display: 'none' }} name="fake_email_autofill" />
+                  <input type="password" style={{ display: 'none' }} name="fake_password_autofill" />
+
                   <div>
                     <label className="block font-label-md text-label-md text-text-primary mb-1" htmlFor="name">Full Name</label>
                     <div className="relative">
