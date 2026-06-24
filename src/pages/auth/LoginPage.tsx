@@ -7,6 +7,8 @@ export default function LoginPage() {
   const [showPassword, setShowPassword]   = useState(false);
   const [email, setEmail]                 = useState('');
   const [password, setPassword]           = useState('');
+  const [emailFocused, setEmailFocused]   = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
   const [loading, setLoading]             = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [githubLoading, setGithubLoading] = useState(false);
@@ -155,7 +157,10 @@ export default function LoginPage() {
                     required 
                     type="email"
                     value={email}
-                    autoComplete="username"
+                    autoComplete="new-password"
+                    readOnly={!emailFocused}
+                    onFocus={() => setEmailFocused(true)}
+                    onBlur={() => setEmailFocused(false)}
                     onChange={e => setEmail(e.target.value)}
                   />
                 </div>
@@ -174,7 +179,10 @@ export default function LoginPage() {
                     required 
                     type={showPassword ? 'text' : 'password'}
                     value={password}
-                    autoComplete="current-password"
+                    autoComplete="new-password"
+                    readOnly={!passwordFocused}
+                    onFocus={() => setPasswordFocused(true)}
+                    onBlur={() => setPasswordFocused(false)}
                     onChange={e => setPassword(e.target.value)}
                   />
                   <button onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-4 flex items-center text-text-secondary hover:text-primary transition-colors" type="button">
