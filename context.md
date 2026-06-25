@@ -44,6 +44,10 @@ LearnLoom is an advanced, AI-driven learning ecosystem designed for software eng
 - **Premium Course display**: Integrated structured tabs and card panels in `CoursePlayerPage.tsx` to display concepts, real-world scenarios, and code walkthroughs beautifully.
 - **Verification Gates**: Removed the automatic certificate generation trigger and client-side auto-award logic. Added check for coding questions. Established final assessments (MCQ & Coding) as required gates for certificates.
 
+### 7. Supabase RLS Hardening & TypeScript Safety Enforcement
+- **Database Row-Level Security (RLS) Hardening**: Dropped the loose, public insert policy `certs_insert_service` (which had `WITH CHECK (true)`) on `certificates`. Added `certs_insert_own` ensuring students can only insert certificates corresponding to their authenticated UID (`auth.uid()::text = user_id::text`), and restricted wildcard inserts with an admin-only `admins_insert_all` policy. Added `admins_view_attempts` on the `assessment_attempts` table so that admin roles can properly monitor student attempts.
+- **TypeScript Safety Enforcement**: Refactored the `user` and `debug` state and function signatures in `AuthContext.tsx` to use strict types (`User` from Supabase and custom `Profile` interfaces) instead of `any`. Unified the local duplicate `interface Certificate` in `CertificatePage.tsx` with the globally defined `DBCertificate` interface in `types.ts`. Replaced multiple occurrences of generic `any` mapping objects in `AdminCoursesPage.tsx`, `AdminRoadmapsPage.tsx`, and `CoursePlayerPage.tsx`. Explicitly typed `constraints: string[]` in `DBCodingQuestion` and other properties in `types.ts`. Cleaned up page state assertions and casted dynamic Supabase join returns using structured objects rather than `any` in `AIMentorChat.tsx`, `CodingAssessmentPage.tsx`, and `ProfilePage.tsx`.
+
 ## Issues Faced & Resolutions
 
 ### Issue 1: Authentication Profile & UUID Mismatches
@@ -81,6 +85,14 @@ LearnLoom is an advanced, AI-driven learning ecosystem designed for software eng
 **Resolution:** 
 1. Dropped the auto-award completion trigger `trg_course_completion_certificate` and removed direct certificate insertion on progress completion.
 2. Configured a strict validation gate inside `checkAndAwardCertificate` that verifies passing attempts for both the Final MCQ Assessment and the Final Coding Assessment (if the course has coding questions) before issuing a verified certificate.
+
+### Issue 8: Vulnerable Certificate Insertion Policy (certs_insert_service)
+**Problem:** The previous `certificates` insert policy `certs_insert_service` was checking `true` and allowing anyone to insert certificates for arbitrary users with arbitrary scores, presenting a major vulnerability in verification legitimacy.
+**Resolution:** Created a database migration (`20260625120000_harden_rls_policies.sql`) to drop `certs_insert_service` and enforce a new `certs_insert_own` check requiring `auth.uid()::text = user_id::text` along with an admin-only fallback.
+
+### Issue 9: Compiler Gaps and Loose 'any' Types in Auth Context and Page Components
+**Problem:** The codebase contained generic `any` overrides and duplicate local types (like local `Certificate` interfaces), which hid type mismatches and bypassed strict TypeScript compilation checks.
+**Resolution:** Explicitly typed user context states and parameters, imported the global database schemas from `types.ts`, and casted Supabase joined query payloads to structured types, leading to a clean, error-free production build.
 
 ## Reference File & Folder Structure
 
