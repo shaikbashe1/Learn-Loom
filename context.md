@@ -31,6 +31,13 @@ LearnLoom is an advanced, AI-driven learning ecosystem designed for software eng
 - **Bug Fixes:** Fixed Vite build errors related to invalid `lucide-react` icon exports in Admin pages (`AdminCertificatesPage`, `AdminReportsPage`, `AdminCommunityPage`, `AdminSubmissionsPage`).
 - **Admin Dashboard & Extension Pages:** Successfully migrated all enterprise admin views, including `AdminDashboard`, `AdminCoursesPage`, `AdminStudentsPage`, `AdminReportsPage`, `AdminCommunityPage`, `AdminCertificatesPage`, `AdminRoadmapsPage`, `AdminSubmissionsPage`, `AdminJobsPage`, `AdminNotificationsPage`, `AdminOrganizationsPage`, `AdminResumesPage`, `AdminRewardsPage`, `AdminCompilerPage`, `AdminAISettingsPage`, and `AdminGrandTestPage`, to utilize the premium `AppLayout` wrapper and glass-panel utility classes.
 
+### 5. Production Security Hardening & Vulnerability Remediation
+- **API Access Control:** Implemented route-level authorization verification in Vercel Edge API routes (`api/ai-mentor.ts`, `api/ai-roadmap.ts`, `api/ai-final-assessment.ts`, `api/ai-course-generator.ts`, `api/ai-module-generator.ts`, and `api/models.ts`) using a shared JWT verification helper (`api/_shared/auth.ts`) that verifies the user's Supabase access token.
+- **Client-Side API Key Cleanup:** Stripped hardcoded client-side fallbacks in `src/components/chat/AIMentorChat.tsx` that referenced `import.meta.env.VITE_GEMINI_API_KEY` directly from the browser, securing all LLM queries behind the backend edge API routes.
+- **Stored XSS Prevention:** Created a lightweight HTML sanitization helper (`src/lib/sanitize.ts`) and wrapped HTML outputs in `src/pages/student/CoursePlayerPage.tsx` where raw content was rendered via `dangerouslySetInnerHTML`.
+- **SSRF Mitigation:** Added IP-based Server-Side Request Forgery (SSRF) checks (`api/_shared/ssrf.ts`) in course and module generator routes to prevent arbitrary outbound requests targeting internal resources, private subnets, loopbacks, and cloud provider metadata services (such as AWS/GCP IMDS).
+- **Environment & Dependency Cleanup:** Removed development scripts containing hardcoded credentials (`test.mjs`), untracked theme files, and configured environment variables (`process.env.PISTON_URL` in `vite.config.ts`) instead of hardcoded IP addresses.
+
 ## Issues Faced & Resolutions
 
 ### Issue 1: Authentication Profile & UUID Mismatches
@@ -51,16 +58,33 @@ LearnLoom is an advanced, AI-driven learning ecosystem designed for software eng
 3. Used robust `container-queries` and structured padding/margins (e.g., `stack-lg`, `margin-desktop`) from the new design blueprints.
 4. Added custom CSS utility classes like `.glass-panel` to abstract complex `backdrop-filter` logic.
 
+### Issue 4: Public, Unauthenticated LLM Endpoints
+**Problem:** Edge API routes under `api/` were completely open, allowing unauthorized users to make requests directly to Gemini models, risking rapid token consumption and abuse.
+**Resolution:** Implemented a shared authorization middleware (`api/_shared/auth.ts`) using the standard `Bearer` Supabase JWT format, verifying users against Supabase's auth signature before processing AI generation requests.
+
+### Issue 5: Client-Side API Key Exposure Risk
+**Problem:** The frontend `AIMentorChat.tsx` was configured with a fallback to call the Gemini API directly from the client side if the Vercel edge endpoint was not configured, introducing a major risk of exposing the API key in client-side production bundles.
+**Resolution:** Eliminated the client-side API call fallback entirely, forcing all chat traffic to route through the secure proxy server endpoint.
+
+### Issue 6: Server-Side Request Forgery (SSRF) Vulnerability in AI Generators
+**Problem:** The AI course and module generator routes allowed fetching any arbitrary URL passed by users to ingest course material, which could be abused to scan internal resources or target cloud metadata services (e.g., AWS/GCP IMDS).
+**Resolution:** Designed a robust SSRF validation helper (`api/_shared/ssrf.ts`) that resolves URLs, checks the target IP address against RFC private, link-local, loopback, and broadcast ranges, and blocks requests to unauthorized destinations.
+
 ## Reference File & Folder Structure
 
 ```text
 learnloom-main/
+├── api/                  # Vercel Edge API endpoints
+│   ├── _shared/          # Shared Vercel Edge API helpers (Auth, SSRF protection)
+│   ├── ai-*.ts           # AI roadmaps, assessments, and course builders
+│   └── models.ts         # Edge LLM configuration utility
 ├── src/
 │   ├── components/
 │   │   ├── common/       # Reusable UI elements (Buttons, Inputs, RouteGuards)
 │   │   ├── layouts/      # App layout wrappers (Sidebar, TopNav)
 │   │   └── landing/      # Extracted Landing Page sections (Hero, Pricing, etc.)
 │   ├── contexts/         # React Context providers (AuthContext.tsx)
+│   ├── lib/              # Utility functions and helper libraries (sanitize.ts)
 │   ├── pages/
 │   │   ├── admin/        # All Enterprise Admin dashboard views
 │   │   ├── auth/         # Login, Signup, and OAuth Callback pages

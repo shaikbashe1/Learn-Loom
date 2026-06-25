@@ -55,3 +55,10 @@ scraping_engine/.env
 
 # Local AI Stitching Folder
 stitch_learnloom_ai_edtech_landing/
+
+# Debug and temp files
+debug_output*.txt
+temp_*.json
+temp_*.js
+historical_context.txt
+build_full.log

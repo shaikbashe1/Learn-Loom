@@ -1,3 +1,6 @@
+import { verifyAuth, unauthorizedResponse } from './_shared/auth';
+import { isUrlSafe } from './_shared/ssrf';
+
 export const config = {
   runtime: 'edge',
 };
@@ -19,6 +22,10 @@ export default async function handler(req: Request) {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
   }
+
+  // Verify Supabase authentication
+  const authUser = await verifyAuth(req);
+  if (!authUser) return unauthorizedResponse();
 
   try {
     const apiKey = process.env.INTEGRATIONS_API_KEY || process.env.GEMINI_API_KEY;
@@ -63,6 +70,7 @@ Return a JSON object with this EXACT structure (no markdown, raw JSON only):
     // Download and attach files
     for (const url of fileUrls) {
       try {
+        if (!isUrlSafe(url)) continue; // SSRF protection
         const fileRes = await fetch(url);
         if (fileRes.ok) {
           const buffer = await fileRes.arrayBuffer();

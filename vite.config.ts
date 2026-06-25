@@ -23,7 +23,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api/piston': {
-        target: 'http://20.193.241.97:2000',
+        target: process.env.PISTON_URL || 'http://localhost:2000',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/piston/, '/api/v2'),
       },

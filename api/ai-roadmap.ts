@@ -1,3 +1,5 @@
+import { verifyAuth, unauthorizedResponse } from './_shared/auth';
+
 export const config = {
   runtime: 'edge',
 };
@@ -19,6 +21,10 @@ export default async function handler(req: Request) {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
   }
+
+  // Verify Supabase authentication
+  const authUser = await verifyAuth(req);
+  if (!authUser) return unauthorizedResponse();
 
   try {
     const apiKey = process.env.INTEGRATIONS_API_KEY || process.env.GEMINI_API_KEY;

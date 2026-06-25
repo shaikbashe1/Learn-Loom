@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getCourseModuleProgress, completeModule, getEnrollment } from '@/lib/progress';
 import { logUserActivity } from '@/lib/activity';
 import { toast } from 'sonner';
+import { sanitizeHtml } from '@/lib/sanitize';
 import { buildYouTubeEmbedUrl } from '@/lib/youtube';
 import type { DBCourse, DBModule, DBModuleProgress } from '@/types/types';
 
@@ -399,7 +400,7 @@ export default function CoursePlayerPage() {
                       )}
 
                       {activeModule.content && (
-                        <div className="mb-8" dangerouslySetInnerHTML={{ __html: activeModule.content }} />
+                        <div className="mb-8" dangerouslySetInnerHTML={{ __html: sanitizeHtml(activeModule.content) }} />
                       )}
                       {!activeModule.content && (
                         <div className="mb-4 whitespace-pre-wrap">{activeModule.description}</div>
