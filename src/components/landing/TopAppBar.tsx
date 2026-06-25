@@ -16,7 +16,7 @@ export function TopAppBar() {
   return (
     <nav className={`fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 backdrop-blur-md border-b border-border-base transition-all duration-300 ${scrolled ? 'shadow-md bg-surface/90' : 'shadow-sm bg-surface/70'}`} id="main-nav">
       <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-        <span className="material-symbols-outlined text-primary text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>schema</span>
+        <img src="/images/logo/logo-icon.svg" alt="LearnLoom Logo" className="w-8 h-8 object-contain" />
         <span className="font-headline-md text-headline-md font-bold text-primary tracking-tight">LearnLoom</span>
       </div>
       <div className="hidden md:flex items-center gap-8">

@@ -92,8 +92,8 @@ export default function SignupPage() {
         {/* Brand Header */}
         <div className="relative z-10">
           <Link className="flex items-center gap-3 no-underline" to="/">
-            <span className="material-symbols-outlined text-4xl text-on-primary" style={{ fontVariationSettings: "'FILL' 1" }}>neurology</span>
-            <span className="font-headline-lg text-headline-lg text-on-primary">LearnLoom</span>
+            <img src="/images/logo/logo-icon.svg" alt="LearnLoom Logo" className="w-10 h-10 object-contain brightness-0 invert" />
+            <span className="font-display text-headline-lg font-bold text-on-primary tracking-tight">LearnLoom</span>
           </Link>
         </div>
         

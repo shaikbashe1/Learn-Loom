@@ -11,10 +11,12 @@ export default function AuthCallbackPage() {
     // Check for error in URL hash
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     const error = hashParams.get('error_description') || hashParams.get('error');
+    const hasToken = hashParams.has('access_token');
     
-    // Also check query params for server-side errors
+    // Also check query params for server-side errors and auth codes
     const queryParams = new URLSearchParams(window.location.search);
     const queryError = queryParams.get('error_description') || queryParams.get('error');
+    const hasCode = queryParams.has('code');
 
     if (error || queryError) {
       toast.error('Authentication failed', { description: decodeURIComponent(error || queryError || 'Unknown error') });
@@ -24,9 +26,11 @@ export default function AuthCallbackPage() {
 
     if (!loading) {
       if (user) {
-        navigate('/dashboard', { replace: true });
-      } else {
-        // If we finished loading but no user, fallback to login
+        // Direct admin users to the Admin dashboard, standard users to the student dashboard
+        const isAdmin = user.email === 'shaikbashe2222@gmail.com';
+        navigate(isAdmin ? '/admin' : '/dashboard', { replace: true });
+      } else if (!hasCode && !hasToken) {
+        // If we finished loading, have no user, and no active OAuth token exchange parameters exist, fallback to login
         navigate('/login', { replace: true });
       }
     }

@@ -53,6 +53,11 @@ LearnLoom is an advanced, AI-driven learning ecosystem designed for software eng
 - **Input & Editor Drafts**: Implemented `localStorage` state persistence inside `AIMentorChat.tsx` (prompt drafts), `CodingPracticePage.tsx` (user code solutions), and `CodingAssessmentPage.tsx` (exam code solutions) to retain typed content when navigating between views.
 - **Anchor Tag Refactoring**: Replaced internal `<a>` tags with `react-router-dom` `<Link>` components in `PricingPage.tsx` and `PaymentHistoryPage.tsx` to prevent full browser reloads.
 
+### 9. Brand Logo Assets & Google OAuth Login Race Condition Fix
+- **Unified Logo Assets**: Replaced legacy placeholder bar-chart vectors with the official book-loom monogram logo vectors (`logo-icon.svg`, `logo-dark.svg`, and `auth-logo.svg`). Integrated these assets directly into `AppLayout.tsx`, `TopAppBar.tsx`, `LoginPage.tsx`, and `SignupPage.tsx`.
+- **OAuth Callback Guard**: Patched a race condition in `AuthCallbackPage.tsx` that previously caused successful Google logins to immediately redirect to `/login` due to temporary `null` sessions during token exchanges.
+
+
 
 ## Issues Faced & Resolutions
 
@@ -103,6 +108,11 @@ LearnLoom is an advanced, AI-driven learning ecosystem designed for software eng
 ### Issue 10: App Reload and State Reset on Tab Focus / Background Auth Events
 **Problem:** Switching back to the LearnLoom browser tab triggered Supabase auto-refresh checks. The `onAuthStateChange` listener in `AuthContext.tsx` responded to background token verification events by setting the global `loading` state to `true`, which forced `RouteGuard` to render the full-screen loader. This unmounted the entire application and destroyed all user input drafts, written code, and chat histories.
 **Resolution:** Used `useRef` to track user and profile states inside `AuthContext.tsx`. Background auth checks now bypass setting `setLoading(true)` if the authenticated user has not changed and their profile is loaded. Combined this with `localStorage` draft saving for chat message inputs and code playgrounds.
+
+### Issue 11: Google OAuth Redirect Race Condition Returning User to Login
+**Problem:** Upon redirection from Google OAuth back to `/auth/callback?code=xxxx`, the Supabase auth client processes the code exchange in the background. React Router initially mounted the page with `loading = false` and `user = null`, which caused `AuthCallbackPage.tsx` to immediately redirect to `/login` before the background exchange could complete and sign the user in.
+**Resolution:** Modified `AuthCallbackPage.tsx` to inspect URL parameters for OAuth indicators (`code` or `access_token`). Redirection to `/login` is now bypassed while these parameters are active, keeping the loader screen open until the session is successfully established. Admins are then routed directly to `/admin`, and students to `/dashboard`.
+
 
 
 ## Reference File & Folder Structure
