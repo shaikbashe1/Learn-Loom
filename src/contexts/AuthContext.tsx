@@ -175,7 +175,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const verifyEmailCode = async (email: string, code: string): Promise<SignInResult> => {
     try {
-      const { data, error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' });
+      const { data, error } = await supabase.auth.verifyOtp({ email, token: code, type: 'signup' });
       if (error) return { error };
       return { error: null, userId: data.user?.id };
     } catch (err: any) {
