@@ -162,11 +162,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (error) return { error };
       
-      // If user exists and email is not confirmed, data.user.identities will be empty
-      if (data.user && data.user.identities && data.user.identities.length === 0) {
-        return { error: new Error('User already exists') };
-      }
-      
       return { error: null, userId: data.user?.id, needsVerification: true };
     } catch (err: any) {
       return { error: err as Error };
