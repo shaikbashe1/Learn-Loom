@@ -148,7 +148,7 @@ export default function FinalAssessmentPage() {
       const next = tabSwitchesRef.current;
       setTabSwitches(next);
       if (next >= 3) {
-        toast.error('⚠️ Tab switch limit reached! Exam has been auto-submitted.', { duration: 6000 });
+        toast.error('Tab switch limit reached! Exam has been auto-submitted.', { duration: 6000 });
         handleSubmit();
       } else {
         toast.warning(`Tab switch detected! Warning ${next}/3. Switching again will auto-submit.`, { duration: 5000 });

@@ -36,6 +36,18 @@ export default function AuthCallbackPage() {
     }
   }, [loading, user, navigate]);
 
+  useEffect(() => {
+    // Safety timeout: if login session doesn't exchange within 10 seconds, redirect back to login
+    const timeout = setTimeout(() => {
+      if (!user) {
+        toast.error('Authentication timeout', { description: 'The authentication process took too long. Please try signing in again.' });
+        navigate('/login', { replace: true });
+      }
+    }, 10000);
+
+    return () => clearTimeout(timeout);
+  }, [user, navigate]);
+
   return (
     <div className="bg-background text-on-surface font-body-md min-h-screen flex items-center justify-center p-gutter relative overflow-hidden">
       {/* Background Decorative Elements */}

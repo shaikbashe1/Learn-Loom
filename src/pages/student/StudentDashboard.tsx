@@ -82,16 +82,16 @@ export default function StudentDashboard() {
       <div className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full space-y-8 bg-background">
         
         {/* Hero Welcome Banner */}
-        <section className="relative overflow-hidden bg-surface border border-outline-variant rounded-2xl p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 group shadow-sm">
+        <section className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-chart-4/10 to-surface border border-primary/20 rounded-2xl p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 group shadow-md hover:shadow-lg transition-all duration-300">
           <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-primary/10 to-transparent pointer-events-none rounded-r-2xl"></div>
           <div className="relative z-10 space-y-2">
-            <h2 className="text-3xl md:text-4xl font-heading font-bold text-on-surface">Welcome back, {displayName}! 👋</h2>
+            <h2 className="text-3xl md:text-4xl font-heading font-bold text-on-surface">Welcome back, {displayName}!</h2>
             <p className="text-on-surface-variant font-body-lg max-w-2xl">
               You've completed <span className="text-primary font-bold">{completedCount}</span> course{completedCount !== 1 ? 's' : ''}. Keep the momentum going!
             </p>
           </div>
           <div className="relative z-10 shrink-0">
-            <Link to="/courses" className="bg-primary text-on-primary px-6 py-3 rounded-xl font-label-md font-bold hover:brightness-110 active:scale-95 transition-all flex items-center gap-2 shadow-sm">
+            <Link to="/courses" className="bg-gradient-to-r from-primary to-chart-4 text-on-primary px-6 py-3 rounded-xl font-label-md font-bold hover:brightness-110 hover:shadow-lg hover:-translate-y-0.5 active:scale-95 transition-all flex items-center gap-2 shadow-sm">
               <Zap className="w-5 h-5" />
               Jump Back In
             </Link>
@@ -109,7 +109,7 @@ export default function StudentDashboard() {
                 <h3 className="text-xl font-heading font-bold text-on-surface flex items-center gap-2">
                   <Map className="w-6 h-6 text-primary" /> Active AI Roadmap
                 </h3>
-                <Link to="/student/roadmap" className="text-primary font-label-sm hover:underline flex items-center">
+                <Link to="/ai-roadmap" className="text-primary font-label-sm hover:underline flex items-center">
                   View full <ChevronRight className="w-4 h-4 ml-1" />
                 </Link>
               </div>
@@ -121,12 +121,12 @@ export default function StudentDashboard() {
                   </div>
                   <h4 className="text-lg font-bold text-on-surface mb-2">No Roadmap Generated</h4>
                   <p className="text-on-surface-variant mb-6">Let Loomie generate a personalized career path for you.</p>
-                  <Link to="/student/roadmap" className="bg-primary/10 text-primary px-6 py-2 rounded-lg font-bold hover:bg-primary/20 transition-colors">
+                  <Link to="/ai-roadmap" className="bg-primary/10 text-primary px-6 py-2 rounded-lg font-bold hover:bg-primary/20 transition-colors">
                     Create Roadmap
                   </Link>
                 </div>
               ) : (
-                <div className="bg-surface border border-outline-variant rounded-2xl p-6 shadow-sm group hover:border-primary/50 transition-colors">
+                <div className="bg-surface border border-outline-variant rounded-2xl p-6 shadow-sm group hover:border-primary/30 transition-all duration-300 hover:shadow-md">
                   <div className="flex justify-between items-start mb-6">
                     <div>
                       <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded uppercase tracking-wider mb-2 inline-block">
@@ -154,7 +154,7 @@ export default function StudentDashboard() {
                     </div>
                     <div className="h-3 w-full bg-surface-container rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-primary transition-all duration-1000 ease-out" 
+                        className="h-full bg-gradient-to-r from-primary to-chart-4 transition-all duration-1000 ease-out shadow-[0_0_8px_rgba(37,99,235,0.3)]" 
                         style={{ width: `${Math.round((activeRoadmap.stages.filter(s => s.status === 'completed').length / activeRoadmap.stages.length) * 100) || 0}%` }}
                       />
                     </div>
@@ -207,14 +207,14 @@ export default function StudentDashboard() {
             
             {/* Quick Stats */}
             <section className="grid grid-cols-2 gap-4">
-              <div className="bg-surface border border-outline-variant rounded-2xl p-4 shadow-sm flex flex-col justify-center items-center text-center">
+              <div className="bg-surface border border-outline-variant rounded-2xl p-4 shadow-sm flex flex-col justify-center items-center text-center hover:-translate-y-1 hover:shadow-md hover:border-primary/20 transition-all duration-300">
                 <div className="w-10 h-10 rounded-full bg-tertiary/10 flex items-center justify-center mb-2">
                   <Trophy className="w-5 h-5 text-tertiary" />
                 </div>
                 <p className="text-2xl font-bold text-on-surface">#{myRank ?? '-'}</p>
                 <p className="text-xs text-on-surface-variant uppercase tracking-wider">Global Rank</p>
               </div>
-              <div className="bg-surface border border-outline-variant rounded-2xl p-4 shadow-sm flex flex-col justify-center items-center text-center">
+              <div className="bg-surface border border-outline-variant rounded-2xl p-4 shadow-sm flex flex-col justify-center items-center text-center hover:-translate-y-1 hover:shadow-md hover:border-primary/20 transition-all duration-300">
                 <div className="w-10 h-10 rounded-full bg-error/10 flex items-center justify-center mb-2">
                   <Activity className="w-5 h-5 text-error" />
                 </div>

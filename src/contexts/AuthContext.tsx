@@ -6,17 +6,32 @@ import { toast } from 'sonner';
 import { logUserActivity } from '@/lib/activity';
 
 export async function getProfile(userId?: string): Promise<Profile | null> {
-  let query = supabase.from('profiles').select('*');
-  if (userId) {
-    query = query.eq('id', userId);
+  if (!userId) return null;
+  
+  let attempts = 0;
+  const maxAttempts = 5;
+  const delayMs = 500;
+  
+  while (attempts < maxAttempts) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
+      
+    if (error) {
+      console.error(`Failed to fetch profile (attempt ${attempts + 1}):`, error);
+    } else if (data) {
+      return data;
+    }
+    
+    attempts++;
+    if (attempts < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
   }
-  const { data, error } = await query.maybeSingle();
-
-  if (error) {
-    console.error('Failed to fetch profile:', error);
-    return null;
-  }
-  return data;
+  
+  return null;
 }
 
 interface SignInResult {

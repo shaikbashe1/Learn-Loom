@@ -513,7 +513,7 @@ export default function CourseDetailPage() {
                           {grandTest.attempt ? (
                             <div className="space-y-6">
                               <div className={`p-6 rounded-xl border ${grandTest.attempt.passed ? 'bg-success/5 border-success/30' : 'bg-error/5 border-error/30'}`}>
-                                <p className={`font-bold text-[24px] mb-2 ${grandTest.attempt.passed ? 'text-success' : 'text-error'}`}>{grandTest.attempt.passed ? '🎉 Congratulations! Passed!' : '❌ Not quite there yet.'}</p>
+                                <p className={`font-bold text-[24px] mb-2 ${grandTest.attempt.passed ? 'text-success' : 'text-error'}`}>{grandTest.attempt.passed ? 'Congratulations! Passed!' : 'Not quite there yet.'}</p>
                                 <p className="font-body-lg text-on-surface-variant">Score: {grandTest.attempt.score}/{grandTest.attempt.total} ({Math.round((grandTest.attempt.score / grandTest.attempt.total) * 100)}%)</p>
                                 {grandTest.attempt.passed && <p className="font-label-md text-success mt-4 flex items-center justify-center md:justify-start gap-2 bg-success/10 w-fit px-4 py-2 rounded-lg border border-success/20"><span className="material-symbols-outlined text-[20px]">check_circle</span> You are eligible for your certificate!</p>}
                               </div>

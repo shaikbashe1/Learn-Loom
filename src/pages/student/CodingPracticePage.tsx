@@ -262,7 +262,7 @@ export default function CodingPracticePage() {
       setResult(resultData);
 
       if (overallVerdict === 'accepted') {
-        toast.success(`✅ All ${testResults.length} test cases passed!`);
+        toast.success(`All ${testResults.length} test cases passed!`);
         void logUserActivity(user.id, 'code_run', `Successfully submitted: ${problem?.title}`);
       } else if (overallVerdict === 'compilation_error') {
         toast.error('Compilation Error', { description: 'Fix the syntax errors and try again.' });

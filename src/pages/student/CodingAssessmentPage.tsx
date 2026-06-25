@@ -273,7 +273,7 @@ export default function CodingAssessmentPage() {
       setAttempts(a => a + 1);
 
       if (overallVerdict === 'accepted') {
-        toast.success(`✅ All ${testResults.length} test cases passed!`);
+        toast.success(`All ${testResults.length} test cases passed!`);
         void logUserActivity(user.id, 'code_run', `Successfully completed coding assessment: ${problem?.title}`);
         
         // Log pass attempt

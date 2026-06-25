@@ -110,7 +110,7 @@ export default function PricingPage() {
               description: `Payment ID: ${response.razorpay_payment_id}`,
             });
           } else {
-            toast.success(`🎉 Welcome to ${plan_name}!`, {
+            toast.success(`Welcome to ${plan_name}!`, {
               description: 'Your subscription is now active. Credits have been added to your account.',
             });
             // Reload page to refresh subscription state

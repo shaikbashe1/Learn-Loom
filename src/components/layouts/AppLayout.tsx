@@ -161,7 +161,7 @@ function SidebarContent({ isAdmin, onClose }: { isAdmin?: boolean; onClose?: () 
     <div className="flex flex-col h-full bg-surface-container-lowest p-md gap-base">
       {/* Header */}
       <div className="flex items-center gap-md px-sm py-md mb-lg">
-        <img src="/images/logo/logo-icon.svg" alt="LearnLoom Logo" className="w-8 h-8 object-contain" />
+        <img src="/images/logo/logo-icon.png" alt="LearnLoom Logo" className="w-8 h-8 object-contain" />
         <div>
           <h1 className="font-display text-headline-md font-bold text-primary-fixed-dim tracking-tight">LearnLoom</h1>
           <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
@@ -229,7 +229,7 @@ export function AppLayout({ children, isAdmin: isAdminProp, title }: AppLayoutPr
               </SheetContent>
             </Sheet>
             <div className="flex items-center gap-2">
-              <img src="/images/logo/logo-icon.svg" alt="LearnLoom Logo" className="w-6 h-6 object-contain" />
+              <img src="/images/logo/logo-icon.png" alt="LearnLoom Logo" className="w-6 h-6 object-contain" />
               <span className="font-headline-sm font-bold text-on-surface">LearnLoom</span>
             </div>
           </div>

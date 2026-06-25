@@ -124,7 +124,7 @@ export default function CoursePlayerPage() {
       return;
     }
 
-    toast.success(isCourseDone ? '🎉 Course completed!' : 'Module completed — next one unlocked!');
+    toast.success(isCourseDone ? 'Course completed!' : 'Module completed — next one unlocked!');
     void logUserActivity(user.id, 'module_completed', `Completed module: ${activeModule.title}`);
     
     if (isCourseDone) {
@@ -480,7 +480,7 @@ export default function CoursePlayerPage() {
                         <div className="bg-primary/10 p-6 rounded-2xl border-2 border-primary/20 my-6 shadow-md flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left mt-8">
                           <span className="material-symbols-outlined text-[48px] text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
                           <div className="flex-1">
-                            <h4 className="font-headline-sm text-headline-sm font-bold text-primary mb-1">Course Certified! 🎓</h4>
+                            <h4 className="font-headline-sm text-headline-sm font-bold text-primary mb-1">Course Certified!</h4>
                             <p className="font-body-sm text-text-primary mb-4 sm:mb-0">Congratulations! You've passed all validation assessments and earned your certificate of completion.</p>
                           </div>
                           <Link to="/certificates" className="px-6 py-2.5 bg-primary text-on-primary rounded-full font-label-sm font-bold shadow-md hover:shadow-lg shrink-0 transition-all hover:-translate-y-0.5 text-center flex items-center gap-2 justify-center">
@@ -492,7 +492,7 @@ export default function CoursePlayerPage() {
                           <div className="bg-surface-bright p-6 rounded-2xl border border-border-base my-6 shadow-sm flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left mt-8">
                             <span className="material-symbols-outlined text-[40px] text-primary">school</span>
                             <div className="flex-1">
-                              <h4 className="font-headline-sm text-headline-sm font-bold text-primary mb-1">Modules Finished! 🏁</h4>
+                              <h4 className="font-headline-sm text-headline-sm font-bold text-primary mb-1">Modules Finished!</h4>
                               <p className="font-body-sm text-text-secondary mb-4 sm:mb-0">You've completed all modules. Complete the final assessment(s) below to validate your learning and unlock your certificate.</p>
                             </div>
                             <div className="flex flex-col sm:flex-row gap-3">

@@ -144,7 +144,7 @@ export default function CertVerifyPage() {
                   : <XCircle className="w-6 h-6 text-destructive shrink-0" />}
                 <div>
                   <p className={`font-semibold text-sm ${result.valid ? 'text-chart-2' : 'text-destructive'}`}>
-                    {result.valid ? '✅ Certificate Valid' : result.revoked ? '⛔ Certificate Revoked' : '❌ Certificate Invalid'}
+                    {result.valid ? 'Certificate Valid' : result.revoked ? 'Certificate Revoked' : 'Certificate Invalid'}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Code: <span className="font-mono">{result.verification_code}</span>

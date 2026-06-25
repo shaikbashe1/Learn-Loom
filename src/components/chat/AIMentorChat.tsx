@@ -17,7 +17,7 @@ const SUGGESTED_PROMPTS = [
 const WELCOME_MESSAGE: ChatMessage = {
   id: 'welcome',
   role: 'assistant',
-  content: "👋 Hi! I'm Loomie, your AI Learning Mentor.\n\nI automatically analyze your course progress, quiz scores, and assignments to provide personalized recommendations.\n\nHow can I help you accelerate your learning today?",
+  content: "Hi! I'm Loomie, your AI Learning Mentor.\n\nI automatically analyze your course progress, quiz scores, and assignments to provide personalized recommendations.\n\nHow can I help you accelerate your learning today?",
   timestamp: new Date().toISOString(),
 };
 

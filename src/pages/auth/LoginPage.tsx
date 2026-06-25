@@ -84,7 +84,7 @@ export default function LoginPage() {
           <div className="relative z-10 flex flex-col h-full justify-between">
             <div>
               <Link to="/" className="flex items-center gap-3 mb-stack-sm hover:opacity-90 w-fit">
-                <img src="/images/logo/logo-icon.svg" alt="LearnLoom Logo" className="w-10 h-10 object-contain brightness-0 invert" />
+                <img src="/images/logo/logo-icon-light.png" alt="LearnLoom Logo" className="w-10 h-10 object-contain" />
                 <span className="font-display-lg text-display-lg tracking-tight text-on-primary">LearnLoom</span>
               </Link>
               <p className="font-body-lg text-body-lg text-inverse-primary max-w-md">Empowering the next generation of learners with AI-driven, personalized educational pathways.</p>
