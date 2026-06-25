@@ -70,6 +70,10 @@ export interface DBModule {
   code_blocks?: Record<string, any>[] | null;
   reference_links?: Record<string, any>[] | null;
   key_takeaways?: Record<string, any>[] | null;
+  examples?: string[] | null;
+  real_world_use_cases?: string[] | null;
+  key_concepts?: string[] | null;
+  summary?: string | null;
 }
 
 export interface DBAssignment {

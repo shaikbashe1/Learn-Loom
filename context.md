@@ -38,6 +38,12 @@ LearnLoom is an advanced, AI-driven learning ecosystem designed for software eng
 - **SSRF Mitigation:** Added IP-based Server-Side Request Forgery (SSRF) checks (`api/_shared/ssrf.ts`) in course and module generator routes to prevent arbitrary outbound requests targeting internal resources, private subnets, loopbacks, and cloud provider metadata services (such as AWS/GCP IMDS).
 - **Environment & Dependency Cleanup:** Removed development scripts containing hardcoded credentials (`test.mjs`), untracked theme files, and configured environment variables (`process.env.PISTON_URL` in `vite.config.ts`) instead of hardcoded IP addresses.
 
+### 6. Course Formatting & Assessment-Based Certification
+- **Structured Content Schema**: Created database migration (`20260625110000_enrich_course_modules_and_fix_certificates.sql`) to expand the `course_modules` table with columns for `examples`, `real_world_use_cases`, `key_concepts`, and `summary`.
+- **Admin Scraping Upgrades**: Refactored course generation in `AdminCoursesPage.tsx` to extract and populate these new structured fields directly into Supabase.
+- **Premium Course display**: Integrated structured tabs and card panels in `CoursePlayerPage.tsx` to display concepts, real-world scenarios, and code walkthroughs beautifully.
+- **Verification Gates**: Removed the automatic certificate generation trigger and client-side auto-award logic. Added check for coding questions. Established final assessments (MCQ & Coding) as required gates for certificates.
+
 ## Issues Faced & Resolutions
 
 ### Issue 1: Authentication Profile & UUID Mismatches
@@ -69,6 +75,12 @@ LearnLoom is an advanced, AI-driven learning ecosystem designed for software eng
 ### Issue 6: Server-Side Request Forgery (SSRF) Vulnerability in AI Generators
 **Problem:** The AI course and module generator routes allowed fetching any arbitrary URL passed by users to ingest course material, which could be abused to scan internal resources or target cloud metadata services (e.g., AWS/GCP IMDS).
 **Resolution:** Designed a robust SSRF validation helper (`api/_shared/ssrf.ts`) that resolves URLs, checks the target IP address against RFC private, link-local, loopback, and broadcast ranges, and blocks requests to unauthorized destinations.
+
+### Issue 7: Automatic Certificate Generation Without Evaluation Gate
+**Problem:** A legacy trigger and in-code routine automatically awarded 100%-graded certificates as soon as a user checked off their last module, rendering final assessments completely redundant.
+**Resolution:** 
+1. Dropped the auto-award completion trigger `trg_course_completion_certificate` and removed direct certificate insertion on progress completion.
+2. Configured a strict validation gate inside `checkAndAwardCertificate` that verifies passing attempts for both the Final MCQ Assessment and the Final Coding Assessment (if the course has coding questions) before issuing a verified certificate.
 
 ## Reference File & Folder Structure
 

@@ -219,7 +219,11 @@ export default function AdminCoursesPage() {
           is_free_preview: mIndex === 0,
           learning_objectives: modContent.content?.learning_objectives?.join('\\n'),
           content: modContent.content?.detailed_explanation,
-          key_takeaways: modContent.content?.key_takeaways,
+          key_takeaways: modContent.content?.key_takeaways || [],
+          examples: modContent.content?.examples || [],
+          real_world_use_cases: modContent.content?.real_world_use_cases || [],
+          key_concepts: modContent.content?.key_concepts || [],
+          summary: modContent.content?.summary || null,
         }).select('id').single();
 
         if (modData) {

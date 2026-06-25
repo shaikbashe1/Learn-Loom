@@ -26,6 +26,7 @@ export default function CoursePlayerPage() {
   const [courseDone, setCourseDone] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [moduleQuizId, setModuleQuizId] = useState<string | null>(null);
+  const [hasCodingQuestions, setHasCodingQuestions] = useState(false);
 
   // AI Learning Assistant state
   const [aiTutorOpen, setAiTutorOpen] = useState(false);
@@ -47,6 +48,12 @@ export default function CoursePlayerPage() {
 
     setProgressPercent(enrollment.progress_percent);
     if (enrollment.completed_at) setCourseDone(true);
+
+    const { count: codingCount } = await supabase
+      .from('coding_questions')
+      .select('id', { count: 'exact', head: true })
+      .eq('course_id', courseId);
+    setHasCodingQuestions((codingCount ?? 0) > 0);
 
     const progRows: DBModuleProgress[] = await getCourseModuleProgress(user.id, courseId);
     const statusMap = new Map(progRows.map(p => [p.module_id, p.status]));
@@ -405,23 +412,95 @@ export default function CoursePlayerPage() {
                       {!activeModule.content && (
                         <div className="mb-4 whitespace-pre-wrap">{activeModule.description}</div>
                       )}
-                      
-                      {courseDone && (
-                        <div className="bg-surface-bright p-6 rounded-2xl border border-border-base my-6 shadow-sm flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left mt-8">
-                          <span className="material-symbols-outlined text-[40px] text-primary">school</span>
-                          <div className="flex-1">
-                            <h4 className="font-headline-sm text-headline-sm font-bold text-primary mb-1">Modules Completed! 🎉</h4>
-                            <p className="font-body-sm text-text-secondary mb-4 sm:mb-0">You've finished all learning modules. Complete the final assessments to earn your certificate.</p>
-                          </div>
-                          <div className="flex flex-col sm:flex-row gap-3">
-                            <Link to={`/courses/${courseId}/assessment`} className="px-6 py-2.5 bg-primary text-on-primary rounded-full font-label-sm font-bold shadow-md hover:shadow-lg shrink-0 transition-all hover:-translate-y-0.5 text-center flex items-center gap-2 justify-center">
-                               <span className="material-symbols-outlined text-[18px]">quiz</span> MCQ Test
-                            </Link>
-                            <Link to={`/courses/${courseId}/coding-assessment`} className="px-6 py-2.5 bg-surface text-primary border border-primary rounded-full font-label-sm font-bold shadow-sm hover:bg-primary/5 shrink-0 transition-all hover:-translate-y-0.5 text-center flex items-center gap-2 justify-center">
-                               <span className="material-symbols-outlined text-[18px]">code</span> Coding Test
-                            </Link>
+
+                      {/* Rich Elements (Concepts, Use Cases, Examples, Summary) */}
+                      {activeModule.key_concepts && activeModule.key_concepts.length > 0 && (
+                        <div className="mt-8 mb-6 p-6 bg-surface-container-lowest border border-border-base rounded-2xl shadow-sm">
+                          <h3 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
+                            <span className="material-symbols-outlined text-primary">rocket_launch</span> Key Concepts
+                          </h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {activeModule.key_concepts.map((concept, index) => (
+                              <div key={index} className="p-4 bg-surface border border-border-base rounded-xl flex items-start gap-3 hover:shadow-md transition-shadow">
+                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary font-bold">
+                                  {index + 1}
+                                </div>
+                                <span className="font-body-md text-text-primary mt-1">{concept}</span>
+                              </div>
+                            ))}
                           </div>
                         </div>
+                      )}
+
+                      {activeModule.real_world_use_cases && activeModule.real_world_use_cases.length > 0 && (
+                        <div className="mb-6 p-6 bg-surface-container-lowest border border-border-base rounded-2xl shadow-sm">
+                          <h3 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
+                            <span className="material-symbols-outlined text-primary">architecture</span> Real-World Use Cases
+                          </h3>
+                          <div className="space-y-3">
+                            {activeModule.real_world_use_cases.map((useCase, index) => (
+                              <div key={index} className="flex items-start gap-4 p-4 rounded-xl bg-primary/5 border border-primary/10">
+                                <span className="material-symbols-outlined text-primary shrink-0">check_circle</span>
+                                <span className="font-body-md text-text-primary">{useCase}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {activeModule.examples && activeModule.examples.length > 0 && (
+                        <div className="mb-6 p-6 bg-surface-container-lowest border border-border-base rounded-2xl shadow-sm">
+                          <h3 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
+                            <span className="material-symbols-outlined text-primary">terminal</span> Examples & Walkthroughs
+                          </h3>
+                          <div className="space-y-4">
+                            {activeModule.examples.map((example, index) => (
+                              <div key={index} className="prose prose-slate max-w-none bg-surface border border-border-base rounded-xl p-5" dangerouslySetInnerHTML={{ __html: sanitizeHtml(example) }} />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {activeModule.summary && (
+                        <div className="mb-6 p-6 bg-primary/10 border border-primary/20 rounded-2xl shadow-sm">
+                          <h3 className="text-xl font-bold text-primary mb-2 flex items-center gap-2">
+                            <span className="material-symbols-outlined text-primary">summarize</span> Module Summary
+                          </h3>
+                          <p className="font-body-md text-text-primary whitespace-pre-wrap">{activeModule.summary}</p>
+                        </div>
+                      )}
+                      
+                      {courseDone ? (
+                        <div className="bg-primary/10 p-6 rounded-2xl border-2 border-primary/20 my-6 shadow-md flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left mt-8">
+                          <span className="material-symbols-outlined text-[48px] text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
+                          <div className="flex-1">
+                            <h4 className="font-headline-sm text-headline-sm font-bold text-primary mb-1">Course Certified! 🎓</h4>
+                            <p className="font-body-sm text-text-primary mb-4 sm:mb-0">Congratulations! You've passed all validation assessments and earned your certificate of completion.</p>
+                          </div>
+                          <Link to="/certificates" className="px-6 py-2.5 bg-primary text-on-primary rounded-full font-label-sm font-bold shadow-md hover:shadow-lg shrink-0 transition-all hover:-translate-y-0.5 text-center flex items-center gap-2 justify-center">
+                             <span className="material-symbols-outlined text-[18px]">verified</span> View Certificate
+                          </Link>
+                        </div>
+                      ) : (
+                        progressPercent === 100 && (
+                          <div className="bg-surface-bright p-6 rounded-2xl border border-border-base my-6 shadow-sm flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left mt-8">
+                            <span className="material-symbols-outlined text-[40px] text-primary">school</span>
+                            <div className="flex-1">
+                              <h4 className="font-headline-sm text-headline-sm font-bold text-primary mb-1">Modules Finished! 🏁</h4>
+                              <p className="font-body-sm text-text-secondary mb-4 sm:mb-0">You've completed all modules. Complete the final assessment(s) below to validate your learning and unlock your certificate.</p>
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-3">
+                              <Link to={`/courses/${courseId}/assessment`} className="px-6 py-2.5 bg-primary text-on-primary rounded-full font-label-sm font-bold shadow-md hover:shadow-lg shrink-0 transition-all hover:-translate-y-0.5 text-center flex items-center gap-2 justify-center">
+                                 <span className="material-symbols-outlined text-[18px]">quiz</span> MCQ Exam
+                              </Link>
+                              {hasCodingQuestions && (
+                                <Link to={`/courses/${courseId}/coding-assessment`} className="px-6 py-2.5 bg-surface text-primary border border-primary rounded-full font-label-sm font-bold shadow-sm hover:bg-primary/5 shrink-0 transition-all hover:-translate-y-0.5 text-center flex items-center gap-2 justify-center">
+                                   <span className="material-symbols-outlined text-[18px]">code</span> Coding Exam
+                                </Link>
+                              )}
+                            </div>
+                          </div>
+                        )
                       )}
                     </div>
                   )}

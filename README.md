@@ -174,6 +174,29 @@ To serve the static client using Nginx:
 
 ---
 
+## Course Progression & Certification Validation
+
+LearnLoom utilizes a strict progression and validation architecture to ensure student learning is thoroughly validated before certificates are issued:
+
+### 1. Progression & Formatting
+- **Rich Module Formatting**: When modules are scraped or AI-generated, rich fields such as `examples`, `real_world_use_cases`, `key_concepts`, and `summary` are structured in `course_modules` (in JSONB/TEXT format) and displayed in the frontend via interactive panels.
+- **Strict Linear Progression**: Students unlock modules sequentially. Progress increments as each module is marked complete.
+
+### 2. Assessment Verification Gate
+- Upon reaching **100% course progress**, the course enrollment transitions to an "Assessments Unlocked" state. Course completion (`completed_at`) is **not** set and no certificate is issued at this stage.
+- To earn a certificate, students must successfully pass:
+  1. **Final MCQ Assessment**: A proctored, proctor-simulated multiple-choice exam (75% passing score required).
+  2. **Final Coding Assessment**: If the course includes hands-on programming challenges (contains coding questions), the student must pass the interactive coding exam.
+- **Dynamic Requirement Mapping**: The system automatically queries `coding_questions` for the course. If no coding questions are configured, the coding assessment is bypassed, requiring only the MCQ exam.
+
+### 3. Certificate Issuance
+- When the student successfully passes all required assessments:
+  - An average score is computed and a verified certificate is generated in the `certificates` table.
+  - A unique, cryptographically-valid verification number is generated for QR and public code verification.
+  - The enrollment record is updated to set `completed_at = NOW()`, officially marking the student as certified.
+
+---
+
 ## Security Architecture
 
 LearnLoom is engineered with enterprise-grade security standards to defend against web application vulnerabilities, prevent resource abuse, and safeguard sensitive keys:

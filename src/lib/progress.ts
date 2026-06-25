@@ -135,13 +135,12 @@ export async function completeModule(
   const progressPercent = total > 0 ? Math.round((completed / total) * 100) : 0;
   const isCourseDone = progressPercent === 100;
 
-  // 5. Update enrollment
+  // 5. Update enrollment (completed_at is NOT set here; only after assessments are passed)
   await supabase
     .from('user_course_enrollments')
     .update({
       progress_percent: progressPercent,
       last_module_id: nextModule ? nextModule.id : moduleId,
-      ...(isCourseDone ? { completed_at: new Date().toISOString() } : {}),
     })
     .eq('user_id', userId)
     .eq('course_id', courseId);
@@ -149,31 +148,15 @@ export async function completeModule(
   // 6. Log activity for streak tracking (fire-and-forget)
   void supabase.rpc('log_activity', { p_user_id: userId, p_type: 'lesson', p_value: 1 }).then(() => {});
 
-  // 7. Auto-award certificate if course is newly completed
-  if (isCourseDone) {
-    const { error: certErr } = await supabase.from('certificates').insert({
-      user_id: userId,
-      course_id: courseId,
-      score: 100,
-      verification_code: ''
-    });
-    if (certErr) {
-      console.error('Failed to auto-award certificate:', certErr);
-      // Fallback: alert the user
-      if (typeof window !== 'undefined') {
-        alert('Failed to generate certificate: ' + certErr.message);
-      }
-    }
-  }
-
   return { error: null, isCourseDone };
 }
 
 /**
  * Checks if a user has passed both MCQ and Coding final assessments.
- * If so, automatically awards them a certificate for the course.
+ * If so, automatically awards them a certificate for the course and updates completed_at.
  */
 export async function checkAndAwardCertificate(userId: string, courseId: string) {
+  // 1. Get passing attempts for this user and course
   const { data: attempts } = await supabase
     .from('assessment_attempts')
     .select('is_passed, metrics, score_percentage')
@@ -186,10 +169,22 @@ export async function checkAndAwardCertificate(userId: string, courseId: string)
   const hasMCQ = attempts.find(a => a.metrics?.type === 'mcq');
   const hasCoding = attempts.find(a => a.metrics?.type === 'coding');
 
-  if (hasMCQ && hasCoding) {
-    // Average score
-    const avgScore = Math.round((hasMCQ.score_percentage + hasCoding.score_percentage) / 2);
-    
+  // 2. Check if course actually has coding questions
+  const { count: codingCount } = await supabase
+    .from('coding_questions')
+    .select('id', { count: 'exact', head: true })
+    .eq('course_id', courseId);
+
+  const requiresCoding = codingCount && codingCount > 0;
+
+  // 3. Validate condition: must have passed MCQ, and if coding is required, must have passed Coding
+  if (hasMCQ && (!requiresCoding || hasCoding)) {
+    // Average score calculation
+    let avgScore = hasMCQ.score_percentage;
+    if (requiresCoding && hasCoding) {
+      avgScore = Math.round((hasMCQ.score_percentage + hasCoding.score_percentage) / 2);
+    }
+
     // Check if certificate already exists
     const { data: existing } = await supabase
       .from('certificates')
@@ -199,13 +194,23 @@ export async function checkAndAwardCertificate(userId: string, courseId: string)
       .maybeSingle();
 
     if (!existing) {
-      await supabase.from('certificates').insert({
+      // Create the certificate
+      const { error: certErr } = await supabase.from('certificates').insert({
         user_id: userId,
         course_id: courseId,
         score: avgScore,
         verification_code: Math.random().toString(36).substr(2, 9).toUpperCase(),
         is_valid: true
       });
+
+      if (!certErr) {
+        // 4. Mark course enrollment as completed since validation passed!
+        await supabase
+          .from('user_course_enrollments')
+          .update({ completed_at: new Date().toISOString() })
+          .eq('user_id', userId)
+          .eq('course_id', courseId);
+      }
     }
   }
 }
