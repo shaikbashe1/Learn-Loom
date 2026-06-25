@@ -57,6 +57,12 @@ LearnLoom is an advanced, AI-driven learning ecosystem designed for software eng
 - **Unified Logo Assets**: Replaced legacy placeholder bar-chart vectors with the official book-loom monogram logo vectors (`logo-icon.svg`, `logo-dark.svg`, and `auth-logo.svg`). Integrated these assets directly into `AppLayout.tsx`, `TopAppBar.tsx`, `LoginPage.tsx`, and `SignupPage.tsx`.
 - **OAuth Callback Guard**: Patched a race condition in `AuthCallbackPage.tsx` that previously caused successful Google logins to immediately redirect to `/login` due to temporary `null` sessions during token exchanges.
 
+### 10. Brand Rebranding, Emoji Clean-up & Google Login Resilience
+- **Transparent PNG Brand Logo**: Isolated the LL book monogram logo from its white background to produce clean transparent PNGs (`logo-icon.png` and `logo-icon-light.png`). Integrated them across headers, sidebars, and authentication layouts, replacing previous vector filter hacks.
+- **Emoji Removal**: Cleaned up all text emojis from toast notifications, alerts, and UI headers across 11 files (e.g., student dashboards, player pages, and coding editors) to align the platform with premium SaaS aesthetic standards.
+- **Google OAuth Resilience**: Implemented a 5-step polling retry mechanism in the profile fetching function (`getProfile`) in `AuthContext.tsx` to handle database profile trigger latency. Added a 10-second safety timeout in `AuthCallbackPage.tsx` to prevent infinite loader hangs.
+- **Student Dashboard Aesthetics**: Fixed broken roadmap navigation links (pointing to `/student/roadmap`), redesigned the welcome banner to use modern gradients, styled overall progress indicators with subtle glows, and added interactive card hover translations.
+
 
 
 ## Issues Faced & Resolutions
@@ -112,6 +118,18 @@ LearnLoom is an advanced, AI-driven learning ecosystem designed for software eng
 ### Issue 11: Google OAuth Redirect Race Condition Returning User to Login
 **Problem:** Upon redirection from Google OAuth back to `/auth/callback?code=xxxx`, the Supabase auth client processes the code exchange in the background. React Router initially mounted the page with `loading = false` and `user = null`, which caused `AuthCallbackPage.tsx` to immediately redirect to `/login` before the background exchange could complete and sign the user in.
 **Resolution:** Modified `AuthCallbackPage.tsx` to inspect URL parameters for OAuth indicators (`code` or `access_token`). Redirection to `/login` is now bypassed while these parameters are active, keeping the loader screen open until the session is successfully established. Admins are then routed directly to `/admin`, and students to `/dashboard`.
+
+### Issue 12: Google OAuth Signup Profile Fetch Latency
+**Problem:** Newly registered Google OAuth users had their profiles created asynchronously by a database trigger. The frontend auth listener immediately ran `getProfile` upon sign-in, returning `null` before the database trigger completed.
+**Resolution:** Updated `getProfile` inside `AuthContext.tsx` to poll for the user profile row up to 5 times (every 500ms), making the OAuth signup flow extremely robust.
+
+### Issue 13: Google OAuth Callback Infinite Loader
+**Problem:** If the Supabase session exchange failed or timed out during OAuth callback, the page remained stuck on the loading spinner indefinitely.
+**Resolution:** Added a 10-second safety timeout on `AuthCallbackPage.tsx` that triggers a toast error and redirects the user back to `/login`.
+
+### Issue 14: 404 Route Errors on Dashboard Roadmap Links
+**Problem:** The Active AI Roadmap widget in the student dashboard linked to `/student/roadmap`, which did not exist in the routing table.
+**Resolution:** Corrected links to point to the active `/ai-roadmap` path.
 
 
 
