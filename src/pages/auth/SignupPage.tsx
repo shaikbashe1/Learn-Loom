@@ -205,14 +205,10 @@ export default function SignupPage() {
 
               <div className="bg-surface border border-border-base rounded-2xl p-6 sm:p-8 shadow-sm relative z-10">
                 {/* Social Signup */}
-                <div className="grid grid-cols-2 gap-4 mb-stack-md">
+                <div className="grid grid-cols-1 gap-4 mb-stack-md">
                   <button onClick={handleGoogleSignup} disabled={loading || googleLoading || githubLoading} className="flex items-center justify-center w-full px-4 py-3 border border-border-base rounded-xl bg-surface hover:bg-surface-container-low transition-colors duration-200 disabled:opacity-50 group">
                     {googleLoading ? <span className="material-symbols-outlined animate-spin mr-2">sync</span> : <img alt="Google" className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsGDtv1wfqRaaAmWvM_A5rKjcBNVQBLRNCZcc66jb_B8yiQbLKy_xOGLnd4f50Riy9E2hqerBhCwhTV9wpJkcavRSeWaGYup6-vDp7xJLbcs8rBhVqoWKMCzQxxerf0li8kFhGu_hosH8rnOuu3Rz9C5pGGtqFVd-Ru0cHdwEb8_T33JsPD-y0RosYAue1vzgMt_5gI9fnq3QI1fAlFskc4pWz1NLSqoIFSUsOjdPPunIpL0VdOVDZn0le5VtoQd3mvbyWje1nWpR5"/>}
                     <span className="font-label-md text-label-md text-text-primary">Google</span>
-                  </button>
-                  <button onClick={handleGitHubSignup} disabled={loading || googleLoading || githubLoading} className="flex items-center justify-center w-full px-4 py-3 border border-border-base rounded-xl bg-surface hover:bg-surface-container-low transition-colors duration-200 disabled:opacity-50 group">
-                    {githubLoading ? <span className="material-symbols-outlined animate-spin mr-2">sync</span> : <img alt="GitHub" className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB36CeHYV5KtKDpqE6qmqAHdACpGXa3_HqrhTSHbqiGhrRiRkYFA_4FHfR36ArzbjNfTFAkvMD3j1w2LnFzKEgudiWyMKVVyvogiuXJ9vK9acnAFnqpt_2U-1_KEwhZ5EzzbZ5jKcDqn-dsflswrFaxO9OeCxtbHWZbIcGy_PYWmHyc6TqZXgkhaBA9Jp9RTT58LmQLf6HxoikAQwjwqzjFuY0Nj5doSqo52zMb3TPpYeZThA8BPETj6EJq6YfGQDbGZSLXkaPNcfI1"/>}
-                    <span className="font-label-md text-label-md text-text-primary">GitHub</span>
                   </button>
                 </div>
 
