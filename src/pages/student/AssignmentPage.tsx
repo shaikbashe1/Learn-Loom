@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { supabase } from '@/db/supabase';
@@ -169,12 +170,13 @@ export default function AssignmentPage() {
         ) : (
           <div className="flex flex-col lg:flex-row gap-8 h-full lg:h-[calc(100vh-10rem)]">
             <div className="lg:hidden mb-2">
-              <button 
+              <Button 
                 onClick={() => setSelected(null)}
-                className="flex items-center gap-2 text-text-secondary hover:text-primary transition-colors font-label-md text-label-md px-4 py-2 rounded-lg border border-border-base bg-surface shadow-sm card-lift inline-flex"
+                variant="outline"
+                className="flex items-center gap-2 text-text-secondary hover:text-primary transition-all font-label-md rounded-xl border border-border-base bg-surface shadow-sm min-h-[44px] h-11"
               >
                 <span className="material-symbols-outlined text-[18px]">arrow_back</span> Back to Assignments
-              </button>
+              </Button>
             </div>
 
             {/* Left Column: Assignment Brief */}
@@ -255,7 +257,7 @@ export default function AssignmentPage() {
                           <>
                             <span className="font-headline-md text-[16px] font-bold text-primary mb-1 truncate max-w-full px-4">{file.name}</span>
                             <span className="font-body-sm text-[13px] text-text-secondary mb-4">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
-                            <button type="button" onClick={(e) => { e.stopPropagation(); setFile(null); }} className="text-error font-label-md text-[13px] font-bold hover:underline bg-error/10 px-3 py-1 rounded-full border border-error/20 transition-colors hover:bg-error hover:text-white">Remove</button>
+                             <button type="button" onClick={(e) => { e.stopPropagation(); setFile(null); }} className="text-error font-label-sm text-[12px] font-bold bg-error/10 px-4 py-2 rounded-full border border-error/20 transition-all hover:bg-error hover:text-white min-h-[44px] flex items-center justify-center">Remove</button>
                           </>
                         ) : (
                           <>
@@ -277,17 +279,17 @@ export default function AssignmentPage() {
                         />
                       </div>
                       
-                      <button 
+                      <Button 
                         type="submit" 
                         disabled={submitting || (!file && !note.trim())} 
-                        className="w-full bg-primary text-on-primary font-headline-md text-[16px] font-bold py-3.5 rounded-xl hover:bg-primary-container transition-all shadow-md disabled:opacity-50 mt-auto flex justify-center items-center gap-2"
+                        className="w-full bg-primary text-on-primary font-bold py-3.5 rounded-xl hover:bg-primary-container transition-all shadow-md disabled:opacity-50 mt-auto flex justify-center items-center gap-2 min-h-[44px] h-12"
                       >
                         {submitting ? (
                           <><span className="material-symbols-outlined text-[20px] animate-spin">autorenew</span> Submitting...</>
                         ) : (
                           <><span className="material-symbols-outlined text-[20px]">send</span> Submit Assignment</>
                         )}
-                      </button>
+                      </Button>
                     </form>
                   </div>
                 </>

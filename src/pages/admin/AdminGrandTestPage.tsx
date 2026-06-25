@@ -191,7 +191,7 @@ export default function AdminGrandTestPage() {
                         )}
                       </div>
                       
-                      <div className="flex md:flex-col items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 pl-12 md:pl-0">
+                      <div className="flex md:flex-col items-center gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0 pl-12 md:pl-0">
                         <button onClick={() => openEdit(q)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-surface border border-border-base text-text-secondary hover:text-primary hover:bg-surface-container hover:border-primary/30 transition-all shadow-sm" title="Edit">
                           <Edit2 className="w-4 h-4" />
                         </button>

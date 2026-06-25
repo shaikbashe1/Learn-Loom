@@ -222,18 +222,27 @@ export default function CertificatePage() {
                      </div>
                   </div>
                   
-                  <div className="flex flex-col sm:flex-row gap-4 relative z-10">
-                    <button onClick={() => generateCertificatePDF(featuredCert, userName)} className="flex-1 bg-primary text-white font-label-md text-[14px] font-bold py-3 rounded-xl hover:bg-primary-container transition-colors flex justify-center items-center gap-2 shadow-sm">
+                  <div className="flex flex-col sm:flex-row gap-3 relative z-10">
+                    <Button 
+                      onClick={() => generateCertificatePDF(featuredCert, userName)} 
+                      className="flex-1 min-h-[44px] h-12 bg-primary text-white hover:bg-primary-container hover:text-on-primary-container font-bold rounded-xl shadow-sm flex justify-center items-center gap-2"
+                    >
                       <span className="material-symbols-outlined text-[20px]">download</span> Download PDF
-                    </button>
-                    <div className="flex flex-1 gap-4">
-                      <button onClick={() => handleShare(featuredCert)} className="flex-1 bg-surface border border-border-base text-text-primary font-label-md text-[14px] font-bold py-3 rounded-xl hover:bg-surface-container transition-colors flex justify-center items-center gap-2 shadow-sm">
-                        <span className="material-symbols-outlined text-[20px]">share</span> Share
-                      </button>
-                      <button onClick={() => setQrCert(featuredCert)} className="flex-1 bg-surface border border-border-base text-text-primary font-label-md text-[14px] font-bold py-3 rounded-xl hover:bg-surface-container transition-colors flex justify-center items-center gap-2 shadow-sm">
-                        <span className="material-symbols-outlined text-[20px]">qr_code</span> QR
-                      </button>
-                    </div>
+                    </Button>
+                    <Button 
+                      onClick={() => handleShare(featuredCert)} 
+                      variant="outline" 
+                      className="flex-1 min-h-[44px] h-12 border-border-base text-text-primary hover:bg-surface-container font-bold rounded-xl shadow-sm flex justify-center items-center gap-2"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">share</span> Share
+                    </Button>
+                    <Button 
+                      onClick={() => setQrCert(featuredCert)} 
+                      variant="outline" 
+                      className="flex-1 min-h-[44px] h-12 border-border-base text-text-primary hover:bg-surface-container font-bold rounded-xl shadow-sm flex justify-center items-center gap-2"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">qr_code</span> QR Code
+                    </Button>
                   </div>
                 </section>
               )}
@@ -256,14 +265,25 @@ export default function CertificatePage() {
                           Score: <span className="font-bold text-primary">{cert.score}%</span> • {new Date(cert.issued_at).toLocaleDateString()}
                         </p>
                         <div className="flex justify-between items-center mt-auto border-t border-border-base pt-4">
-                          <button onClick={() => setQrCert(cert)} className="text-text-secondary hover:text-primary font-label-sm text-[13px] font-bold flex items-center gap-1.5 transition-colors">
+                          <button 
+                            onClick={() => setQrCert(cert)} 
+                            className="text-text-secondary hover:text-primary font-label-sm text-[13px] font-bold flex items-center gap-1.5 transition-colors min-h-[44px] px-1"
+                          >
                             <span className="material-symbols-outlined text-[18px]">qr_code</span> QR Code
                           </button>
                           <div className="flex gap-2">
-                             <button onClick={() => handleShare(cert)} className="w-8 h-8 rounded-full bg-surface border border-border-base flex items-center justify-center text-text-secondary hover:text-primary hover:border-primary/50 transition-colors shadow-sm">
+                             <button 
+                               onClick={() => handleShare(cert)} 
+                               className="w-11 h-11 rounded-full bg-surface border border-border-base flex items-center justify-center text-text-secondary hover:text-primary hover:border-primary/50 transition-colors shadow-sm"
+                               title="Share Certificate"
+                             >
                                <span className="material-symbols-outlined text-[16px]">share</span>
                              </button>
-                             <button onClick={() => generateCertificatePDF(cert, userName)} className="w-8 h-8 rounded-full bg-surface border border-border-base flex items-center justify-center text-text-secondary hover:text-primary hover:border-primary/50 transition-colors shadow-sm">
+                             <button 
+                               onClick={() => generateCertificatePDF(cert, userName)} 
+                               className="w-11 h-11 rounded-full bg-surface border border-border-base flex items-center justify-center text-text-secondary hover:text-primary hover:border-primary/50 transition-colors shadow-sm"
+                               title="Download PDF"
+                             >
                                <span className="material-symbols-outlined text-[16px]">download</span>
                              </button>
                           </div>

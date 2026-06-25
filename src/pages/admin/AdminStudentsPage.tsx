@@ -259,7 +259,7 @@ export default function AdminStudentsPage() {
                           </p>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex justify-end gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                             <button onClick={() => { setSelectedStudent(s); setDetailOpen(true); }} className="w-10 h-10 flex items-center justify-center rounded-full text-text-secondary hover:text-primary hover:bg-surface shadow-sm border border-transparent hover:border-border-base transition-all" title="View Details">
                               <span className="material-symbols-outlined text-[20px]">visibility</span>
                             </button>

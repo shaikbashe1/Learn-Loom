@@ -257,17 +257,17 @@ export default function FinalAssessmentPage() {
               <p className="font-body-lg text-body-lg text-text-secondary mt-2">Comprehensive Certification Exam</p>
             </div>
             
-            <div className="grid grid-cols-2 gap-4 mb-10 relative z-10">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-4 mb-10 relative z-10">
               {[
                 { label: 'Questions', value: '20', icon: 'format_list_bulleted' },
                 { label: 'Duration', value: '30 min', icon: 'timer' },
                 { label: 'Passing Score', value: '60%', icon: 'flag' },
                 { label: 'Attempts', value: 'Proctored', icon: 'videocam' },
               ].map(item => (
-                <div key={item.label} className="p-5 rounded-xl bg-surface border border-border-base text-center flex flex-col items-center shadow-sm">
-                  <span className="material-symbols-outlined text-primary mb-2 text-[24px]">{item.icon}</span>
-                  <div className="font-headline-md text-[24px] font-bold text-text-primary mb-1">{item.value}</div>
-                  <div className="font-label-sm text-[11px] text-text-secondary uppercase tracking-widest font-bold">{item.label}</div>
+                <div key={item.label} className="p-3.5 sm:p-5 rounded-xl bg-surface border border-border-base text-center flex flex-col items-center shadow-sm">
+                  <span className="material-symbols-outlined text-primary mb-1 sm:mb-2 text-[20px] sm:text-[24px]">{item.icon}</span>
+                  <div className="font-headline-md text-lg sm:text-[24px] font-bold text-text-primary mb-0.5 sm:mb-1">{item.value}</div>
+                  <div className="font-label-sm text-[9px] sm:text-[11px] text-text-secondary uppercase tracking-widest font-bold">{item.label}</div>
                 </div>
               ))}
             </div>
@@ -471,10 +471,10 @@ export default function FinalAssessmentPage() {
   return (
     <div className="bg-background text-text-primary font-body-md h-screen w-screen overflow-hidden flex flex-col">
       {/* Top Navigation (Exam Header) */}
-      <header className="bg-surface/70 backdrop-blur-xl border-b border-border-base shadow-sm flex justify-between items-center w-full px-6 md:px-10 h-20 shrink-0 z-40 relative">
-        <div className="flex items-center gap-4">
-          <span className="font-headline-md text-[24px] font-bold text-primary">LearnLoom</span>
-          <div className="h-6 w-px bg-border-base mx-2 hidden md:block"></div>
+      <header className="bg-surface/70 backdrop-blur-xl border-b border-border-base shadow-sm flex justify-between items-center w-full px-4 md:px-10 h-16 md:h-20 shrink-0 z-40 relative">
+        <div className="flex items-center gap-3">
+          <span className="font-headline-md text-[20px] md:text-[24px] font-bold text-primary">LearnLoom</span>
+          <div className="h-6 w-px bg-border-base mx-1 hidden md:block"></div>
           <div className="hidden md:block">
             <h1 className="font-headline-md text-[18px] font-bold text-text-primary">Final Assessment</h1>
             <p className="font-label-sm text-[12px] text-text-secondary flex items-center gap-1">
@@ -482,7 +482,7 @@ export default function FinalAssessmentPage() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 md:gap-6">
           {/* Progress */}
           <div className="hidden md:flex items-center gap-3">
             <span className="font-label-md text-[14px] font-bold text-text-secondary">Progress: {answers.filter(a => a !== null).length}/{questions.length}</span>
@@ -491,8 +491,8 @@ export default function FinalAssessmentPage() {
             </div>
           </div>
           {/* Timer */}
-          <div className={`flex items-center gap-2 px-4 py-2 rounded-lg font-label-md text-[15px] shadow-sm border ${timeLeft < 300 ? 'bg-error/10 text-error border-error/30 animate-pulse' : 'bg-primary/5 text-primary border-primary/20'}`}>
-            <span className="material-symbols-outlined text-[20px]">timer</span>
+          <div className={`flex items-center gap-1.5 px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-label-md text-sm md:text-[15px] shadow-sm border ${timeLeft < 300 ? 'bg-error/10 text-error border-error/30 animate-pulse' : 'bg-primary/5 text-primary border-primary/20'}`}>
+            <span className="material-symbols-outlined text-[18px] md:text-[20px]">timer</span>
             <span className="font-bold tracking-wider">{formatTime(timeLeft)}</span>
           </div>
         </div>
@@ -563,8 +563,8 @@ export default function FinalAssessmentPage() {
               </div>
               
               {/* Question Text */}
-              <div className="bg-surface rounded-2xl p-8 shadow-sm border border-border-base mb-8 card-lift">
-                <h3 className="font-body-lg text-[20px] leading-relaxed text-text-primary font-bold whitespace-pre-wrap">
+              <div className="bg-surface rounded-xl sm:rounded-2xl p-5 sm:p-8 shadow-sm border border-border-base mb-6 card-lift">
+                <h3 className="font-body-lg text-lg sm:text-[20px] leading-relaxed text-text-primary font-bold whitespace-pre-wrap">
                   {q.text}
                 </h3>
               </div>
@@ -574,7 +574,7 @@ export default function FinalAssessmentPage() {
                 {q.options.map((opt, i) => (
                   <label 
                     key={i} 
-                    className={`group relative flex items-center p-5 rounded-xl border cursor-pointer transition-all duration-200 card-lift ${answers[current] === i ? 'bg-surface border-primary shadow-[0_0_15px_rgba(37,99,235,0.1)]' : 'bg-surface border-border-base hover:bg-surface-container-lowest'}`}
+                    className={`group relative flex items-center p-4 sm:p-5 min-h-[56px] rounded-xl border cursor-pointer transition-all duration-200 card-lift ${answers[current] === i ? 'bg-surface border-primary shadow-[0_0_15px_rgba(37,99,235,0.1)]' : 'bg-surface border-border-base hover:bg-surface-container-lowest'}`}
                   >
                     <input 
                       type="radio" 
@@ -597,34 +597,34 @@ export default function FinalAssessmentPage() {
           </div>
 
           {/* Bottom Navigation Bar (Exam Actions) */}
-          <div className="bg-surface/90 backdrop-blur-md border-t border-border-base p-4 absolute bottom-0 left-0 right-0 z-30 shadow-[0_-4px_15px_rgba(0,0,0,0.03)]">
-            <div className="max-w-[800px] mx-auto flex justify-between items-center px-4 w-full">
+          <div className="bg-surface/90 backdrop-blur-md border-t border-border-base p-4 pb-6 md:pb-4 absolute bottom-0 left-0 right-0 z-30 shadow-[0_-4px_15px_rgba(0,0,0,0.03)]">
+            <div className="max-w-[800px] mx-auto flex justify-between items-center px-2 sm:px-4 w-full gap-2">
               <button 
                 onClick={() => { if (current > 0) setCurrent(current - 1); }}
                 disabled={current === 0}
-                className="px-6 py-3 rounded-xl border border-border-base bg-surface text-text-secondary font-label-md text-[14px] font-bold hover:bg-surface-container-lowest hover:text-text-primary transition-colors flex items-center gap-2 disabled:opacity-30 shadow-sm card-lift"
+                className="px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl border border-border-base bg-surface text-text-secondary font-label-md text-[14px] font-bold hover:bg-surface-container-lowest hover:text-text-primary transition-colors flex items-center gap-1.5 disabled:opacity-30 shadow-sm card-lift min-h-[44px]"
               >
-                <span className="material-symbols-outlined text-[20px]">chevron_left</span> Previous
+                <span className="material-symbols-outlined text-[20px]">chevron_left</span> <span className="text-xs sm:text-sm">Previous</span>
               </button>
               
-              <div className="flex gap-4">
+              <div className="flex gap-2">
                 <button 
                   onClick={() => {
                     if (current < questions.length - 1) setCurrent(current + 1);
                   }}
                   disabled={current === questions.length - 1 || answers[current] === null}
-                  className={`px-8 py-3 rounded-xl font-label-md text-[15px] font-bold transition-all shadow-md flex items-center gap-2 card-lift ${current === questions.length - 1 ? 'hidden' : 'bg-primary text-on-primary hover:bg-primary-container disabled:opacity-50'}`}
+                  className={`px-5 sm:px-8 py-2.5 sm:py-3 rounded-xl font-label-md text-[15px] font-bold transition-all shadow-md flex items-center gap-1.5 card-lift min-h-[44px] ${current === questions.length - 1 ? 'hidden' : 'bg-primary text-on-primary hover:bg-primary-container disabled:opacity-50'}`}
                 >
-                  Next <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+                  <span className="text-xs sm:text-sm">Next</span> <span className="material-symbols-outlined text-[20px]">chevron_right</span>
                 </button>
 
                 {current === questions.length - 1 && (
                   <button 
                     onClick={handleSubmit}
                     disabled={submitting || answers.includes(null)}
-                    className="px-8 py-3 rounded-xl bg-error text-white font-label-md text-[15px] font-bold hover:bg-error/90 transition-all shadow-md flex items-center gap-2 card-lift disabled:opacity-50"
+                    className="px-5 sm:px-8 py-2.5 sm:py-3 rounded-xl bg-error text-white font-label-md text-[15px] font-bold hover:bg-error/90 transition-all shadow-md flex items-center gap-1.5 card-lift disabled:opacity-50 min-h-[44px]"
                   >
-                    {submitting ? 'Submitting...' : 'Submit Exam'} <span className="material-symbols-outlined text-[20px]">send</span>
+                    <span className="text-xs sm:text-sm">{submitting ? 'Submitting...' : 'Submit Exam'}</span> <span className="material-symbols-outlined text-[20px]">send</span>
                   </button>
                 )}
               </div>

@@ -69,9 +69,44 @@ export default function StudentDashboard() {
     void load();
   }, [user]);
 
+  if (loading) {
+    return (
+      <AppLayout title="Dashboard">
+        <div className="flex-1 max-w-7xl mx-auto w-full space-y-8 bg-background animate-pulse">
+          {/* Welcome Banner Skeleton */}
+          <div className="h-36 w-full bg-surface border border-border-base rounded-2xl shimmer" />
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main content skeletons */}
+            <div className="lg:col-span-2 space-y-8">
+              <div className="space-y-4">
+                <div className="h-6 w-48 bg-surface border border-border-base rounded shimmer" />
+                <div className="h-44 w-full bg-surface border border-border-base rounded-2xl shimmer" />
+              </div>
+              <div className="space-y-4">
+                <div className="h-6 w-48 bg-surface border border-border-base rounded shimmer" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="h-28 bg-surface border border-border-base rounded-xl shimmer" />
+                  <div className="h-28 bg-surface border border-border-base rounded-xl shimmer" />
+                </div>
+              </div>
+            </div>
+            {/* Sidebar skeletons */}
+            <div className="space-y-8">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="h-28 bg-surface border border-border-base rounded-2xl shimmer" />
+                <div className="h-28 bg-surface border border-border-base rounded-2xl shimmer" />
+              </div>
+              <div className="h-56 bg-surface border border-border-base rounded-2xl shimmer" />
+            </div>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
   const completedCount = enrollments.filter(e => !!e.completed_at).length;
   const displayName = profile?.full_name?.split(' ')[0] ?? 'there';
-  const credits  = profile?.credits ?? 0;
   const streak   = profile?.streak_days ?? 0;
 
   // Mock weekly activity for the chart
@@ -79,19 +114,19 @@ export default function StudentDashboard() {
 
   return (
     <AppLayout title="Dashboard">
-      <div className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full space-y-8 bg-background">
+      <div className="flex-1 max-w-7xl mx-auto w-full space-y-8 bg-background">
         
         {/* Hero Welcome Banner */}
-        <section className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-chart-4/10 to-surface border border-primary/20 rounded-2xl p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 group shadow-md hover:shadow-lg transition-all duration-300">
+        <section className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-chart-4/10 to-surface border border-primary/20 rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 group shadow-md hover:shadow-lg transition-all duration-300">
           <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-primary/10 to-transparent pointer-events-none rounded-r-2xl"></div>
           <div className="relative z-10 space-y-2">
-            <h2 className="text-3xl md:text-4xl font-heading font-bold text-on-surface">Welcome back, {displayName}!</h2>
-            <p className="text-on-surface-variant font-body-lg max-w-2xl">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-heading font-extrabold text-text-primary tracking-tight">Welcome back, {displayName}!</h2>
+            <p className="text-on-surface-variant font-body-lg max-w-2xl text-sm sm:text-base leading-relaxed">
               You've completed <span className="text-primary font-bold">{completedCount}</span> course{completedCount !== 1 ? 's' : ''}. Keep the momentum going!
             </p>
           </div>
-          <div className="relative z-10 shrink-0">
-            <Link to="/courses" className="bg-gradient-to-r from-primary to-chart-4 text-on-primary px-6 py-3 rounded-xl font-label-md font-bold hover:brightness-110 hover:shadow-lg hover:-translate-y-0.5 active:scale-95 transition-all flex items-center gap-2 shadow-sm">
+          <div className="relative z-10 shrink-0 w-full md:w-auto">
+            <Link to="/courses" className="bg-gradient-to-r from-primary to-chart-4 text-on-primary px-6 py-3 rounded-xl font-label-md font-bold hover:brightness-110 hover:shadow-lg hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center gap-2 shadow-sm min-h-[44px]">
               <Zap className="w-5 h-5" />
               Jump Back In
             </Link>
@@ -109,7 +144,7 @@ export default function StudentDashboard() {
                 <h3 className="text-xl font-heading font-bold text-on-surface flex items-center gap-2">
                   <Map className="w-6 h-6 text-primary" /> Active AI Roadmap
                 </h3>
-                <Link to="/ai-roadmap" className="text-primary font-label-sm hover:underline flex items-center">
+                <Link to="/ai-roadmap" className="text-primary font-label-sm hover:underline flex items-center min-h-[44px] px-2">
                   View full <ChevronRight className="w-4 h-4 ml-1" />
                 </Link>
               </div>
@@ -120,35 +155,35 @@ export default function StudentDashboard() {
                     <Target className="w-8 h-8 text-primary" />
                   </div>
                   <h4 className="text-lg font-bold text-on-surface mb-2">No Roadmap Generated</h4>
-                  <p className="text-on-surface-variant mb-6">Let Loomie generate a personalized career path for you.</p>
-                  <Link to="/ai-roadmap" className="bg-primary/10 text-primary px-6 py-2 rounded-lg font-bold hover:bg-primary/20 transition-colors">
+                  <p className="text-on-surface-variant mb-6 text-sm">Let Loomie generate a personalized career path for you.</p>
+                  <Link to="/ai-roadmap" className="bg-primary/10 text-primary px-6 py-2.5 rounded-lg font-bold hover:bg-primary/20 transition-colors min-h-[44px] flex items-center">
                     Create Roadmap
                   </Link>
                 </div>
               ) : (
                 <div className="bg-surface border border-outline-variant rounded-2xl p-6 shadow-sm group hover:border-primary/30 transition-all duration-300 hover:shadow-md">
-                  <div className="flex justify-between items-start mb-6">
+                  <div className="flex justify-between items-start mb-6 gap-4">
                     <div>
-                      <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded uppercase tracking-wider mb-2 inline-block">
+                      <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded uppercase tracking-wider mb-2.5 inline-block">
                         {activeRoadmap.difficulty}
                       </span>
-                      <h4 className="text-2xl font-bold text-on-surface">{activeRoadmap.title}</h4>
-                      <p className="text-on-surface-variant">{activeRoadmap.target_role}</p>
+                      <h4 className="text-xl sm:text-2xl font-bold text-on-surface tracking-tight leading-snug">{activeRoadmap.title}</h4>
+                      <p className="text-on-surface-variant text-sm mt-0.5">{activeRoadmap.target_role}</p>
                     </div>
-                    <div className="text-right">
-                      <div className="text-3xl font-bold text-primary">
+                    <div className="text-right shrink-0">
+                      <div className="text-3xl font-extrabold text-primary">
                         {activeRoadmap.stages.filter(s => s.status === 'completed').length}
-                        <span className="text-lg text-on-surface-variant">/{activeRoadmap.stages.length}</span>
+                        <span className="text-lg text-on-surface-variant font-medium">/{activeRoadmap.stages.length}</span>
                       </div>
-                      <p className="text-xs text-on-surface-variant uppercase tracking-wider">Stages</p>
+                      <p className="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">Stages</p>
                     </div>
                   </div>
                   
                   {/* Visual Progress */}
                   <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-on-surface-variant font-bold">Overall Progress</span>
-                      <span className="text-primary font-bold">
+                    <div className="flex justify-between text-sm font-medium">
+                      <span className="text-on-surface-variant">Overall Progress</span>
+                      <span className="text-primary">
                         {Math.round((activeRoadmap.stages.filter(s => s.status === 'completed').length / activeRoadmap.stages.length) * 100) || 0}%
                       </span>
                     </div>
@@ -169,26 +204,26 @@ export default function StudentDashboard() {
                 <h3 className="text-xl font-heading font-bold text-on-surface flex items-center gap-2">
                   <BookOpen className="w-6 h-6 text-secondary" /> Continue Learning
                 </h3>
-                <Link to="/courses" className="text-secondary font-label-sm hover:underline">View All</Link>
+                <Link to="/courses" className="text-secondary font-label-sm hover:underline min-h-[44px] px-2 flex items-center">View All</Link>
               </div>
               
               {enrollments.length === 0 ? (
                  <div className="bg-surface border border-outline-variant rounded-2xl p-8 text-center shadow-sm">
-                   <p className="text-on-surface-variant">You haven't enrolled in any courses yet.</p>
+                   <p className="text-on-surface-variant text-sm">You haven't enrolled in any courses yet.</p>
                  </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {enrollments.map((e) => (
-                    <Link key={e.id} to={`/courses/${e.course_id}`} className="bg-surface border border-outline-variant rounded-xl p-4 flex gap-4 hover:border-secondary/50 transition-colors shadow-sm">
-                      <div className="w-20 h-20 rounded-lg overflow-hidden shrink-0 bg-surface-container">
+                    <Link key={e.id} to={`/courses/${e.course_id}`} className="bg-surface border border-outline-variant rounded-xl p-4 flex gap-4 hover:border-secondary/50 transition-colors shadow-sm card-lift">
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden shrink-0 bg-surface-container">
                         {e.course?.thumbnail_url && <img src={e.course.thumbnail_url} alt="" className="w-full h-full object-cover" />}
                       </div>
-                      <div className="flex-1 flex flex-col justify-between">
-                        <h4 className="font-bold text-on-surface line-clamp-2 leading-tight">{e.course?.title}</h4>
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-xs">
+                      <div className="flex-1 flex flex-col justify-between py-0.5">
+                        <h4 className="font-bold text-on-surface line-clamp-2 leading-tight text-sm sm:text-base">{e.course?.title}</h4>
+                        <div className="space-y-1 mt-2">
+                          <div className="flex justify-between text-xs font-semibold">
                             <span className="text-on-surface-variant">Progress</span>
-                            <span className="text-secondary font-bold">{e.progress_percent}%</span>
+                            <span className="text-secondary">{e.progress_percent}%</span>
                           </div>
                           <div className="h-1.5 w-full bg-surface-container rounded-full overflow-hidden">
                             <div className="h-full bg-secondary" style={{ width: `${e.progress_percent}%` }} />
@@ -207,19 +242,21 @@ export default function StudentDashboard() {
             
             {/* Quick Stats */}
             <section className="grid grid-cols-2 gap-4">
-              <div className="bg-surface border border-outline-variant rounded-2xl p-4 shadow-sm flex flex-col justify-center items-center text-center hover:-translate-y-1 hover:shadow-md hover:border-primary/20 transition-all duration-300">
-                <div className="w-10 h-10 rounded-full bg-tertiary/10 flex items-center justify-center mb-2">
+              <div className="bg-surface border border-outline-variant rounded-2xl p-5 shadow-sm flex flex-col justify-center items-center text-center card-lift">
+                <div className="w-10 h-10 rounded-full bg-tertiary/10 flex items-center justify-center mb-2 shadow-inner">
                   <Trophy className="w-5 h-5 text-tertiary" />
                 </div>
-                <p className="text-2xl font-bold text-on-surface">#{myRank ?? '-'}</p>
-                <p className="text-xs text-on-surface-variant uppercase tracking-wider">Global Rank</p>
+                <p className="text-2xl font-extrabold text-on-surface">#{myRank ?? '-'}</p>
+                <p className="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">Global Rank</p>
+                <span className="text-[10px] text-success font-bold mt-1">↑ 3 this week</span>
               </div>
-              <div className="bg-surface border border-outline-variant rounded-2xl p-4 shadow-sm flex flex-col justify-center items-center text-center hover:-translate-y-1 hover:shadow-md hover:border-primary/20 transition-all duration-300">
-                <div className="w-10 h-10 rounded-full bg-error/10 flex items-center justify-center mb-2">
-                  <Activity className="w-5 h-5 text-error" />
+              <div className="bg-surface border border-outline-variant rounded-2xl p-5 shadow-sm flex flex-col justify-center items-center text-center card-lift">
+                <div className="w-10 h-10 rounded-full bg-error/10 flex items-center justify-center mb-2 shadow-inner">
+                  <Zap className="w-5 h-5 text-error" />
                 </div>
-                <p className="text-2xl font-bold text-on-surface">{streak}</p>
-                <p className="text-xs text-on-surface-variant uppercase tracking-wider">Day Streak</p>
+                <p className="text-2xl font-extrabold text-on-surface">{streak}</p>
+                <p className="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">Day Streak</p>
+                <span className="text-[10px] text-on-surface-variant font-medium mt-1">active today</span>
               </div>
             </section>
 
@@ -229,9 +266,9 @@ export default function StudentDashboard() {
               <div className="flex items-end justify-between h-32 gap-2">
                 {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => (
                   <div key={i} className="flex flex-col items-center gap-2 flex-1 group">
-                    <div className="w-full bg-surface-container rounded-t-sm relative flex items-end h-full">
+                    <div className="w-full bg-surface-container rounded-t-md relative flex items-end h-full min-w-[8px]">
                       <div 
-                        className="w-full bg-primary/80 group-hover:bg-primary transition-colors rounded-t-sm"
+                        className="w-full bg-primary/80 group-hover:bg-primary transition-colors rounded-t-md"
                         style={{ height: `${weeklyActivity[i]}%` }}
                       />
                     </div>

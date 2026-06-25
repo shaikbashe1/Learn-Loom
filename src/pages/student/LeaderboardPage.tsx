@@ -70,12 +70,12 @@ export default function LeaderboardPage() {
           <div className="glass-panel rounded-2xl p-6 md:p-8 relative overflow-hidden ai-gradient-border shadow-sm card-lift">
             <div className="absolute top-0 right-0 w-64 h-64 bg-secondary-container/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-tertiary-container/10 rounded-full blur-2xl translate-y-1/3 -translate-x-1/4 pointer-events-none"></div>
-            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-              <div className="text-center md:text-left">
-                <h2 className="font-headline-lg text-[32px] font-bold text-primary mb-2">Student Leaderboard</h2>
-                <p className="font-body-lg text-[16px] text-text-secondary">Track performance, earn XP, and unlock exclusive rewards.</p>
+            <div className="relative z-10 flex flex-col xl:flex-row items-center justify-between gap-6">
+              <div className="text-center xl:text-left">
+                <h2 className="font-headline-lg text-[28px] sm:text-[32px] font-bold text-primary mb-2">Student Leaderboard</h2>
+                <p className="font-body-lg text-sm sm:text-[16px] text-text-secondary">Track performance, earn XP, and unlock exclusive rewards.</p>
               </div>
-              <div className="flex flex-wrap gap-4 justify-center">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full xl:w-auto">
                 {/* Stat Card 1 */}
                 <div className="bg-surface rounded-xl p-4 border border-border-base shadow-sm flex items-center gap-4 min-w-[160px] card-lift">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary shadow-inner">
@@ -129,53 +129,59 @@ export default function LeaderboardPage() {
             <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-stack-lg relative z-10">
               
               {/* Podium Area */}
-              <div className="lg:col-span-7 glass-panel rounded-2xl border border-border-base shadow-sm p-8 flex flex-col items-center justify-end min-h-[400px] relative overflow-hidden">
-                <h3 className="font-headline-md text-[24px] font-bold text-primary absolute top-6 left-8">Top Scholars</h3>
-                <div className="flex items-end justify-center gap-4 sm:gap-8 w-full h-[300px] mt-12 pb-4">
+              <div className="lg:col-span-7 glass-panel rounded-2xl border border-border-base shadow-sm p-6 sm:p-8 flex flex-col items-center justify-end min-h-[400px] relative overflow-hidden">
+                <h3 className="font-headline-md text-[24px] font-bold text-primary absolute top-6 left-6 sm:left-8">Top Scholars</h3>
+                <div className="flex flex-col sm:flex-row sm:items-end justify-center gap-4 sm:gap-8 w-full h-auto sm:h-[300px] mt-10 sm:mt-12 pb-4">
                   {/* Silver (2nd) */}
                   {second && (
-                    <div className="flex flex-col items-center w-1/3 max-w-[120px] relative z-10 group card-lift">
-                      <div className="mb-3 flex flex-col items-center transition-transform group-hover:-translate-y-2">
-                        <div className="w-16 h-16 rounded-full border-4 border-gray-300 overflow-hidden shadow-md mb-2 relative bg-surface flex items-center justify-center">
-                          {second.avatar_url ? <img src={second.avatar_url} alt="Avatar" className="w-full h-full object-cover" /> : <span className="font-bold text-[20px] text-text-secondary">{initials(second.full_name)}</span>}
-                          <div className="absolute -bottom-1 -right-1 bg-gray-300 rounded-full w-6 h-6 flex items-center justify-center text-[12px] font-bold text-gray-800 border-2 border-white shadow-sm">2</div>
+                    <div className="flex sm:flex-col items-center justify-between sm:justify-end w-full sm:w-1/3 sm:max-w-[120px] p-3 sm:p-0 bg-surface sm:bg-transparent border sm:border-0 border-border-base rounded-xl relative z-10 group card-lift order-2 sm:order-1">
+                      <div className="flex sm:flex-col items-center gap-3 sm:gap-0 sm:mb-3 transition-transform group-hover:-translate-y-2">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-2 sm:border-4 border-gray-300 overflow-hidden shadow-md relative bg-surface flex items-center justify-center">
+                          {second.avatar_url ? <img src={second.avatar_url} alt="Avatar" className="w-full h-full object-cover" /> : <span className="font-bold text-lg sm:text-[20px] text-text-secondary">{initials(second.full_name)}</span>}
+                          <div className="absolute -bottom-1 -right-1 bg-gray-300 rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-[10px] sm:text-[12px] font-bold text-gray-800 border-2 border-white shadow-sm">2</div>
                         </div>
-                        <span className="font-label-md text-[14px] font-bold text-text-primary text-center truncate w-full">{second.full_name ?? 'Student'}</span>
-                        <span className="font-label-sm text-[12px] text-text-secondary font-bold">{second.credits >= 1000 ? `${(second.credits/1000).toFixed(1)}k` : second.credits} XP</span>
+                        <div className="text-left sm:text-center">
+                          <p className="font-label-md text-[14px] font-bold text-text-primary truncate max-w-[100px] sm:max-w-none">{second.full_name ?? 'Student'}</p>
+                          <p className="font-label-sm text-[12px] text-text-secondary font-bold">{second.credits >= 1000 ? `${(second.credits/1000).toFixed(1)}k` : second.credits} XP</p>
+                        </div>
                       </div>
-                      <div className="w-full bg-gradient-to-t from-gray-200 to-gray-100 rounded-t-xl h-[120px] border border-gray-300 border-b-0 shadow-[0_0_20px_rgba(156,163,175,0.4)] flex items-start justify-center pt-4">
+                      <div className="hidden sm:flex w-full bg-gradient-to-t from-gray-200 to-gray-100 rounded-t-xl h-[120px] border border-gray-300 border-b-0 shadow-[0_0_20px_rgba(156,163,175,0.4)] items-start justify-center pt-4">
                         <span className="material-symbols-outlined text-gray-400 text-[32px]" style={{ fontVariationSettings: "'FILL' 1" }}>military_tech</span>
                       </div>
                     </div>
                   )}
                   {/* Gold (1st) */}
                   {first && (
-                    <div className="flex flex-col items-center w-1/3 max-w-[140px] relative z-20 group card-lift">
-                      <div className="mb-3 flex flex-col items-center transition-transform group-hover:-translate-y-2">
-                        <div className="w-20 h-20 rounded-full border-4 border-yellow-400 overflow-hidden shadow-lg mb-2 relative bg-surface flex items-center justify-center">
-                          {first.avatar_url ? <img src={first.avatar_url} alt="Avatar" className="w-full h-full object-cover" /> : <span className="font-bold text-[24px] text-text-secondary">{initials(first.full_name)}</span>}
-                          <div className="absolute -bottom-1 -right-1 bg-yellow-400 rounded-full w-7 h-7 flex items-center justify-center text-[13px] font-bold text-yellow-900 border-2 border-white shadow-sm">1</div>
+                    <div className="flex sm:flex-col items-center justify-between sm:justify-end w-full sm:w-1/3 sm:max-w-[140px] p-3 sm:p-0 bg-surface sm:bg-transparent border sm:border-0 border-border-base rounded-xl relative z-20 group card-lift order-1 sm:order-2">
+                      <div className="flex sm:flex-col items-center gap-3 sm:gap-0 sm:mb-3 transition-transform group-hover:-translate-y-2">
+                        <div className="w-12 h-12 sm:w-20 sm:h-20 rounded-full border-2 sm:border-4 border-yellow-400 overflow-hidden shadow-lg relative bg-surface flex items-center justify-center">
+                          {first.avatar_url ? <img src={first.avatar_url} alt="Avatar" className="w-full h-full object-cover" /> : <span className="font-bold text-lg sm:text-[24px] text-text-secondary">{initials(first.full_name)}</span>}
+                          <div className="absolute -bottom-1 -right-1 bg-yellow-400 rounded-full w-5 h-5 sm:w-7 sm:h-7 flex items-center justify-center text-[10px] sm:text-[13px] font-bold text-yellow-900 border-2 border-white shadow-sm">1</div>
                         </div>
-                        <span className="font-label-md text-[15px] font-bold text-text-primary text-center truncate w-full">{first.full_name ?? 'Student'}</span>
-                        <span className="font-label-sm text-[13px] text-yellow-600 font-bold">{first.credits >= 1000 ? `${(first.credits/1000).toFixed(1)}k` : first.credits} XP</span>
+                        <div className="text-left sm:text-center">
+                          <p className="font-label-md text-[14px] sm:text-[15px] font-bold text-text-primary truncate max-w-[100px] sm:max-w-none">{first.full_name ?? 'Student'}</p>
+                          <p className="font-label-sm text-[12px] sm:text-[13px] text-yellow-600 font-bold">{first.credits >= 1000 ? `${(first.credits/1000).toFixed(1)}k` : first.credits} XP</p>
+                        </div>
                       </div>
-                      <div className="w-full bg-gradient-to-t from-yellow-200 to-yellow-100 rounded-t-xl h-[160px] border border-yellow-300 border-b-0 shadow-[0_0_30px_rgba(250,204,21,0.4)] flex items-start justify-center pt-4">
+                      <div className="hidden sm:flex w-full bg-gradient-to-t from-yellow-200 to-yellow-100 rounded-t-xl h-[160px] border border-yellow-300 border-b-0 shadow-[0_0_30px_rgba(250,204,21,0.4)] items-start justify-center pt-4">
                         <span className="material-symbols-outlined text-yellow-500 text-[40px]" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
                       </div>
                     </div>
                   )}
                   {/* Bronze (3rd) */}
                   {third && (
-                    <div className="flex flex-col items-center w-1/3 max-w-[120px] relative z-10 group card-lift">
-                      <div className="mb-3 flex flex-col items-center transition-transform group-hover:-translate-y-2">
-                        <div className="w-16 h-16 rounded-full border-4 border-amber-600 overflow-hidden shadow-md mb-2 relative bg-surface flex items-center justify-center">
-                          {third.avatar_url ? <img src={third.avatar_url} alt="Avatar" className="w-full h-full object-cover" /> : <span className="font-bold text-[20px] text-text-secondary">{initials(third.full_name)}</span>}
-                          <div className="absolute -bottom-1 -right-1 bg-amber-600 rounded-full w-6 h-6 flex items-center justify-center text-[12px] font-bold text-white border-2 border-white shadow-sm">3</div>
+                    <div className="flex sm:flex-col items-center justify-between sm:justify-end w-full sm:w-1/3 sm:max-w-[120px] p-3 sm:p-0 bg-surface sm:bg-transparent border sm:border-0 border-border-base rounded-xl relative z-10 group card-lift order-3 sm:order-3">
+                      <div className="flex sm:flex-col items-center gap-3 sm:gap-0 sm:mb-3 transition-transform group-hover:-translate-y-2">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-2 sm:border-4 border-amber-600 overflow-hidden shadow-md relative bg-surface flex items-center justify-center">
+                          {third.avatar_url ? <img src={third.avatar_url} alt="Avatar" className="w-full h-full object-cover" /> : <span className="font-bold text-lg sm:text-[20px] text-text-secondary">{initials(third.full_name)}</span>}
+                          <div className="absolute -bottom-1 -right-1 bg-amber-600 rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-[10px] sm:text-[12px] font-bold text-white border-2 border-white shadow-sm">3</div>
                         </div>
-                        <span className="font-label-md text-[14px] font-bold text-text-primary text-center truncate w-full">{third.full_name ?? 'Student'}</span>
-                        <span className="font-label-sm text-[12px] text-text-secondary font-bold">{third.credits >= 1000 ? `${(third.credits/1000).toFixed(1)}k` : third.credits} XP</span>
+                        <div className="text-left sm:text-center">
+                          <p className="font-label-md text-[14px] font-bold text-text-primary truncate max-w-[100px] sm:max-w-none">{third.full_name ?? 'Student'}</p>
+                          <p className="font-label-sm text-[12px] text-text-secondary font-bold">{third.credits >= 1000 ? `${(third.credits/1000).toFixed(1)}k` : third.credits} XP</p>
+                        </div>
                       </div>
-                      <div className="w-full bg-gradient-to-t from-amber-200/50 to-amber-100/50 rounded-t-xl h-[90px] border border-amber-300 border-b-0 shadow-[0_0_20px_rgba(180,83,9,0.4)] flex items-start justify-center pt-4">
+                      <div className="hidden sm:flex w-full bg-gradient-to-t from-amber-200/50 to-amber-100/50 rounded-t-xl h-[90px] border border-amber-300 border-b-0 shadow-[0_0_20px_rgba(180,83,9,0.4)] items-start justify-center pt-4">
                         <span className="material-symbols-outlined text-amber-700 text-[32px]" style={{ fontVariationSettings: "'FILL' 1" }}>military_tech</span>
                       </div>
                     </div>

@@ -95,7 +95,7 @@ export default function AIMentorPage() {
       <div className="flex-1 flex flex-col xl:flex-row h-[calc(100vh-80px)] overflow-hidden w-full relative bg-background">
         
         {/* Mentor Analytics Sidebar */}
-        <div className="w-full xl:w-[400px] 2xl:w-[500px] shrink-0 border-r border-outline-variant/40 bg-surface/50 overflow-y-auto hidden lg:block p-6 space-y-6">
+        <div className="w-full xl:w-[400px] 2xl:w-[500px] shrink-0 border-r border-outline-variant/40 bg-surface/50 overflow-y-auto hidden xl:block p-6 space-y-6">
           
           <div>
             <h2 className="text-2xl font-heading font-bold text-on-surface mb-2">Loomie Intelligence</h2>

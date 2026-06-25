@@ -202,115 +202,198 @@ interface AppLayoutProps {
 
 export function AppLayout({ children, isAdmin: isAdminProp, title }: AppLayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const { profile, user, signOut } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const isAdmin = isAdminProp ?? (profile?.role === 'admin' || profile?.role === 'super_admin' || profile?.role === 'org_admin');
   const credits = profile?.credits ?? 0;
   const streak = profile?.streak_days ?? 0;
 
+  const bottomNavItems = isAdmin 
+    ? [
+        { label: 'Home', path: '/admin', icon: 'dashboard' },
+        { label: 'Drafts', path: '/admin/courses/drafts', icon: 'rate_review' },
+        { label: 'Courses', path: '/admin/courses', icon: 'menu_book' },
+        { label: 'Students', path: '/admin/students', icon: 'group' },
+      ]
+    : [
+        { label: 'Home', path: '/dashboard', icon: 'dashboard' },
+        { label: 'Courses', path: '/courses', icon: 'menu_book' },
+        { label: 'Roadmap', path: '/ai-roadmap', icon: 'explore' },
+        { label: 'Mentor', path: '/ai-mentor', icon: 'smart_toy' },
+      ];
+
   return (
     <div className="flex h-screen overflow-hidden bg-background text-on-surface font-body-md text-body-md antialiased selection:bg-primary/20 selection:text-primary">
+      {/* Persistent Sidebar (xl+ only) */}
+      <aside className="hidden xl:block w-64 border-r border-outline-variant/60 shrink-0">
+        <SidebarContent isAdmin={isAdmin} />
+      </aside>
+
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-background">
+      <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-background pb-16 md:pb-0">
         {/* TopNavBar */}
-        <header className="sticky top-0 z-30 flex justify-between items-center px-lg py-sm w-full max-w-[1440px] mx-auto bg-background/80 backdrop-blur-md border-b border-outline-variant/60">
+        <header className="sticky top-0 z-30 flex justify-between items-center px-4 md:px-6 lg:px-8 py-sm w-full max-w-[1440px] mx-auto bg-background/80 backdrop-blur-md border-b border-outline-variant/60">
           
-          {/* Menu Toggle & Title */}
-          <div className="flex items-center gap-2">
-            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-              <SheetTrigger asChild>
-                <button className="text-on-surface-variant p-sm hover:bg-surface-variant/20 rounded-full flex items-center justify-center transition-colors">
-                  <span className="material-symbols-outlined">menu</span>
-                </button>
-              </SheetTrigger>
-              <SheetContent side="left" className="p-0 w-64 bg-surface-container-lowest border-r border-outline-variant/60">
-                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                <SidebarContent isAdmin={isAdmin} onClose={() => setMobileOpen(false)} />
-              </SheetContent>
-            </Sheet>
-            <div className="flex items-center gap-2">
-              <img src="/images/logo/logo-icon.png" alt="LearnLoom Logo" className="w-6 h-6 object-contain" />
-              <span className="font-headline-sm font-bold text-on-surface">LearnLoom</span>
+          {mobileSearchOpen ? (
+            <div className="flex-1 flex items-center gap-2 z-40 bg-background/95 py-1">
+              <button 
+                onClick={() => setMobileSearchOpen(false)}
+                className="text-on-surface-variant p-2 hover:bg-surface-variant/20 rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center"
+              >
+                <span className="material-symbols-outlined">arrow_back</span>
+              </button>
+              <div className="flex-1 relative">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+                <input 
+                  autoFocus
+                  className="w-full bg-surface-container-low border border-outline-variant/60 rounded-full py-1.5 pl-9 pr-4 text-body-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-on-surface-variant" 
+                  placeholder="Search courses, concepts, or mentors..." 
+                  type="text"
+                />
+              </div>
             </div>
-          </div>
-
-          {/* Search (Desktop) */}
-          <div className="flex-1 max-w-md relative hidden md:block">
-            <span className="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
-            <input 
-              className="w-full bg-surface-container-low border border-outline-variant/60 rounded-full py-2 pl-xl pr-md text-body-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-on-surface-variant" 
-              placeholder="Search courses, concepts, or mentors..." 
-              type="text"
-            />
-          </div>
-
-          {/* Trailing Actions */}
-          <div className="flex items-center gap-md ml-auto">
-            {!isAdmin && (
-              <>
-                {/* Credits */}
-                <div className="hidden sm:flex items-center gap-xs px-sm py-1 bg-surface-container-low border border-outline-variant/60 rounded-full cursor-pointer hover:border-primary/50 transition-colors">
-                  <span className="material-symbols-outlined text-primary text-sm fill">monetization_on</span>
-                  <span className="font-label-sm text-label-sm font-bold">{credits}</span>
+          ) : (
+            <>
+              {/* Menu Toggle & Title */}
+              <div className="flex items-center gap-2">
+                <div className="xl:hidden">
+                  <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+                    <SheetTrigger asChild>
+                      <button className="text-on-surface-variant p-sm hover:bg-surface-variant/20 rounded-full flex items-center justify-center transition-colors min-w-[44px] min-h-[44px]">
+                        <span className="material-symbols-outlined">menu</span>
+                      </button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="p-0 w-64 bg-surface-container-lowest border-r border-outline-variant/60">
+                      <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                      <SidebarContent isAdmin={isAdmin} onClose={() => setMobileOpen(false)} />
+                    </SheetContent>
+                  </Sheet>
                 </div>
-                {/* Streak */}
-                <div className="flex items-center gap-xs px-sm py-1 bg-tertiary-container/10 border border-tertiary-container/30 rounded-full text-tertiary cursor-pointer hover:bg-tertiary-container/20 transition-colors">
-                  <span className="material-symbols-outlined text-sm fill">local_fire_department</span>
-                  <span className="font-label-sm text-label-sm font-bold">{streak}d</span>
-                </div>
-              </>
-            )}
-
-            <NotificationBell />
-            
-            <div className="ml-sm shrink-0 flex items-center justify-center">
-              {user ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-outline-variant/60 hover:ring-2 hover:ring-primary transition-all overflow-hidden text-primary font-bold text-sm">
-                      {profile?.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 p-1">
-                    <div className="px-2 py-2 mb-1 border-b border-outline-variant/60">
-                      <p className="font-label-md text-label-md text-on-surface truncate">{profile?.full_name || 'User'}</p>
-                      <p className="font-body-sm text-body-sm text-on-surface-variant truncate">{user.email}</p>
-                    </div>
-                    <DropdownMenuItem asChild>
-                      <Link to="/profile" className="flex items-center gap-2 cursor-pointer w-full">
-                        <span className="material-symbols-outlined text-[18px]">person</span>
-                        Profile
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem 
-                      onClick={() => void signOut()}
-                      className="text-error focus:text-error cursor-pointer flex items-center gap-2"
-                    >
-                      <span className="material-symbols-outlined text-[18px]">logout</span>
-                      Sign out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
                 <div className="flex items-center gap-2">
-                  <Link to="/login">
-                    <Button variant="ghost" className="text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/20 font-label-md">Sign In</Button>
-                  </Link>
-                  <Link to="/signup">
-                    <Button className="bg-primary text-on-primary font-label-md hover:brightness-110">Sign Up</Button>
-                  </Link>
+                  <img src="/images/logo/logo-icon.png" alt="LearnLoom Logo" className="w-6 h-6 object-contain" />
+                  <span className="font-headline-sm font-bold text-on-surface">LearnLoom</span>
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
+
+              {/* Search (Desktop) */}
+              <div className="flex-1 max-w-md relative hidden md:block">
+                <span className="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+                <input 
+                  className="w-full bg-surface-container-low border border-outline-variant/60 rounded-full py-2 pl-xl pr-md text-body-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-on-surface-variant" 
+                  placeholder="Search courses, concepts, or mentors..." 
+                  type="text"
+                />
+              </div>
+
+              {/* Trailing Actions */}
+              <div className="flex items-center gap-md ml-auto">
+                {/* Search Icon (Mobile only) */}
+                <button 
+                  onClick={() => setMobileSearchOpen(true)}
+                  className="md:hidden text-on-surface-variant p-2 hover:bg-surface-variant/20 rounded-full flex items-center justify-center transition-colors min-w-[44px] min-h-[44px]"
+                >
+                  <span className="material-symbols-outlined">search</span>
+                </button>
+
+                {!isAdmin && (
+                  <>
+                    {/* Credits */}
+                    <div className="hidden sm:flex items-center gap-xs px-sm py-1 bg-surface-container-low border border-outline-variant/60 rounded-full cursor-pointer hover:border-primary/50 transition-colors">
+                      <span className="material-symbols-outlined text-primary text-sm fill">monetization_on</span>
+                      <span className="font-label-sm text-label-sm font-bold">{credits}</span>
+                    </div>
+                    {/* Streak */}
+                    <div className="flex items-center gap-xs px-sm py-1 bg-tertiary-container/10 border border-tertiary-container/30 rounded-full text-tertiary cursor-pointer hover:bg-tertiary-container/20 transition-colors">
+                      <span className="material-symbols-outlined text-sm fill">local_fire_department</span>
+                      <span className="font-label-sm text-label-sm font-bold">{streak}d</span>
+                    </div>
+                  </>
+                )}
+
+                <NotificationBell />
+                
+                <div className="ml-sm shrink-0 flex items-center justify-center">
+                  {user ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-outline-variant/60 hover:ring-2 hover:ring-primary transition-all overflow-hidden text-primary font-bold text-sm min-w-[32px] min-h-[32px]">
+                          {profile?.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56 p-1">
+                        <div className="px-2 py-2 mb-1 border-b border-outline-variant/60">
+                          <p className="font-label-md text-label-md text-on-surface truncate">{profile?.full_name || 'User'}</p>
+                          <p className="font-body-sm text-body-sm text-on-surface-variant truncate">{user.email}</p>
+                        </div>
+                        <DropdownMenuItem asChild>
+                          <Link to="/profile" className="flex items-center gap-2 cursor-pointer w-full">
+                            <span className="material-symbols-outlined text-[18px]">person</span>
+                            Profile
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          onClick={() => void signOut()}
+                          className="text-error focus:text-error cursor-pointer flex items-center gap-2"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">logout</span>
+                          Sign out
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Link to="/login">
+                        <Button variant="ghost" className="text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/20 font-label-md">Sign In</Button>
+                      </Link>
+                      <Link to="/signup">
+                        <Button className="bg-primary text-on-primary font-label-md hover:brightness-110">Sign Up</Button>
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </header>
 
         {/* Scrollable Canvas for Children */}
-        <div className="flex-1 w-full max-w-[1440px] mx-auto flex flex-col relative">
+        <div className="flex-1 w-full max-w-[1440px] mx-auto flex flex-col relative px-4 md:px-6 lg:px-8 py-6">
           {children}
         </div>
       </main>
+
+      {/* Bottom Nav Bar (Mobile only) */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-md border-t border-border-base md:hidden safe-bottom shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+        <div className="flex items-center justify-around h-16">
+          {bottomNavItems.map((item) => {
+            const isActive = location.pathname === item.path || (item.path !== '/dashboard' && item.path !== '/admin' && location.pathname.startsWith(item.path));
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={cn(
+                  "flex flex-col items-center gap-0.5 min-w-[48px] min-h-[48px] justify-center transition-colors",
+                  isActive ? "text-primary font-bold" : "text-on-surface-variant hover:text-on-surface"
+                )}
+              >
+                <span className={cn("material-symbols-outlined text-[22px]", isActive && "fill")}>{item.icon}</span>
+                <span className="text-[10px] font-medium font-label-sm">{item.label}</span>
+              </Link>
+            );
+          })}
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="flex flex-col items-center gap-0.5 text-on-surface-variant hover:text-primary transition-colors min-w-[48px] min-h-[48px] justify-center"
+          >
+            <span className="material-symbols-outlined text-[22px]">more_horiz</span>
+            <span className="text-[10px] font-medium font-label-sm">More</span>
+          </button>
+        </div>
+      </nav>
     </div>
   );
 }

@@ -69,9 +69,9 @@ export default function AdminDashboard() {
             <h2 className="font-display-lg-mobile md:font-display-lg text-[32px] md:text-[40px] font-bold text-text-primary tracking-tight">Welcome back, Admin</h2>
             <p className="font-body-lg text-[16px] text-text-secondary mt-2 max-w-2xl">Here is what's happening with your platform today. Revenue and engagement are trending <span className="text-success font-medium">upwards</span>.</p>
           </div>
-          <div className="flex gap-3">
-            <button className="px-5 py-2.5 bg-surface border border-border-base rounded-xl font-label-md text-[14px] font-bold text-text-primary hover:bg-surface-container transition-colors shadow-sm card-lift">Export Data</button>
-            <Link to="/admin/courses" className="px-5 py-2.5 bg-primary text-white rounded-xl font-label-md text-[14px] font-bold hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm flex items-center gap-2 card-lift">
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <button className="px-5 py-2.5 bg-surface border border-border-base rounded-xl font-label-md text-[14px] font-bold text-text-primary hover:bg-surface-container transition-colors shadow-sm card-lift min-h-[44px]">Export Data</button>
+            <Link to="/admin/courses" className="px-5 py-2.5 bg-primary text-white rounded-xl font-label-md text-[14px] font-bold hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm flex items-center justify-center gap-2 card-lift min-h-[44px]">
               <span className="material-symbols-outlined text-[18px]">add</span>
               New Course
             </Link>
@@ -345,7 +345,7 @@ export default function AdminDashboard() {
                   ))
                 )}
               </div>
-              <button className="w-full mt-6 py-2.5 border border-border-base rounded-xl font-label-sm text-[13px] font-bold text-text-secondary hover:bg-surface hover:text-text-primary transition-colors shadow-sm bg-surface/50">
+              <button className="w-full mt-6 py-2.5 border border-border-base rounded-xl font-label-sm text-[13px] font-bold text-text-secondary hover:bg-surface hover:text-text-primary transition-colors shadow-sm bg-surface/50 min-h-[44px]">
                 View Full Log
               </button>
             </div>

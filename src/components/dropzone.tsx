@@ -142,10 +142,11 @@ const DropzoneContent = ({ className }: { className?: string }) => {
               <Button
                 size="icon"
                 variant="link"
-                className="shrink-0 justify-self-end text-muted-foreground hover:text-foreground"
+                className="shrink-0 justify-self-end text-muted-foreground hover:text-foreground w-11 h-11"
                 onClick={() => handleRemoveFile(file.name)}
+                title="Remove file"
               >
-                <X />
+                <X className="w-5 h-5" />
               </Button>
             )}
           </div>
@@ -161,6 +162,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
         <div className="mt-2">
           <Button
             variant="outline"
+            className="min-h-[44px] h-11 rounded-xl font-bold"
             onClick={onUpload}
             disabled={files.some((file) => file.errors.length !== 0) || loading}
           >

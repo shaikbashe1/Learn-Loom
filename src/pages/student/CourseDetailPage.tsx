@@ -216,8 +216,16 @@ export default function CourseDetailPage() {
 
   if (loading) return (
     <AppLayout title="Loading Course...">
-      <div className="max-w-[1440px] mx-auto p-xl flex justify-center items-center h-64">
-        <span className="material-symbols-outlined animate-spin text-[48px] text-primary">autorenew</span>
+      <div className="max-w-container-max mx-auto p-4 md:p-8 space-y-8 animate-pulse">
+        <div className="h-6 w-32 bg-surface-container rounded shimmer mb-4" />
+        <div className="h-64 w-full bg-surface border border-border-base rounded-2xl shimmer" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-8 space-y-6">
+            <div className="h-24 w-full bg-surface border border-border-base rounded-xl shimmer" />
+            <div className="h-48 w-full bg-surface border border-border-base rounded-xl shimmer" />
+          </div>
+          <div className="lg:col-span-4 h-80 bg-surface border border-border-base rounded-xl shimmer" />
+        </div>
       </div>
     </AppLayout>
   );
@@ -260,7 +268,7 @@ export default function CourseDetailPage() {
       </div>
       <div className="flex items-center justify-between pt-4 mt-6 border-t border-outline-variant/30">
         <p className="text-sm text-on-surface-variant">{quiz.selectedAnswers.filter(a => a >= 0).length}/{quiz.questions.length} answered</p>
-        <button onClick={() => submitQuiz(quizIdx, isGT)} disabled={quiz.submitting || quiz.selectedAnswers.includes(-1)} className="px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md flex items-center gap-2 hover:bg-primary/90 disabled:opacity-50">
+        <button onClick={() => submitQuiz(quizIdx, isGT)} disabled={quiz.submitting || quiz.selectedAnswers.includes(-1)} className="px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md flex items-center gap-2 hover:bg-primary/90 disabled:opacity-50 min-h-[44px]">
           {quiz.submitting ? <span className="material-symbols-outlined text-[18px] animate-spin">autorenew</span> : <span className="material-symbols-outlined text-[18px]">send</span>}
           Submit Quiz
         </button>
@@ -270,15 +278,15 @@ export default function CourseDetailPage() {
 
   return (
     <AppLayout title={course.title} noPadding>
-      <main className="max-w-container-max mx-auto pt-0 md:pt-stack-xl px-margin-mobile md:px-margin-desktop w-full">
+      <main className="max-w-container-max mx-auto pt-0 md:pt-stack-xl px-margin-mobile md:px-margin-desktop w-full pb-24 lg:pb-0">
         {/* Link back */}
-        <Link to="/courses" className="inline-flex items-center gap-2 font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors w-fit mb-stack-sm mt-stack-md md:mt-0">
+        <Link to="/courses" className="inline-flex items-center gap-2 font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors w-fit mb-6 mt-6 md:mt-0 min-h-[44px]">
           <span className="material-symbols-outlined text-[18px]">arrow_back</span> Back to Catalog
         </Link>
         
         {/* Hero Section */}
-        <section className="rounded-xl overflow-hidden relative shadow-[0_4px_20px_rgba(0,0,0,0.05)] mb-stack-xl">
-          <div className="h-[250px] md:h-[350px] w-full bg-surface-container-low relative">
+        <section className="rounded-xl overflow-hidden relative shadow-[0_4px_20px_rgba(0,0,0,0.04)] mb-8 flex flex-col md:block border border-border-base bg-surface">
+          <div className="h-[200px] sm:h-[250px] md:h-[350px] w-full bg-surface-container-low relative shrink-0">
             <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-tertiary/30 mix-blend-multiply z-10 pointer-events-none"></div>
             {course.thumbnail_url ? (
                <img src={course.thumbnail_url} alt="Course Hero" className="w-full h-full object-cover opacity-90" />
@@ -287,46 +295,71 @@ export default function CourseDetailPage() {
                   <span className="material-symbols-outlined text-[80px] text-outline-variant opacity-30">code_blocks</span>
                </div>
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10 hidden md:block"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/75 to-black/20 z-10 md:hidden"></div>
           </div>
           
-          <div className="absolute bottom-0 left-0 w-full p-gutter md:p-stack-lg text-white z-20">
-            <div className="flex flex-wrap gap-2 mb-stack-sm">
+          {/* Desktop Overlay Content */}
+          <div className="absolute bottom-0 left-0 w-full p-6 md:p-8 text-white z-20 hidden md:block">
+            <div className="flex flex-wrap gap-2 mb-3">
               <span className="bg-primary/80 text-on-primary font-label-sm text-label-sm px-3 py-1 rounded-full backdrop-blur-sm border border-primary/20">{course.category}</span>
               <span className="bg-tertiary/80 text-on-tertiary font-label-sm text-label-sm px-3 py-1 rounded-full backdrop-blur-sm border border-tertiary/20 flex items-center gap-1">
                  <span className={`material-symbols-outlined text-[14px]`}>{getDifficultyIcon(course.difficulty)}</span>
                  {course.difficulty}
               </span>
             </div>
-            <h1 className="font-display-lg-mobile text-display-lg-mobile md:font-display-lg md:text-display-lg text-white mb-stack-sm tracking-tight">{course.title}</h1>
-            <div className="flex items-center gap-stack-md flex-wrap mt-4">
+            <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-3 tracking-tight">{course.title}</h1>
+            <div className="flex items-center gap-4 flex-wrap mt-2">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-warning" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                <span className="font-label-md text-label-md text-white">{course.rating.toFixed(1)}</span>
+                <span className="material-symbols-outlined text-warning fill" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                <span className="font-label-md text-label-md text-white font-bold">{course.rating.toFixed(1)}</span>
               </div>
-              <span className="text-white/50 hidden md:inline">•</span>
+              <span className="text-white/50">•</span>
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-white/80">group</span>
                 <span className="font-label-md text-label-md text-white/90">{course.student_count.toLocaleString()} already enrolled</span>
               </div>
             </div>
           </div>
+
+          {/* Mobile Details Content (Stacked below image) */}
+          <div className="p-5 md:hidden text-text-primary flex flex-col gap-3 bg-surface">
+            <div className="flex flex-wrap gap-2">
+              <span className="bg-primary/10 text-primary font-label-sm text-xs px-2.5 py-1 rounded-md border border-primary/25 font-bold uppercase tracking-wider">{course.category}</span>
+              <span className="bg-tertiary/10 text-tertiary font-label-sm text-xs px-2.5 py-1 rounded-md border border-tertiary/25 flex items-center gap-1 font-bold uppercase tracking-wider">
+                 <span className={`material-symbols-outlined text-[14px]`}>{getDifficultyIcon(course.difficulty)}</span>
+                 {course.difficulty}
+              </span>
+            </div>
+            <h1 className="text-2xl font-extrabold text-text-primary tracking-tight leading-tight">{course.title}</h1>
+            <div className="flex items-center gap-4 flex-wrap mt-1 text-sm text-text-secondary">
+              <div className="flex items-center gap-1">
+                <span className="material-symbols-outlined text-warning text-sm fill">star</span>
+                <span className="font-bold text-text-primary">{course.rating.toFixed(1)}</span>
+              </div>
+              <span>•</span>
+              <div className="flex items-center gap-1">
+                <span className="material-symbols-outlined text-xs">group</span>
+                <span>{course.student_count.toLocaleString()} enrolled</span>
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter pb-stack-xl">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Main Content Area */}
-          <div className="lg:col-span-8 flex flex-col gap-stack-xl">
+          <div className="lg:col-span-8 flex flex-col gap-12">
             {/* Overview */}
             <section>
-              <h2 className="font-headline-lg text-headline-lg text-on-surface mb-stack-md">Course Overview</h2>
-              <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed mb-stack-md text-balance">
+              <h2 className="font-headline-lg text-headline-lg text-on-surface mb-4 font-bold">Course Overview</h2>
+              <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed mb-6">
                 {course.description}
               </p>
               
               {course.topics && course.topics.length > 0 && (
                 <>
-                  <h3 className="font-headline-md text-headline-md text-on-surface mt-stack-lg mb-stack-sm">Skills You'll Master</h3>
+                  <h3 className="font-headline-md text-headline-md text-on-surface mt-8 mb-3 font-semibold">Skills You'll Master</h3>
                   <div className="flex flex-wrap gap-2">
                     {course.topics.map(topic => (
                       <span key={topic} className="bg-surface-container text-on-surface border border-border-base font-label-md text-label-md px-4 py-2 rounded-full hover:bg-surface-container-high transition-colors cursor-default">
@@ -340,17 +373,17 @@ export default function CourseDetailPage() {
 
             {/* Curriculum */}
             <section>
-              <div className="flex justify-between items-end mb-stack-md border-b border-border-base pb-4">
-                <h2 className="font-headline-lg text-headline-lg text-on-surface">Curriculum & Tasks</h2>
+              <div className="flex justify-between items-end mb-6 border-b border-border-base pb-4">
+                <h2 className="font-headline-lg text-headline-lg text-on-surface font-bold">Curriculum & Tasks</h2>
                 <span className="font-label-md text-label-md text-on-surface-variant">{modules.length} Modules</span>
               </div>
               
               <Tabs defaultValue="modules" className="w-full">
-                <TabsList className="w-full justify-start bg-transparent overflow-x-auto whitespace-nowrap rounded-none p-0 h-auto gap-2 mb-6">
-                  <TabsTrigger value="modules" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 rounded-full px-4 py-2 text-on-surface-variant font-label-md">Modules</TabsTrigger>
-                  <TabsTrigger value="assignments" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 rounded-full px-4 py-2 text-on-surface-variant font-label-md">Assignments</TabsTrigger>
-                  <TabsTrigger value="quiz" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 rounded-full px-4 py-2 text-on-surface-variant font-label-md">Quizzes</TabsTrigger>
-                  <TabsTrigger value="grandtest" className="data-[state=active]:bg-tertiary/10 data-[state=active]:text-tertiary border border-transparent data-[state=active]:border-tertiary/20 rounded-full px-4 py-2 text-on-surface-variant font-label-md flex items-center gap-1">
+                <TabsList className="w-full justify-start bg-transparent overflow-x-auto whitespace-nowrap rounded-none p-0 h-auto gap-2 mb-6 scrollbar-hide scroll-touch snap-x">
+                  <TabsTrigger value="modules" className="snap-center data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 rounded-full px-4 py-2 text-on-surface-variant font-label-md">Modules</TabsTrigger>
+                  <TabsTrigger value="assignments" className="snap-center data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 rounded-full px-4 py-2 text-on-surface-variant font-label-md">Assignments</TabsTrigger>
+                  <TabsTrigger value="quiz" className="snap-center data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 rounded-full px-4 py-2 text-on-surface-variant font-label-md">Quizzes</TabsTrigger>
+                  <TabsTrigger value="grandtest" className="snap-center data-[state=active]:bg-tertiary/10 data-[state=active]:text-tertiary border border-transparent data-[state=active]:border-tertiary/20 rounded-full px-4 py-2 text-on-surface-variant font-label-md flex items-center gap-1">
                     <span className="material-symbols-outlined text-[16px]">workspace_premium</span>
                     Grand Test
                   </TabsTrigger>
@@ -366,20 +399,20 @@ export default function CourseDetailPage() {
                             setPreviewModule(mod);
                             if (accessible && isEnrolled) navigate(`/courses/${courseId}/learn/${mod.id}`);
                           }}
-                          className={`p-stack-md flex justify-between items-center transition-colors ${accessible || isEnrolled ? 'cursor-pointer hover:bg-surface-bright' : 'bg-surface-container-lowest'}`}
+                          className={`p-4 sm:p-5 flex justify-between items-center transition-colors ${accessible || isEnrolled ? 'cursor-pointer hover:bg-surface-bright' : 'bg-surface-container-lowest'}`}
                         >
-                          <div className="flex items-center gap-stack-md">
+                          <div className="flex items-center gap-4 min-w-0">
                             <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0
                               ${mod.status === 'completed' ? 'bg-success/20 text-success' : 
                                 mod.status === 'unlocked' || isEnrolled ? 'bg-primary-container text-on-primary-container' : 'bg-surface-container-high text-on-surface-variant'}`}>
                               {mod.status === 'completed' ? <span className="material-symbols-outlined">check</span> : mod.status === 'locked' && !isEnrolled ? <span className="material-symbols-outlined">lock</span> : <span className="font-label-md font-bold">{idx + 1}</span>}
                             </div>
-                            <div>
-                              <h4 className={`font-headline-md text-[18px] mb-1 ${mod.status === 'completed' ? 'text-primary' : 'text-on-surface'}`}>{mod.title}</h4>
-                              <p className="font-body-sm text-body-sm text-on-surface-variant truncate max-w-[300px] md:max-w-[400px]">{mod.description}</p>
+                            <div className="min-w-0">
+                              <h4 className={`font-headline-md text-[16px] sm:text-[18px] mb-1 font-bold truncate ${mod.status === 'completed' ? 'text-primary' : 'text-on-surface'}`}>{mod.title}</h4>
+                              <p className="font-body-sm text-body-sm text-on-surface-variant truncate max-w-[200px] sm:max-w-[300px] md:max-w-[400px]">{mod.description}</p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-sm">
+                          <div className="flex items-center gap-2 shrink-0">
                             <span className="font-body-sm text-body-sm text-on-surface-variant hidden sm:block">{mod.duration_minutes} min</span>
                             <span className={`material-symbols-outlined transition-colors ${(accessible || isEnrolled) ? 'text-primary' : 'text-on-surface-variant'}`}>play_circle</span>
                           </div>
@@ -391,14 +424,14 @@ export default function CourseDetailPage() {
 
                 <TabsContent value="assignments" className="flex flex-col gap-4">
                   {!isEnrolled ? (
-                    <div className="glass-panel text-center py-10 text-on-surface-variant rounded-xl border border-border-base">
+                    <div className="glass-panel text-center py-10 text-on-surface-variant rounded-xl border border-border-base bg-surface">
                       <span className="material-symbols-outlined text-[48px] opacity-40 mb-3">assignment</span>
-                      <p className="font-body-md">Enroll in this course to view assignments.</p>
+                      <p className="font-body-md font-medium">Enroll in this course to view assignments.</p>
                     </div>
                   ) : assignments.length === 0 ? (
-                    <div className="glass-panel text-center py-10 text-on-surface-variant rounded-xl border border-border-base">
+                    <div className="glass-panel text-center py-10 text-on-surface-variant rounded-xl border border-border-base bg-surface">
                       <span className="material-symbols-outlined text-[48px] opacity-40 mb-3">assignment_turned_in</span>
-                      <p className="font-body-md">No assignments for this course yet.</p>
+                      <p className="font-body-md font-medium">No assignments for this course yet.</p>
                     </div>
                   ) : (
                     assignments.map((asg, asgIdx) => {
@@ -406,20 +439,20 @@ export default function CourseDetailPage() {
                       const isGraded = sub?.status === 'graded';
                       const isSubmitted = !!sub;
                       return (
-                        <div key={asg.id} className="glass-panel border border-border-base rounded-xl p-md shadow-sm">
+                        <div key={asg.id} className="glass-panel border border-border-base rounded-xl p-5 shadow-sm bg-surface">
                           <div className="flex items-start justify-between gap-3 mb-2 border-b border-border-base pb-3">
                             <div className="flex items-center gap-2">
                               <span className="material-symbols-outlined text-primary text-[20px]">description</span>
-                              <h4 className="font-headline-md text-[18px] text-on-surface">{asg.title}</h4>
+                              <h4 className="font-headline-md text-[18px] text-on-surface font-bold">{asg.title}</h4>
                             </div>
-                            {isGraded && <span className="px-2 py-1 rounded bg-success/10 text-success border border-success/20 font-label-sm text-[12px]">Graded</span>}
-                            {isSubmitted && !isGraded && <span className="px-2 py-1 rounded bg-secondary/10 text-secondary border border-secondary/20 font-label-sm text-[12px]">Submitted</span>}
-                            {!isSubmitted && <span className="px-2 py-1 rounded bg-surface-variant text-on-surface-variant font-label-sm text-[12px]">Pending</span>}
+                            {isGraded && <span className="px-2.5 py-1 rounded bg-success/10 text-success border border-success/20 font-label-sm text-[12px] font-bold">Graded</span>}
+                            {isSubmitted && !isGraded && <span className="px-2.5 py-1 rounded bg-secondary/10 text-secondary border border-secondary/20 font-label-sm text-[12px] font-bold">Submitted</span>}
+                            {!isSubmitted && <span className="px-2.5 py-1 rounded bg-surface-variant text-on-surface-variant font-label-sm text-[12px] font-bold">Pending</span>}
                           </div>
-                          <p className="font-body-md text-body-md text-on-surface-variant mb-4 mt-4">{asg.instructions}</p>
+                          <p className="font-body-md text-body-md text-on-surface-variant mb-4 mt-4 leading-relaxed">{asg.instructions}</p>
                           
                           {isGraded && (
-                            <div className="rounded-lg bg-success/5 border border-success/20 p-sm mb-4">
+                            <div className="rounded-lg bg-success/5 border border-success/20 p-4 mb-4">
                               <p className="font-label-sm text-label-sm font-bold text-success mb-1">Score: {sub!.score ?? '—'}/100</p>
                               {sub!.feedback && <p className="font-body-sm text-body-sm text-on-surface-variant">{sub!.feedback}</p>}
                             </div>
@@ -427,15 +460,15 @@ export default function CourseDetailPage() {
                           {isSubmitted && !isGraded && (
                             <div className="rounded-lg bg-surface-container-low border border-border-base p-4 mb-4">
                               <p className="font-label-sm text-label-sm font-bold text-on-surface mb-2">Your submission:</p>
-                              <p className="font-body-sm text-body-sm text-on-surface-variant whitespace-pre-wrap">{sub!.answer_text}</p>
+                              <p className="font-body-sm text-body-sm text-on-surface-variant whitespace-pre-wrap leading-relaxed">{sub!.answer_text}</p>
                             </div>
                           )}
                           {!isGraded && (
                             <div className="space-y-3">
-                              <Textarea placeholder="Write your answer here…" value={asg.draftText} onChange={e => updateDraft(asgIdx, e.target.value)} className="min-h-[120px] bg-surface text-on-surface border-border-base focus:border-primary resize-none font-body-sm text-body-sm" disabled={asg.submitting} />
+                              <Textarea placeholder="Write your answer here…" value={asg.draftText} onChange={e => updateDraft(asgIdx, e.target.value)} className="min-h-[120px] bg-surface text-on-surface border-border-base focus:border-primary resize-none font-body-sm text-body-sm p-3 focus:ring-2 focus:ring-primary/20" disabled={asg.submitting} />
                               <div className="flex items-center justify-between">
                                 <p className="text-[12px] text-on-surface-variant">{asg.draftText.length} characters</p>
-                                <button onClick={() => submitAssignment(asgIdx)} disabled={asg.submitting || !asg.draftText.trim()} className="px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md flex items-center gap-2 hover:bg-primary-container disabled:opacity-50 transition-colors">
+                                <button onClick={() => submitAssignment(asgIdx)} disabled={asg.submitting || !asg.draftText.trim()} className="px-5 py-2.5 bg-primary text-on-primary rounded-lg font-label-md font-bold flex items-center gap-2 hover:bg-primary-container disabled:opacity-50 transition-colors min-h-[38px] active:scale-95">
                                   {asg.submitting ? <span className="material-symbols-outlined text-[18px] animate-spin">autorenew</span> : <span className="material-symbols-outlined text-[18px]">send</span>}
                                   {isSubmitted ? 'Resubmit' : 'Submit'}
                                 </button>
@@ -450,28 +483,28 @@ export default function CourseDetailPage() {
 
                 <TabsContent value="quiz" className="flex flex-col gap-4">
                   {!isEnrolled ? (
-                    <div className="glass-panel text-center py-10 text-on-surface-variant rounded-xl border border-border-base"><span className="material-symbols-outlined text-[48px] opacity-40 mb-3">quiz</span><p className="font-body-md">Enroll to access quizzes.</p></div>
+                    <div className="glass-panel text-center py-10 text-on-surface-variant rounded-xl border border-border-base bg-surface"><span className="material-symbols-outlined text-[48px] opacity-40 mb-3">quiz</span><p className="font-body-md font-medium">Enroll to access quizzes.</p></div>
                   ) : moduleQuizzes.length === 0 ? (
-                    <div className="glass-panel text-center py-10 text-on-surface-variant rounded-xl border border-border-base"><span className="material-symbols-outlined text-[48px] opacity-40 mb-3">quiz</span><p className="font-body-md">No quizzes yet.</p></div>
+                    <div className="glass-panel text-center py-10 text-on-surface-variant rounded-xl border border-border-base bg-surface"><span className="material-symbols-outlined text-[48px] opacity-40 mb-3">quiz</span><p className="font-body-md font-medium">No quizzes yet.</p></div>
                   ) : (
                     moduleQuizzes.map((quiz, qIdx) => {
                       if (quiz.quizStarted && !quiz.attempt) return renderQuizInProgress(quiz, qIdx);
                       return (
-                        <div key={quiz.id} className="glass-panel border border-border-base rounded-xl p-md shadow-sm flex items-center justify-between gap-4 flex-wrap">
+                        <div key={quiz.id} className="glass-panel border border-border-base rounded-xl p-5 shadow-sm flex items-center justify-between gap-4 flex-wrap bg-surface">
                           <div>
-                            <h4 className="font-headline-md text-[18px] text-on-surface mb-1">{quiz.title}</h4>
-                            <div className="flex gap-4 text-sm text-on-surface-variant">
+                            <h4 className="font-headline-md text-[18px] text-on-surface mb-1 font-bold">{quiz.title}</h4>
+                            <div className="flex gap-4 text-sm text-on-surface-variant font-medium">
                               <span>{quiz.questions.length} questions</span>
                               <span>Pass: {quiz.passing_score}%</span>
                             </div>
                           </div>
                           <div className="flex items-center gap-4">
                             {quiz.attempt && (
-                              <span className={`font-label-sm text-label-sm px-3 py-1 rounded-full border ${quiz.attempt.passed ? 'bg-success/10 text-success border-success/20' : 'bg-error/10 text-error border-error/20'}`}>
+                              <span className={`font-label-sm text-label-sm px-3 py-1 rounded-full border font-bold ${quiz.attempt.passed ? 'bg-success/10 text-success border-success/20' : 'bg-error/10 text-error border-error/20'}`}>
                                 {quiz.attempt.passed ? 'Passed' : 'Failed'} ({Math.round((quiz.attempt.score / quiz.attempt.total) * 100)}%)
                               </span>
                             )}
-                            <button onClick={() => quiz.attempt ? retakeQuiz(qIdx) : startQuiz(qIdx)} className="px-5 py-2 bg-surface hover:bg-surface-container-low border border-border-base text-on-surface hover:text-primary hover:border-primary/50 rounded-lg font-label-md transition-colors shadow-sm">
+                            <button onClick={() => quiz.attempt ? retakeQuiz(qIdx) : startQuiz(qIdx)} className="px-5 py-2.5 bg-surface hover:bg-surface-container-low border border-border-base text-on-surface hover:text-primary hover:border-primary/50 rounded-lg font-label-md font-bold transition-all shadow-sm active:scale-95 min-h-[38px] flex items-center">
                               {quiz.attempt ? 'Retake' : 'Start'}
                             </button>
                           </div>
@@ -483,24 +516,24 @@ export default function CourseDetailPage() {
 
                 <TabsContent value="grandtest" className="mt-4">
                   {!isEnrolled ? (
-                    <div className="glass-panel text-center py-10 text-on-surface-variant rounded-xl border border-border-base"><span className="material-symbols-outlined text-[48px] opacity-40 mb-3">workspace_premium</span><p className="font-body-md">Enroll in this course to access the Grand Test.</p></div>
+                    <div className="glass-panel text-center py-10 text-on-surface-variant rounded-xl border border-border-base bg-surface"><span className="material-symbols-outlined text-[48px] opacity-40 mb-3">workspace_premium</span><p className="font-body-md font-medium">Enroll in this course to access the Grand Test.</p></div>
                   ) : !allModulesCompleted ? (
-                    <div className="glass-panel border border-border-base rounded-xl p-stack-lg text-center flex flex-col items-center">
+                    <div className="glass-panel border border-border-base rounded-xl p-8 text-center flex flex-col items-center bg-surface">
                       <div className="w-20 h-20 rounded-full bg-surface-container border border-border-base flex items-center justify-center mb-6 shadow-sm"><span className="material-symbols-outlined text-[40px] text-on-surface-variant">lock</span></div>
                       <h3 className="font-headline-md text-[24px] font-bold text-on-surface mb-2">Grand Test Locked</h3>
-                      <p className="font-body-md text-on-surface-variant max-w-sm mb-8">Complete all {modules.length} modules to unlock. You've completed {completedCount} so far.</p>
+                      <p className="font-body-md text-on-surface-variant max-w-sm mb-8 leading-relaxed">Complete all {modules.length} modules to unlock. You've completed {completedCount} so far.</p>
                       <div className="w-full max-w-md h-3 bg-surface-container-high rounded-full overflow-hidden mb-8 shadow-inner">
                         <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${enrollment?.progress_percent ?? 0}%` }}></div>
                       </div>
-                      <button onClick={startOrResume} className="px-8 py-3 bg-primary text-on-primary rounded-xl font-label-md hover:bg-primary-container transition-colors shadow-md flex items-center gap-2">
+                      <button onClick={startOrResume} className="px-8 py-3 bg-primary text-on-primary rounded-xl font-label-md font-bold hover:bg-primary-container transition-colors shadow-md flex items-center gap-2 min-h-[44px] active:scale-95">
                         <span className="material-symbols-outlined text-[20px]">play_arrow</span> Continue Learning
                       </button>
                     </div>
                   ) : !grandTest ? (
-                    <div className="glass-panel text-center py-10 text-on-surface-variant rounded-xl border border-border-base"><span className="material-symbols-outlined text-[48px] opacity-40 mb-3">pending</span><p className="font-body-md">Grand Test not available yet.</p></div>
+                    <div className="glass-panel text-center py-10 text-on-surface-variant rounded-xl border border-border-base bg-surface"><span className="material-symbols-outlined text-[48px] opacity-40 mb-3">pending</span><p className="font-body-md font-medium">Grand Test not available yet.</p></div>
                   ) : grandTest.quizStarted && !grandTest.attempt ? renderQuizInProgress(grandTest, 0, true)
                   : (
-                    <div className="bg-surface border-2 border-tertiary/40 rounded-xl p-stack-lg relative overflow-hidden shadow-lg">
+                    <div className="bg-surface border-2 border-tertiary/40 rounded-xl p-8 relative overflow-hidden shadow-lg">
                       <div className="absolute top-0 right-0 w-64 h-64 bg-tertiary/10 rounded-full blur-3xl pointer-events-none"></div>
                       <div className="flex flex-col md:flex-row items-center md:items-start gap-8 relative z-10">
                         <div className="w-24 h-24 rounded-full bg-tertiary/10 border-2 border-tertiary/30 flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(99,46,205,0.2)]">
@@ -508,28 +541,28 @@ export default function CourseDetailPage() {
                         </div>
                         <div className="flex-1 min-w-0 text-center md:text-left">
                           <h3 className="font-headline-md text-[28px] font-bold text-on-surface mb-2">{grandTest.title}</h3>
-                          <p className="font-body-md text-on-surface-variant mb-6">{grandTest.questions.length} questions · Pass requirement: {grandTest.passing_score}%</p>
+                          <p className="font-body-md text-on-surface-variant mb-6 font-semibold">{grandTest.questions.length} questions · Pass requirement: {grandTest.passing_score}%</p>
                           
                           {grandTest.attempt ? (
                             <div className="space-y-6">
                               <div className={`p-6 rounded-xl border ${grandTest.attempt.passed ? 'bg-success/5 border-success/30' : 'bg-error/5 border-error/30'}`}>
                                 <p className={`font-bold text-[24px] mb-2 ${grandTest.attempt.passed ? 'text-success' : 'text-error'}`}>{grandTest.attempt.passed ? 'Congratulations! Passed!' : 'Not quite there yet.'}</p>
                                 <p className="font-body-lg text-on-surface-variant">Score: {grandTest.attempt.score}/{grandTest.attempt.total} ({Math.round((grandTest.attempt.score / grandTest.attempt.total) * 100)}%)</p>
-                                {grandTest.attempt.passed && <p className="font-label-md text-success mt-4 flex items-center justify-center md:justify-start gap-2 bg-success/10 w-fit px-4 py-2 rounded-lg border border-success/20"><span className="material-symbols-outlined text-[20px]">check_circle</span> You are eligible for your certificate!</p>}
+                                {grandTest.attempt.passed && <p className="font-label-md text-success mt-4 flex items-center justify-center md:justify-start gap-2 bg-success/10 w-fit px-4 py-2 rounded-lg border border-success/20 font-bold"><span className="material-symbols-outlined text-[20px]">check_circle</span> You are eligible for your certificate!</p>}
                               </div>
                               <div className="flex flex-wrap justify-center md:justify-start gap-4">
-                                <button onClick={() => retakeQuiz(0, true)} className="px-6 py-3 bg-surface text-on-surface border border-border-base hover:bg-surface-container-low rounded-xl font-label-md flex items-center gap-2 shadow-sm transition-colors">
+                                <button onClick={() => retakeQuiz(0, true)} className="px-6 py-3 bg-surface text-on-surface border border-border-base hover:bg-surface-container-low rounded-xl font-label-md font-bold flex items-center gap-2 shadow-sm transition-all active:scale-95 min-h-[44px]">
                                   <span className="material-symbols-outlined text-[20px]">refresh</span> Retake Test
                                 </button>
                                 {grandTest.attempt.passed && (
-                                  <Link to="/certificates" className="px-6 py-3 bg-tertiary text-on-tertiary rounded-xl font-label-md font-bold flex items-center gap-2 hover:bg-tertiary/90 shadow-[0_0_15px_rgba(99,46,205,0.4)] transition-colors">
+                                  <Link to="/certificates" className="px-6 py-3 bg-tertiary text-on-tertiary rounded-xl font-label-md font-bold flex items-center gap-2 hover:bg-tertiary/90 shadow-[0_0_15px_rgba(99,46,205,0.4)] transition-all active:scale-95 min-h-[44px]">
                                     <span className="material-symbols-outlined text-[20px]">military_tech</span> View Certificate
                                   </Link>
                                 )}
                               </div>
                             </div>
                           ) : (
-                            <button onClick={() => startQuiz(0, true)} className="px-8 py-3 bg-tertiary text-on-tertiary rounded-xl font-label-md font-bold flex items-center justify-center md:justify-start gap-2 hover:bg-tertiary/90 shadow-[0_0_15px_rgba(99,46,205,0.3)] transition-colors w-full md:w-auto">
+                            <button onClick={() => startQuiz(0, true)} className="px-8 py-3 bg-tertiary text-on-tertiary rounded-xl font-label-md font-bold flex items-center justify-center md:justify-start gap-2 hover:bg-tertiary/90 shadow-[0_0_15px_rgba(99,46,205,0.3)] transition-all active:scale-95 w-full md:w-auto min-h-[44px]">
                               <span className="material-symbols-outlined text-[24px]">play_arrow</span> Start Grand Test
                             </button>
                           )}
@@ -544,17 +577,17 @@ export default function CourseDetailPage() {
             {/* Instructor */}
             {course.instructor && (
               <section>
-                <h2 className="font-headline-lg text-headline-lg text-on-surface mb-stack-md">Your Instructor</h2>
-                <div className="glass-panel border border-border-base rounded-xl p-stack-lg shadow-sm flex flex-col md:flex-row gap-stack-lg items-start hover:shadow-md transition-shadow">
-                  <div className="w-24 h-24 rounded-full object-cover border-2 border-surface shadow-sm bg-surface-container flex items-center justify-center shrink-0 relative overflow-hidden">
-                     <span className="font-display-lg text-[40px] text-primary">
+                <h2 className="font-headline-lg text-headline-lg text-on-surface mb-6 font-bold">Your Instructor</h2>
+                <div className="glass-panel border border-border-base rounded-xl p-6 sm:p-8 shadow-sm flex flex-col md:flex-row gap-6 items-start hover:shadow-md transition-shadow bg-surface">
+                  <div className="w-20 h-20 rounded-full object-cover border-2 border-surface shadow-sm bg-surface-container flex items-center justify-center shrink-0 relative overflow-hidden">
+                     <span className="font-display text-3xl font-extrabold text-primary">
                         {course.instructor.split(' ').map(n => n[0]).join('').slice(0, 2)}
                      </span>
                   </div>
                   <div>
-                    <h3 className="font-headline-md text-headline-md text-on-surface">{course.instructor}</h3>
-                    <p className="font-body-md text-body-md text-primary font-medium mb-stack-sm">LearnLoom Educator</p>
-                    <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed mb-stack-md">
+                    <h3 className="font-headline-md text-headline-md text-on-surface font-bold">{course.instructor}</h3>
+                    <p className="font-body-md text-body-md text-primary font-semibold mb-2">LearnLoom Educator</p>
+                    <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed">
                       A dedicated professional with extensive experience in the industry, passionate about sharing knowledge and empowering the next generation of engineers through comprehensive, practical coursework.
                     </p>
                   </div>
@@ -563,9 +596,9 @@ export default function CourseDetailPage() {
             )}
           </div>
 
-          {/* Sidebar */}
-          <div className="lg:col-span-4 mt-stack-lg lg:mt-0">
-            <div className="sticky top-[100px] glass-panel border border-border-base rounded-xl p-stack-lg shadow-level-1">
+          {/* Sidebar (Desktop only for full layout, falls to bottom on mobile) */}
+          <div className="lg:col-span-4 mt-8 lg:mt-0">
+            <div className="sticky top-[100px] glass-panel border border-border-base rounded-xl p-6 shadow-sm bg-surface">
               {/* Video Preview */}
               <div className="aspect-video bg-surface-container-highest rounded-lg overflow-hidden border border-border-base relative flex items-center justify-center group mb-6 shadow-inner">
                 {previewModule?.youtube_url ? (
@@ -596,52 +629,52 @@ export default function CourseDetailPage() {
               </div>
               
               {!isEnrolled && (
-                <div className="mb-stack-lg pb-stack-md border-b border-border-base">
-                  <h2 className="font-display-lg-mobile text-[36px] font-bold text-on-surface mb-1">Free</h2>
-                  <p className="font-body-md text-body-md text-success flex items-center gap-1 font-medium">
+                <div className="mb-6 pb-4 border-b border-border-base">
+                  <h2 className="font-display text-4xl font-extrabold text-on-surface mb-1">Free</h2>
+                  <p className="font-body-md text-body-md text-success flex items-center gap-1 font-semibold">
                     <span className="material-symbols-outlined text-[18px]">bolt</span> Full Lifetime Access
                   </p>
                 </div>
               )}
               
               {isEnrolled ? (
-                <div className="flex flex-col gap-4 mb-stack-lg border-b border-border-base pb-stack-md">
+                <div className="flex flex-col gap-4 mb-6 border-b border-border-base pb-6">
                   <div className="flex items-center justify-between mb-1">
                     <span className="font-label-md text-on-surface font-semibold">Your Progress</span>
-                    <span className="font-label-md text-primary font-bold">{enrollment.progress_percent}%</span>
+                    <span className="font-label-md text-primary font-extrabold">{enrollment.progress_percent}%</span>
                   </div>
-                  <div className="w-full h-3 bg-surface-container-high rounded-full overflow-hidden shadow-inner">
+                  <div className="w-full h-2.5 bg-surface-container-high rounded-full overflow-hidden shadow-inner">
                     <div className="h-full bg-primary rounded-full transition-all duration-500 relative" style={{ width: `${enrollment.progress_percent}%` }}>
                        <div className="absolute inset-0 bg-white/20"></div>
                     </div>
                   </div>
-                  <button onClick={startOrResume} className="w-full bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md py-4 rounded-xl transition-all duration-200 active:scale-95 shadow-[0_4px_14px_rgba(37,99,235,0.3)] mt-2 flex justify-center items-center gap-2">
+                  <button onClick={startOrResume} className="w-full bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md py-3.5 rounded-xl transition-all duration-200 active:scale-95 shadow-[0_4px_14px_rgba(37,99,235,0.3)] mt-2 flex justify-center items-center gap-2 font-bold min-h-[44px]">
                     {isCompleted ? 'Review Course' : 'Continue Learning'}
                     <span className="material-symbols-outlined">arrow_forward</span>
                   </button>
                 </div>
               ) : (
-                <button onClick={handleEnroll} disabled={enrolling} className="w-full bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md py-4 rounded-xl mb-stack-sm transition-all duration-200 active:scale-95 shadow-[0_4px_14px_rgba(37,99,235,0.3)] flex justify-center items-center gap-2 disabled:opacity-70 disabled:pointer-events-none">
+                <button onClick={handleEnroll} disabled={enrolling} className="w-full bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md py-3.5 rounded-xl mb-3 transition-all duration-200 active:scale-95 shadow-[0_4px_14px_rgba(37,99,235,0.3)] flex justify-center items-center gap-2 disabled:opacity-70 disabled:pointer-events-none font-bold min-h-[44px]">
                   {enrolling ? <span className="material-symbols-outlined animate-spin text-[20px]">autorenew</span> : null}
                   <span>Enroll Now</span>
                   <span className="material-symbols-outlined">arrow_forward</span>
                 </button>
               )}
               
-              <div className="mt-stack-md flex flex-col gap-4">
-                <div className="flex items-center gap-3 text-on-surface-variant">
+              <div className="mt-6 flex flex-col gap-4">
+                <div className="flex items-center gap-3 text-on-surface-variant font-medium">
                   <span className="material-symbols-outlined text-primary/70">schedule</span>
                   <span className="font-body-md text-body-md">{course.duration_weeks} weeks of content</span>
                 </div>
-                <div className="flex items-center gap-3 text-on-surface-variant">
+                <div className="flex items-center gap-3 text-on-surface-variant font-medium">
                   <span className="material-symbols-outlined text-primary/70">signal_cellular_alt</span>
                   <span className="font-body-md text-body-md">{course.difficulty} Level</span>
                 </div>
-                <div className="flex items-center gap-3 text-on-surface-variant">
+                <div className="flex items-center gap-3 text-on-surface-variant font-medium">
                   <span className="material-symbols-outlined text-primary/70">workspace_premium</span>
                   <span className="font-body-md text-body-md">Certificate of Completion</span>
                 </div>
-                <div className="flex items-center gap-3 text-on-surface-variant">
+                <div className="flex items-center gap-3 text-on-surface-variant font-medium">
                   <span className="material-symbols-outlined text-primary/70">all_inclusive</span>
                   <span className="font-body-md text-body-md">Full Lifetime Access</span>
                 </div>
@@ -649,6 +682,27 @@ export default function CourseDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Mobile Sticky Bottom CTA */}
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-md border-t border-border-base p-4 safe-bottom shadow-[0_-4px_12px_rgba(0,0,0,0.05)] flex items-center justify-between gap-4">
+          <div>
+            <div className="text-[10px] text-text-secondary font-bold uppercase tracking-wider">Access</div>
+            <div className="text-xl font-extrabold text-on-surface leading-tight">Free</div>
+          </div>
+          {isEnrolled ? (
+            <button onClick={startOrResume} className="bg-primary hover:bg-primary-container text-on-primary font-label-md text-sm font-bold px-6 py-3 rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-1.5 min-h-[44px]">
+              {isCompleted ? 'Review' : 'Continue'}
+              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+            </button>
+          ) : (
+            <button onClick={handleEnroll} disabled={enrolling} className="bg-primary hover:bg-primary-container text-on-primary font-label-md text-sm font-bold px-8 py-3 rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-1.5 min-h-[44px] disabled:opacity-75">
+              {enrolling && <span className="material-symbols-outlined animate-spin text-[18px]">sync</span>}
+              Enroll Now
+              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+            </button>
+          )}
+        </div>
+
       </main>
     </AppLayout>
   );

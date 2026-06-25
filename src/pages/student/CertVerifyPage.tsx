@@ -121,7 +121,7 @@ export default function CertVerifyPage() {
             </Card>
           ) : !result?.found ? (
             <Card className="border-border">
-              <CardContent className="p-8 flex flex-col items-center text-center gap-4">
+              <CardContent className="p-6 sm:p-8 flex flex-col items-center text-center gap-4">
                 <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
                   <XCircle className="w-8 h-8 text-destructive" />
                 </div>
@@ -131,7 +131,7 @@ export default function CertVerifyPage() {
                   Please double-check the verification code.
                 </p>
                 <Link to="/">
-                  <Button variant="outline" size="sm">Back to Home</Button>
+                  <Button variant="outline" size="sm" className="min-h-[44px]">Back to Home</Button>
                 </Link>
               </CardContent>
             </Card>
@@ -157,7 +157,7 @@ export default function CertVerifyPage() {
                 </div>
               </div>
 
-              <CardContent className="p-6 space-y-5">
+              <CardContent className="p-6 sm:p-8 space-y-5">
                 {/* Certificate body */}
                 <div className="text-center space-y-1">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
@@ -169,7 +169,7 @@ export default function CertVerifyPage() {
                   <h3 className="text-lg font-semibold text-primary text-balance">{result.course_title ?? '—'}</h3>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="grid grid-cols-1 xs:grid-cols-2 gap-4 text-sm">
                   <div className="flex items-start gap-2">
                     <User className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                     <div>
@@ -201,7 +201,7 @@ export default function CertVerifyPage() {
                 </div>
 
                 {/* QR Code */}
-                <div className="flex flex-col items-center gap-2 pt-2 border-t border-border">
+                <div className="flex flex-col items-center gap-2 pt-4 border-t border-border">
                   <QRCodeDataUrl text={verifyUrl} width={128} />
                   <p className="text-[11px] text-muted-foreground">Scan QR code to verify again</p>
                 </div>

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Eye, CheckCircle2, XCircle, Clock, Trash2 } from 'lucide-react';
+import { AppLayout } from '@/components/layouts/AppLayout';
 
 export function AdminDraftCoursesPage() {
   const [drafts, setDrafts] = useState<any[]>([]);
@@ -63,47 +64,48 @@ export function AdminDraftCoursesPage() {
   });
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold font-heading text-on-background">Course Moderation Queue</h1>
-          <p className="text-on-surface-variant">Review and approve auto-generated courses from the autonomous crawler.</p>
-        </div>
-      </div>
+    <AppLayout title="Course Moderation Queue" isAdmin>
+      <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-xl flex flex-col gap-stack-lg w-full">
+        <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="font-display-lg-mobile md:font-display-lg text-[32px] md:text-[40px] font-bold text-text-primary tracking-tight">Course Moderation Queue</h1>
+            <p className="font-body-md text-[16px] text-text-secondary mt-2 max-w-2xl">Review and approve auto-generated courses from the autonomous crawler.</p>
+          </div>
+        </section>
 
-      <div className="flex gap-4 bg-surface p-4 rounded-xl border border-outline-variant shadow-sm">
-        <Input 
-          placeholder="Search courses..." 
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="max-w-md bg-background"
-        />
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-[180px] bg-background">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="pending_review">Pending Review</SelectItem>
-            <SelectItem value="published">Approved (Published)</SelectItem>
-            <SelectItem value="rejected">Rejected</SelectItem>
-            <SelectItem value="draft">Draft</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button variant="outline" onClick={fetchDrafts}>Refresh List</Button>
-      </div>
+        <div className="flex flex-col sm:flex-row gap-4 bg-surface p-4 rounded-xl border border-border-base shadow-sm">
+          <Input 
+            placeholder="Search courses..." 
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full sm:max-w-md bg-background border-border-base"
+          />
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-full sm:w-[180px] bg-background border-border-base">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent className="bg-surface border-border-base text-text-primary">
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="pending_review">Pending Review</SelectItem>
+              <SelectItem value="published">Approved (Published)</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
+              <SelectItem value="draft">Draft</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button variant="outline" onClick={fetchDrafts} className="border-border-base hover:bg-surface-container">Refresh List</Button>
+        </div>
 
       {loading ? (
-        <div className="text-center py-12 text-on-surface-variant">Loading queue...</div>
+        <div className="text-center py-12 text-text-secondary">Loading queue...</div>
       ) : filteredDrafts.length === 0 ? (
-        <div className="text-center py-20 bg-surface rounded-xl border border-dashed border-outline-variant text-on-surface-variant">
+        <div className="text-center py-20 bg-surface rounded-xl border border-dashed border-border-base text-text-secondary">
           No courses found matching your filters.
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredDrafts.map((course) => (
-            <Card key={course.id} className="group overflow-hidden border-outline-variant hover:border-primary/50 transition-all shadow-sm hover:shadow-md bg-surface flex flex-col">
-              <CardHeader className="pb-3 border-b border-outline-variant/30 bg-surface-variant/20">
+            <Card key={course.id} className="group overflow-hidden border-border-base hover:border-primary/50 transition-all shadow-sm hover:shadow-md bg-surface flex flex-col">
+              <CardHeader className="pb-3 border-b border-border-base/30 bg-surface-container/20">
                 <div className="flex justify-between items-start gap-2">
                   <Badge variant="outline" className={`
                     ${course.status === 'pending_review' ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' : ''}
@@ -123,7 +125,9 @@ export function AdminDraftCoursesPage() {
               </CardHeader>
               <CardContent className="pt-4 flex-1 flex flex-col justify-between">
                 <div>
-                  <p className="text-sm text-on-surface-variant line-clamp-3 mb-4">{course.description}</p>
+                  {course.description && (
+                    <p className="text-sm text-text-secondary line-clamp-3 mb-4">{course.description}</p>
+                  )}
                   {course.source_url && (
                     <a href={course.source_url} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline block mb-4 truncate">
                       Source: {course.source_url}
@@ -160,6 +164,7 @@ export function AdminDraftCoursesPage() {
           ))}
         </div>
       )}
-    </div>
+      </div>
+    </AppLayout>
   );
 }

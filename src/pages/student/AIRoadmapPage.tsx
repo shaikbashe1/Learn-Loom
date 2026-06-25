@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/db/supabase';
 import { generateAndSaveRoadmap } from '@/lib/roadmapGenerator';
@@ -258,12 +259,19 @@ export default function AIRoadmapPage() {
                   
                   {/* Actions Area */}
                   <div className="relative z-10 flex flex-wrap gap-3 mt-6 pt-6 border-t border-outline-variant/40">
-                    <button onClick={() => setShowMentor(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-on-primary font-label-md font-bold hover:brightness-110 transition-colors shadow-sm">
+                    <Button 
+                      onClick={() => setShowMentor(true)} 
+                      className="flex items-center gap-2 px-4 py-2 h-11 bg-primary text-on-primary font-label-md font-bold hover:brightness-110 transition-colors shadow-sm rounded-xl min-h-[44px]"
+                    >
                       <Bot className="w-4 h-4" /> Ask AI Mentor
-                    </button>
-                    <button onClick={handleDeleteRoadmap} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-error/40 text-error font-label-md hover:bg-error/10 transition-colors">
+                    </Button>
+                    <Button 
+                      onClick={handleDeleteRoadmap} 
+                      variant="outline"
+                      className="flex items-center gap-2 px-4 py-2 h-11 border border-error/40 text-error font-label-md hover:bg-error/10 hover:text-error transition-colors rounded-xl min-h-[44px]"
+                    >
                       <Trash2 className="w-4 h-4" /> Generate New
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
@@ -349,7 +357,11 @@ export default function AIRoadmapPage() {
           <div className="w-full md:w-[400px] shrink-0 border-l border-outline-variant/40 bg-surface shadow-xl z-30 flex flex-col animate-fade-in absolute right-0 top-0 bottom-0 md:relative">
             <div className="flex items-center justify-between p-4 border-b border-outline-variant/40 bg-surface-container">
                <h2 className="font-heading font-bold flex items-center gap-2"><Bot className="w-5 h-5 text-primary" /> Roadmap Mentor</h2>
-               <button onClick={() => setShowMentor(false)} className="text-on-surface-variant hover:text-on-surface p-1 rounded-full hover:bg-surface-variant transition-colors">
+               <button 
+                 onClick={() => setShowMentor(false)} 
+                 className="text-on-surface-variant hover:text-on-surface w-11 h-11 flex items-center justify-center rounded-full hover:bg-surface-variant transition-colors"
+                 title="Close Panel"
+               >
                  <X className="w-5 h-5" />
                </button>
             </div>

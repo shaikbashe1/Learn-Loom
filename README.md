@@ -15,7 +15,7 @@ Built using **Vite, React 18, TypeScript, and Supabase**.
 
 ## Technical Stack & Services
 - **Frontend**: React 18 + TypeScript + Vite + Tailwind CSS + Radix UI (shadcn/ui) + Lucide Icons
-- **UI System**: Premium Glassmorphism Design System (custom dark/light mode integration)
+- **UI System**: Premium Glassmorphism Design System (custom dark/light mode integration, fully responsive audited down to 320px with strict touch-target compliance)
 - **Backend/Database**: Supabase (PostgreSQL with RLS, Auth, Storage, Edge Functions, Realtime)
 - **AI Integrations**: Google Gemini 2.5 Flash API (invoked directly from self-hosted Supabase Edge Functions)
 - **Code Execution Engine**: Judge0 API / Piston (self-hosted)

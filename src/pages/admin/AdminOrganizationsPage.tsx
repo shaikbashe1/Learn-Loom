@@ -132,12 +132,12 @@ export default function AdminOrganizationsPage() {
                 
                 <div className="flex gap-3 border-t border-border-base pt-5 mt-2 relative z-10">
                   {org.status !== 'approved' && (
-                    <button onClick={() => updateStatus(org.id, 'approved')} className="flex-1 flex items-center justify-center gap-2 bg-success/10 text-success hover:bg-success hover:text-white border border-success/30 font-bold text-[13px] h-10 rounded-lg transition-all shadow-sm">
+                    <button onClick={() => updateStatus(org.id, 'approved')} className="flex-1 flex items-center justify-center gap-2 bg-success/10 text-success hover:bg-success hover:text-white border border-success/30 font-bold text-[13px] h-11 rounded-lg transition-all shadow-sm">
                       <CheckCircle className="w-4 h-4" /> Approve
                     </button>
                   )}
                   {org.status !== 'rejected' && (
-                    <button onClick={() => updateStatus(org.id, 'rejected')} className="flex-1 flex items-center justify-center gap-2 bg-error/10 text-error hover:bg-error hover:text-white border border-error/30 font-bold text-[13px] h-10 rounded-lg transition-all shadow-sm">
+                    <button onClick={() => updateStatus(org.id, 'rejected')} className="flex-1 flex items-center justify-center gap-2 bg-error/10 text-error hover:bg-error hover:text-white border border-error/30 font-bold text-[13px] h-11 rounded-lg transition-all shadow-sm">
                       <XCircle className="w-4 h-4" /> Reject
                     </button>
                   )}

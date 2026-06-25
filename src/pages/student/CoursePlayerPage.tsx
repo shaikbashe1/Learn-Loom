@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { getCourseModuleProgress, completeModule, getEnrollment } from '@/lib/progress';
@@ -33,6 +35,7 @@ export default function CoursePlayerPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [moduleQuizId, setModuleQuizId] = useState<string | null>(null);
   const [hasCodingQuestions, setHasCodingQuestions] = useState(false);
+  const [curriculumOpen, setCurriculumOpen] = useState(false);
 
   // AI Learning Assistant state
   const [aiTutorOpen, setAiTutorOpen] = useState(false);
@@ -175,73 +178,93 @@ export default function CoursePlayerPage() {
 
   const completedCount = modules.filter(m => m.status === 'completed').length;
 
+  const renderCurriculum = (onItemClick?: () => void) => (
+    <div className="flex flex-col h-full bg-surface text-foreground">
+      <div className="p-6 border-b border-border-base/50">
+        <Link to={`/courses/${courseId}`} className="flex items-center gap-2 text-text-secondary font-label-sm text-label-sm mb-2 uppercase tracking-widest hover:text-primary transition-colors w-fit">
+          <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+          <span>Course Overview</span>
+        </Link>
+        <h1 className="font-headline-sm text-headline-sm font-bold text-text-primary leading-tight line-clamp-2" title={course?.title}>{course?.title ?? 'Course Player'}</h1>
+        <div className="mt-4">
+          <div className="flex justify-between items-end mb-1">
+            <span className="font-label-sm text-label-sm text-text-secondary">Progress</span>
+            <span className="font-label-sm text-label-sm font-bold text-primary">{progressPercent}%</span>
+          </div>
+          <div className="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-primary via-secondary-fixed-dim to-tertiary-container rounded-full transition-all duration-500" style={{ width: `${progressPercent}%` }}></div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="flex-1 overflow-y-auto p-4 space-y-2">
+        {modules.map((mod, idx) => {
+          const isActive = mod.id === activeModule?.id;
+          const handleClick = () => {
+            setActiveModule(mod);
+            if (onItemClick) onItemClick();
+          };
+          
+          if (mod.status === 'completed') {
+            return (
+              <button key={mod.id} onClick={handleClick} className={`w-full flex flex-col gap-1 p-3 rounded-xl transition-colors text-left ${isActive ? 'bg-primary-fixed/20 border border-primary/30 shadow-sm' : 'hover:bg-surface-container-low border border-transparent'}`}>
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <span className="material-symbols-outlined text-success shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                    <span className={`font-label-md text-label-md font-semibold truncate ${isActive ? 'text-primary' : 'text-text-primary'}`}>{idx + 1}. {mod.title}</span>
+                  </div>
+                </div>
+              </button>
+            );
+          }
+          
+          if (isActive || mod.status === 'unlocked') {
+            return (
+              <button key={mod.id} onClick={handleClick} className={`w-full flex flex-col gap-1 p-3 rounded-xl transition-colors text-left ${isActive ? 'bg-primary-fixed/20 border border-primary/30 shadow-sm' : 'hover:bg-surface-container-low border border-transparent'}`}>
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <span className={`material-symbols-outlined shrink-0 ${isActive ? 'text-primary' : 'text-text-secondary'}`} style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}>play_circle</span>
+                    <span className={`font-label-md text-label-md font-semibold truncate ${isActive ? 'text-primary' : 'text-text-primary'}`}>{idx + 1}. {mod.title}</span>
+                  </div>
+                </div>
+              </button>
+            );
+          }
+          
+          // Locked
+          return (
+            <div key={mod.id} className="w-full flex flex-col gap-1 p-3 rounded-xl border border-border-base/50 bg-surface opacity-75">
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <span className="material-symbols-outlined text-text-secondary shrink-0">lock</span>
+                  <span className="font-label-md text-label-md font-semibold text-text-secondary truncate">{idx + 1}. {mod.title}</span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
   return (
     <AppLayout title={course?.title ?? 'Course Player'} noPadding>
       <div className="flex-1 flex w-full h-[calc(100vh-80px)] overflow-hidden bg-background">
         
         {/* Left Sidebar: Curriculum */}
-        <aside className="w-80 bg-surface border-r border-border-base flex flex-col h-full z-10 shrink-0 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]">
-          <div className="p-6 border-b border-border-base/50">
-            <Link to={`/courses/${courseId}`} className="flex items-center gap-2 text-text-secondary font-label-sm text-label-sm mb-2 uppercase tracking-widest hover:text-primary transition-colors w-fit">
-              <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-              <span>Course Overview</span>
-            </Link>
-            <h1 className="font-headline-sm text-headline-sm font-bold text-text-primary leading-tight line-clamp-2" title={course?.title}>{course?.title ?? 'Course Player'}</h1>
-            <div className="mt-4">
-              <div className="flex justify-between items-end mb-1">
-                <span className="font-label-sm text-label-sm text-text-secondary">Progress</span>
-                <span className="font-label-sm text-label-sm font-bold text-primary">{progressPercent}%</span>
-              </div>
-              <div className="h-2 w-full bg-surface-container rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-primary via-secondary-fixed-dim to-tertiary-container rounded-full transition-all duration-500" style={{ width: `${progressPercent}%` }}></div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex-1 overflow-y-auto p-4 space-y-2">
-            {modules.map((mod, idx) => {
-              const isActive = mod.id === activeModule?.id;
-              
-              if (mod.status === 'completed') {
-                return (
-                  <button key={mod.id} onClick={() => setActiveModule(mod)} className={`w-full flex flex-col gap-1 p-3 rounded-xl transition-colors text-left ${isActive ? 'bg-primary-fixed/20 border border-primary/30 shadow-sm' : 'hover:bg-surface-container-low border border-transparent'}`}>
-                    <div className="flex items-center justify-between w-full">
-                      <div className="flex items-center gap-3 overflow-hidden">
-                        <span className="material-symbols-outlined text-success shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                        <span className={`font-label-md text-label-md font-semibold truncate ${isActive ? 'text-primary' : 'text-text-primary'}`}>{idx + 1}. {mod.title}</span>
-                      </div>
-                    </div>
-                  </button>
-                );
-              }
-              
-              if (isActive || mod.status === 'unlocked') {
-                return (
-                  <button key={mod.id} onClick={() => setActiveModule(mod)} className={`w-full flex flex-col gap-1 p-3 rounded-xl transition-colors text-left ${isActive ? 'bg-primary-fixed/20 border border-primary/30 shadow-sm' : 'hover:bg-surface-container-low border border-transparent'}`}>
-                    <div className="flex items-center justify-between w-full">
-                      <div className="flex items-center gap-3 overflow-hidden">
-                        <span className={`material-symbols-outlined shrink-0 ${isActive ? 'text-primary' : 'text-text-secondary'}`} style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}>play_circle</span>
-                        <span className={`font-label-md text-label-md font-semibold truncate ${isActive ? 'text-primary' : 'text-text-primary'}`}>{idx + 1}. {mod.title}</span>
-                      </div>
-                    </div>
-                  </button>
-                );
-              }
-              
-              // Locked
-              return (
-                <div key={mod.id} className="w-full flex flex-col gap-1 p-3 rounded-xl border border-border-base/50 bg-surface opacity-75">
-                  <div className="flex items-center justify-between w-full">
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      <span className="material-symbols-outlined text-text-secondary shrink-0">lock</span>
-                      <span className="font-label-md text-label-md font-semibold text-text-secondary truncate">{idx + 1}. {mod.title}</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+        <aside className="w-80 bg-surface border-r border-border-base hidden lg:flex flex-col h-full z-10 shrink-0 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]">
+          {renderCurriculum()}
         </aside>
+
+        {/* Mobile Curriculum Sheet */}
+        <Sheet open={curriculumOpen} onOpenChange={setCurriculumOpen}>
+          <SheetContent side="left" className="p-0 w-80 bg-surface text-text-primary border-r-0">
+            <SheetHeader className="sr-only">
+              <SheetTitle>Curriculum</SheetTitle>
+            </SheetHeader>
+            {renderCurriculum(() => setCurriculumOpen(false))}
+          </SheetContent>
+        </Sheet>
 
         {/* Center: Video Player & Content */}
         <section className="flex-1 flex flex-col h-full bg-background overflow-y-auto relative">

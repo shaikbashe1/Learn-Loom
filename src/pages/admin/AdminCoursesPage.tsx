@@ -548,8 +548,20 @@ export default function AdminCoursesPage() {
                   </div>
                 </div>
 
-                {/* Hover Actions */}
-                <div className="absolute inset-0 bg-surface/60 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4 z-10">
+                {/* Actions Strip on mobile, Hover overlay on desktop */}
+                <div className="relative md:absolute md:inset-0 flex md:hidden items-center justify-center gap-4 py-3 bg-surface-container/30 border-t border-border-base md:border-t-0 md:bg-surface/60 md:backdrop-blur-sm opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 z-10">
+                   <button onClick={() => openEdit(course)} className="w-11 h-11 rounded-full bg-surface shadow-md flex items-center justify-center text-text-primary hover:text-primary hover:scale-110 transition-all border border-border-base" title="Edit Course">
+                      <span className="material-symbols-outlined text-[22px]">edit</span>
+                   </button>
+                   <button onClick={async (e) => {
+                       e.stopPropagation();
+                       const { error } = await supabase.from('courses').update({ is_published: !course.is_published }).eq('id', course.id);
+                       if(!error) fetchCourses();
+                   }} className={`w-11 h-11 rounded-full bg-surface shadow-md flex items-center justify-center hover:scale-110 transition-all border border-border-base ${course.is_published ? 'text-warning hover:text-warning' : 'text-success hover:text-success'}`} title={course.is_published ? 'Unpublish' : 'Publish'}>
+                      <span className="material-symbols-outlined text-[22px]">{course.is_published ? 'visibility_off' : 'visibility'}</span>
+                   </button>
+                </div>
+                <div className="hidden md:flex absolute inset-0 bg-surface/60 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 items-center justify-center gap-4 z-10">
                    <button onClick={() => openEdit(course)} className="w-12 h-12 rounded-full bg-surface shadow-lg flex items-center justify-center text-text-primary hover:text-primary hover:scale-110 transition-transform border border-border-base" title="Edit Course">
                       <span className="material-symbols-outlined text-[24px]">edit</span>
                    </button>
@@ -658,7 +670,7 @@ export default function AdminCoursesPage() {
                 <div className="space-y-4">
                   {modules.map((m, i) => (
                     <div key={i} className="glass-panel border border-border-base rounded-xl p-5 shadow-sm relative group">
-                      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute top-4 right-4 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                          <Button type="button" size="sm" variant="outline" onClick={() => removeModule(i)}
                            className="h-8 w-8 p-0 text-error border-error/20 hover:bg-error/10 hover:border-error/30 rounded-lg">
                            <X className="w-4 h-4" />
@@ -729,7 +741,7 @@ export default function AdminCoursesPage() {
                 <div className="space-y-4">
                   {questions.map((q, qi) => (
                     <div key={qi} className="glass-panel border border-border-base rounded-xl p-5 shadow-sm relative group">
-                      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute top-4 right-4 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                          {questions.length > 1 && (
                            <Button type="button" size="sm" variant="outline" onClick={() => removeQuestion(qi)}
                              className="h-8 w-8 p-0 text-error border-error/20 hover:bg-error/10 hover:border-error/30 rounded-lg">

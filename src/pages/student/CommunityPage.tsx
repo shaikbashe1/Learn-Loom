@@ -162,20 +162,20 @@ function PostCard({
   const avatarUrl = post.profiles?.avatar_url;
 
   return (
-    <article className="glass-panel border border-border-base rounded-xl p-5 md:p-6 flex flex-col gap-3 card-lift relative overflow-hidden group">
+    <article className="glass-panel border border-border-base rounded-xl p-4 sm:p-5 md:p-6 flex flex-col gap-3 card-lift relative overflow-hidden group">
       {post.is_pinned && <div className="absolute top-0 right-0 w-8 h-8 overflow-hidden"><div className="absolute top-1 -right-3 w-12 text-center rotate-45 bg-error text-white font-label-sm text-[8px] font-bold py-0.5 shadow-sm tracking-wider">PINNED</div></div>}
       <div className="flex items-start justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           {avatarUrl ? (
-            <img src={avatarUrl} alt="User Avatar" className="w-12 h-12 rounded-full border border-border-base object-cover shadow-sm" />
+            <img src={avatarUrl} alt="User Avatar" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-border-base object-cover shadow-sm" />
           ) : (
-            <div className="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center border border-border-base font-bold text-text-primary text-[15px] shadow-sm">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-surface-container flex items-center justify-center border border-border-base font-bold text-text-primary text-sm sm:text-[15px] shadow-sm">
               {initials(post.profiles?.full_name)}
             </div>
           )}
           <div>
-            <div className="font-label-md text-[15px] text-text-primary font-bold">{authorName}</div>
-            <div className="text-[13px] text-text-secondary">{post.category.replace('-', ' ').toUpperCase()} • {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</div>
+            <div className="font-label-md text-[14px] sm:text-[15px] text-text-primary font-bold">{authorName}</div>
+            <div className="text-[11px] sm:text-[13px] text-text-secondary">{post.category.replace('-', ' ').toUpperCase()} • {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</div>
           </div>
         </div>
         <button className="text-text-secondary hover:bg-surface-container hover:text-text-primary p-2 rounded-full transition-colors opacity-0 group-hover:opacity-100">
@@ -198,24 +198,24 @@ function PostCard({
         <p className="text-[15px] font-body-md text-text-secondary mb-2 whitespace-pre-wrap leading-relaxed line-clamp-3">{post.content}</p>
       </div>
 
-      <div className="flex items-center gap-6 mt-2 pt-4 border-t border-border-base">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-2 pt-4 border-t border-border-base">
         <button 
           onClick={() => onVote(post)}
-          className={`flex items-center gap-2 transition-colors font-label-md text-[14px] font-bold ${post.user_voted ? 'text-primary' : 'text-text-secondary hover:text-primary'}`}
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-surface-container transition-colors font-label-md text-[13px] sm:text-[14px] font-bold min-h-[40px] ${post.user_voted ? 'text-primary' : 'text-text-secondary hover:text-primary'}`}
         >
-          <span className={`material-symbols-outlined text-[20px] ${post.user_voted ? 'fill' : ''}`}>thumb_up</span>
+          <span className={`material-symbols-outlined text-[18px] sm:text-[20px] ${post.user_voted ? 'fill' : ''}`}>thumb_up</span>
           {post.upvotes}
         </button>
         <button 
           onClick={() => setExpanded(e => !e)}
-          className="flex items-center gap-2 text-text-secondary hover:text-primary transition-colors font-label-md text-[14px] font-bold"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-surface-container text-text-secondary hover:text-primary transition-colors font-label-md text-[13px] sm:text-[14px] font-bold min-h-[40px]"
         >
-          <span className={`material-symbols-outlined text-[20px] ${expanded ? 'fill text-primary' : ''}`}>chat_bubble_outline</span>
-          {post.reply_count} Comments
+          <span className={`material-symbols-outlined text-[18px] sm:text-[20px] ${expanded ? 'fill text-primary' : ''}`}>chat_bubble_outline</span>
+          {post.reply_count} <span className="hidden xs:inline">Comments</span>
         </button>
-        <button className="flex items-center gap-2 text-text-secondary hover:text-primary transition-colors font-label-md text-[14px] font-bold ml-auto">
-          <span className="material-symbols-outlined text-[20px]">share</span>
-          <span className="hidden sm:inline">Share</span>
+        <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-surface-container text-text-secondary hover:text-primary transition-colors font-label-md text-[13px] sm:text-[14px] font-bold ml-auto min-h-[40px]">
+          <span className="material-symbols-outlined text-[18px] sm:text-[20px]">share</span>
+          <span>Share</span>
         </button>
       </div>
 
@@ -230,25 +230,25 @@ function PostCard({
           ) : (
             <div className="space-y-3">
               {replies.map(reply => (
-                <div key={reply.id} className="flex gap-3 items-start">
+                <div key={reply.id} className="flex gap-2 sm:gap-3 items-start">
                   {reply.profiles?.avatar_url ? (
-                    <img src={reply.profiles.avatar_url} alt="Avatar" className="w-8 h-8 rounded-full border border-border-base object-cover shrink-0 shadow-sm" />
+                    <img src={reply.profiles.avatar_url} alt="Avatar" className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-border-base object-cover shrink-0 shadow-sm" />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-[12px] font-bold shrink-0 text-text-primary shadow-sm border border-border-base">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-surface-container flex items-center justify-center text-[10px] sm:text-[12px] font-bold shrink-0 text-text-primary shadow-sm border border-border-base">
                       {initials(reply.profiles?.full_name)}
                     </div>
                   )}
-                  <div className="flex-1 min-w-0 bg-surface border border-border-base rounded-xl px-4 py-3 shadow-sm relative group/reply">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[14px] font-label-md text-text-primary font-bold">{reply.profiles?.full_name ?? 'Community Member'}</span>
-                      <span className="text-[11px] text-text-secondary font-medium">• {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}</span>
+                  <div className="flex-1 min-w-0 bg-surface border border-border-base rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 shadow-sm relative group/reply">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mb-1">
+                      <span className="text-[13px] sm:text-[14px] font-label-md text-text-primary font-bold">{reply.profiles?.full_name ?? 'Community Member'}</span>
+                      <span className="text-[10px] sm:text-[11px] text-text-secondary font-medium">• {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}</span>
                     </div>
-                    <p className="text-[14px] font-body-md text-text-secondary leading-relaxed">{reply.content}</p>
+                    <p className="text-[13px] sm:text-[14px] font-body-md text-text-secondary leading-relaxed">{reply.content}</p>
                     <button
                       onClick={() => voteReply(reply)}
-                      className={`flex items-center gap-1 mt-2 text-[12px] font-bold transition-colors ${reply.user_voted ? 'text-primary' : 'text-text-secondary hover:text-primary'}`}
+                      className={`flex items-center gap-1 mt-2 text-[11px] sm:text-[12px] font-bold transition-colors py-1 px-2 rounded hover:bg-surface-container min-h-[28px] ${reply.user_voted ? 'text-primary' : 'text-text-secondary hover:text-primary'}`}
                     >
-                      <span className={`material-symbols-outlined text-[16px] ${reply.user_voted ? 'fill' : ''}`}>thumb_up</span>
+                      <span className={`material-symbols-outlined text-[14px] sm:text-[16px] ${reply.user_voted ? 'fill' : ''}`}>thumb_up</span>
                       {reply.upvotes}
                     </button>
                   </div>
@@ -489,22 +489,58 @@ export default function CommunityPage() {
         </aside>
 
         {/* Center Column: Discussion Feed */}
-        <div className="col-span-1 lg:col-span-6 flex flex-col gap-6">
+        <div className="col-span-1 lg:col-span-6 flex flex-col gap-4 sm:gap-6">
+          
+          {/* Mobile Categories Selector (Scrollable) */}
+          <div className="flex lg:hidden overflow-x-auto scrollbar-hide gap-2 pb-2 -mx-4 px-4 scroll-snap-x">
+            {[
+              { icon: 'home', label: 'All', id: 'all' },
+              { icon: 'help_outline', label: 'Doubts', id: 'doubt' },
+              { icon: 'code', label: 'Challenges', id: 'challenge' },
+              { icon: 'forum', label: 'Study Groups', id: 'study-group' },
+            ].map(item => (
+              <button
+                key={item.id}
+                onClick={() => setActiveCategory(item.id)}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full border shrink-0 scroll-snap-align-start transition-colors text-xs font-bold ${
+                  activeCategory === item.id 
+                    ? 'bg-primary border-primary text-on-primary shadow-sm' 
+                    : 'bg-surface border-border-base text-text-secondary hover:text-text-primary'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[16px]">{item.icon}</span>
+                {item.label}
+              </button>
+            ))}
+          </div>
+
           {/* Post Composer */}
-          <div className="glass-panel border border-border-base rounded-xl p-5 shadow-sm transition-all focus-within:shadow-md card-lift relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-secondary"></div>
+          <div className={
+            isComposerOpen 
+              ? "fixed inset-0 z-50 flex flex-col bg-surface p-4 md:relative md:inset-auto md:z-auto md:flex-initial md:bg-transparent md:glass-panel md:border md:border-border-base md:rounded-xl md:p-5 md:shadow-sm md:card-lift md:overflow-hidden"
+              : "glass-panel border border-border-base rounded-xl p-5 shadow-sm transition-all focus-within:shadow-md card-lift relative overflow-hidden"
+          }>
+            {!isComposerOpen && <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-secondary"></div>}
             {isComposerOpen ? (
-              <form onSubmit={handlePost} className="flex flex-col gap-4 mt-2">
+              <form onSubmit={handlePost} className="flex flex-col gap-4 mt-2 flex-1 md:flex-none">
+                {/* Mobile composer header */}
+                <div className="flex md:hidden items-center justify-between border-b border-border-base pb-3 mb-2 shrink-0">
+                  <span className="font-headline-md text-[20px] text-text-primary font-bold">New Discussion</span>
+                  <button type="button" onClick={() => setIsComposerOpen(false)} className="text-text-secondary p-1">
+                    <span className="material-symbols-outlined">close</span>
+                  </button>
+                </div>
+                
                 <input 
                   type="text" 
                   placeholder="Title of your discussion..." 
-                  className="w-full bg-surface-container-low border border-border-base rounded-lg p-3 text-[15px] font-body-md text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 shadow-sm transition-all"
+                  className="w-full bg-surface-container-low border border-border-base rounded-lg p-3 text-[15px] font-body-md text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 shadow-sm transition-all shrink-0"
                   value={newTitle}
                   onChange={e => setNewTitle(e.target.value)}
                   required minLength={5}
                 />
                 <select 
-                  className="w-full bg-surface-container-low border border-border-base rounded-lg p-3 text-[14px] font-label-md text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 shadow-sm transition-all appearance-none cursor-pointer"
+                  className="w-full bg-surface-container-low border border-border-base rounded-lg p-3 text-[14px] font-label-md text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 shadow-sm transition-all appearance-none cursor-pointer shrink-0"
                   value={newCategory}
                   onChange={e => setNewCategory(e.target.value)}
                 >
@@ -515,23 +551,23 @@ export default function CommunityPage() {
                 </select>
                 <textarea 
                   placeholder="Share your thoughts, ask a question, or provide details..." 
-                  className="w-full bg-surface-container-low border border-border-base rounded-lg p-3 text-[15px] font-body-md text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 shadow-sm transition-all min-h-[120px] resize-y"
+                  className="w-full bg-surface-container-low border border-border-base rounded-lg p-3 text-[15px] font-body-md text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 shadow-sm transition-all flex-1 md:flex-none md:min-h-[120px] resize-y"
                   value={newContent}
                   onChange={e => setNewContent(e.target.value)}
                   required minLength={10}
                 />
-                <div className="flex justify-between items-center mt-2 border-t border-border-base pt-3">
+                <div className="flex justify-between items-center mt-2 border-t border-border-base pt-3 shrink-0">
                   <div className="flex gap-2">
                      <button type="button" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-text-secondary hover:bg-surface-container transition-colors text-[13px] font-bold">
-                         <span className="material-symbols-outlined text-primary text-[18px]">article</span> Article
+                         <span className="material-symbols-outlined text-primary text-[18px]">article</span> <span className="hidden sm:inline">Article</span>
                      </button>
                      <button type="button" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-text-secondary hover:bg-surface-container transition-colors text-[13px] font-bold">
-                         <span className="material-symbols-outlined text-success text-[18px]">image</span> Media
+                         <span className="material-symbols-outlined text-success text-[18px]">image</span> <span className="hidden sm:inline">Media</span>
                      </button>
                   </div>
                   <div className="flex gap-3">
                     <button type="button" onClick={() => setIsComposerOpen(false)} className="px-4 py-2 text-text-secondary hover:text-text-primary font-label-md font-bold transition-colors">Cancel</button>
-                    <button type="submit" disabled={posting} className="bg-primary text-on-primary hover:bg-primary-container px-6 py-2 rounded-lg font-label-md font-bold disabled:opacity-50 flex items-center gap-2 shadow-sm transition-all">
+                    <button type="submit" disabled={posting} className="bg-primary text-on-primary hover:bg-primary-container px-6 py-2 rounded-lg font-label-md font-bold disabled:opacity-50 flex items-center gap-2 shadow-sm transition-all min-h-[40px]">
                       {posting ? <span className="material-symbols-outlined text-[18px] animate-spin">autorenew</span> : <span className="material-symbols-outlined text-[18px]">send</span>}
                       Post
                     </button>
@@ -541,7 +577,7 @@ export default function CommunityPage() {
             ) : (
               <div className="flex items-center gap-4 mt-1">
                 {user?.user_metadata?.avatar_url ? (
-                  <img src={user.user_metadata.avatar_url} alt="User" className="w-10 h-10 rounded-full object-cover border border-border-base shadow-sm" />
+                  <img src={user.user_metadata.avatar_url} alt="User" className="w-10 h-10 object-cover border border-border-base rounded-full shadow-sm" />
                 ) : (
                   <div className="w-10 h-10 rounded-full bg-surface border border-border-base flex items-center justify-center shrink-0 shadow-sm text-primary">
                      <span className="material-symbols-outlined text-[20px]">person</span>

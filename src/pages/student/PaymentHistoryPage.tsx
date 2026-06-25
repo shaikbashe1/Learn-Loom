@@ -89,13 +89,13 @@ export default function PaymentHistoryPage() {
                   <span className="font-body-sm text-[14px]">Free tier active. No upcoming renewals.</span>
                 )}
               </div>
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                 {activeSub && currentPlanId !== 'free' && (
-                  <Link to="/pricing" className="px-5 py-2.5 rounded-xl border border-border-base text-text-primary font-label-md text-[14px] font-bold hover:bg-surface-container transition-colors bg-surface shadow-sm inline-flex items-center justify-center">
+                  <Link to="/pricing" className="px-5 py-2.5 rounded-xl border border-border-base text-text-primary font-label-md text-[14px] font-bold hover:bg-surface-container transition-colors bg-surface shadow-sm inline-flex items-center justify-center min-h-[44px]">
                     Cancel Plan
                   </Link>
                 )}
-                <Link to="/pricing" className="px-5 py-2.5 rounded-xl bg-primary text-white font-label-md text-[14px] font-bold hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm inline-flex items-center justify-center">
+                <Link to="/pricing" className="px-5 py-2.5 rounded-xl bg-primary text-white font-label-md text-[14px] font-bold hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm inline-flex items-center justify-center min-h-[44px]">
                   Manage Billing
                 </Link>
               </div>
@@ -114,7 +114,7 @@ export default function PaymentHistoryPage() {
                 <p className="font-body-sm text-[12px] text-text-secondary">UPI / Cards</p>
               </div>
             </div>
-            <Link to="/pricing" className="w-full mt-6 py-2.5 flex items-center justify-center gap-2 text-primary font-label-md text-[14px] font-bold hover:bg-primary/10 rounded-xl transition-colors border border-primary/20 bg-primary/5">
+            <Link to="/pricing" className="w-full mt-6 py-2.5 flex items-center justify-center gap-2 text-primary font-label-md text-[14px] font-bold hover:bg-primary/10 rounded-xl transition-colors border border-primary/20 bg-primary/5 min-h-[44px]">
               <span className="material-symbols-outlined text-[18px]">add_circle</span>
               Update Method
             </Link>
@@ -128,7 +128,7 @@ export default function PaymentHistoryPage() {
               <h3 className="font-headline-md text-[24px] font-bold text-text-primary">Transaction History</h3>
               <p className="font-body-sm text-[14px] text-text-secondary mt-1">View and download your recent invoices.</p>
             </div>
-            <button className="flex items-center gap-2 px-4 py-2 border border-border-base rounded-xl text-text-secondary hover:bg-surface-container hover:text-text-primary transition-colors font-label-md text-[14px] font-bold shadow-sm bg-surface">
+            <button className="flex items-center gap-2 px-4 py-2 border border-border-base rounded-xl text-text-secondary hover:bg-surface-container hover:text-text-primary transition-colors font-label-md text-[14px] font-bold shadow-sm bg-surface min-h-[44px]">
               <span className="material-symbols-outlined text-[18px]">download</span>
               Export All
             </button>
@@ -181,7 +181,7 @@ export default function PaymentHistoryPage() {
                           </span>
                         </td>
                         <td className="p-4 px-6 text-right">
-                          <button className="text-text-secondary hover:text-primary transition-colors p-2 rounded-lg hover:bg-primary/10 border border-transparent hover:border-primary/20 inline-flex" title="Download Invoice">
+                          <button className="text-text-secondary hover:text-primary transition-colors w-11 h-11 flex items-center justify-center rounded-xl hover:bg-primary/10 border border-transparent hover:border-primary/20 inline-flex shrink-0 ml-auto" title="Download Invoice">
                             <Download className="w-4 h-4" />
                           </button>
                         </td>
@@ -194,7 +194,7 @@ export default function PaymentHistoryPage() {
             
             {orders.length > 0 && (
               <div className="p-4 border-t border-border-base bg-surface-container/20 flex justify-center">
-                <button className="text-primary font-label-md text-[14px] font-bold hover:underline">Load More Transactions</button>
+                <button className="text-primary font-label-md text-[14px] font-bold hover:underline min-h-[44px] py-2 px-4">Load More Transactions</button>
               </div>
             )}
           </div>

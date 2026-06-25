@@ -511,7 +511,7 @@ YOUR ROLE:
         <div ref={bottomRef} />
       </div>
 
-      <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background/90 to-transparent ${isWidget ? 'pt-8' : 'pt-12'}`}>
+      <div className={`absolute bottom-0 left-0 right-0 p-4 pb-safe bg-gradient-to-t from-background via-background/90 to-transparent ${isWidget ? 'pt-8' : 'pt-12'} safe-bottom`}>
         <div className={`mx-auto space-y-3 ${isWidget ? 'w-full' : 'max-w-3xl'}`}>
           {!isWidget && messages.length <= 2 && (
             <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
@@ -539,11 +539,16 @@ YOUR ROLE:
             <div className="flex justify-between items-center px-2 py-2 border-t border-outline-variant/20 bg-surface/30">
               <div className="flex items-center">
                  {isWidget && streaming && (
-                  <button onClick={handleStop} className="text-error text-xs ml-2 hover:underline">Stop Generating</button>
+                  <button onClick={handleStop} className="text-error text-xs ml-2 hover:underline min-h-[44px] px-2 flex items-center">Stop Generating</button>
                 )}
               </div>
-              <button onClick={() => sendMessage(input)} disabled={!input.trim() || streaming} className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-on-primary hover:brightness-110 transition-all shadow-sm disabled:opacity-50">
-                <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>arrow_upward</span>
+              <button 
+                onClick={() => sendMessage(input)} 
+                disabled={!input.trim() || streaming} 
+                className="w-11 h-11 flex items-center justify-center rounded-xl bg-primary text-on-primary hover:brightness-110 transition-all shadow-sm disabled:opacity-50"
+                title="Send message"
+              >
+                <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>arrow_upward</span>
               </button>
             </div>
           </div>

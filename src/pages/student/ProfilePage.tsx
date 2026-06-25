@@ -163,7 +163,7 @@ export default function ProfilePage() {
           </div>
           
           {/* Profile Info Container */}
-          <div className="relative px-6 pb-8 md:px-10 -mt-16 sm:-mt-20 flex flex-col sm:flex-row sm:items-end gap-6">
+          <div className="relative px-6 pb-8 md:px-10 -mt-16 sm:-mt-20 flex flex-col sm:flex-row items-center sm:items-end text-center sm:text-left gap-6">
             {/* Avatar */}
             <div className="relative shrink-0">
               <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-surface overflow-hidden bg-surface-container shadow-md">
@@ -201,8 +201,8 @@ export default function ProfilePage() {
             </div>
             
             {/* Text Info */}
-            <div className="flex-1 pb-2">
-              <div className="flex items-center gap-3 mb-1">
+            <div className="flex-1 pb-2 flex flex-col items-center sm:items-start">
+              <div className="flex flex-col sm:flex-row items-center gap-3 mb-1">
                 <h2 className="font-display-lg-mobile md:font-display-lg text-[32px] md:text-[40px] font-bold text-text-primary leading-tight">{displayName}</h2>
                 {profile.role === 'admin' && <span className="bg-error/10 text-error font-label-sm text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-widest border border-error/20">Admin</span>}
               </div>
@@ -211,7 +211,7 @@ export default function ProfilePage() {
               </p>
               
               {/* Stats/XP */}
-              <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center justify-center sm:justify-start gap-3 flex-wrap">
                 <div className="flex items-center gap-1.5 bg-surface-container-low px-3 py-1.5 rounded-lg border border-border-base shadow-sm">
                   <span className="material-symbols-outlined text-warning text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                   <span className="font-label-md text-[14px] font-bold text-text-primary">{xp.toLocaleString()} XP</span>
@@ -310,9 +310,9 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="pt-6 flex items-center justify-end gap-3 border-t border-border-base mt-2">
-                <Button onClick={handleCancel} variant="outline" className="font-bold border-border-base text-text-primary">Cancel</Button>
-                <Button onClick={() => void handleSave()} disabled={saving} className="bg-primary text-white hover:bg-primary-container hover:text-on-primary-container font-bold shadow-sm">
+              <div className="pt-6 flex items-center justify-end gap-3 border-t border-border-base mt-2 fixed bottom-0 left-0 right-0 p-4 bg-surface/90 backdrop-blur-md z-30 md:relative md:inset-auto md:p-0 md:bg-transparent md:z-auto shadow-[0_-4px_15px_rgba(0,0,0,0.05)] md:shadow-none pb-6 md:pb-0">
+                <Button onClick={handleCancel} variant="outline" className="font-bold border-border-base text-text-primary min-h-[44px]">Cancel</Button>
+                <Button onClick={() => void handleSave()} disabled={saving} className="bg-primary text-white hover:bg-primary-container hover:text-on-primary-container font-bold shadow-sm min-h-[44px]">
                   {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   Save Changes
                 </Button>

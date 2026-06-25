@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Check, Zap, Crown, Loader2, Star } from 'lucide-react';
 import { supabase } from '@/db/supabase';
@@ -177,7 +178,7 @@ export default function PricingPage() {
 
                 if (isHighlight) {
                   return (
-                    <div key={plan.id} className="bg-gradient-to-b from-primary to-tertiary rounded-2xl p-8 shadow-xl relative z-20 md:scale-105 h-[560px] flex flex-col transform transition-transform duration-300 hover:-translate-y-2">
+                    <div key={plan.id} className="bg-gradient-to-b from-primary to-tertiary rounded-2xl p-8 shadow-xl relative z-20 md:scale-105 min-h-[560px] md:h-[560px] flex flex-col transform transition-transform duration-300 hover:-translate-y-2">
                       {badge && (
                         <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-secondary-container text-on-secondary-container font-label-sm text-label-sm px-4 py-1 rounded-full uppercase tracking-wider font-bold shadow-md">
                           {badge}
@@ -197,13 +198,13 @@ export default function PricingPage() {
                         {plan.credits_per_month > 0 && <p className="font-label-sm text-on-primary mt-1">+{plan.credits_per_month} AI credits/mo</p>}
                       </div>
                       
-                      <button 
+                      <Button 
                         onClick={() => handleSubscribe(plan.id)}
                         disabled={isActive || plan.id === 'free' || isBuying}
-                        className="w-full block text-center py-3 rounded-lg bg-surface text-primary font-label-md text-label-md hover:bg-surface-bright transition-colors shadow-sm mb-8 disabled:opacity-80 disabled:pointer-events-none flex justify-center items-center gap-2"
+                        className="w-full h-12 bg-white text-primary hover:bg-white/95 font-bold rounded-xl shadow-sm mb-8 disabled:opacity-80 disabled:pointer-events-none flex justify-center items-center gap-2 min-h-[44px]"
                       >
                          {isBuying ? <><Loader2 className="w-4 h-4 animate-spin" />Processing…</> : isActive ? 'Current Plan' : `Upgrade to ${plan.name}`}
-                      </button>
+                      </Button>
 
                       <ul className="space-y-4 flex-grow">
                         {plan.features.map((f: string) => (
@@ -219,7 +220,7 @@ export default function PricingPage() {
 
                 // Normal card
                 return (
-                  <div key={plan.id} className="glass-panel border border-border-base rounded-2xl p-8 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1)] h-[520px] flex flex-col relative z-10">
+                  <div key={plan.id} className="glass-panel border border-border-base rounded-2xl p-8 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1)] min-h-[520px] md:h-[520px] flex flex-col relative z-10">
                     {badge && (
                       <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-tertiary text-on-tertiary font-label-sm text-label-sm px-4 py-1 rounded-full uppercase tracking-wider font-bold shadow-sm">
                         {badge}
@@ -241,14 +242,15 @@ export default function PricingPage() {
                       {plan.credits_per_month > 0 && <p className="font-label-sm text-primary mt-1">+{plan.credits_per_month} AI credits/mo</p>}
                     </div>
                     
-                    <button 
+                    <Button 
                       onClick={() => handleSubscribe(plan.id)}
                       disabled={isActive || plan.id === 'free' || isBuying}
-                      className={`w-full block text-center py-3 rounded-lg border border-border-base font-label-md text-label-md transition-colors mb-8 flex justify-center items-center gap-2 disabled:opacity-80 disabled:pointer-events-none
-                         ${plan.id === 'free' ? 'text-on-surface hover:bg-surface-container-low' : 'bg-on-surface text-surface hover:bg-on-surface-variant'}`}
+                      variant={plan.id === 'free' ? 'outline' : 'default'}
+                      className={`w-full h-12 rounded-xl font-bold transition-all mb-8 flex justify-center items-center gap-2 min-h-[44px]
+                         ${plan.id === 'free' ? 'border-border-base text-on-surface hover:bg-surface-container' : 'bg-on-surface text-surface hover:bg-on-surface-variant'}`}
                     >
                        {isBuying ? <><Loader2 className="w-4 h-4 animate-spin" />Processing…</> : isActive ? 'Current Plan' : plan.id === 'free' ? 'Always Free' : `Upgrade to ${plan.name}`}
-                    </button>
+                    </Button>
 
                     <ul className="space-y-4 flex-grow">
                       {plan.features.map((f: string) => (

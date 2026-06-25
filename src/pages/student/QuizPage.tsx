@@ -222,7 +222,7 @@ export default function QuizPage() {
                     {q.options.map((option, i) => (
                       <label 
                         key={i} 
-                        className={`group relative flex items-center p-5 rounded-xl border cursor-pointer transition-all duration-200 card-lift ${selectedOpt === i ? 'bg-surface border-primary shadow-[0_0_15px_rgba(37,99,235,0.1)]' : 'bg-surface border-border-base hover:bg-surface-container-lowest'}`}
+                        className={`group relative flex items-center p-4 sm:p-5 min-h-[56px] rounded-xl border cursor-pointer transition-all duration-200 card-lift ${selectedOpt === i ? 'bg-surface border-primary shadow-[0_0_15px_rgba(37,99,235,0.1)]' : 'bg-surface border-border-base hover:bg-surface-container-lowest'}`}
                       >
                         <input 
                           type="radio" 
@@ -278,26 +278,26 @@ export default function QuizPage() {
         </div>
 
         {/* Bottom Navigation Bar */}
-        <div className="fixed bottom-0 left-0 right-0 lg:right-80 bg-surface/90 backdrop-blur-md border-t border-border-base p-4 z-20 shadow-[0_-4px_6px_-1px_rgb(0,0,0,0.05)]">
-          <div className="max-w-[800px] mx-auto flex justify-between items-center px-4">
+        <div className="fixed bottom-0 left-0 right-0 lg:right-80 bg-surface/90 backdrop-blur-md border-t border-border-base p-4 pb-6 md:pb-4 z-20 shadow-[0_-4px_6px_-1px_rgb(0,0,0,0.05)]">
+          <div className="max-w-[800px] mx-auto flex justify-between items-center px-2 sm:px-4 gap-2">
             <button 
               onClick={() => { setCurrent(current - 1); setSelectedOpt(answers[current - 1] ?? null); }}
               disabled={current === 0 || submitting}
-              className="flex items-center gap-2 px-6 py-3 rounded-lg border border-border-base bg-surface text-text-secondary font-label-md text-label-md hover:bg-surface-container-lowest hover:text-text-primary transition-colors disabled:opacity-30 shadow-sm"
+              className="flex items-center justify-center gap-1.5 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg border border-border-base bg-surface text-text-secondary font-label-md text-label-md hover:bg-surface-container-lowest hover:text-text-primary transition-colors disabled:opacity-30 shadow-sm min-h-[44px]"
             >
               <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-              Previous
+              <span className="text-xs sm:text-sm">Previous</span>
             </button>
             <button 
               onClick={handleNext}
               disabled={selectedOpt === null || submitting}
-              className="flex items-center gap-2 px-8 py-3 rounded-lg bg-primary text-on-primary font-label-md text-label-md font-bold hover:bg-primary-container transition-colors shadow-md disabled:opacity-50"
+              className="flex items-center justify-center gap-1.5 px-5 sm:px-8 py-2.5 sm:py-3 rounded-lg bg-primary text-on-primary font-label-md text-label-md font-bold hover:bg-primary-container transition-colors shadow-md disabled:opacity-50 min-h-[44px]"
             >
               {submitting ? (
-                <><span className="material-symbols-outlined text-[18px] animate-spin">autorenew</span> Saving...</>
+                <><span className="material-symbols-outlined text-[18px] animate-spin">autorenew</span> <span className="text-xs sm:text-sm">Saving...</span></>
               ) : (
                 <>
-                  {current === questions.length - 1 ? 'Submit Assessment' : 'Next Question'}
+                  <span className="text-xs sm:text-sm">{current === questions.length - 1 ? 'Submit Assessment' : 'Next Question'}</span>
                   <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                 </>
               )}
@@ -458,16 +458,16 @@ export default function QuizPage() {
                       </p>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4 mb-10 relative z-10">
+                    <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-10 relative z-10">
                       {[
                         { label: 'Questions', value: questions.length, icon: 'format_list_bulleted' },
                         { label: 'Pass Score', value: `${selectedQuiz.passing_score}%`, icon: 'flag' },
                         { label: 'Best Score', value: pastAttempt ? `${Math.round((pastAttempt.score / pastAttempt.total) * 100)}%` : '—', icon: 'military_tech' },
                       ].map(item => (
-                        <div key={item.label} className="text-center p-5 rounded-xl bg-surface border border-border-base flex flex-col items-center shadow-sm hover:-translate-y-1 transition-transform">
-                          <span className="material-symbols-outlined text-primary mb-2 text-[24px]">{item.icon}</span>
-                          <div className="font-headline-md text-[24px] font-bold text-text-primary mb-1">{item.value}</div>
-                          <div className="font-label-sm text-[11px] text-text-secondary uppercase tracking-widest font-bold">{item.label}</div>
+                        <div key={item.label} className="text-center p-3 sm:p-5 rounded-xl bg-surface border border-border-base flex flex-col items-center shadow-sm hover:-translate-y-1 transition-transform">
+                          <span className="material-symbols-outlined text-primary mb-1 sm:mb-2 text-[20px] sm:text-[24px]">{item.icon}</span>
+                          <div className="font-headline-md text-lg sm:text-[24px] font-bold text-text-primary mb-0.5 sm:mb-1">{item.value}</div>
+                          <div className="font-label-sm text-[9px] sm:text-[11px] text-text-secondary uppercase tracking-widest font-bold">{item.label}</div>
                         </div>
                       ))}
                     </div>

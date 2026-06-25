@@ -85,6 +85,7 @@ export default function CodingAssessmentPage() {
   const [activeTab, setActiveTab]   = useState<'output' | 'input'>('output');
   const [useCustomInput, setUseCustomInput] = useState(false);
   const [attempts, setAttempts]     = useState(0);
+  const [mobileTab, setMobileTab]   = useState<'problem' | 'code' | 'output'>('problem');
   const MAX_ATTEMPTS = 3;
 
   // Load problems from DB
@@ -146,6 +147,7 @@ export default function CodingAssessmentPage() {
     setRunning(true);
     setResult(null);
     setActiveTab('output');
+    setMobileTab('output');
 
     try {
       const res = await fetch(PISTON_URL, {
@@ -203,6 +205,7 @@ export default function CodingAssessmentPage() {
     setJudging(true);
     setResult(null);
     setActiveTab('output');
+    setMobileTab('output');
 
     try {
       const testCases = problem.test_cases || [];
@@ -338,42 +341,44 @@ export default function CodingAssessmentPage() {
 
   return (
     <AppLayout title="Coding Assessment">
-      <div className="flex flex-col h-[calc(100vh-80px)] w-full gap-4 relative px-margin-mobile md:px-margin-desktop py-4">
+      <div className="flex flex-col h-[calc(100vh-80px)] w-full gap-3 relative px-margin-mobile md:px-margin-desktop py-4">
         
         {/* Actions Bar */}
-        <div className="flex flex-wrap items-center justify-between bg-surface/80 backdrop-blur-md border border-border-base rounded-lg p-2 shrink-0 z-10 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]">
-          <div className="flex items-center gap-4 pl-2">
-            <button onClick={() => navigate(`/courses/${courseId}`)} className="text-text-secondary hover:text-primary transition-colors flex items-center gap-1 font-label-sm">
+        <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between bg-surface/80 backdrop-blur-md border border-border-base rounded-lg p-2 shrink-0 z-10 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]">
+          <div className="flex flex-wrap items-center gap-3 pl-1">
+            <button onClick={() => navigate(`/courses/${courseId}`)} className="text-text-secondary hover:text-primary transition-colors flex items-center gap-1 font-label-sm min-h-[38px] md:min-h-[auto]">
               <span className="material-symbols-outlined text-[18px]">arrow_back</span> Course
             </button>
             <div className="h-4 w-px bg-border-base hidden sm:block"></div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <button 
                 onClick={() => setIdx(Math.max(0, idx - 1))} 
                 disabled={idx === 0}
-                className="text-text-secondary hover:text-primary transition-colors disabled:opacity-50"
+                className="text-text-secondary hover:text-primary transition-colors disabled:opacity-50 p-1"
+                aria-label="Previous Problem"
               >
                 <span className="material-symbols-outlined text-[20px]">chevron_left</span>
               </button>
-              <span className="font-label-sm text-label-sm text-text-secondary">{idx + 1} / {problems.length}</span>
+              <span className="font-label-sm text-label-sm text-text-secondary min-w-[40px] text-center">{idx + 1} / {problems.length}</span>
               <button 
                 onClick={() => setIdx(Math.min(problems.length - 1, idx + 1))} 
                 disabled={idx === problems.length - 1}
-                className="text-text-secondary hover:text-primary transition-colors disabled:opacity-50"
+                className="text-text-secondary hover:text-primary transition-colors disabled:opacity-50 p-1"
+                aria-label="Next Problem"
               >
                 <span className="material-symbols-outlined text-[20px]">chevron_right</span>
               </button>
             </div>
             <div className="h-4 w-px bg-border-base hidden sm:block"></div>
-            <div className="flex flex-col ml-2">
-              <span className="font-label-sm text-[10px] text-text-secondary uppercase">Attempts</span>
+            <div className="flex items-center gap-2">
+              <span className="font-label-sm text-[10px] text-text-secondary uppercase">Attempts:</span>
               <span className={`font-bold text-[14px] ${attempts >= MAX_ATTEMPTS ? 'text-error' : 'text-primary'}`}>{attempts} / {MAX_ATTEMPTS}</span>
             </div>
             <div className="h-4 w-px bg-border-base hidden sm:block"></div>
             <select 
               value={language} 
               onChange={e => changeLang(e.target.value as Lang)}
-              className="bg-surface border border-border-base text-text-primary font-label-sm text-label-sm rounded px-3 py-1.5 focus:ring-1 focus:ring-primary focus:border-primary outline-none shadow-inner"
+              className="bg-surface border border-border-base text-text-primary font-label-sm text-label-sm rounded px-3 py-2 md:py-1.5 focus:ring-1 focus:ring-primary focus:border-primary outline-none shadow-inner min-h-[38px] md:min-h-[auto]"
             >
               {(Object.keys(LANG_LABELS) as Lang[]).map(l => (
                 <option key={l} value={l}>{LANG_LABELS[l]}</option>
@@ -381,25 +386,53 @@ export default function CodingAssessmentPage() {
             </select>
           </div>
           <div className="flex items-center gap-2 pr-1">
-            <button onClick={() => resetCode()} className="flex items-center gap-1 px-4 py-1.5 rounded-md border border-border-base bg-surface text-text-primary font-label-sm text-label-sm hover:bg-surface-bright transition-colors shadow-sm">
+            <button onClick={() => resetCode()} className="flex-1 sm:flex-initial flex items-center justify-center gap-1 px-3 py-2 md:py-1.5 rounded-md border border-border-base bg-surface text-text-primary font-label-sm text-label-sm hover:bg-surface-bright transition-colors shadow-sm min-h-[38px] md:min-h-[auto]">
               <span className="material-symbols-outlined text-[16px]">refresh</span> Reset
             </button>
-            <button onClick={handleRun} disabled={judging || running || !user} className="flex items-center gap-1 px-4 py-1.5 rounded-md border border-border-base bg-surface text-primary font-label-sm text-label-sm font-bold hover:bg-surface-bright transition-colors disabled:opacity-50 shadow-sm">
+            <button onClick={handleRun} disabled={judging || running || !user} className="flex-1 sm:flex-initial flex items-center justify-center gap-1 px-3 py-2 md:py-1.5 rounded-md border border-border-base bg-surface text-primary font-label-sm text-label-sm font-bold hover:bg-surface-bright transition-colors disabled:opacity-50 shadow-sm min-h-[38px] md:min-h-[auto]">
               {running ? <span className="material-symbols-outlined animate-spin text-[16px]">autorenew</span> : <span className="material-symbols-outlined text-[16px]">play_arrow</span>}
               {running ? 'Running' : 'Run'}
             </button>
-            <button onClick={handleSubmit} disabled={judging || running || attempts >= MAX_ATTEMPTS || !user} className="flex items-center gap-1 bg-primary text-on-primary px-5 py-1.5 rounded-md font-label-sm text-label-sm font-bold hover:bg-primary-container transition-colors disabled:opacity-50 shadow-md">
+            <button onClick={handleSubmit} disabled={judging || running || attempts >= MAX_ATTEMPTS || !user} className="flex-1 sm:flex-initial flex items-center justify-center gap-1 bg-primary text-on-primary px-4 py-2 md:py-1.5 rounded-md font-label-sm text-label-sm font-bold hover:bg-primary-container transition-colors disabled:opacity-50 shadow-md min-h-[38px] md:min-h-[auto]">
               {judging ? <span className="material-symbols-outlined animate-spin text-[16px]">autorenew</span> : <span className="material-symbols-outlined text-[16px]">publish</span>}
               {judging ? 'Evaluating' : 'Submit'}
             </button>
           </div>
         </div>
 
+        {/* Mobile Tab Selector (only visible on mobile) */}
+        <div className="flex md:hidden border border-border-base rounded-lg bg-surface p-1 shrink-0 gap-1">
+          <button
+            onClick={() => setMobileTab('problem')}
+            className={`flex-1 py-2 text-center rounded-md font-label-sm text-label-sm transition-colors ${
+              mobileTab === 'problem' ? 'bg-primary text-on-primary font-bold shadow-sm' : 'text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            Problem
+          </button>
+          <button
+            onClick={() => setMobileTab('code')}
+            className={`flex-1 py-2 text-center rounded-md font-label-sm text-label-sm transition-colors ${
+              mobileTab === 'code' ? 'bg-primary text-on-primary font-bold shadow-sm' : 'text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            Code
+          </button>
+          <button
+            onClick={() => setMobileTab('output')}
+            className={`flex-1 py-2 text-center rounded-md font-label-sm text-label-sm transition-colors ${
+              mobileTab === 'output' ? 'bg-primary text-on-primary font-bold shadow-sm' : 'text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            Console
+          </button>
+        </div>
+
         {/* Workspace Layout */}
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden gap-4 pb-2">
           
           {/* Left Pane: Problem Description */}
-          <section className="w-1/4 min-w-[300px] flex flex-col bg-surface rounded-lg border border-border-base shadow-[0_2px_4px_rgba(0,0,0,0.02)] overflow-hidden flex-shrink-0 transition-all duration-200">
+          <section className={`w-full md:w-1/4 md:min-w-[300px] flex flex-col bg-surface rounded-lg border border-border-base shadow-[0_2px_4px_rgba(0,0,0,0.02)] overflow-hidden flex-shrink-0 transition-all duration-200 ${mobileTab === 'problem' ? 'flex' : 'hidden md:flex'}`}>
             <div className="h-10 border-b border-border-base flex justify-between items-center px-4 bg-surface-bright shrink-0">
               <span className="font-label-md text-label-md font-bold flex items-center gap-2 text-text-primary">
                 <span className="material-symbols-outlined text-[18px]">description</span> Description
@@ -422,7 +455,7 @@ export default function CodingAssessmentPage() {
           </section>
 
           {/* Middle Pane: Code Editor */}
-          <section className="flex-[1.5] bg-[#1e1e1e] rounded-lg border border-border-base flex flex-col overflow-hidden min-w-[300px] shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+          <section className={`flex-1 md:flex-[1.5] bg-[#1e1e1e] rounded-lg border border-border-base flex flex-col overflow-hidden md:min-w-[300px] shadow-[0_2px_4px_rgba(0,0,0,0.02)] ${mobileTab === 'code' ? 'flex' : 'hidden md:flex'}`}>
             <div className="h-10 border-b border-[#333] bg-[#252526] flex items-center px-4 shrink-0">
               <span className="font-label-sm text-label-sm text-[#cccccc] flex items-center gap-2">
                 <span className="material-symbols-outlined text-[16px] text-[#569cd6]">code</span>
@@ -431,11 +464,11 @@ export default function CodingAssessmentPage() {
             </div>
             <div className="flex-1 overflow-auto flex relative code-editor-bg">
               {/* Line Numbers Fake */}
-              <div className="w-12 bg-[#1e1e1e] border-r border-[#333] text-[#858585] font-label-sm text-label-sm text-right pr-3 pt-4 flex flex-col select-none shrink-0 overflow-hidden" aria-hidden="true">
+              <div className="w-12 bg-[#1e1e1e] border-r border-[#333] text-[#858585] font-mono text-[13px] sm:text-sm text-right pr-3 pt-4 flex flex-col select-none shrink-0 overflow-hidden" aria-hidden="true">
                  {Array.from({length: 40}).map((_, i) => <span key={i} className="h-[21px]">{i + 1}</span>)}
               </div>
               <textarea
-                className="w-full h-full p-4 pt-4 bg-transparent text-[#d4d4d4] font-label-sm text-label-sm resize-none outline-none leading-[21px]"
+                className="w-full h-full p-4 pt-4 bg-transparent text-[#d4d4d4] font-mono text-[13px] sm:text-sm resize-none outline-none leading-[21px]"
                 value={code}
                 onChange={e => {
                   const val = e.target.value;
@@ -451,7 +484,7 @@ export default function CodingAssessmentPage() {
           </section>
 
           {/* Right Pane: Console/Output */}
-          <section className="w-1/4 min-w-[300px] flex flex-col glass-panel rounded-lg overflow-hidden flex-shrink-0 relative border border-border-base shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]">
+          <section className={`w-full md:w-1/4 md:min-w-[300px] flex flex-col glass-panel rounded-lg overflow-hidden flex-shrink-0 relative border border-border-base shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] ${mobileTab === 'output' ? 'flex' : 'hidden md:flex'}`}>
             <div className="absolute inset-0 bg-gradient-to-br from-tertiary-fixed/10 to-primary-fixed/20 z-0 pointer-events-none"></div>
             
             <div className="h-10 border-b border-border-base flex px-2 gap-1 bg-white/40 backdrop-blur-md shrink-0 relative z-10">
@@ -607,13 +640,13 @@ export default function CodingAssessmentPage() {
                               </div>
                               {!pass && <span className="text-[10px] bg-error/20 px-1 rounded">{VERDICT_META[t.verdict]?.label ?? t.verdict}</span>}
                             </div>
-                            <div className="text-on-surface-variant grid grid-cols-[60px_1fr] gap-x-2 gap-y-1 text-[11px] font-mono">
-                              <span>Input:</span><span className="text-on-surface truncate break-all">{t.input}</span>
-                              <span>Expected:</span><span className="text-on-surface truncate break-all">{t.expectedOutput}</span>
+                            <div className="text-on-surface-variant grid grid-cols-[65px_1fr] gap-x-2 gap-y-1 text-[11px] font-mono overflow-x-auto scrollbar-hide">
+                              <span>Input:</span><span className="text-on-surface overflow-x-auto whitespace-pre-wrap break-all">{t.input}</span>
+                              <span>Expected:</span><span className="text-on-surface overflow-x-auto whitespace-pre-wrap break-all">{t.expectedOutput}</span>
                               {!pass && (
                                 <>
                                   <span className="text-error mt-1">Output:</span>
-                                  <span className="text-error mt-1 break-words bg-error/10 px-1 rounded">{t.actualOutput || '(empty)'}</span>
+                                  <span className="text-error mt-1 overflow-x-auto whitespace-pre-wrap break-all bg-error/10 px-1 rounded">{t.actualOutput || '(empty)'}</span>
                                 </>
                               )}
                             </div>
