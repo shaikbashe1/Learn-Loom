@@ -30,7 +30,7 @@ interface AuthContextType {
   loading: boolean;
   signInWithEmail: (email: string, password: string) => Promise<SignInResult>;
   signUpWithEmail: (email: string, password: string, fullName?: string) => Promise<SignInResult>;
-  verifyEmailCode: (code: string) => Promise<SignInResult>;
+  verifyEmailCode: (email: string, code: string) => Promise<SignInResult>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
   signInWithGitHub: () => Promise<{ error: Error | null }>;
   resendVerificationEmail: (email: string) => Promise<{ error: Error | null }>;
@@ -173,11 +173,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const verifyEmailCode = async (code: string): Promise<SignInResult> => {
-    // Usually Supabase handles OTP via links or verifyOtp
-    // We'll leave this stub returning error as we are shifting towards magic links or email confirm links
-    // If the app requires OTP, you'd use supabase.auth.verifyOtp({ email, token, type: 'email' })
-    return { error: new Error('Use the email confirmation link sent to your inbox.') };
+  const verifyEmailCode = async (email: string, code: string): Promise<SignInResult> => {
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' });
+      if (error) return { error };
+      return { error: null, userId: data.user?.id };
+    } catch (err: any) {
+      return { error: err as Error };
+    }
   };
 
   const resendVerificationEmail = async (email: string): Promise<{ error: Error | null }> => {

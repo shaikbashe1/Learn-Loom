@@ -156,7 +156,7 @@ export default function SignupPage() {
               <form onSubmit={async (e) => {
                 e.preventDefault();
                 setLoading(true);
-                const { error } = await verifyEmailCode(verificationCode);
+                const { error } = await verifyEmailCode(submittedEmail, verificationCode);
                 setLoading(false);
                 if (error) { toast.error('Verification failed', { description: error.message }); }
                 else {
