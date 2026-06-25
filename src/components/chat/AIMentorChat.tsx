@@ -156,6 +156,17 @@ export function AIMentorChat({ externalPrompt, onExternalPromptHandled, isWidget
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(true);
+
+  // Load mentor chat draft from localStorage when user is ready
+  useEffect(() => {
+    if (user?.id) {
+      const saved = localStorage.getItem(`mentor_chat_draft_${user.id}`);
+      if (saved) {
+        setInput(saved);
+      }
+    }
+  }, [user?.id]);
+
   
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourseInfo[]>([]);
@@ -295,6 +306,9 @@ YOUR ROLE:
 
     setMessages(prev => [...prev, userMsg, aiMsg]);
     setInput('');
+    if (user?.id) {
+      localStorage.removeItem(`mentor_chat_draft_${user.id}`);
+    }
     setStreaming(true);
 
     // Persist user message to Supabase
@@ -398,6 +412,9 @@ YOUR ROLE:
     if (!user) return;
     setMessages([WELCOME_MESSAGE]); 
     setInput(''); 
+    if (user?.id) {
+      localStorage.removeItem(`mentor_chat_draft_${user.id}`);
+    }
     
     // Create new fresh conversation branch
     const { data: newConvo } = await supabase
@@ -424,7 +441,11 @@ YOUR ROLE:
   };
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(e.target.value);
+    const val = e.target.value;
+    setInput(val);
+    if (user?.id) {
+      localStorage.setItem(`mentor_chat_draft_${user.id}`, val);
+    }
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 128)}px`;

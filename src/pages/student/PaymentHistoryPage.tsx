@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -90,13 +91,13 @@ export default function PaymentHistoryPage() {
               </div>
               <div className="flex gap-3">
                 {activeSub && currentPlanId !== 'free' && (
-                  <a href="/pricing" className="px-5 py-2.5 rounded-xl border border-border-base text-text-primary font-label-md text-[14px] font-bold hover:bg-surface-container transition-colors bg-surface shadow-sm inline-flex items-center justify-center">
+                  <Link to="/pricing" className="px-5 py-2.5 rounded-xl border border-border-base text-text-primary font-label-md text-[14px] font-bold hover:bg-surface-container transition-colors bg-surface shadow-sm inline-flex items-center justify-center">
                     Cancel Plan
-                  </a>
+                  </Link>
                 )}
-                <a href="/pricing" className="px-5 py-2.5 rounded-xl bg-primary text-white font-label-md text-[14px] font-bold hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm inline-flex items-center justify-center">
+                <Link to="/pricing" className="px-5 py-2.5 rounded-xl bg-primary text-white font-label-md text-[14px] font-bold hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm inline-flex items-center justify-center">
                   Manage Billing
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -113,10 +114,10 @@ export default function PaymentHistoryPage() {
                 <p className="font-body-sm text-[12px] text-text-secondary">UPI / Cards</p>
               </div>
             </div>
-            <a href="/pricing" className="w-full mt-6 py-2.5 flex items-center justify-center gap-2 text-primary font-label-md text-[14px] font-bold hover:bg-primary/10 rounded-xl transition-colors border border-primary/20 bg-primary/5">
+            <Link to="/pricing" className="w-full mt-6 py-2.5 flex items-center justify-center gap-2 text-primary font-label-md text-[14px] font-bold hover:bg-primary/10 rounded-xl transition-colors border border-primary/20 bg-primary/5">
               <span className="material-symbols-outlined text-[18px]">add_circle</span>
               Update Method
-            </a>
+            </Link>
           </div>
         </div>
 
@@ -143,7 +144,7 @@ export default function PaymentHistoryPage() {
                 <CreditCard className="w-14 h-14 mx-auto mb-4 text-text-secondary opacity-30" />
                 <p className="font-headline-md text-[20px] font-bold text-text-primary">No payment history yet</p>
                 <p className="text-[15px] mt-2 text-text-secondary">
-                  <a href="/pricing" className="text-primary font-bold hover:underline">Browse plans →</a>
+                  <Link to="/pricing" className="text-primary font-bold hover:underline">Browse plans →</Link>
                 </p>
               </div>
             ) : (

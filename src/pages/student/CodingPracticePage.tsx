@@ -98,20 +98,34 @@ export default function CodingPracticePage() {
 
   const problem = problems[idx];
 
-  // Reset code when problem or language changes
-  const resetCode = useCallback((lang?: Lang) => {
-    const l = lang ?? language;
-    setCode(problem?.starter_code?.[l] ?? '');
-    setResult(null);
-  }, [problem, language]);
+  // Storage key for local storage persistence
+  const storageKey = problem ? `code_${user?.id || 'default'}_${problem.id}_${language}` : '';
 
+  // Load saved code when problem, language, or storage key changes
   useEffect(() => {
-    if (problem) resetCode();
-  }, [idx, problem, resetCode]);
+    if (!problem || !storageKey) return;
+    const saved = localStorage.getItem(storageKey);
+    if (saved !== null) {
+      setCode(saved);
+    } else {
+      setCode(problem.starter_code[language] ?? '');
+    }
+    setResult(null);
+  }, [problem?.id, language, storageKey]);
+
+  // Reset code manually
+  const resetCode = useCallback(() => {
+    if (!problem) return;
+    const starter = problem.starter_code[language] ?? '';
+    setCode(starter);
+    if (storageKey) {
+      localStorage.setItem(storageKey, starter);
+    }
+    setResult(null);
+  }, [problem, language, storageKey]);
 
   const changeLang = (lang: Lang) => {
     setLanguage(lang);
-    setCode(problem?.starter_code?.[lang] ?? '');
     setResult(null);
   };
 
@@ -393,7 +407,13 @@ export default function CodingPracticePage() {
               <textarea
                 className="w-full h-full p-4 pt-4 bg-transparent text-[#d4d4d4] font-label-sm text-label-sm resize-none outline-none leading-[21px]"
                 value={code}
-                onChange={e => setCode(e.target.value)}
+                onChange={e => {
+                  const val = e.target.value;
+                  setCode(val);
+                  if (storageKey) {
+                    localStorage.setItem(storageKey, val);
+                  }
+                }}
                 spellCheck={false}
                 style={{ fontFamily: '"JetBrains Mono", "Fira Code", monospace', tabSize: 4 }}
               />

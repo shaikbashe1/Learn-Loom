@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Check, Zap, Crown, Loader2, Star } from 'lucide-react';
@@ -282,9 +283,9 @@ export default function PricingPage() {
         {/* Payment history link */}
         {user && (
           <div className="text-center pb-12">
-            <a href="/payment-history" className="font-label-md text-primary hover:text-primary-container transition-colors inline-flex items-center gap-1">
+            <Link to="/payment-history" className="font-label-md text-primary hover:text-primary-container transition-colors inline-flex items-center gap-1">
               View payment history <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-            </a>
+            </Link>
           </div>
         )}
 

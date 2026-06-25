@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useRef, type ReactNode } from 'react';
 import { supabase } from '@/db/supabase';
 import type { User } from '@supabase/supabase-js';
 import type { Profile } from '@/types/types';
@@ -47,6 +47,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Keep refs up-to-date to avoid stale closures inside supabase auth state listener
+  const userRef = useRef<User | null>(null);
+  const profileRef = useRef<Profile | null>(null);
+
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
+
+  useEffect(() => {
+    profileRef.current = profile;
+  }, [profile]);
+
   // Strict RBAC Override: Enforce super_admin ONLY for the authorized email
   const applyRoleOverride = (u: User | null, p: Profile | null): Profile | null => {
     if (!p) return null;
@@ -76,15 +88,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      const currentUser = userRef.current;
+      const currentProfile = profileRef.current;
+
       setUser(session?.user ?? null);
       if (session?.user) {
         if (event === 'SIGNED_IN') {
           void logUserActivity(session.user.id, 'login');
         }
-        setLoading(true);
+
+        // Only block UI and trigger loading if user ID changed or profile isn't loaded
+        const isSameUser = currentUser && currentUser.id === session.user.id;
+        const hasProfile = !!currentProfile;
+        const shouldShowLoading = !isSameUser || !hasProfile;
+
+        if (shouldShowLoading) {
+          setLoading(true);
+        }
+
         getProfile(session.user.id).then(data => {
           setProfile(applyRoleOverride(session.user, data));
-          setLoading(false);
+          if (shouldShowLoading) {
+            setLoading(false);
+          }
         });
       } else {
         setProfile(null);
@@ -94,6 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
 
   const refreshProfile = async () => {
     if (!user) { setProfile(null); return; }

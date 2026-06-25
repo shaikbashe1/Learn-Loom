@@ -48,6 +48,12 @@ LearnLoom is an advanced, AI-driven learning ecosystem designed for software eng
 - **Database Row-Level Security (RLS) Hardening**: Dropped the loose, public insert policy `certs_insert_service` (which had `WITH CHECK (true)`) on `certificates`. Added `certs_insert_own` ensuring students can only insert certificates corresponding to their authenticated UID (`auth.uid()::text = user_id::text`), and restricted wildcard inserts with an admin-only `admins_insert_all` policy. Added `admins_view_attempts` on the `assessment_attempts` table so that admin roles can properly monitor student attempts.
 - **TypeScript Safety Enforcement**: Refactored the `user` and `debug` state and function signatures in `AuthContext.tsx` to use strict types (`User` from Supabase and custom `Profile` interfaces) instead of `any`. Unified the local duplicate `interface Certificate` in `CertificatePage.tsx` with the globally defined `DBCertificate` interface in `types.ts`. Replaced multiple occurrences of generic `any` mapping objects in `AdminCoursesPage.tsx`, `AdminRoadmapsPage.tsx`, and `CoursePlayerPage.tsx`. Explicitly typed `constraints: string[]` in `DBCodingQuestion` and other properties in `types.ts`. Cleaned up page state assertions and casted dynamic Supabase join returns using structured objects rather than `any` in `AIMentorChat.tsx`, `CodingAssessmentPage.tsx`, and `ProfilePage.tsx`.
 
+### 8. Navigation & Tab Switching State Persistence
+- **Auth Listener Guard**: Secured the Supabase `onAuthStateChange` listener in `AuthContext.tsx` by referencing mutable `useRef` tokens, ensuring background session verification events do not set `loading` to `true` when the active user profile is already loaded. This resolves page flashes and component unmounting on tab focus.
+- **Input & Editor Drafts**: Implemented `localStorage` state persistence inside `AIMentorChat.tsx` (prompt drafts), `CodingPracticePage.tsx` (user code solutions), and `CodingAssessmentPage.tsx` (exam code solutions) to retain typed content when navigating between views.
+- **Anchor Tag Refactoring**: Replaced internal `<a>` tags with `react-router-dom` `<Link>` components in `PricingPage.tsx` and `PaymentHistoryPage.tsx` to prevent full browser reloads.
+
+
 ## Issues Faced & Resolutions
 
 ### Issue 1: Authentication Profile & UUID Mismatches
@@ -93,6 +99,11 @@ LearnLoom is an advanced, AI-driven learning ecosystem designed for software eng
 ### Issue 9: Compiler Gaps and Loose 'any' Types in Auth Context and Page Components
 **Problem:** The codebase contained generic `any` overrides and duplicate local types (like local `Certificate` interfaces), which hid type mismatches and bypassed strict TypeScript compilation checks.
 **Resolution:** Explicitly typed user context states and parameters, imported the global database schemas from `types.ts`, and casted Supabase joined query payloads to structured types, leading to a clean, error-free production build.
+
+### Issue 10: App Reload and State Reset on Tab Focus / Background Auth Events
+**Problem:** Switching back to the LearnLoom browser tab triggered Supabase auto-refresh checks. The `onAuthStateChange` listener in `AuthContext.tsx` responded to background token verification events by setting the global `loading` state to `true`, which forced `RouteGuard` to render the full-screen loader. This unmounted the entire application and destroyed all user input drafts, written code, and chat histories.
+**Resolution:** Used `useRef` to track user and profile states inside `AuthContext.tsx`. Background auth checks now bypass setting `setLoading(true)` if the authenticated user has not changed and their profile is loaded. Combined this with `localStorage` draft saving for chat message inputs and code playgrounds.
+
 
 ## Reference File & Folder Structure
 
