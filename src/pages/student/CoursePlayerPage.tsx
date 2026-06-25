@@ -8,9 +8,15 @@ import { logUserActivity } from '@/lib/activity';
 import { toast } from 'sonner';
 import { sanitizeHtml } from '@/lib/sanitize';
 import { buildYouTubeEmbedUrl } from '@/lib/youtube';
-import type { DBCourse, DBModule, DBModuleProgress } from '@/types/types';
+import type { DBCourse, DBModule, DBModuleProgress, DBQuiz, DBQuizAttempt } from '@/types/types';
 
-type ModuleWithStatus = DBModule & { status: 'locked' | 'unlocked' | 'completed' };
+type ModuleWithStatus = DBModule & {
+  status: 'locked' | 'unlocked' | 'completed';
+  quizzes?: DBQuiz[];
+  codingId?: string | null;
+  passedQuizzes?: string[];
+  codingPassed?: boolean;
+};
 
 export default function CoursePlayerPage() {
   const { id: courseId } = useParams<{ id: string }>();
@@ -80,10 +86,10 @@ export default function CoursePlayerPage() {
       currentActive.codingId = cData?.id || null;
 
       // Check which are passed
-      const qIds = currentActive.quizzes.map((q: any) => q.id);
+      const qIds = currentActive.quizzes.map((q: DBQuiz) => q.id);
       if (qIds.length > 0) {
         const { data: attempts } = await supabase.from('quiz_attempts').select('quiz_id, passed').in('quiz_id', qIds).eq('user_id', user.id).eq('passed', true);
-        currentActive.passedQuizzes = (attempts || []).map((a: any) => a.quiz_id);
+        currentActive.passedQuizzes = (attempts || []).map((a: { quiz_id: string; passed: boolean }) => a.quiz_id);
       } else {
         currentActive.passedQuizzes = [];
       }
@@ -306,8 +312,8 @@ export default function CoursePlayerPage() {
                         </h3>
                         <div className="flex flex-wrap gap-4">
                            {/* Render Quiz 1 if exists */}
-                           {activeModule.quizzes?.find((q: any) => q.quiz_type === 'quiz_1') && (() => {
-                              const q = activeModule.quizzes.find((q: any) => q.quiz_type === 'quiz_1');
+                           {activeModule.quizzes?.find((q: DBQuiz) => q.quiz_type === 'quiz_1') && (() => {
+                              const q = activeModule.quizzes.find((q: DBQuiz) => q.quiz_type === 'quiz_1')!;
                               const passed = activeModule.passedQuizzes?.includes(q.id);
                               return (
                                  <Link to={`/quiz/${q.id}`} className={`flex items-center gap-2 px-5 py-2 rounded-lg font-bold text-sm shadow-sm transition-all ${passed ? 'bg-success/20 text-success border border-success/30 pointer-events-none' : 'bg-primary text-on-primary hover:brightness-110'}`}>
@@ -318,9 +324,9 @@ export default function CoursePlayerPage() {
                            })()}
 
                            {/* Render Quiz 2 if exists (Locked behind Quiz 1) */}
-                           {activeModule.quizzes?.find((q: any) => q.quiz_type === 'quiz_2') && (() => {
-                              const q1 = activeModule.quizzes.find((q: any) => q.quiz_type === 'quiz_1');
-                              const q2 = activeModule.quizzes.find((q: any) => q.quiz_type === 'quiz_2');
+                           {activeModule.quizzes?.find((q: DBQuiz) => q.quiz_type === 'quiz_2') && (() => {
+                              const q1 = activeModule.quizzes.find((q: DBQuiz) => q.quiz_type === 'quiz_1');
+                              const q2 = activeModule.quizzes.find((q: DBQuiz) => q.quiz_type === 'quiz_2')!;
                               const q1Passed = !q1 || activeModule.passedQuizzes?.includes(q1.id);
                               const passed = activeModule.passedQuizzes?.includes(q2.id);
                               
@@ -341,7 +347,7 @@ export default function CoursePlayerPage() {
 
                            {/* Render Coding Assessment if exists (Locked behind Quiz 2) */}
                            {activeModule.codingId && (() => {
-                              const q2 = activeModule.quizzes?.find((q: any) => q.quiz_type === 'quiz_2');
+                              const q2 = activeModule.quizzes?.find((q: DBQuiz) => q.quiz_type === 'quiz_2');
                               const q2Passed = !q2 || activeModule.passedQuizzes?.includes(q2.id);
                               const passed = activeModule.codingPassed;
 
@@ -362,8 +368,8 @@ export default function CoursePlayerPage() {
 
                            {/* Complete Module Button (Locked behind all others) */}
                            {(() => {
-                              const q1 = activeModule.quizzes?.find((q: any) => q.quiz_type === 'quiz_1');
-                              const q2 = activeModule.quizzes?.find((q: any) => q.quiz_type === 'quiz_2');
+                              const q1 = activeModule.quizzes?.find((q: DBQuiz) => q.quiz_type === 'quiz_1');
+                              const q2 = activeModule.quizzes?.find((q: DBQuiz) => q.quiz_type === 'quiz_2');
                               const q1Passed = !q1 || activeModule.passedQuizzes?.includes(q1.id);
                               const q2Passed = !q2 || activeModule.passedQuizzes?.includes(q2.id);
                               const codingPassed = !activeModule.codingId || activeModule.codingPassed;

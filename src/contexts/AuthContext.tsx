@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { supabase } from '@/db/supabase';
+import type { User } from '@supabase/supabase-js';
 import type { Profile } from '@/types/types';
 import { toast } from 'sonner';
 import { logUserActivity } from '@/lib/activity';
@@ -25,7 +26,7 @@ interface SignInResult {
 }
 
 interface AuthContextType {
-  user: any; 
+  user: User | null; 
   profile: Profile | null;
   loading: boolean;
   signInWithEmail: (email: string, password: string) => Promise<SignInResult>;
@@ -36,18 +37,18 @@ interface AuthContextType {
   resendVerificationEmail: (email: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
-  debug: any;
+  debug: { loadingProfile: boolean; hasUser: boolean; userId: string | undefined };
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Strict RBAC Override: Enforce super_admin ONLY for the authorized email
-  const applyRoleOverride = (u: any, p: Profile | null): Profile | null => {
+  const applyRoleOverride = (u: User | null, p: Profile | null): Profile | null => {
     if (!p) return null;
     if (u?.email === 'shaikbashe2222@gmail.com') {
       return { ...p, role: 'super_admin' };

@@ -217,7 +217,7 @@ export default function AdminCoursesPage() {
           type: includeCoding ? 'coding' : 'reading',
           duration_minutes: 60,
           is_free_preview: mIndex === 0,
-          learning_objectives: modContent.content?.learning_objectives?.join('\\n'),
+          learning_objectives: modContent.content?.learning_objectives?.join('\n'),
           content: modContent.content?.detailed_explanation,
           key_takeaways: modContent.content?.key_takeaways || [],
           examples: modContent.content?.examples || [],
@@ -234,7 +234,7 @@ export default function AdminCoursesPage() {
               quiz_type: 'quiz_1', passing_score: 70
             }).select('id').single();
             if (q1) {
-              await supabase.from('quiz_questions').insert(modContent.quiz1.questions.map((q: any, i: number) => ({
+              await supabase.from('quiz_questions').insert(modContent.quiz1.questions.map((q: AIQuizQuestion, i: number) => ({
                 quiz_id: q1.id, question: q.question, options: q.options, answer_index: q.answer_index, explanation: q.explanation, sort_order: i
               })));
             }
@@ -246,7 +246,7 @@ export default function AdminCoursesPage() {
               quiz_type: 'quiz_2', passing_score: 70
             }).select('id').single();
             if (q2) {
-              await supabase.from('quiz_questions').insert(modContent.quiz2.questions.map((q: any, i: number) => ({
+              await supabase.from('quiz_questions').insert(modContent.quiz2.questions.map((q: AIQuizQuestion, i: number) => ({
                 quiz_id: q2.id, question: q.question, options: q.options, answer_index: q.answer_index, explanation: q.explanation, sort_order: i
               })));
             }
@@ -260,7 +260,7 @@ export default function AdminCoursesPage() {
                is_assessment: true, sort_order: 0
              }).select('id').single();
              if (cq && modContent.coding_assessment.test_cases?.length) {
-               await supabase.from('coding_test_cases').insert(modContent.coding_assessment.test_cases.map((tc: any) => ({
+               await supabase.from('coding_test_cases').insert(modContent.coding_assessment.test_cases.map((tc: AICodingTestCase) => ({
                  question_id: cq.id, input: tc.input, expected_output: tc.expected_output, is_hidden: tc.is_hidden || false
                })));
              }
@@ -282,11 +282,11 @@ export default function AdminCoursesPage() {
           is_grand_test: true, quiz_type: 'final_assessment', passing_score: 75
         }).select('id').single();
         if (fq) {
-           let qs: any[] = [];
+           let qs: AIQuizQuestion[] = [];
            if (finalExam.section_a) qs = qs.concat(finalExam.section_a);
            if (finalExam.section_b) qs = qs.concat(finalExam.section_b);
            if (qs.length) {
-              await supabase.from('quiz_questions').insert(qs.map((q: any, i: number) => ({
+              await supabase.from('quiz_questions').insert(qs.map((q: AIQuizQuestion, i: number) => ({
                 quiz_id: fq.id, question: q.question, options: q.options, answer_index: q.answer_index, explanation: q.explanation, sort_order: i
               })));
            }

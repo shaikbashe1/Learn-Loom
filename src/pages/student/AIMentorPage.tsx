@@ -39,7 +39,8 @@ export default function AIMentorPage() {
         if (enrollments) {
           enrollments.forEach(e => {
             if (e.completed_at || e.progress_percent === 100) completed++;
-            const cat = Array.isArray(e.courses) ? e.courses[0]?.category : (e.courses as any)?.category;
+            const c = (Array.isArray(e.courses) ? e.courses[0] : e.courses) as { category: string } | null;
+            const cat = c?.category;
             if (cat) {
               categories[cat] = (categories[cat] || 0) + 1;
             }
@@ -55,7 +56,8 @@ export default function AIMentorPage() {
           quizzes.forEach(q => {
             totalScore += q.score;
             totalMax += q.total;
-            const title = Array.isArray(q.quizzes) ? q.quizzes[0]?.title : (q.quizzes as any)?.title;
+            const quiz = (Array.isArray(q.quizzes) ? q.quizzes[0] : q.quizzes) as { title: string; is_grand_test: boolean } | null;
+            const title = quiz?.title;
             const pct = (q.score / q.total) * 100;
             if (title) {
               if (pct >= 80) strong.push(title.replace('Quiz: ', ''));

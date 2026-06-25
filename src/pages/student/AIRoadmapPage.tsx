@@ -202,10 +202,10 @@ export default function AIRoadmapPage() {
                   <div className="space-y-4">
                     <label className="font-label-md font-bold text-on-surface block">3. What is your current skill level?</label>
                     <div className="grid grid-cols-3 gap-3">
-                      {['beginner', 'intermediate', 'advanced'].map(level => (
+                      {(['beginner', 'intermediate', 'advanced'] as const).map(level => (
                         <button
                           key={level}
-                          onClick={() => setDifficulty(level as any)}
+                          onClick={() => setDifficulty(level)}
                           className={`p-3 rounded-xl border capitalize font-label-md transition-all ${difficulty === level ? 'border-primary bg-primary text-on-primary shadow-sm' : 'border-outline-variant/60 text-on-surface-variant hover:bg-surface-variant/50'}`}
                         >
                           {level}

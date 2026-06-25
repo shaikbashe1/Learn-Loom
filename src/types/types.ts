@@ -195,7 +195,7 @@ export interface DBCodingQuestion {
   title: string;
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
   problem_statement: string;
-  constraints: any[];
+  constraints: string[];
   starter_code: Record<string, string>;
   is_assessment: boolean;
   sort_order: number;
@@ -340,7 +340,7 @@ export interface DBMentorConversation {
   id: string;
   user_id: string;
   title: string;
-  context_snapshot: any;
+  context_snapshot: Record<string, any>;
   created_at: string;
   updated_at: string;
 }

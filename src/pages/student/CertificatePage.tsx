@@ -9,16 +9,7 @@ import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import QRCodeDataUrl from '@/components/ui/qrcodedataurl';
-
-interface Certificate {
-  id: string;
-  course_id: string;
-  score: number;
-  verification_code: string;
-  issued_at: string;
-  is_valid: boolean;
-  courses?: { title: string; instructor_name: string; instructor: string };
-}
+import type { DBCertificate as Certificate } from '@/types/types';
 
 interface VerifyResult { valid: boolean; course?: string; issued?: string; score?: number }
 

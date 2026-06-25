@@ -35,7 +35,7 @@ export default function AdminCommunityPage() {
       toast.error('Failed to load forum posts');
       console.error(error);
     } else {
-      setPosts((data as any[]) ?? []);
+      setPosts((data as unknown as ForumPost[]) ?? []);
     }
     setLoading(false);
   };

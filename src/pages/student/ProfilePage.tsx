@@ -31,7 +31,9 @@ export default function ProfilePage() {
         .then(({ data, error }) => {
           if (!error && data) {
             const map = new Map<string, number>();
-            data.forEach((row: any) => map.set(row.activity_date, row.activity_count));
+            (data as { activity_date: string; activity_count: number }[]).forEach(row => {
+              map.set(row.activity_date, row.activity_count);
+            });
             setHeatmap(map);
           }
         });

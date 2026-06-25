@@ -25,7 +25,7 @@ interface RoadmapNode {
   title: string;
   goal: string;
   tasks: string[];
-  resources: any[];
+  resources: { title: string; url: string; type: string }[];
 }
 
 export default function AdminRoadmapsPage() {

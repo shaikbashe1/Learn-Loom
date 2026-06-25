@@ -190,10 +190,12 @@ export function AIMentorChat({ externalPrompt, onExternalPromptHandled, isWidget
           .order('enrolled_at', { ascending: false });
           
         if (courses) {
-          setEnrolledCourses(courses.filter(r => r.courses).map(r => {
-            const c = Array.isArray(r.courses) ? r.courses[0] : r.courses as any;
-            return { id: c.id, title: c.title, category: c.category, progress_percent: r.progress_percent };
-          }));
+          setEnrolledCourses(
+            courses.filter(r => r.courses).map(r => {
+              const c = (Array.isArray(r.courses) ? r.courses[0] : r.courses) as { id: string; title: string; category: string } | null;
+              return c ? { id: c.id, title: c.title, category: c.category, progress_percent: r.progress_percent } : null;
+            }).filter(Boolean) as { id: string; title: string; category: string; progress_percent: number }[]
+          );
         }
 
         // 2. Fetch or create latest active conversation

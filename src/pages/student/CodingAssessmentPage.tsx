@@ -101,7 +101,7 @@ export default function CodingAssessmentPage() {
            navigate(`/courses/${courseId}`);
            return;
         }
-        setProblems((data as any[]) ?? []);
+        setProblems((data as unknown as Problem[]) ?? []);
         setLoadingP(false);
       });
   }, [courseId, navigate]);

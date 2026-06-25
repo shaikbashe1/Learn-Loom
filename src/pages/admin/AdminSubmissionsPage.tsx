@@ -45,7 +45,7 @@ export default function AdminSubmissionsPage() {
     if (error) {
       toast.error('Failed to load submissions');
     } else {
-      setSubmissions((data as any[]) ?? []);
+      setSubmissions((data as unknown as Submission[]) ?? []);
     }
     setLoading(false);
   };
