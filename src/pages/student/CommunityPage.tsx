@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
+import { renderMarkdown } from '@/lib/markdown';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -31,22 +32,109 @@ interface ForumReply {
   content: string;
   upvotes: number;
   created_at: string;
+  is_accepted?: boolean;
+  is_ai?: boolean;
   profiles?: { full_name: string | null; avatar_url: string | null };
   user_voted?: boolean;
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── Helpers & Constants ──────────────────────────────────────────────────────
 
 const CAT_COLORS: Record<string, string> = {
-  doubt:         'bg-error/10 text-error border-error/20',
-  general:       'bg-primary/10 text-primary border-primary/20',
-  challenge:     'bg-secondary/10 text-secondary border-secondary/20',
-  'study-group': 'bg-tertiary/10 text-tertiary border-tertiary/20',
+  doubt:         'bg-rose-500/10 text-rose-500 border-rose-500/20 dark:bg-rose-500/20 dark:text-rose-400',
+  general:       'bg-blue-500/10 text-blue-500 border-blue-500/20 dark:bg-blue-500/20 dark:text-blue-400',
+  challenge:     'bg-purple-500/10 text-purple-500 border-purple-500/20 dark:bg-purple-500/20 dark:text-purple-400',
+  'study-group': 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 dark:bg-emerald-500/20 dark:text-emerald-400',
 };
 
 function initials(name: string | null | undefined) {
   if (!name) return 'CM';
   return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+}
+
+// Formatting injection helper for markdown toolbar
+function insertFormat(
+  textareaRef: HTMLTextAreaElement | null,
+  textValue: string,
+  setValue: (v: string) => void,
+  before: string,
+  after: string = ''
+) {
+  if (!textareaRef) {
+    setValue(textValue + before + after);
+    return;
+  }
+  const start = textareaRef.selectionStart;
+  const end = textareaRef.selectionEnd;
+  const selectedText = textValue.substring(start, end);
+  const replacement = before + selectedText + after;
+  setValue(
+    textValue.substring(0, start) + replacement + textValue.substring(end)
+  );
+  
+  // Restore focus and selection
+  setTimeout(() => {
+    textareaRef.focus();
+    textareaRef.setSelectionRange(
+      start + before.length,
+      start + before.length + selectedText.length
+    );
+  }, 0);
+}
+
+// ── Markdown Toolbar Component ────────────────────────────────────────────────
+
+interface MarkdownToolbarProps {
+  textareaRef: HTMLTextAreaElement | null;
+  textValue: string;
+  setValue: (v: string) => void;
+}
+
+function MarkdownToolbar({ textareaRef, textValue, setValue }: MarkdownToolbarProps) {
+  return (
+    <div className="flex items-center gap-1 bg-surface-container border border-border-base rounded-t-lg p-1.5 shrink-0 flex-wrap">
+      <button
+        type="button"
+        title="Bold"
+        onClick={() => insertFormat(textareaRef, textValue, setValue, '**', '**')}
+        className="p-1.5 rounded hover:bg-surface hover:text-primary transition-colors flex items-center justify-center min-h-[32px] min-w-[32px]"
+      >
+        <span className="material-symbols-outlined text-[18px] font-bold">format_bold</span>
+      </button>
+      <button
+        type="button"
+        title="Italic"
+        onClick={() => insertFormat(textareaRef, textValue, setValue, '*', '*')}
+        className="p-1.5 rounded hover:bg-surface hover:text-primary transition-colors flex items-center justify-center min-h-[32px] min-w-[32px]"
+      >
+        <span className="material-symbols-outlined text-[18px]">format_italic</span>
+      </button>
+      <button
+        type="button"
+        title="Link"
+        onClick={() => insertFormat(textareaRef, textValue, setValue, '[', '](url)')}
+        className="p-1.5 rounded hover:bg-surface hover:text-primary transition-colors flex items-center justify-center min-h-[32px] min-w-[32px]"
+      >
+        <span className="material-symbols-outlined text-[18px]">link</span>
+      </button>
+      <button
+        type="button"
+        title="Code Block"
+        onClick={() => insertFormat(textareaRef, textValue, setValue, '```javascript\n', '\n```')}
+        className="p-1.5 rounded hover:bg-surface hover:text-primary transition-colors flex items-center justify-center min-h-[32px] min-w-[32px]"
+      >
+        <span className="material-symbols-outlined text-[18px]">code</span>
+      </button>
+      <button
+        type="button"
+        title="List"
+        onClick={() => insertFormat(textareaRef, textValue, setValue, '- ')}
+        className="p-1.5 rounded hover:bg-surface hover:text-primary transition-colors flex items-center justify-center min-h-[32px] min-w-[32px]"
+      >
+        <span className="material-symbols-outlined text-[18px]">format_list_bulleted</span>
+      </button>
+    </div>
+  );
 }
 
 // ── PostCard ─────────────────────────────────────────────────────────────────
@@ -56,40 +144,63 @@ function PostCard({
   onVote,
   onReplyCountChange,
   currentUserId,
+  refreshProfile,
 }: {
   post: ForumPost;
   onVote: (post: ForumPost) => void;
   onReplyCountChange: (postId: string, delta: number) => void;
   currentUserId: string | undefined;
+  refreshProfile?: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [replies, setReplies]   = useState<ForumReply[]>([]);
   const [loadingR, setLoadingR] = useState(false);
+  
+  // Composer state
   const [replyText, setReplyText] = useState('');
+  const [composerMode, setComposerMode] = useState<'write' | 'preview'>('write');
   const [posting, setPosting]   = useState(false);
+  
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const loadReplies = useCallback(async () => {
     setLoadingR(true);
     const { data } = await supabase
       .from('forum_replies')
-      .select('*, profiles(full_name, avatar_url)')
+      .select('*')
       .eq('post_id', post.id)
       .is('parent_id', null)
+      .order('is_accepted', { ascending: false })
       .order('created_at', { ascending: true })
       .limit(100);
 
-    if (data && currentUserId) {
-      const replyIds = data.map(r => r.id);
+    // Fetch details of user profiles for each reply
+    let enrichedData: ForumReply[] = [];
+    if (data && data.length > 0) {
+      const userIds = Array.from(new Set(data.map(r => r.user_id)));
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', userIds);
+      const profileMap = new Map(profiles?.map(p => [p.id, p]) ?? []);
+      enrichedData = data.map(r => ({
+        ...r,
+        profiles: profileMap.get(r.user_id) ?? undefined
+      }));
+    }
+
+    if (enrichedData.length > 0 && currentUserId) {
+      const replyIds = enrichedData.map(r => r.id);
       const { data: voted } = await supabase
         .from('forum_reply_votes')
         .select('reply_id')
         .eq('user_id', currentUserId)
         .in('reply_id', replyIds);
       const votedSet = new Set(voted?.map(v => v.reply_id) ?? []);
-      setReplies(data.map(r => ({ ...r, user_voted: votedSet.has(r.id) })));
+      setReplies(enrichedData.map(r => ({ ...r, user_voted: votedSet.has(r.id) })));
     } else {
-      setReplies(data ?? []);
+      setReplies(enrichedData);
     }
     setLoadingR(false);
   }, [post.id, currentUserId]);
@@ -128,19 +239,102 @@ function PostCard({
     return () => { channelRef.current?.unsubscribe(); };
   }, [expanded, loadReplies, post.id]);
 
+  // Loomie AI thread responder stream helper
+  const triggerLoomieAI = async (postId: string, userText: string, currentCommentId?: string) => {
+    try {
+      // Build LLM context from post content + comments
+      const threadHistory = replies.slice(-5).map(r => `${r.profiles?.full_name ?? 'User'}: ${r.content}`).join('\n');
+      const systemPrompt = `You are Loomie AI, the friendly and knowledgeable AI mentor on the LearnLoom educational platform. Answer the student's question directly inside this discussion thread. Be technical, accurate, clear, and structured. Use Markdown for styling (bold, lists, backticks, code blocks). Keep your answer reasonably concise.
+      
+Main Discussion Thread:
+Title: "${post.title}"
+Content: "${post.content}"
+
+Previous Comment History:
+${threadHistory}
+
+Student's Query mentioning @loomie:
+"${userText}"`;
+
+      const contents = [{ role: 'user', parts: [{ text: systemPrompt }] }];
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token ?? '';
+
+      const res = await fetch('/api/ai-mentor', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ contents }),
+      });
+
+      if (!res.ok) throw new Error('Failed to fetch AI response');
+      if (!res.body) return;
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let aiText = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const dataStr = line.slice(6).trim();
+            if (dataStr === '[DONE]') continue;
+            try {
+              const parsed = JSON.parse(dataStr);
+              const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+              aiText += text;
+            } catch {}
+          }
+        }
+      }
+
+      if (aiText.trim()) {
+        // Insert Loomie bot reply into DB
+        await supabase.from('forum_replies').insert({
+          post_id: postId,
+          parent_id: null,
+          user_id: currentUserId, // inserted under the active user token but designated as is_ai: true
+          content: aiText.trim(),
+          is_ai: true,
+        });
+        loadReplies();
+        onReplyCountChange(post.id, 1);
+      }
+    } catch (err) {
+      console.error('Loomie AI response error:', err);
+    }
+  };
+
   const submitReply = async () => {
     if (!replyText.trim() || !currentUserId) return;
     setPosting(true);
-    const { error } = await supabase.from('forum_replies').insert({
+    const textToSend = replyText.trim();
+    const { data, error } = await supabase.from('forum_replies').insert({
       post_id: post.id,
       parent_id: null,
       user_id: currentUserId,
-      content: replyText.trim(),
-    });
+      content: textToSend,
+      is_ai: false,
+    }).select();
+
     setPosting(false);
     if (error) { toast.error('Failed to post reply'); return; }
     setReplyText('');
+    setComposerMode('write');
     onReplyCountChange(post.id, 1);
+    
+    // Check if the reply text mentions @loomie
+    if (textToSend.toLowerCase().includes('@loomie')) {
+      toast.info('Loomie AI is reviewing the thread...');
+      await triggerLoomieAI(post.id, textToSend);
+    }
   };
 
   const voteReply = async (reply: ForumReply) => {
@@ -156,6 +350,27 @@ function PostCard({
         ? { ...r, upvotes: result?.new_upvotes ?? r.upvotes, user_voted: result?.user_voted ?? !reply.user_voted }
         : r
     ));
+  };
+
+  const acceptReply = async (reply: ForumReply) => {
+    if (!currentUserId) return;
+    try {
+      const { error } = await supabase.rpc('mark_reply_accepted', {
+        p_reply_id: reply.id,
+        p_user_id: currentUserId,
+      });
+
+      if (error) {
+        toast.error('Failed to mark accepted solution', { description: error.message });
+        return;
+      }
+
+      toast.success(reply.is_accepted ? 'Solution unmarked' : 'Solution accepted! Reward point issued.');
+      if (refreshProfile) refreshProfile();
+      loadReplies();
+    } catch (err: any) {
+      toast.error('Failed to mark accepted solution');
+    }
   };
 
   const authorName = post.profiles?.full_name ?? 'Community Member';
@@ -178,9 +393,6 @@ function PostCard({
             <div className="text-[11px] sm:text-[13px] text-text-secondary">{post.category.replace('-', ' ').toUpperCase()} • {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</div>
           </div>
         </div>
-        <button className="text-text-secondary hover:bg-surface-container hover:text-text-primary p-2 rounded-full transition-colors opacity-0 group-hover:opacity-100">
-          <span className="material-symbols-outlined text-[20px]">more_horiz</span>
-        </button>
       </div>
 
       <div className="mt-2">
@@ -195,7 +407,11 @@ function PostCard({
           ))}
         </div>
         <h2 className="text-[20px] font-headline-md text-text-primary mb-2 font-bold leading-tight group-hover:text-primary transition-colors">{post.title}</h2>
-        <p className="text-[15px] font-body-md text-text-secondary mb-2 whitespace-pre-wrap leading-relaxed line-clamp-3">{post.content}</p>
+        
+        {/* Markdown rendered body */}
+        <div className="text-[15px] font-body-md text-text-secondary mb-2 leading-relaxed">
+          {renderMarkdown(post.content)}
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-2 pt-4 border-t border-border-base">
@@ -213,10 +429,6 @@ function PostCard({
           <span className={`material-symbols-outlined text-[18px] sm:text-[20px] ${expanded ? 'fill text-primary' : ''}`}>chat_bubble_outline</span>
           {post.reply_count} <span className="hidden xs:inline">Comments</span>
         </button>
-        <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-surface-container text-text-secondary hover:text-primary transition-colors font-label-md text-[13px] sm:text-[14px] font-bold ml-auto min-h-[40px]">
-          <span className="material-symbols-outlined text-[18px] sm:text-[20px]">share</span>
-          <span>Share</span>
-        </button>
       </div>
 
       {expanded && (
@@ -228,32 +440,80 @@ function PostCard({
           ) : replies.length === 0 ? (
             <p className="text-[14px] text-text-secondary text-center py-4 font-body-sm bg-surface/50 rounded-lg border border-dashed border-border-base">No replies yet — be the first to share your thoughts!</p>
           ) : (
-            <div className="space-y-3">
-              {replies.map(reply => (
-                <div key={reply.id} className="flex gap-2 sm:gap-3 items-start">
-                  {reply.profiles?.avatar_url ? (
-                    <img src={reply.profiles.avatar_url} alt="Avatar" className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-border-base object-cover shrink-0 shadow-sm" />
-                  ) : (
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-surface-container flex items-center justify-center text-[10px] sm:text-[12px] font-bold shrink-0 text-text-primary shadow-sm border border-border-base">
-                      {initials(reply.profiles?.full_name)}
+            <div className="space-y-4">
+              {replies.map(reply => {
+                const isCommentAuthor = reply.user_id === currentUserId;
+                const isThreadAuthor = post.user_id === currentUserId;
+
+                return (
+                  <div key={reply.id} className="flex gap-2 sm:gap-3 items-start">
+                    {/* Bot Avatar or User Avatar */}
+                    {reply.is_ai ? (
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-[hsl(var(--chart-4))] flex items-center justify-center text-white shrink-0 shadow-md">
+                        <span className="material-symbols-outlined text-[16px] animate-pulse">smart_toy</span>
+                      </div>
+                    ) : reply.profiles?.avatar_url ? (
+                      <img src={reply.profiles.avatar_url} alt="Avatar" className="w-8 h-8 rounded-full border border-border-base object-cover shrink-0 shadow-sm" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-[10px] sm:text-[12px] font-bold shrink-0 text-text-primary shadow-sm border border-border-base">
+                        {initials(reply.profiles?.full_name)}
+                      </div>
+                    )}
+                    
+                    <div className={`flex-1 min-w-0 border rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 shadow-sm relative group/reply ${reply.is_ai ? 'bg-primary/5 border-primary/20' : 'bg-surface border-border-base'}`}>
+                      <div className="flex items-center justify-between flex-wrap gap-2 mb-1.5">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[13px] sm:text-[14px] font-label-md text-text-primary font-bold">
+                            {reply.is_ai ? 'Loomie AI' : reply.profiles?.full_name ?? 'Community Member'}
+                          </span>
+                          
+                          {reply.is_ai && (
+                            <span className="bg-gradient-to-r from-primary to-[hsl(var(--chart-4))] text-white text-[9px] font-bold font-mono px-1.5 py-0.5 rounded-full shadow-sm">BOT</span>
+                          )}
+
+                          {reply.is_accepted && (
+                            <span className="flex items-center gap-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-500/20 shadow-sm animate-pulse-glow">
+                              <span className="material-symbols-outlined text-[12px] font-extrabold">check_circle</span>
+                              Accepted Solution
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] sm:text-[11px] text-text-secondary font-medium">{formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}</span>
+                      </div>
+
+                      {/* Markdown rendering inside comments */}
+                      <div className="text-[13px] sm:text-[14px] font-body-md text-text-secondary leading-relaxed">
+                        {renderMarkdown(reply.content)}
+                      </div>
+
+                      <div className="flex items-center justify-between mt-3 pt-2 border-t border-border-base/50">
+                        <button
+                          onClick={() => voteReply(reply)}
+                          className={`flex items-center gap-1 text-[11px] sm:text-[12px] font-bold transition-colors py-1 px-2 rounded hover:bg-surface-container-high min-h-[28px] ${reply.user_voted ? 'text-primary' : 'text-text-secondary hover:text-primary'}`}
+                        >
+                          <span className={`material-symbols-outlined text-[14px] sm:text-[16px] ${reply.user_voted ? 'fill' : ''}`}>thumb_up</span>
+                          {reply.upvotes}
+                        </button>
+
+                        {/* Mark Accepted Action (Thread creator only) */}
+                        {isThreadAuthor && (
+                          <button
+                            onClick={() => acceptReply(reply)}
+                            className={`flex items-center gap-1 text-[11px] sm:text-[12px] font-bold transition-colors py-1 px-2.5 rounded border min-h-[28px] ${
+                              reply.is_accepted 
+                                ? 'bg-rose-500/10 text-rose-500 border-rose-500/20 hover:bg-rose-500/20' 
+                                : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/20'
+                            }`}
+                          >
+                            <span className="material-symbols-outlined text-[15px]">{reply.is_accepted ? 'cancel' : 'check_circle'}</span>
+                            {reply.is_accepted ? 'Unaccept Answer' : 'Accept Answer'}
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  )}
-                  <div className="flex-1 min-w-0 bg-surface border border-border-base rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 shadow-sm relative group/reply">
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mb-1">
-                      <span className="text-[13px] sm:text-[14px] font-label-md text-text-primary font-bold">{reply.profiles?.full_name ?? 'Community Member'}</span>
-                      <span className="text-[10px] sm:text-[11px] text-text-secondary font-medium">• {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}</span>
-                    </div>
-                    <p className="text-[13px] sm:text-[14px] font-body-md text-text-secondary leading-relaxed">{reply.content}</p>
-                    <button
-                      onClick={() => voteReply(reply)}
-                      className={`flex items-center gap-1 mt-2 text-[11px] sm:text-[12px] font-bold transition-colors py-1 px-2 rounded hover:bg-surface-container min-h-[28px] ${reply.user_voted ? 'text-primary' : 'text-text-secondary hover:text-primary'}`}
-                    >
-                      <span className={`material-symbols-outlined text-[14px] sm:text-[16px] ${reply.user_voted ? 'fill' : ''}`}>thumb_up</span>
-                      {reply.upvotes}
-                    </button>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -263,19 +523,51 @@ function PostCard({
                   <span className="material-symbols-outlined text-[18px]">person</span>
                </div>
                <div className="flex-1 flex flex-col gap-2">
-                 <textarea
-                    placeholder="Write a reply…"
-                    value={replyText}
-                    onChange={e => setReplyText(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitReply(); } }}
-                    className="w-full bg-surface border border-border-base rounded-lg p-3 text-[14px] text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 resize-none min-h-[44px] max-h-[120px] transition-all shadow-sm"
-                    rows={1}
+                 
+                 {/* Formatting Toolbar */}
+                 <MarkdownToolbar 
+                   textareaRef={textareaRef.current} 
+                   textValue={replyText} 
+                   setValue={setReplyText} 
                  />
+
+                 {/* Write/Preview Mode Toggle */}
+                 <div className="flex gap-2 mb-1 justify-end">
+                   <button
+                     type="button"
+                     onClick={() => setComposerMode('write')}
+                     className={`px-3 py-1 rounded text-xs font-bold transition-all ${composerMode === 'write' ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:text-text-primary'}`}
+                   >
+                     Write
+                   </button>
+                   <button
+                     type="button"
+                     onClick={() => setComposerMode('preview')}
+                     className={`px-3 py-1 rounded text-xs font-bold transition-all ${composerMode === 'preview' ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:text-text-primary'}`}
+                   >
+                     Preview
+                   </button>
+                 </div>
+
+                 {composerMode === 'write' ? (
+                   <textarea
+                      ref={textareaRef}
+                      placeholder="Write a reply in markdown (use @loomie to consult AI)..."
+                      value={replyText}
+                      onChange={e => setReplyText(e.target.value)}
+                      className="w-full bg-surface border border-border-base rounded-b-lg p-3 text-[14px] text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 resize-none min-h-[80px] transition-all shadow-sm"
+                   />
+                 ) : (
+                   <div className="w-full bg-surface-container-low border border-border-base rounded-b-lg p-4 text-[14px] text-text-secondary min-h-[80px] leading-relaxed shadow-sm">
+                     {replyText.trim() ? renderMarkdown(replyText) : <span className="italic text-muted-foreground">Nothing to preview.</span>}
+                   </div>
+                 )}
+
                  <div className="flex justify-end">
                    <button
                       onClick={submitReply}
                       disabled={!replyText.trim() || posting}
-                      className="bg-primary text-on-primary px-4 py-1.5 rounded-lg text-[13px] font-label-md font-bold hover:bg-primary-container disabled:opacity-50 flex items-center gap-1.5 shadow-sm transition-all"
+                      className="bg-primary text-on-primary px-4 py-1.5 rounded-lg text-[13px] font-label-md font-bold hover:bg-primary-container disabled:opacity-50 flex items-center gap-1.5 shadow-sm transition-all min-h-[36px]"
                    >
                       {posting ? <span className="material-symbols-outlined text-[16px] animate-spin">autorenew</span> : <span className="material-symbols-outlined text-[16px]">send</span>}
                       Reply
@@ -295,42 +587,61 @@ function PostCard({
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function CommunityPage() {
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const [posts, setPosts]               = useState<ForumPost[]>([]);
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState<string | null>(null);
   const [search, setSearch]             = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
+  
+  // Composer State
   const [newTitle, setNewTitle]         = useState('');
   const [newContent, setNewContent]     = useState('');
   const [newCategory, setNewCategory]   = useState('general');
+  const [composerMode, setComposerMode] = useState<'write' | 'preview'>('write');
   const [posting, setPosting]           = useState(false);
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [realtimeOk, setRealtimeOk]     = useState(false);
 
-  // ── Fetch posts with vote state ──────────────────────────────────────────
+  const mainComposerRef = useRef<HTMLTextAreaElement | null>(null);
+
+  // ── Fetch posts ──────────────────────────────────────────────────────────
   const fetchPosts = useCallback(async () => {
     setLoading(true); setError(null);
     try {
       const { data, error: fetchErr } = await supabase
         .from('forum_posts')
-        .select('*, profiles(full_name, avatar_url)')
+        .select('*')
         .order('is_pinned', { ascending: false })
         .order('created_at', { ascending: false })
         .limit(100);
       if (fetchErr) throw fetchErr;
 
-      if (user && data) {
-        const postIds = data.map(p => p.id);
+      let enrichedData: ForumPost[] = [];
+      if (data && data.length > 0) {
+        const userIds = Array.from(new Set(data.map(p => p.user_id)));
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url')
+          .in('id', userIds);
+        const profileMap = new Map(profiles?.map(p => [p.id, p]) ?? []);
+        enrichedData = data.map(p => ({
+          ...p,
+          profiles: profileMap.get(p.user_id) ?? undefined
+        }));
+      }
+
+      if (user && enrichedData.length > 0) {
+        const postIds = enrichedData.map(p => p.id);
         const { data: voteData } = await supabase
           .from('forum_votes')
           .select('post_id')
           .eq('user_id', user.id)
           .in('post_id', postIds);
         const votedSet = new Set(voteData?.map(v => v.post_id) ?? []);
-        setPosts(data.map(p => ({ ...p, user_voted: votedSet.has(p.id) })));
+        setPosts(enrichedData.map(p => ({ ...p, user_voted: votedSet.has(p.id) })));
       } else {
-        setPosts(data ?? []);
+        setPosts(enrichedData);
       }
     } catch (err: unknown) {
       console.error('Community load error:', err);
@@ -342,7 +653,7 @@ export default function CommunityPage() {
 
   useEffect(() => { fetchPosts(); }, [fetchPosts]);
 
-  // ── Supabase Realtime subscription for new/deleted posts ─────────────────
+  // ── Realtime subscription for posts ─────────────────
   useEffect(() => {
     const channel = supabase
       .channel('community:forum_posts')
@@ -382,23 +693,102 @@ export default function CommunityPage() {
     return () => { channel.unsubscribe(); };
   }, []);
 
+  // AI assistant post auto-responder
+  const triggerLoomieForPost = async (postId: string, title: string, content: string) => {
+    try {
+      const systemPrompt = `You are Loomie AI, the friendly and knowledgeable AI mentor on the LearnLoom educational platform. A student has created a new discussion post. Provide a clean, helpful, and structured response using Markdown. If code is relevant, show examples. Keep it professional and complete.
+      
+Post Title: "${title}"
+Post Content:
+"${content}"`;
+
+      const contents = [{ role: 'user', parts: [{ text: systemPrompt }] }];
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token ?? '';
+
+      const res = await fetch('/api/ai-mentor', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ contents }),
+      });
+
+      if (!res.ok) return;
+      if (!res.body) return;
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let aiText = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const dataStr = line.slice(6).trim();
+            if (dataStr === '[DONE]') continue;
+            try {
+              const parsed = JSON.parse(dataStr);
+              const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+              aiText += text;
+            } catch {}
+          }
+        }
+      }
+
+      if (aiText.trim()) {
+        await supabase.from('forum_replies').insert({
+          post_id: postId,
+          parent_id: null,
+          user_id: user?.id,
+          content: aiText.trim(),
+          is_ai: true,
+        });
+        fetchPosts();
+      }
+    } catch (err) {
+      console.error('Loomie post auto-reply error:', err);
+    }
+  };
+
   // ── Post a new thread ────────────────────────────────────────────────────
   const handlePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) { toast.error('Please log in to post'); return; }
     if (!newTitle.trim() || !newContent.trim()) { toast.error('Please fill in all fields'); return; }
     setPosting(true);
-    const { error: err } = await supabase.from('forum_posts').insert({
+    
+    const postTitle = newTitle.trim();
+    const postContent = newContent.trim();
+
+    const { data, error: err } = await supabase.from('forum_posts').insert({
       user_id: user.id,
-      title: newTitle.trim(),
-      content: newContent.trim(),
+      title: postTitle,
+      content: postContent,
       category: newCategory,
-    });
+    }).select();
+
     setPosting(false);
     if (err) { toast.error('Failed to post', { description: err.message }); return; }
+    
     toast.success('Discussion posted!');
     setIsComposerOpen(false);
     setNewTitle(''); setNewContent(''); setNewCategory('general');
+    setComposerMode('write');
+
+    // Trigger AI if post mentions @loomie
+    if (postContent.toLowerCase().includes('@loomie') || postTitle.toLowerCase().includes('@loomie')) {
+      const newPostId = data?.[0]?.id;
+      if (newPostId) {
+        toast.info('Loomie AI is formulating a response...');
+        await triggerLoomieForPost(newPostId, postTitle, postContent);
+      }
+    }
   };
 
   // ── Vote on a post ───────────────────────────────────────────────────────
@@ -433,10 +823,10 @@ export default function CommunityPage() {
     <AppLayout title="Community">
       <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
         
-        {/* Left Column: Context Nav & Groups */}
+        {/* Left Column: Feeds & Groups */}
         <aside className="hidden lg:flex col-span-3 flex-col gap-6 sticky top-24">
           <div className="glass-panel rounded-xl p-4 border border-border-base shadow-sm">
-            <h3 className="font-label-sm text-[11px] text-text-secondary uppercase tracking-widest font-bold mb-3 px-3 flex items-center justify-between">
+            <h3 className="font-label-sm text-[11px] text-text-secondary uppercase tracking-widest font-bold mb-3 px-3 flex items-center justify-between select-none">
               Feeds
               {realtimeOk ? <span className="w-2.5 h-2.5 rounded-full bg-success shadow-[0_0_5px_rgba(34,197,94,0.5)] animate-pulse" title="Live connection active" /> : <span className="w-2.5 h-2.5 rounded-full bg-error" title="Offline" />}
             </h3>
@@ -456,7 +846,6 @@ export default function CommunityPage() {
                       <span className={`material-symbols-outlined text-[20px] ${item.active ? 'fill' : ''}`} style={{ fontVariationSettings: item.active ? "'FILL' 1" : "'FILL' 0" }}>{item.icon}</span>
                       <span className="font-label-md text-[14px]">{item.label}</span>
                     </div>
-                    {item.id === 'all' && <span className="font-label-sm text-[10px] text-white bg-primary px-2 py-0.5 rounded-full shadow-sm">New</span>}
                   </button>
                 </li>
               ))}
@@ -464,19 +853,19 @@ export default function CommunityPage() {
           </div>
 
           <div className="glass-panel rounded-xl p-4 border border-border-base shadow-sm">
-            <h3 className="font-label-sm text-[11px] text-text-secondary uppercase tracking-widest font-bold mb-3 px-1 flex items-center justify-between">
-              Joined Groups
+            <h3 className="font-label-sm text-[11px] text-text-secondary uppercase tracking-widest font-bold mb-3 px-1 flex items-center justify-between select-none">
+              Collaboration Rooms
             </h3>
             <ul className="space-y-2">
               {[
-                { color: 'bg-[#61DAFB]/20 text-[#0088cc]', icon: 'code_blocks', name: 'React Masters', badge: true },
-                { color: 'bg-[#DEA584]/20 text-[#c27244]', icon: 'settings_b_roll', name: 'Rustaceans' },
-                { color: 'bg-primary/20 text-primary', icon: 'psychology', name: 'AI Engineers' },
-                { color: 'bg-surface-container-high text-text-primary', icon: 'terminal', name: 'System Design' },
+                { color: 'bg-blue-500/10 text-blue-500 border-blue-500/20', icon: 'code_blocks', name: 'React Masters', badge: true },
+                { color: 'bg-orange-500/10 text-orange-500 border-orange-500/20', icon: 'settings_b_roll', name: 'Rustaceans' },
+                { color: 'bg-purple-500/10 text-purple-500 border-purple-500/20', icon: 'psychology', name: 'AI Engineers' },
+                { color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20', icon: 'terminal', name: 'System Design' },
               ].map((group, i) => (
                 <li key={i}>
                   <a href="#" className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-surface-container transition-colors group/item">
-                    <div className={`w-8 h-8 rounded-lg border border-border-base flex items-center justify-center shadow-sm transition-transform group-hover/item:scale-105 ${group.color}`}>
+                    <div className={`w-8 h-8 rounded-lg border flex items-center justify-center shadow-sm transition-transform group-hover/item:scale-105 ${group.color}`}>
                       <span className="material-symbols-outlined text-[18px]">{group.icon}</span>
                     </div>
                     <span className="font-label-md text-[14px] font-medium text-text-primary group-hover/item:text-primary transition-colors flex-1 truncate">{group.name}</span>
@@ -520,7 +909,7 @@ export default function CommunityPage() {
               ? "fixed inset-0 z-50 flex flex-col bg-surface p-4 md:relative md:inset-auto md:z-auto md:flex-initial md:bg-transparent md:glass-panel md:border md:border-border-base md:rounded-xl md:p-5 md:shadow-sm md:card-lift md:overflow-hidden"
               : "glass-panel border border-border-base rounded-xl p-5 shadow-sm transition-all focus-within:shadow-md card-lift relative overflow-hidden"
           }>
-            {!isComposerOpen && <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-secondary"></div>}
+            {!isComposerOpen && <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-[hsl(var(--chart-4))]"></div>}
             {isComposerOpen ? (
               <form onSubmit={handlePost} className="flex flex-col gap-4 mt-2 flex-1 md:flex-none">
                 {/* Mobile composer header */}
@@ -534,42 +923,74 @@ export default function CommunityPage() {
                 <input 
                   type="text" 
                   placeholder="Title of your discussion..." 
-                  className="w-full bg-surface-container-low border border-border-base rounded-lg p-3 text-[15px] font-body-md text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 shadow-sm transition-all shrink-0"
+                  className="w-full bg-background border border-border-base rounded-lg p-3 text-[15px] font-body-md text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 shadow-sm transition-all shrink-0"
                   value={newTitle}
                   onChange={e => setNewTitle(e.target.value)}
                   required minLength={5}
                 />
+                
                 <select 
-                  className="w-full bg-surface-container-low border border-border-base rounded-lg p-3 text-[14px] font-label-md text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 shadow-sm transition-all appearance-none cursor-pointer shrink-0"
+                  className="w-full bg-background border border-border-base rounded-lg p-3 text-[14px] font-label-md text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 shadow-sm transition-all appearance-none cursor-pointer shrink-0"
                   value={newCategory}
                   onChange={e => setNewCategory(e.target.value)}
                 >
-                  <option value="general">General</option>
-                  <option value="doubt">Doubt</option>
-                  <option value="challenge">Challenge</option>
-                  <option value="study-group">Study Group</option>
+                  <option value="general">General Discussions</option>
+                  <option value="doubt">Doubts & Questions</option>
+                  <option value="challenge">Coding Challenges</option>
+                  <option value="study-group">Study Groups</option>
                 </select>
-                <textarea 
-                  placeholder="Share your thoughts, ask a question, or provide details..." 
-                  className="w-full bg-surface-container-low border border-border-base rounded-lg p-3 text-[15px] font-body-md text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 shadow-sm transition-all flex-1 md:flex-none md:min-h-[120px] resize-y"
-                  value={newContent}
-                  onChange={e => setNewContent(e.target.value)}
-                  required minLength={10}
+
+                {/* Markdown Formatting bar */}
+                <MarkdownToolbar 
+                  textareaRef={mainComposerRef.current} 
+                  textValue={newContent} 
+                  setValue={setNewContent} 
                 />
+
+                {/* Write/Preview Mode Toggles */}
+                <div className="flex gap-2 justify-end mb-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setComposerMode('write')}
+                    className={`px-3 py-1 rounded text-xs font-bold transition-all ${composerMode === 'write' ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:text-text-primary'}`}
+                  >
+                    Write
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setComposerMode('preview')}
+                    className={`px-3 py-1 rounded text-xs font-bold transition-all ${composerMode === 'preview' ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:text-text-primary'}`}
+                  >
+                    Preview
+                  </button>
+                </div>
+
+                {composerMode === 'write' ? (
+                  <textarea 
+                    ref={mainComposerRef}
+                    placeholder="Share your thoughts, ask a question, or provide details in Markdown (use @loomie to consult AI)..." 
+                    className="w-full bg-background border border-border-base rounded-b-lg p-3 text-[15px] font-body-md text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 shadow-sm transition-all flex-1 md:flex-none md:min-h-[140px] resize-y"
+                    value={newContent}
+                    onChange={e => setNewContent(e.target.value)}
+                    required minLength={10}
+                  />
+                ) : (
+                  <div className="w-full bg-background border border-border-base rounded-b-lg p-4 text-[15px] text-text-secondary min-h-[140px] leading-relaxed shadow-sm overflow-y-auto">
+                    {newContent.trim() ? renderMarkdown(newContent) : <span className="italic text-muted-foreground">Nothing to preview.</span>}
+                  </div>
+                )}
+
                 <div className="flex justify-between items-center mt-2 border-t border-border-base pt-3 shrink-0">
                   <div className="flex gap-2">
                      <button type="button" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-text-secondary hover:bg-surface-container transition-colors text-[13px] font-bold">
                          <span className="material-symbols-outlined text-primary text-[18px]">article</span> <span className="hidden sm:inline">Article</span>
                      </button>
-                     <button type="button" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-text-secondary hover:bg-surface-container transition-colors text-[13px] font-bold">
-                         <span className="material-symbols-outlined text-success text-[18px]">image</span> <span className="hidden sm:inline">Media</span>
-                     </button>
                   </div>
                   <div className="flex gap-3">
                     <button type="button" onClick={() => setIsComposerOpen(false)} className="px-4 py-2 text-text-secondary hover:text-text-primary font-label-md font-bold transition-colors">Cancel</button>
-                    <button type="submit" disabled={posting} className="bg-primary text-on-primary hover:bg-primary-container px-6 py-2 rounded-lg font-label-md font-bold disabled:opacity-50 flex items-center gap-2 shadow-sm transition-all min-h-[40px]">
+                    <button type="submit" disabled={posting} className="bg-gradient-to-r from-primary to-[hsl(var(--chart-4))] text-white hover:shadow-md px-6 py-2 rounded-lg font-label-md font-bold disabled:opacity-50 flex items-center gap-2 shadow-sm transition-all min-h-[40px]">
                       {posting ? <span className="material-symbols-outlined text-[18px] animate-spin">autorenew</span> : <span className="material-symbols-outlined text-[18px]">send</span>}
-                      Post
+                      Post Discussion
                     </button>
                   </div>
                 </div>
@@ -584,21 +1005,21 @@ export default function CommunityPage() {
                   </div>
                 )}
                 <div className="flex-1" onClick={() => setIsComposerOpen(true)}>
-                  <input className="w-full bg-surface-container-low rounded-lg px-4 py-3 border border-border-base hover:border-primary/50 focus:border-primary focus:ring-1 focus:ring-primary/50 outline-none font-body-md text-[14px] text-text-primary placeholder-text-secondary transition-all cursor-pointer shadow-sm" placeholder="Share a resource, ask a question, or start a discussion..." type="text" readOnly />
+                  <input className="w-full bg-background rounded-lg px-4 py-3 border border-border-base hover:border-primary/50 focus:border-primary focus:ring-1 focus:ring-primary/50 outline-none font-body-md text-[14px] text-text-primary placeholder-text-secondary transition-all cursor-pointer shadow-sm" placeholder="Share a resource, ask a question (use @loomie for AI), or start a discussion..." type="text" readOnly />
                 </div>
               </div>
             )}
           </div>
 
           {/* Feed Sort/Filter */}
-          <div className="flex items-center justify-between pb-3 border-b border-border-base">
-            <h2 className="font-headline-md text-[20px] font-bold text-text-primary">Recent Posts</h2>
+          <div className="flex items-center justify-between pb-3 border-b border-border-base select-none">
+            <h2 className="font-headline-md text-[20px] font-bold text-text-primary">Recent Discussions</h2>
             <div className="flex items-center gap-4">
               <div className="relative hidden sm:block">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-[18px]">search</span>
                 <input 
                   type="text" 
-                  placeholder="Search community..." 
+                  placeholder="Search discussions..." 
                   className="w-56 bg-surface rounded-full py-1.5 pl-9 pr-4 border border-border-base text-[13px] font-body-sm text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 shadow-sm transition-all"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
@@ -633,7 +1054,7 @@ export default function CommunityPage() {
               ))
             ) : filtered.length === 0 ? (
               <div className="text-center py-16 border border-border-base rounded-2xl bg-surface/50 border-dashed shadow-sm">
-                <span className="material-symbols-outlined text-[48px] text-text-secondary opacity-30 mb-4">forum</span>
+                <span className="material-symbols-outlined text-[48px] text-text-secondary opacity-30 mb-4 select-none">forum</span>
                 <p className="font-headline-md text-[20px] font-bold text-text-primary mb-1">No discussions found</p>
                 <p className="font-body-md text-[15px] text-text-secondary">Try a different search term or start a new post.</p>
               </div>
@@ -645,14 +1066,15 @@ export default function CommunityPage() {
                   onVote={handleVote}
                   onReplyCountChange={handleReplyCountChange}
                   currentUserId={user?.id}
+                  refreshProfile={refreshProfile}
                 />
               ))
             )}
           </div>
         </div>
 
-        {/* Right Column: Widgets */}
-        <aside className="hidden lg:flex col-span-3 flex-col gap-6 sticky top-24">
+        {/* Right Column: Sidebar Widgets */}
+        <aside className="hidden lg:flex col-span-3 flex-col gap-6 sticky top-24 select-none">
           {/* Trending Topics */}
           <div className="glass-panel rounded-xl p-5 border border-border-base shadow-sm">
             <h3 className="font-headline-md text-[18px] font-bold text-text-primary mb-4 flex items-center gap-2">
@@ -677,7 +1099,7 @@ export default function CommunityPage() {
           {/* Top Contributors */}
           <div className="glass-panel rounded-xl p-5 border border-border-base shadow-sm">
             <h3 className="font-headline-md text-[18px] font-bold text-text-primary mb-4 flex items-center gap-2">
-              <span className="material-symbols-outlined text-tertiary" style={{ fontVariationSettings: "'FILL' 1" }}>military_tech</span> Top Contributors
+              <span className="material-symbols-outlined text-purple-500" style={{ fontVariationSettings: "'FILL' 1" }}>military_tech</span> Top Contributors
             </h3>
             <ul className="space-y-3">
               {[
