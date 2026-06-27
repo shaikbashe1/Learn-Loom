@@ -50,20 +50,17 @@ export function RouteGuard({ children }: RouteGuardProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-            <svg className="w-6 h-6 text-white animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-            </svg>
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse"></div>
+            <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-[hsl(var(--chart-4))] flex items-center justify-center shadow-lg">
+              <svg className="w-7 h-7 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+              </svg>
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground">Loading Auth State...</p>
-          <div className="text-xs text-muted-foreground mt-4 font-mono whitespace-pre bg-secondary/50 p-4 rounded-xl text-left border border-border">
-            {JSON.stringify({ 
-              pathname: location.pathname, 
-              ...useAuth().debug
-            }, null, 2)}
-          </div>
+          <p className="text-sm font-medium text-muted-foreground">Loading...</p>
         </div>
       </div>
     );

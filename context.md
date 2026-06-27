@@ -76,9 +76,12 @@ LearnLoom is an advanced, AI-driven learning ecosystem designed for software eng
   - *Moderation Queue Integration*: Wrapped the bare `AdminDraftCoursesPage` in the global `AppLayout` structure and optimized search filters to stack.
   - *Organization Actions*: Set active Approve/Reject action buttons to `h-11` heights in `AdminOrganizationsPage`.
 
-
-
-
+### 12. Premium Auth Pages & Robust Verification (Phase 12)
+- **Removed GitHub Auth**: Completely removed all code, buttons, and state variables for GitHub login and signup.
+- **Google OAuth Prominence**: Redesigned `LoginPage` and `SignupPage` to promote Google OAuth to a prominent, full-width button utilizing clean inline SVGs.
+- **World-Class UI Redesign**: Redesigned both pages with animated mesh gradients, decorative rotating SVG patterns, and card-based glassmorphism panels for a premium feel.
+- **Verification Enhancements**: Embedded an animated verification success state, trust signals (SSL 256-bit badges), and interactive password strength meters showing clear labels and visual cues.
+- **RouteGuard & UX Hardening**: Cleaned up internal loading state leaks by removing debug JSON objects from the loading UI. Boosted dark mode text contrast (lightness increased to 62%) for WCAG AA compliance.
 
 ## Issues Faced & Resolutions
 

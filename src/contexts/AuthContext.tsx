@@ -48,7 +48,7 @@ interface AuthContextType {
   signUpWithEmail: (email: string, password: string, fullName?: string) => Promise<SignInResult>;
   verifyEmailCode: (email: string, code: string) => Promise<SignInResult>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
-  signInWithGitHub: () => Promise<{ error: Error | null }>;
+
   resendVerificationEmail: (email: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -157,19 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signInWithGitHub = async (): Promise<{ error: Error | null }> => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'github',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-      return { error };
-    } catch (err) {
-      return { error: err as Error };
-    }
-  };
+
 
   const signInWithEmail = async (email: string, password: string): Promise<SignInResult> => {
     try {
@@ -241,7 +229,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider value={{
       user, profile, loading,
       signInWithEmail, signUpWithEmail, verifyEmailCode,
-      signInWithGoogle, signInWithGitHub, resendVerificationEmail,
+      signInWithGoogle, resendVerificationEmail,
       signOut, refreshProfile,
       debug: { loadingProfile: loading, hasUser: !!user, userId: user?.id }
     }}>

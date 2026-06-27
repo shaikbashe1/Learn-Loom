@@ -224,5 +224,8 @@ Database tables (such as `certificates` and `assessment_attempts`) are strictly 
 ### 6. Google Login Reliability & Resilient Callbacks
 To handle latency in asynchronous database profile creation triggers during OAuth registration, frontend queries are configured to retry with polling intervals (up to 5 times every 500ms). Additionally, a 10-second safety timeout is implemented on the callback routing handler to protect the user from infinite loader hangs during unexpected backend timeouts or network drops.
 
+### 7. Premium Authentication Pages & Secure RouteGuard
+The login and signup pages have been completely redesigned with a premium, responsive glassmorphism layout, featuring animated mesh gradients, SSL trust badges, and password strength indicators. GitHub login was removed entirely, promoting Google OAuth to a prominent full-width button. The `RouteGuard` loading state was secured by removing debug JSON objects that leaked internal states to users, replacing it with a clean, branded loader.
+
 
 
