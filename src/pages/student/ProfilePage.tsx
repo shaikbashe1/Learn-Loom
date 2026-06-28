@@ -5,16 +5,37 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2 } from 'lucide-react';
+import { Loader2, User, Mail, Phone, MapPin, GraduationCap, Briefcase, Target, Clock, Code, Award, Flame, Star, Search, CheckCircle2, ChevronRight, Edit3, Save, X, Link as LinkIcon, Github, Linkedin, FileText, LayoutDashboard } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface ProfileFormData {
   full_name: string;
+  username: string;
   bio: string;
+  mobile_number: string;
+  college_name: string;
+  degree: string;
+  branch: string;
+  year: string;
+  semester: string;
+  graduation_year: string;
+  company: string;
+  designation: string;
+  dream_roles: string;
+  dream_companies: string;
+  learning_goal: string;
+  daily_learning_time: string;
+  interests: string;
   github_url: string;
   linkedin_url: string;
+  portfolio_url: string;
+  resume_url: string;
+  country: string;
+  state: string;
+  city: string;
+  pincode: string;
 }
 
 export default function ProfilePage() {
@@ -22,41 +43,57 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [heatmap, setHeatmap] = useState<Map<string, number>>(new Map());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (user?.id) {
-      supabase.rpc('get_user_activity_heatmap', { p_user_id: user.id })
-        .then(({ data, error }) => {
-          if (!error && data) {
-            const map = new Map<string, number>();
-            (data as { activity_date: string; activity_count: number }[]).forEach(row => {
-              map.set(row.activity_date, row.activity_count);
-            });
-            setHeatmap(map);
-          }
-        });
-    }
-  }, [user?.id]);
-
   const [form, setForm] = useState<ProfileFormData>({
-    full_name:    profile?.full_name    ?? '',
-    bio:          profile?.bio          ?? '',
-    github_url:   profile?.github_url   ?? '',
-    linkedin_url: profile?.linkedin_url ?? '',
+    full_name: '', username: '', bio: '', mobile_number: '',
+    college_name: '', degree: '', branch: '', year: '', semester: '', graduation_year: '',
+    company: '', designation: '', dream_roles: '', dream_companies: '',
+    learning_goal: '', daily_learning_time: '', interests: '',
+    github_url: '', linkedin_url: '', portfolio_url: '', resume_url: '',
+    country: '', state: '', city: '', pincode: ''
   });
 
-  const displayName = profile?.full_name ?? user?.email?.split('@')[0] ?? 'User';
-  const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-  const avatarUrl = profile?.avatar_url ?? user?.user_metadata?.avatar_url as string | undefined;
+  const calculateCompletion = () => {
+    if (!profile) return 0;
+    const fields = [
+      profile.full_name, profile.username, profile.bio, profile.avatar_url,
+      profile.mobile_number, profile.country, profile.interests?.length,
+      profile.dream_roles?.length, profile.learning_goal, profile.daily_learning_time
+    ];
+    const filled = fields.filter(f => f && (Array.isArray(f) ? f.length > 0 : String(f).trim() !== '')).length;
+    return Math.round((filled / fields.length) * 100);
+  };
 
   const handleEdit = () => {
+    if (!profile) return;
+    const exts = (profile.extensions as Record<string, string>) || {};
     setForm({
-      full_name:    profile?.full_name    ?? '',
-      bio:          profile?.bio          ?? '',
-      github_url:   profile?.github_url   ?? '',
-      linkedin_url: profile?.linkedin_url ?? '',
+      full_name: profile.full_name || '',
+      username: profile.username || '',
+      bio: profile.bio || '',
+      mobile_number: profile.mobile_number || '',
+      college_name: profile.college_name || '',
+      degree: profile.degree || '',
+      branch: profile.branch || '',
+      year: profile.year?.toString() || '',
+      semester: profile.semester?.toString() || '',
+      graduation_year: profile.graduation_year?.toString() || '',
+      company: exts.company || '',
+      designation: exts.designation || '',
+      dream_roles: profile.dream_roles?.join(', ') || '',
+      dream_companies: profile.dream_companies?.join(', ') || '',
+      learning_goal: profile.learning_goal || '',
+      daily_learning_time: profile.daily_learning_time || '',
+      interests: profile.interests?.join(', ') || '',
+      github_url: profile.github_url || '',
+      linkedin_url: profile.linkedin_url || '',
+      portfolio_url: profile.portfolio_url || '',
+      resume_url: profile.resume_url || '',
+      country: profile.country || '',
+      state: profile.state || '',
+      city: profile.city || '',
+      pincode: profile.pincode || ''
     });
     setEditing(true);
   };
@@ -65,18 +102,45 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     if (!user) return;
-    const trimmed = form.full_name.trim();
-    if (!trimmed) { toast.error('Name is required'); return; }
-    if (trimmed.length > 150) { toast.error('Name must be 150 characters or fewer'); return; }
+    const trimmedName = form.full_name.trim();
+    if (!trimmedName) { toast.error('Full Name is required'); return; }
 
     setSaving(true);
+    const parseList = (str: string) => str.split(',').map(s => s.trim()).filter(Boolean);
+    
+    const extensions = {
+      ...(profile?.extensions as Record<string, unknown> || {}),
+      company: form.company.trim(),
+      designation: form.designation.trim()
+    };
+
     const { error } = await supabase
       .from('profiles')
       .update({
-        full_name:    trimmed,
-        bio:          form.bio.trim() || null,
-        github_url:   form.github_url.trim() || null,
+        full_name: trimmedName,
+        username: form.username.trim() || null,
+        bio: form.bio.trim() || null,
+        mobile_number: form.mobile_number.trim() || null,
+        college_name: form.college_name.trim() || null,
+        degree: form.degree.trim() || null,
+        branch: form.branch.trim() || null,
+        year: form.year ? parseInt(form.year) : null,
+        semester: form.semester ? parseInt(form.semester) : null,
+        graduation_year: form.graduation_year ? parseInt(form.graduation_year) : null,
+        dream_roles: parseList(form.dream_roles),
+        dream_companies: parseList(form.dream_companies),
+        learning_goal: form.learning_goal.trim() || null,
+        daily_learning_time: form.daily_learning_time.trim() || null,
+        interests: parseList(form.interests),
+        github_url: form.github_url.trim() || null,
         linkedin_url: form.linkedin_url.trim() || null,
+        portfolio_url: form.portfolio_url.trim() || null,
+        resume_url: form.resume_url.trim() || null,
+        country: form.country.trim() || null,
+        state: form.state.trim() || null,
+        city: form.city.trim() || null,
+        pincode: form.pincode.trim() || null,
+        extensions
       })
       .eq('id', user.id);
 
@@ -94,12 +158,8 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
-    if (file.size > 1024 * 1024) {
-      toast.error('Image must be smaller than 1 MB');
-      return;
-    }
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select a valid image file');
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be smaller than 5 MB');
       return;
     }
 
@@ -138,357 +198,447 @@ export default function ProfilePage() {
   if (!profile) {
     return (
       <AppLayout title="Profile">
-        <div className="max-w-container-max mx-auto w-full px-margin-mobile md:px-margin-desktop py-stack-md space-y-6">
-          <Skeleton className="h-48 rounded-2xl bg-surface border border-border-base" />
+        <div className="max-w-6xl mx-auto w-full px-4 py-8 space-y-6">
           <Skeleton className="h-64 rounded-2xl bg-surface border border-border-base" />
+          <Skeleton className="h-96 rounded-2xl bg-surface border border-border-base" />
         </div>
       </AppLayout>
     );
   }
 
-  const xp = profile.credits ?? 0;
-  const level = Math.floor(xp / 1000) + 1;
+  const completionPercent = calculateCompletion();
+  const exts = (profile.extensions as Record<string, string>) || {};
+  const isStudent = profile.user_type === 'student';
 
   return (
     <AppLayout title="Profile">
-      <div className="max-w-container-max mx-auto w-full px-margin-mobile md:px-margin-desktop py-stack-md flex flex-col gap-8 pb-24">
+      <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 pb-24 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         
-        {/* Profile Header Section */}
-        <section className="relative rounded-2xl overflow-hidden glass-panel border border-border-base shadow-sm">
-          {/* Banner Image */}
-          <div className="h-48 md:h-64 w-full bg-surface-container-highest relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-tertiary/20"></div>
-            <div className="absolute top-0 left-0 w-full h-full opacity-30 mix-blend-overlay" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(0,0,0,0.15) 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
-            <div className="absolute inset-0 bg-gradient-to-t from-surface to-transparent/10"></div>
+        {/* HEADER SECTION (LinkedIn Style) */}
+        <section className="bg-surface border border-border-base rounded-2xl overflow-hidden shadow-sm relative">
+          {/* Banner */}
+          <div className="h-40 sm:h-56 bg-gradient-to-r from-primary/20 via-secondary/10 to-tertiary/20 relative">
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 mix-blend-overlay"></div>
+            <button 
+              className="absolute top-4 right-4 bg-surface/80 backdrop-blur-sm p-2 rounded-full border border-border-base hover:bg-surface text-text-secondary hover:text-primary transition-colors"
+              onClick={handleEdit}
+            >
+              <Edit3 className="w-5 h-5" />
+            </button>
           </div>
           
-          {/* Profile Info Container */}
-          <div className="relative px-6 pb-8 md:px-10 -mt-16 sm:-mt-20 flex flex-col sm:flex-row items-center sm:items-end text-center sm:text-left gap-6">
-            {/* Avatar */}
-            <div className="relative shrink-0">
-              <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-surface overflow-hidden bg-surface-container shadow-md">
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-primary font-bold text-[48px]">
-                    {initials}
+          <div className="px-6 sm:px-10 pb-8 relative">
+            <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-end -mt-16 sm:-mt-20 mb-4">
+              {/* Avatar Box */}
+              <div className="relative group shrink-0">
+                <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-surface bg-surface-container overflow-hidden shadow-lg relative">
+                  {profile.avatar_url ? (
+                    <img src={profile.avatar_url} alt={profile.full_name || 'User'} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-primary bg-primary/5">
+                      {(profile.full_name || 'U')[0].toUpperCase()}
+                    </div>
+                  )}
+                  
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                    {uploadingAvatar ? <Loader2 className="w-8 h-8 text-white animate-spin" /> : <span className="material-symbols-outlined text-white text-[32px]">photo_camera</span>}
                   </div>
-                )}
+                </div>
+                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={e => void handleAvatarUpload(e)} />
               </div>
               
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploadingAvatar}
-                className="absolute top-2 -right-2 w-10 h-10 rounded-full bg-primary text-white border-2 border-surface flex items-center justify-center shadow-md hover:bg-primary-container hover:text-on-primary-container transition-colors disabled:opacity-50"
-              >
-                {uploadingAvatar
-                  ? <Loader2 className="w-5 h-5 animate-spin" />
-                  : <span className="material-symbols-outlined text-[20px]">photo_camera</span>}
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={e => void handleAvatarUpload(e)}
-              />
-              
-              {/* Level Badge */}
-              <div className="absolute bottom-2 right-2 bg-tertiary-container text-on-tertiary-container font-label-sm text-[12px] font-bold px-3 py-1 rounded-full border-2 border-surface shadow-sm">
-                 Lvl {level}
+              {/* Basic Info */}
+              <div className="flex-1 text-center sm:text-left pb-2">
+                <h1 className="text-3xl sm:text-4xl font-bold text-text-primary tracking-tight">{profile.full_name}</h1>
+                <p className="text-lg text-text-secondary font-medium mt-1 flex items-center justify-center sm:justify-start gap-2">
+                  <span className="text-primary font-bold">{profile.username ? `@${profile.username}` : 'No username'}</span>
+                  <span className="text-border-base">•</span>
+                  <span>{profile.user_type ? profile.user_type.charAt(0).toUpperCase() + profile.user_type.slice(1) : 'Member'}</span>
+                </p>
+                <p className="text-text-primary mt-2 max-w-2xl text-sm sm:text-base leading-relaxed">
+                  {profile.bio || 'This user prefers to keep an air of mystery. Add a bio to let people know about you!'}
+                </p>
               </div>
             </div>
-            
-            {/* Text Info */}
-            <div className="flex-1 pb-2 flex flex-col items-center sm:items-start">
-              <div className="flex flex-col sm:flex-row items-center gap-3 mb-1">
-                <h2 className="font-display-lg-mobile md:font-display-lg text-[32px] md:text-[40px] font-bold text-text-primary leading-tight">{displayName}</h2>
-                {profile.role === 'admin' && <span className="bg-error/10 text-error font-label-sm text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-widest border border-error/20">Admin</span>}
-              </div>
-              <p className="font-body-lg text-[16px] text-text-secondary mb-4 max-w-2xl">
-                {profile.bio || "No bio added yet. Tell the community about yourself!"}
-              </p>
-              
-              {/* Stats/XP */}
-              <div className="flex items-center justify-center sm:justify-start gap-3 flex-wrap">
-                <div className="flex items-center gap-1.5 bg-surface-container-low px-3 py-1.5 rounded-lg border border-border-base shadow-sm">
-                  <span className="material-symbols-outlined text-warning text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                  <span className="font-label-md text-[14px] font-bold text-text-primary">{xp.toLocaleString()} XP</span>
+
+            {/* Completion Bar */}
+            <div className="bg-surface-container-low border border-border-base rounded-xl p-4 flex flex-col sm:flex-row items-center gap-4 shadow-inner">
+              <div className="flex-1 w-full space-y-2">
+                <div className="flex justify-between text-sm font-bold text-text-primary">
+                  <span>Profile Strength: {completionPercent < 50 ? 'Beginner' : completionPercent < 90 ? 'Intermediate' : 'All-Star'}</span>
+                  <span className="text-primary">{completionPercent}%</span>
                 </div>
-                <div className="flex items-center gap-1.5 bg-surface-container-low px-3 py-1.5 rounded-lg border border-border-base shadow-sm">
-                  <span className="material-symbols-outlined text-secondary text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
-                  <span className="font-label-md text-[14px] font-bold text-text-primary">{profile.streak_days ?? 0} Day Streak</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-surface-container-low px-3 py-1.5 rounded-lg border border-border-base shadow-sm">
-                  <span className="material-symbols-outlined text-tertiary text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
-                  <span className="font-label-md text-[14px] font-bold text-text-primary">{profile.courses_completed ?? 0} Courses</span>
+                <div className="w-full h-2.5 bg-surface-container rounded-full overflow-hidden">
+                  <div className="h-full bg-primary rounded-full transition-all duration-1000 ease-out" style={{ width: `${completionPercent}%` }}></div>
                 </div>
               </div>
-            </div>
-            
-            {/* Actions */}
-            <div className="pb-2 flex gap-3 w-full sm:w-auto mt-4 sm:mt-0">
-              {!editing ? (
-                <button onClick={handleEdit} className="flex-1 sm:flex-none bg-primary text-white font-label-md text-[14px] font-bold px-6 py-2.5 rounded-lg hover:bg-primary-container hover:text-on-primary-container transition-all flex items-center justify-center gap-2 shadow-sm card-lift">
-                  <span className="material-symbols-outlined text-[18px]">edit</span> Edit Profile
-                </button>
-              ) : (
-                <button onClick={handleCancel} className="flex-1 sm:flex-none bg-surface text-text-primary font-label-md text-[14px] font-bold px-6 py-2.5 rounded-lg hover:bg-surface-container transition-all flex items-center justify-center gap-2 border border-border-base shadow-sm card-lift">
-                  Cancel
-                </button>
+              {completionPercent < 100 && !editing && (
+                <Button onClick={handleEdit} variant="outline" className="shrink-0 w-full sm:w-auto font-bold border-primary/20 hover:bg-primary/5 text-primary">
+                  Complete Profile
+                </Button>
               )}
             </div>
           </div>
-          
-          {/* Tabs Navigation */}
-          <div className="px-6 md:px-10 border-t border-border-base bg-surface-bright/50 flex overflow-x-auto custom-scrollbar">
-            <button className="font-label-md text-[14px] font-bold text-primary border-b-2 border-primary py-4 px-2 mr-6 whitespace-nowrap">Overview</button>
-            <button className="font-label-md text-[14px] font-medium text-text-secondary hover:text-text-primary py-4 px-2 mr-6 whitespace-nowrap transition-colors">Courses</button>
-            <button className="font-label-md text-[14px] font-medium text-text-secondary hover:text-text-primary py-4 px-2 mr-6 whitespace-nowrap transition-colors">Skills</button>
-            <button className="font-label-md text-[14px] font-medium text-text-secondary hover:text-text-primary py-4 px-2 mr-6 whitespace-nowrap transition-colors">Certificates</button>
-            <button className="font-label-md text-[14px] font-medium text-text-secondary hover:text-text-primary py-4 px-2 whitespace-nowrap transition-colors">Activity</button>
-          </div>
         </section>
 
-        {/* Edit Form */}
-        {editing && (
-          <div className="glass-panel border border-border-base rounded-2xl p-6 md:p-8 shadow-sm card-lift animate-in fade-in slide-in-from-top-4">
-            <h3 className="font-headline-md text-[24px] font-bold text-text-primary mb-6 flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary">edit_note</span> Edit Your Details
-            </h3>
-            <div className="space-y-5 max-w-2xl">
-              <div className="space-y-2">
-                <Label htmlFor="full_name" className="text-[14px] font-bold text-text-primary">Full Name *</Label>
-                <Input
-                  id="full_name"
-                  value={form.full_name}
-                  onChange={e => setForm(f => ({ ...f, full_name: e.target.value }))}
-                  maxLength={150}
-                  className="bg-surface border-border-base text-[15px] focus:ring-primary/50 focus:border-primary shadow-sm"
-                />
-              </div>
+        {editing ? (
+          /* EDIT MODE VIEW */
+          <section className="bg-surface border border-border-base rounded-2xl p-6 sm:p-8 shadow-sm space-y-8 animate-in fade-in slide-in-from-top-4">
+            <div className="flex items-center justify-between border-b border-border-base pb-4">
+              <h2 className="text-2xl font-bold text-text-primary">Edit Profile</h2>
+              <Button variant="ghost" size="icon" onClick={handleCancel} className="text-text-secondary hover:text-error"><X /></Button>
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="bio" className="text-[14px] font-bold text-text-primary">Bio</Label>
-                <Textarea
-                  id="bio"
-                  value={form.bio}
-                  onChange={e => setForm(f => ({ ...f, bio: e.target.value }))}
-                  rows={4}
-                  className="bg-surface border-border-base text-[15px] focus:ring-primary/50 focus:border-primary shadow-sm resize-y"
-                  placeholder="Tell us about your learning goals..."
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Core Information */}
+              <div className="space-y-4">
+                <h3 className="font-bold text-lg text-primary flex items-center gap-2"><User className="w-5 h-5"/> Personal Information</h3>
                 <div className="space-y-2">
-                  <Label htmlFor="github_url" className="text-[14px] font-bold text-text-primary">GitHub URL</Label>
-                  <div className="relative">
-                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary material-symbols-outlined text-[18px]">code</span>
-                     <Input
-                       id="github_url"
-                       value={form.github_url}
-                       onChange={e => setForm(f => ({ ...f, github_url: e.target.value }))}
-                       className="bg-surface border-border-base text-[15px] focus:ring-primary/50 focus:border-primary shadow-sm pl-10"
-                       placeholder="https://github.com/..."
-                     />
-                  </div>
+                  <Label>Full Name *</Label>
+                  <Input value={form.full_name} onChange={e => setForm({...form, full_name: e.target.value})} className="bg-surface-container-low" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="linkedin_url" className="text-[14px] font-bold text-text-primary">LinkedIn URL</Label>
-                  <div className="relative">
-                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary material-symbols-outlined text-[18px]">work</span>
-                     <Input
-                       id="linkedin_url"
-                       value={form.linkedin_url}
-                       onChange={e => setForm(f => ({ ...f, linkedin_url: e.target.value }))}
-                       className="bg-surface border-border-base text-[15px] focus:ring-primary/50 focus:border-primary shadow-sm pl-10"
-                       placeholder="https://linkedin.com/in/..."
-                     />
+                  <Label>Username</Label>
+                  <Input value={form.username} onChange={e => setForm({...form, username: e.target.value})} className="bg-surface-container-low" placeholder="e.g. johndoe123" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Mobile Number</Label>
+                  <Input value={form.mobile_number} onChange={e => setForm({...form, mobile_number: e.target.value})} className="bg-surface-container-low" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Country</Label>
+                    <Input value={form.country} onChange={e => setForm({...form, country: e.target.value})} className="bg-surface-container-low" />
                   </div>
+                  <div className="space-y-2">
+                    <Label>State</Label>
+                    <Input value={form.state} onChange={e => setForm({...form, state: e.target.value})} className="bg-surface-container-low" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>City</Label>
+                    <Input value={form.city} onChange={e => setForm({...form, city: e.target.value})} className="bg-surface-container-low" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Pincode</Label>
+                    <Input value={form.pincode} onChange={e => setForm({...form, pincode: e.target.value})} className="bg-surface-container-low" />
+                  </div>
+                </div>
+                <div className="space-y-2 pt-2">
+                  <Label>Bio</Label>
+                  <Textarea value={form.bio} onChange={e => setForm({...form, bio: e.target.value})} className="bg-surface-container-low resize-y" rows={3} />
                 </div>
               </div>
 
-              <div className="pt-6 flex items-center justify-end gap-3 border-t border-border-base mt-2 fixed bottom-0 left-0 right-0 p-4 bg-surface/90 backdrop-blur-md z-30 md:relative md:inset-auto md:p-0 md:bg-transparent md:z-auto shadow-[0_-4px_15px_rgba(0,0,0,0.05)] md:shadow-none pb-6 md:pb-0">
-                <Button onClick={handleCancel} variant="outline" className="font-bold border-border-base text-text-primary min-h-[44px]">Cancel</Button>
-                <Button onClick={() => void handleSave()} disabled={saving} className="bg-primary text-white hover:bg-primary-container hover:text-on-primary-container font-bold shadow-sm min-h-[44px]">
-                  {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Save Changes
-                </Button>
+              {/* Education / Career (Contextual based on user type) */}
+              <div className="space-y-4">
+                <h3 className="font-bold text-lg text-secondary flex items-center gap-2">
+                  {isStudent ? <GraduationCap className="w-5 h-5"/> : <Briefcase className="w-5 h-5" />} 
+                  {isStudent ? 'Education' : 'Career Details'}
+                </h3>
+                
+                {isStudent ? (
+                  <>
+                    <div className="space-y-2">
+                      <Label>College / University</Label>
+                      <Input value={form.college_name} onChange={e => setForm({...form, college_name: e.target.value})} className="bg-surface-container-low" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Degree</Label>
+                        <Input value={form.degree} onChange={e => setForm({...form, degree: e.target.value})} className="bg-surface-container-low" placeholder="B.Tech" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Branch</Label>
+                        <Input value={form.branch} onChange={e => setForm({...form, branch: e.target.value})} className="bg-surface-container-low" placeholder="CSE" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Graduation Year</Label>
+                        <Input type="number" value={form.graduation_year} onChange={e => setForm({...form, graduation_year: e.target.value})} className="bg-surface-container-low" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Current Semester</Label>
+                        <Input type="number" value={form.semester} onChange={e => setForm({...form, semester: e.target.value})} className="bg-surface-container-low" />
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="space-y-2">
+                      <Label>Company Name</Label>
+                      <Input value={form.company} onChange={e => setForm({...form, company: e.target.value})} className="bg-surface-container-low" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Designation / Role</Label>
+                      <Input value={form.designation} onChange={e => setForm({...form, designation: e.target.value})} className="bg-surface-container-low" />
+                    </div>
+                  </>
+                )}
+
+                <div className="pt-4 border-t border-border-base mt-4 space-y-4">
+                   <h3 className="font-bold text-lg text-tertiary flex items-center gap-2"><Target className="w-5 h-5"/> Goals</h3>
+                   <div className="space-y-2">
+                     <Label>Dream Roles (Comma separated)</Label>
+                     <Input value={form.dream_roles} onChange={e => setForm({...form, dream_roles: e.target.value})} className="bg-surface-container-low" placeholder="e.g. SDE I, Data Scientist" />
+                   </div>
+                   <div className="space-y-2">
+                     <Label>Dream Companies (Comma separated)</Label>
+                     <Input value={form.dream_companies} onChange={e => setForm({...form, dream_companies: e.target.value})} className="bg-surface-container-low" placeholder="e.g. Google, Microsoft" />
+                   </div>
+                   <div className="space-y-2">
+                     <Label>Daily Learning Goal</Label>
+                     <Input value={form.daily_learning_time} onChange={e => setForm({...form, daily_learning_time: e.target.value})} className="bg-surface-container-low" placeholder="e.g. 2 hours" />
+                   </div>
+                </div>
               </div>
+
+              {/* Skills & Social Links */}
+              <div className="space-y-4 md:col-span-2 border-t border-border-base pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-4">
+                     <h3 className="font-bold text-lg text-primary flex items-center gap-2"><Code className="w-5 h-5"/> Skills</h3>
+                     <div className="space-y-2">
+                       <Label>Skills & Interests (Comma separated)</Label>
+                       <Textarea value={form.interests} onChange={e => setForm({...form, interests: e.target.value})} className="bg-surface-container-low" placeholder="e.g. React, Java, UI/UX" rows={4} />
+                     </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <h3 className="font-bold text-lg text-text-primary flex items-center gap-2"><LinkIcon className="w-5 h-5"/> Links</h3>
+                    <div className="grid grid-cols-1 gap-4">
+                      <div className="relative">
+                        <Github className="absolute left-3 top-2.5 w-5 h-5 text-text-secondary" />
+                        <Input value={form.github_url} onChange={e => setForm({...form, github_url: e.target.value})} className="pl-10 bg-surface-container-low" placeholder="GitHub URL" />
+                      </div>
+                      <div className="relative">
+                        <Linkedin className="absolute left-3 top-2.5 w-5 h-5 text-text-secondary" />
+                        <Input value={form.linkedin_url} onChange={e => setForm({...form, linkedin_url: e.target.value})} className="pl-10 bg-surface-container-low" placeholder="LinkedIn URL" />
+                      </div>
+                      <div className="relative">
+                        <LayoutDashboard className="absolute left-3 top-2.5 w-5 h-5 text-text-secondary" />
+                        <Input value={form.portfolio_url} onChange={e => setForm({...form, portfolio_url: e.target.value})} className="pl-10 bg-surface-container-low" placeholder="Portfolio URL" />
+                      </div>
+                      <div className="relative">
+                        <FileText className="absolute left-3 top-2.5 w-5 h-5 text-text-secondary" />
+                        <Input value={form.resume_url} onChange={e => setForm({...form, resume_url: e.target.value})} className="pl-10 bg-surface-container-low" placeholder="Resume Link (GDrive, etc)" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div className="flex justify-end gap-3 pt-6 border-t border-border-base sticky bottom-0 bg-surface p-4 -mx-6 sm:-mx-8 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] sm:static sm:p-0 sm:mx-0 sm:bg-transparent sm:shadow-none">
+              <Button variant="outline" onClick={handleCancel} className="font-bold">Cancel</Button>
+              <Button onClick={() => void handleSave()} disabled={saving} className="font-bold bg-primary text-white gap-2">
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save Profile
+              </Button>
+            </div>
+          </section>
+        ) : (
+          /* READ-ONLY DASHBOARD VIEW */
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+            
+            {/* LEFT COLUMN */}
+            <div className="xl:col-span-1 space-y-8">
+              
+              {/* Personal Info Card */}
+              <div className="bg-surface border border-border-base rounded-2xl p-6 shadow-sm">
+                <h3 className="font-bold text-lg text-text-primary mb-4 flex items-center gap-2"><User className="w-5 h-5 text-primary" /> Personal Info</h3>
+                <div className="space-y-4">
+                  {profile.full_name && (
+                    <div className="flex items-center gap-3 text-text-secondary">
+                      <User className="w-4 h-4" /> <span className="text-sm font-medium">{profile.full_name}</span>
+                    </div>
+                  )}
+                  {profile.username && (
+                    <div className="flex items-center gap-3 text-text-secondary">
+                      <div className="w-4 h-4 font-bold text-sm leading-none flex items-center justify-center">@</div> <span className="text-sm font-medium">{profile.username}</span>
+                    </div>
+                  )}
+                  {profile.mobile_number && (
+                    <div className="flex items-center gap-3 text-text-secondary">
+                      <Phone className="w-4 h-4" /> <span className="text-sm font-medium">{profile.mobile_number}</span>
+                    </div>
+                  )}
+                  {user?.email && (
+                    <div className="flex items-center gap-3 text-text-secondary">
+                      <Mail className="w-4 h-4" /> <span className="text-sm font-medium">{user.email}</span>
+                    </div>
+                  )}
+                  {(profile.city || profile.state || profile.country || profile.pincode) && (
+                    <div className="flex items-center gap-3 text-text-secondary">
+                      <MapPin className="w-4 h-4" /> <span className="text-sm font-medium">{[profile.city, profile.state, profile.country, profile.pincode].filter(Boolean).join(', ')}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Education or Career */}
+              <div className="bg-surface border border-border-base rounded-2xl p-6 shadow-sm">
+                <h3 className="font-bold text-lg text-text-primary mb-4 flex items-center gap-2">
+                  {isStudent ? <GraduationCap className="w-5 h-5 text-secondary" /> : <Briefcase className="w-5 h-5 text-secondary" />} 
+                  {isStudent ? 'Education' : 'Experience'}
+                </h3>
+                {isStudent ? (
+                  profile.college_name ? (
+                    <div className="space-y-3">
+                      <p className="font-bold text-text-primary">{profile.college_name}</p>
+                      {(profile.degree || profile.branch) && <p className="text-sm text-text-secondary font-medium">{profile.degree} {profile.branch ? `in ${profile.branch}` : ''}</p>}
+                      <div className="flex gap-4">
+                        {profile.year && <p className="text-xs text-text-secondary">Year {profile.year}</p>}
+                        {profile.semester && <p className="text-xs text-text-secondary">Sem {profile.semester}</p>}
+                        {profile.graduation_year && <p className="text-xs text-text-secondary">Class of {profile.graduation_year}</p>}
+                      </div>
+                    </div>
+                  ) : <p className="text-sm text-text-secondary italic">No education details added yet.</p>
+                ) : (
+                  exts.company ? (
+                    <div className="space-y-2">
+                      <p className="font-bold text-text-primary">{exts.designation || 'Professional'}</p>
+                      <p className="text-sm text-text-secondary font-medium">at {exts.company}</p>
+                    </div>
+                  ) : <p className="text-sm text-text-secondary italic">No work experience added yet.</p>
+                )}
+              </div>
+
+              {/* Social Links */}
+              <div className="bg-surface border border-border-base rounded-2xl p-6 shadow-sm">
+                <h3 className="font-bold text-lg text-text-primary mb-4 flex items-center gap-2"><LinkIcon className="w-5 h-5 text-text-secondary" /> Links</h3>
+                <div className="space-y-3">
+                  <a href={profile.github_url || '#'} target={profile.github_url ? "_blank" : undefined} className={`flex items-center gap-3 p-3 rounded-lg border ${profile.github_url ? 'bg-surface-container-low border-border-base hover:border-primary/50 text-text-primary' : 'bg-surface border-dashed text-text-secondary opacity-70'} transition-colors`}>
+                    <Github className="w-5 h-5" /> 
+                    <span className="text-sm font-bold flex-1">GitHub</span>
+                    {!profile.github_url && <span className="text-xs">Not added</span>}
+                  </a>
+                  <a href={profile.linkedin_url || '#'} target={profile.linkedin_url ? "_blank" : undefined} className={`flex items-center gap-3 p-3 rounded-lg border ${profile.linkedin_url ? 'bg-surface-container-low border-border-base hover:border-primary/50 text-text-primary' : 'bg-surface border-dashed text-text-secondary opacity-70'} transition-colors`}>
+                    <Linkedin className="w-5 h-5" /> 
+                    <span className="text-sm font-bold flex-1">LinkedIn</span>
+                    {!profile.linkedin_url && <span className="text-xs">Not added</span>}
+                  </a>
+                  <a href={profile.portfolio_url || '#'} target={profile.portfolio_url ? "_blank" : undefined} className={`flex items-center gap-3 p-3 rounded-lg border ${profile.portfolio_url ? 'bg-surface-container-low border-border-base hover:border-primary/50 text-text-primary' : 'bg-surface border-dashed text-text-secondary opacity-70'} transition-colors`}>
+                    <LayoutDashboard className="w-5 h-5" /> 
+                    <span className="text-sm font-bold flex-1">Portfolio</span>
+                    {!profile.portfolio_url && <span className="text-xs">Not added</span>}
+                  </a>
+                  <a href={profile.resume_url || '#'} target={profile.resume_url ? "_blank" : undefined} className={`flex items-center gap-3 p-3 rounded-lg border ${profile.resume_url ? 'bg-surface-container-low border-border-base hover:border-primary/50 text-text-primary' : 'bg-surface border-dashed text-text-secondary opacity-70'} transition-colors`}>
+                    <FileText className="w-5 h-5" /> 
+                    <span className="text-sm font-bold flex-1">Resume</span>
+                    {!profile.resume_url && <span className="text-xs">Not added</span>}
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT COLUMN */}
+            <div className="xl:col-span-2 space-y-8">
+              
+              {/* Profile Statistics */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-surface border border-border-base rounded-2xl p-5 shadow-sm text-center flex flex-col items-center justify-center card-lift">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                    <Star className="w-5 h-5 text-primary" />
+                  </div>
+                  <span className="text-2xl font-black text-text-primary">{profile.credits?.toLocaleString() || 0}</span>
+                  <span className="text-xs font-bold text-text-secondary uppercase tracking-wider mt-1">XP Points</span>
+                </div>
+                <div className="bg-surface border border-border-base rounded-2xl p-5 shadow-sm text-center flex flex-col items-center justify-center card-lift">
+                  <div className="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center mb-2">
+                    <Flame className="w-5 h-5 text-warning" />
+                  </div>
+                  <span className="text-2xl font-black text-text-primary">{profile.streak_days || 0}</span>
+                  <span className="text-xs font-bold text-text-secondary uppercase tracking-wider mt-1">Day Streak</span>
+                </div>
+                <div className="bg-surface border border-border-base rounded-2xl p-5 shadow-sm text-center flex flex-col items-center justify-center card-lift">
+                  <div className="w-10 h-10 rounded-full bg-tertiary/10 flex items-center justify-center mb-2">
+                    <CheckCircle2 className="w-5 h-5 text-tertiary" />
+                  </div>
+                  <span className="text-2xl font-black text-text-primary">{profile.courses_completed || 0}</span>
+                  <span className="text-xs font-bold text-text-secondary uppercase tracking-wider mt-1">Courses</span>
+                </div>
+                <div className="bg-surface border border-border-base rounded-2xl p-5 shadow-sm text-center flex flex-col items-center justify-center card-lift">
+                  <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center mb-2">
+                    <Award className="w-5 h-5 text-secondary" />
+                  </div>
+                  <span className="text-2xl font-black text-text-primary">{profile.certificates_earned || 0}</span>
+                  <span className="text-xs font-bold text-text-secondary uppercase tracking-wider mt-1">Certificates</span>
+                </div>
+              </div>
+
+              {/* Skills & Interests */}
+              <div className="bg-surface border border-border-base rounded-2xl p-6 sm:p-8 shadow-sm">
+                <h3 className="font-bold text-lg text-text-primary mb-4 flex items-center gap-2"><Code className="w-5 h-5 text-primary" /> Skills & Interests</h3>
+                {profile.interests && profile.interests.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {profile.interests.map((skill, idx) => (
+                      <span key={idx} className="bg-surface-container-low border border-border-base text-text-primary text-sm font-bold px-4 py-2 rounded-full shadow-sm hover:border-primary hover:text-primary transition-colors cursor-default">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-text-secondary italic">No skills added yet.</p>
+                )}
+              </div>
+
+              {/* Career Goals */}
+              <div className="bg-surface border border-border-base rounded-2xl p-6 sm:p-8 shadow-sm">
+                <h3 className="font-bold text-lg text-text-primary mb-6 flex items-center gap-2"><Target className="w-5 h-5 text-tertiary" /> Career Goals</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <p className="text-xs font-bold text-text-secondary uppercase tracking-wider">Dream Roles</p>
+                    {profile.dream_roles && profile.dream_roles.length > 0 ? (
+                      <ul className="space-y-2">
+                        {profile.dream_roles.map((role, i) => (
+                          <li key={i} className="flex items-center gap-2 text-sm font-bold text-text-primary">
+                            <span className="w-2 h-2 rounded-full bg-tertiary"></span> {role}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : <p className="text-sm text-text-secondary italic">Not specified</p>}
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <p className="text-xs font-bold text-text-secondary uppercase tracking-wider">Target Companies</p>
+                    {profile.dream_companies && profile.dream_companies.length > 0 ? (
+                      <ul className="space-y-2">
+                        {profile.dream_companies.map((company, i) => (
+                          <li key={i} className="flex items-center gap-2 text-sm font-bold text-text-primary">
+                            <span className="w-2 h-2 rounded-full bg-secondary"></span> {company}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : <p className="text-sm text-text-secondary italic">Not specified</p>}
+                  </div>
+
+                  <div className="sm:col-span-2 space-y-2 pt-4 border-t border-border-base">
+                    <p className="text-xs font-bold text-text-secondary uppercase tracking-wider">Daily Learning Goal</p>
+                    <p className="text-sm font-medium text-text-primary">{profile.daily_learning_time ? `${profile.daily_learning_time} per day` : <span className="italic text-text-secondary">Not specified</span>}</p>
+                  </div>
+                  
+                  <div className="sm:col-span-2 space-y-2 pt-4 border-t border-border-base">
+                    <p className="text-xs font-bold text-text-secondary uppercase tracking-wider">Primary Objective</p>
+                    <p className="text-sm font-medium text-text-primary">{profile.learning_goal || <span className="italic text-text-secondary">Not specified</span>}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Future Expansion Slots */}
+              <div className="border-2 border-dashed border-border-base rounded-2xl p-8 text-center bg-surface/50">
+                <div className="w-12 h-12 bg-surface-container rounded-full flex items-center justify-center mx-auto mb-3 text-text-secondary">
+                  <Search className="w-6 h-6" />
+                </div>
+                <h4 className="font-bold text-text-primary mb-1">More sections coming soon!</h4>
+                <p className="text-sm text-text-secondary">Projects, Badges, GitHub Contributions, and Community Activity will appear here.</p>
+              </div>
+
             </div>
           </div>
         )}
-
-        {/* Dashboard Content Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-          
-          {/* Left Col: Social & Skill Matrix */}
-          <div className="md:col-span-4 flex flex-col gap-8">
-            
-            {/* Social Links */}
-            {(profile.github_url || profile.linkedin_url) && (
-              <div className="glass-panel border border-border-base rounded-2xl p-6 shadow-sm">
-                <h3 className="font-label-sm text-[12px] font-bold text-text-secondary uppercase tracking-widest mb-4">Connected Profiles</h3>
-                <div className="flex flex-col gap-3">
-                  {profile.github_url && (
-                    <a href={profile.github_url} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 rounded-lg border border-border-base bg-surface hover:border-primary/50 hover:shadow-md transition-all group card-lift">
-                      <div className="w-10 h-10 rounded bg-surface-container flex items-center justify-center text-text-secondary group-hover:text-primary transition-colors">
-                        <span className="material-symbols-outlined text-[24px]">code</span>
-                      </div>
-                      <span className="font-label-md text-[14px] font-bold text-text-primary group-hover:text-primary transition-colors">GitHub Profile</span>
-                    </a>
-                  )}
-                  {profile.linkedin_url && (
-                    <a href={profile.linkedin_url} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 rounded-lg border border-border-base bg-surface hover:border-primary/50 hover:shadow-md transition-all group card-lift">
-                      <div className="w-10 h-10 rounded bg-surface-container flex items-center justify-center text-text-secondary group-hover:text-primary transition-colors">
-                        <span className="material-symbols-outlined text-[24px]">work</span>
-                      </div>
-                      <span className="font-label-md text-[14px] font-bold text-text-primary group-hover:text-primary transition-colors">LinkedIn Profile</span>
-                    </a>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Skill Matrix */}
-            <div className="glass-panel border border-border-base rounded-2xl p-6 shadow-sm flex flex-col gap-4">
-              <h3 className="font-headline-md text-[20px] font-bold text-text-primary flex items-center gap-2 mb-2">
-                <span className="material-symbols-outlined text-primary">psychology</span> Skill Matrix
-              </h3>
-              <div className="space-y-6">
-                <div className="group">
-                  <div className="flex justify-between items-end mb-2">
-                    <span className="font-label-md text-[14px] font-bold text-text-primary group-hover:text-primary transition-colors">Frontend Dev</span>
-                    <span className="text-[10px] font-label-sm font-bold text-primary font-mono bg-primary/10 px-2 py-0.5 rounded border border-primary/20">Expert</span>
-                  </div>
-                  <div className="w-full h-2.5 bg-surface-container rounded-full overflow-hidden border border-border-base shadow-inner">
-                    <div className="h-full bg-gradient-to-r from-primary/80 to-primary rounded-full relative w-[85%] shadow-[0_0_10px_rgba(37,99,235,0.4)]"></div>
-                  </div>
-                </div>
-                <div className="group">
-                  <div className="flex justify-between items-end mb-2">
-                    <span className="font-label-md text-[14px] font-bold text-text-primary group-hover:text-secondary transition-colors">Backend Dev</span>
-                    <span className="text-[10px] font-label-sm font-bold text-secondary font-mono bg-secondary/10 px-2 py-0.5 rounded border border-secondary/20">Advanced</span>
-                  </div>
-                  <div className="w-full h-2.5 bg-surface-container rounded-full overflow-hidden border border-border-base shadow-inner">
-                    <div className="h-full bg-gradient-to-r from-secondary/80 to-secondary rounded-full relative w-[65%] shadow-[0_0_10px_rgba(0,104,122,0.4)]"></div>
-                  </div>
-                </div>
-                <div className="group">
-                  <div className="flex justify-between items-end mb-2">
-                    <span className="font-label-md text-[14px] font-bold text-text-primary group-hover:text-tertiary transition-colors">System Design</span>
-                    <span className="text-[10px] font-label-sm font-bold text-tertiary font-mono bg-tertiary/10 px-2 py-0.5 rounded border border-tertiary/20">Proficient</span>
-                  </div>
-                  <div className="w-full h-2.5 bg-surface-container rounded-full overflow-hidden border border-border-base shadow-inner">
-                    <div className="h-full bg-gradient-to-r from-tertiary/80 to-tertiary rounded-full relative w-[50%] shadow-[0_0_10px_rgba(99,46,205,0.4)]"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Col: Heatmap & Achievements */}
-          <div className="md:col-span-8 flex flex-col gap-8">
-            
-            {/* Learning Momentum (Heatmap) */}
-            <div className="glass-panel border border-border-base rounded-2xl p-6 md:p-8 shadow-sm overflow-x-auto">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-headline-md text-[20px] font-bold text-text-primary flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary">timeline</span> Learning Momentum
-                </h3>
-                <span className="font-label-sm text-[11px] font-bold text-text-secondary bg-surface-container px-3 py-1.5 rounded-full border border-border-base shadow-sm">Last 6 Months</span>
-              </div>
-              
-              {/* Heatmap Grid */}
-              <div className="flex gap-2 min-w-[600px] pb-2">
-                <div className="flex flex-col gap-2 font-label-sm text-[12px] text-text-secondary font-medium w-8 pr-2 items-end pt-[20px]">
-                  <span>Mon</span><span>Wed</span><span>Fri</span>
-                </div>
-                <div className="flex gap-2">
-                  {Array.from({ length: 26 }).map((_, c) => (
-                    <div key={c} className="flex flex-col gap-2 pt-[20px] relative">
-                      {c % 4 === 0 && <span className="absolute -mt-[24px] text-[11px] font-label-sm text-text-secondary font-medium">{
-                        new Date(new Date().setDate(new Date().getDate() - (181 - (c * 7)))).toLocaleString('default', { month: 'short' })
-                      }</span>}
-                      {Array.from({ length: 7 }).map((_, r) => {
-                        const cellIndex = c * 7 + r;
-                        const daysAgo = 181 - cellIndex;
-                        const date = new Date();
-                        date.setDate(date.getDate() - daysAgo);
-                        const dateStr = date.toISOString().split('T')[0];
-                        const count = heatmap.get(dateStr) || 0;
-                        
-                        let intensityClass = 'bg-surface-container border border-border-base shadow-inner';
-                        if (count >= 5) intensityClass = 'bg-primary border border-primary/50 shadow-[0_0_8px_rgba(37,99,235,0.5)]';
-                        else if (count >= 3) intensityClass = 'bg-primary/80 border border-primary/40 shadow-sm';
-                        else if (count >= 2) intensityClass = 'bg-primary/50 border border-primary/30';
-                        else if (count >= 1) intensityClass = 'bg-primary/30 border border-primary/20';
-                        
-                        return <div key={r} title={`${count} activities on ${dateStr}`} className={`w-3.5 h-3.5 rounded-[3px] ${intensityClass} hover:scale-125 hover:z-10 hover:ring-2 hover:ring-primary/50 transition-all cursor-pointer`}></div>;
-                      })}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="flex justify-end items-center gap-2 mt-6 font-label-sm text-[11px] font-medium text-text-secondary">
-                <span>Less</span>
-                <div className="w-3.5 h-3.5 rounded-[3px] bg-surface-container border border-border-base shadow-inner"></div>
-                <div className="w-3.5 h-3.5 rounded-[3px] bg-primary/30 border border-primary/20"></div>
-                <div className="w-3.5 h-3.5 rounded-[3px] bg-primary/50 border border-primary/30"></div>
-                <div className="w-3.5 h-3.5 rounded-[3px] bg-primary/80 border border-primary/40 shadow-sm"></div>
-                <div className="w-3.5 h-3.5 rounded-[3px] bg-primary border border-primary/50 shadow-[0_0_8px_rgba(37,99,235,0.5)]"></div>
-                <span>More</span>
-              </div>
-            </div>
-
-            {/* Achievements Showcase */}
-            <div className="glass-panel border border-border-base rounded-2xl p-6 md:p-8 shadow-sm flex-1">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-headline-md text-[20px] font-bold text-text-primary flex items-center gap-2">
-                  <span className="material-symbols-outlined text-warning" style={{ fontVariationSettings: "'FILL' 1" }}>military_tech</span> Achievements
-                </h3>
-                <a href="#" className="font-label-sm text-[12px] font-bold text-primary hover:text-primary-container transition-colors uppercase tracking-widest bg-primary/10 px-3 py-1.5 rounded-full border border-primary/20">View All</a>
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="flex items-start gap-4 p-4 rounded-xl border border-border-base bg-surface hover:border-primary/50 hover:shadow-md transition-all group card-lift">
-                  <div className="w-12 h-12 rounded-lg bg-tertiary-container/20 flex items-center justify-center shrink-0 border border-tertiary/20 shadow-inner group-hover:scale-105 transition-transform text-tertiary">
-                    <span className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
-                  </div>
-                  <div>
-                    <h4 className="font-label-md text-[14px] font-bold text-text-primary mb-1 leading-tight">{profile.streak_days ?? 0} Day Streak</h4>
-                    <p className="font-body-sm text-[11px] text-text-secondary leading-tight">Consistent learning champion.</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-4 p-4 rounded-xl border border-border-base bg-surface hover:border-primary/50 hover:shadow-md transition-all group card-lift">
-                  <div className="w-12 h-12 rounded-lg bg-secondary-container/20 flex items-center justify-center shrink-0 border border-secondary/20 shadow-inner group-hover:scale-105 transition-transform text-secondary">
-                    <span className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: "'FILL' 1" }}>science</span>
-                  </div>
-                  <div>
-                    <h4 className="font-label-md text-[14px] font-bold text-text-primary mb-1 leading-tight">Early Adopter</h4>
-                    <p className="font-body-sm text-[11px] text-text-secondary leading-tight">Joined in the early days.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4 p-4 rounded-xl border border-border-base bg-surface hover:border-primary/50 hover:shadow-md transition-all group card-lift">
-                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20 shadow-inner group-hover:scale-105 transition-transform text-primary">
-                    <span className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
-                  </div>
-                  <div>
-                    <h4 className="font-label-md text-[14px] font-bold text-text-primary mb-1 leading-tight">{profile.courses_completed ?? 0} Courses</h4>
-                    <p className="font-body-sm text-[11px] text-text-secondary leading-tight">Course milestones.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
       </div>
     </AppLayout>
   );

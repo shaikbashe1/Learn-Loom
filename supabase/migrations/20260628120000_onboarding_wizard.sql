@@ -84,7 +84,7 @@ AS $$
     AND NOT EXISTS (
       SELECT 1 FROM public.profiles
       WHERE lower(username) = lower(trim(p_username))
-        AND id <> COALESCE(auth.uid(), '00000000-0000-0000-0000-000000000000'::uuid)
+        AND id::text <> COALESCE(auth.uid()::text, '00000000-0000-0000-0000-000000000000')
     );
 $$;
 
