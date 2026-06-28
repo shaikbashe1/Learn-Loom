@@ -46,7 +46,8 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE TABLE public.conversations (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   created_at timestamptz NOT NULL DEFAULT now(),
-  last_message_at timestamptz NOT NULL DEFAULT now()
+  last_message_at timestamptz NOT NULL DEFAULT now(),
+  created_by text DEFAULT auth.uid()::text
 );
 ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
 
@@ -129,7 +130,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Conversations
 CREATE POLICY "Participant can view conversations" ON public.conversations
-FOR SELECT USING ( public.is_conversation_participant(id) );
+FOR SELECT USING ( created_by = auth.uid()::text OR public.is_conversation_participant(id) );
 
 CREATE POLICY "Authenticated users can insert conversations" ON public.conversations
 FOR INSERT TO authenticated WITH CHECK (true);
