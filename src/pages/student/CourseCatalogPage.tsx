@@ -211,25 +211,30 @@ export default function CourseCatalogPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filtered.map((course, index) => {
                   const isEnrolled = enrollments.has(course.id);
-                  const isCompleted = enrollments.get(course.id)?.completed_at != null;
+                  const enrollmentInfo = enrollments.get(course.id);
+                  const isCompleted = enrollmentInfo?.completed_at != null;
+                  const progressPercent = enrollmentInfo?.progress_percent ?? 0;
                   
-                  // Rotating gradients for thumbnails
+                  // Premium curated gradients for thumbnails
                   const gradients = [
-                    'from-[#004ac6] to-[#7d4ce7]',
-                    'from-[#57dffe] to-[#004ac6]',
-                    'from-[#632ecd] to-[#b4c5ff]',
-                    'from-[#00687a] to-[#4cd7f6]'
+                    'from-[#0F2027] via-[#203A43] to-[#2C5364]',
+                    'from-[#8A2387] via-[#E94057] to-[#F27121]',
+                    'from-[#1f4037] to-[#99f2c8]',
+                    'from-[#3A1C71] via-[#D76D77] to-[#FFAF7B]'
                   ];
                   const gradient = gradients[index % gradients.length];
                   const badgeColor = index % 2 === 0 ? 'text-primary bg-primary/10 border-primary/20' : 'text-tertiary bg-tertiary/10 border-tertiary/20';
 
+                  const instructorName = course.instructor || "LearnLoom Group";
+                  const instructorInitials = instructorName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+
                   return (
-                    <div key={course.id} className="bg-surface border border-border-base rounded-xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(37,99,235,0.08)] transition-all duration-300 hover:-translate-y-1 group relative flex flex-col card-lift">
-                      {/* Top gradient border effect */}
-                      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-tertiary to-secondary opacity-0 group-hover:opacity-100 transition-opacity z-20"></div>
+                    <div key={course.id} className="bg-surface border border-border-base rounded-2xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-[0_12px_40px_rgba(var(--primary-rgb,99,102,241),0.15)] transition-all duration-300 hover:-translate-y-1.5 group relative flex flex-col card-lift">
+                      {/* Top gradient border effect on hover */}
+                      <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-tertiary to-secondary opacity-0 group-hover:opacity-100 transition-opacity z-20"></div>
                       
-                      <div className="h-40 bg-surface-container relative overflow-hidden">
-                        <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-85 z-0`}></div>
+                      <div className="h-44 bg-surface-container relative overflow-hidden shrink-0">
+                        <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-90 z-0`}></div>
                         {course.thumbnail_url ? (
                           <img 
                             src={course.thumbnail_url} 
@@ -237,62 +242,81 @@ export default function CourseCatalogPage() {
                             className="w-full h-full object-cover mix-blend-overlay group-hover:scale-105 transition-transform duration-500" 
                           />
                         ) : (
-                          <div className="absolute inset-0 flex items-center justify-center mix-blend-overlay opacity-30">
-                            <span className="material-symbols-outlined text-[64px] text-white">code_blocks</span>
+                          <div className="absolute inset-0 flex items-center justify-center mix-blend-overlay opacity-25">
+                            <span className="material-symbols-outlined text-[64px] text-white select-none">code_blocks</span>
                           </div>
                         )}
                         
-                        {/* Tags over image */}
-                        <div className="absolute top-3 left-3 z-10">
-                           <span className={`px-2.5 py-1 rounded-md bg-surface/90 backdrop-blur-md border border-border-base text-label-sm font-label-sm font-bold ${getDifficultyColor(course.difficulty)} shadow-sm`}>
+                        {/* Difficulty Badge */}
+                        <div className="absolute top-3.5 left-3.5 z-10 select-none">
+                           <span className={`px-2.5 py-1 rounded-md bg-surface/90 backdrop-blur-md border border-border-base text-[11px] font-bold ${getDifficultyColor(course.difficulty)} shadow-sm`}>
                             {course.difficulty}
                           </span>
                         </div>
+
+                        {/* Completed Status Badge */}
                         {isCompleted && (
-                          <div className="absolute top-3 right-3 z-10 bg-success text-on-primary px-2.5 py-1 rounded-md font-label-sm text-label-sm font-bold shadow-sm flex items-center gap-1">
-                             <span className="material-symbols-outlined text-[14px] fill">verified</span> Completed
+                          <div className="absolute top-3.5 right-3.5 z-10 bg-success text-on-primary px-2.5 py-1 rounded-md text-[11px] font-bold shadow-sm flex items-center gap-1 select-none animate-pulse-glow">
+                             <span className="material-symbols-outlined text-[13px] font-bold">verified</span> Completed
                           </div>
                         )}
                       </div>
                       
-                      <div className="p-5 flex flex-col flex-1 relative z-10 bg-surface">
-                        <div className="flex justify-between items-start mb-3">
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider border ${badgeColor}`}>
+                      <div className="p-5 sm:p-6 flex flex-col flex-grow relative z-10 bg-surface">
+                        <div className="flex justify-between items-center mb-3.5 select-none">
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${badgeColor}`}>
                             {course.category}
                           </span>
-                          <span className="font-label-sm text-label-sm text-text-secondary flex items-center gap-1">
-                            <span className="material-symbols-outlined text-[16px]">schedule</span> 
+                          <span className="text-[12px] text-text-secondary flex items-center gap-1 font-semibold">
+                            <span className="material-symbols-outlined text-[16px] text-text-secondary">schedule</span> 
                             {course.duration_hours ? `${course.duration_hours}h` : `${course.duration_weeks}w`}
                           </span>
                         </div>
                         
-                        <h3 className="font-headline-md text-headline-md text-on-surface line-clamp-2 mb-2 group-hover:text-primary transition-colors font-bold">
+                        <h3 className="text-[18px] sm:text-[20px] font-headline-md text-text-primary line-clamp-2 mb-2 group-hover:text-primary transition-colors font-bold leading-snug">
                           {course.title}
                         </h3>
                         
-                        <p className="font-body-sm text-body-sm text-text-secondary line-clamp-2 mb-5 flex-grow leading-relaxed">
-                          {course.description ?? 'A premium course to level up your engineering career.'}
+                        <p className="font-body-sm text-body-sm text-text-secondary line-clamp-2 mb-4 leading-relaxed">
+                          {course.description ?? 'Accelerate your career with personalized, AI-driven learning paths and projects.'}
                         </p>
-                        
-                        <div className="flex items-center justify-between mt-auto pt-4 border-t border-border-base">
-                          <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center border border-border-base text-primary font-label-sm font-bold">
-                              {course.instructor.split(' ').map(n => n[0]).join('').slice(0, 2)}
+
+                        {/* User Enrolled Progress Bar */}
+                        {isEnrolled && !isCompleted && (
+                          <div className="mb-5 select-none">
+                            <div className="flex justify-between items-center text-[11px] font-bold mb-1">
+                              <span className="text-primary">Learning Progress</span>
+                              <span className="text-text-secondary">{progressPercent}%</span>
                             </div>
-                            <div>
-                              <div className="font-label-sm text-label-sm text-on-surface leading-tight max-w-[100px] truncate font-semibold">{course.instructor}</div>
+                            <div className="w-full bg-surface-container rounded-full h-1.5 overflow-hidden">
+                              <div 
+                                className="bg-primary h-full rounded-full transition-all duration-500" 
+                                style={{ width: `${progressPercent}%` }}
+                              />
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center justify-between mt-auto pt-4 border-t border-border-base/70 select-none">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-9 h-9 rounded-full bg-surface-container-high flex items-center justify-center border border-border-base text-primary font-bold text-[12px] shadow-inner shrink-0">
+                              {instructorInitials}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="text-[12px] sm:text-[13px] font-bold text-text-primary leading-tight truncate max-w-[110px]">{instructorName}</div>
                               <div className="flex items-center text-warning text-xs mt-0.5">
                                 <span className="material-symbols-outlined text-[12px] fill">star</span>
-                                <span className="ml-0.5 font-body-sm text-on-surface font-bold">{course.rating?.toFixed(1) ?? 'New'}</span>
+                                <span className="ml-0.5 font-bold text-text-primary">{course.rating?.toFixed(1) ?? 'New'}</span>
                                 {course.student_count > 0 && <span className="ml-1 text-text-secondary font-medium">({course.student_count})</span>}
                               </div>
                             </div>
                           </div>
+                          
                           <Link to={`/courses/${course.id}`}>
-                            <button className={`px-5 py-2.5 rounded-lg font-label-md font-bold transition-all min-h-[38px] active:scale-95 flex items-center justify-center ${
+                            <button className={`px-5 py-2.5 rounded-lg text-[13px] font-label-md font-bold transition-all min-h-[38px] active:scale-95 flex items-center justify-center cursor-pointer shadow-sm ${
                               isEnrolled 
                                 ? 'bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20' 
-                                : 'bg-surface hover:bg-primary text-primary hover:text-on-primary border border-primary shadow-sm'
+                                : 'bg-gradient-to-r from-primary to-[hsl(var(--chart-4))] text-on-primary hover:shadow-md hover:opacity-90'
                             }`}>
                               {isEnrolled ? 'Continue' : 'Enroll'}
                             </button>
@@ -303,6 +327,7 @@ export default function CourseCatalogPage() {
                   );
                 })}
               </div>
+
             )}
           </div>
         </div>

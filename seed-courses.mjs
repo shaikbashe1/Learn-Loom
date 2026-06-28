@@ -209,33 +209,55 @@ def run_process(*args, **kwargs):
 async function seedCourses() {
   console.log("🚀 Starting database course seeding pipeline...");
 
-  // Sign in as admin
-  const email = 'admin@demo.com';
-  const password = 'admin123';
-  console.log(`🔑 Attempting authentication as admin (${email})...`);
-  
-  const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-    email,
-    password
-  });
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SERVICE_ROLE_KEY;
+  let authSupabase;
+  let userId = null;
 
-  if (authError) {
-    console.error("❌ Authentication failed:", authError.message);
-    process.exit(1);
-  }
-
-  const userId = authData.user?.id;
-  const token = authData.session?.access_token;
-  console.log(`✅ Authenticated! Admin User ID: ${userId}`);
-
-  // Create client with authenticated token headers
-  const authSupabase = createClient(url, key, {
-    global: {
-      headers: {
-        Authorization: `Bearer ${token}`
+  if (serviceKey && serviceKey !== 'your_service_role_key_here') {
+    console.log("🔑 Initializing Supabase client with administrative Service Role Key...");
+    authSupabase = createClient(url, serviceKey);
+    
+    // Fetch a valid creator profile ID to satisfy foreign key constraints
+    const { data: adminUser } = await authSupabase.from('profiles').select('id').eq('role', 'admin').limit(1);
+    if (adminUser && adminUser.length > 0) {
+      userId = adminUser[0].id;
+    } else {
+      const { data: anyUser } = await authSupabase.from('profiles').select('id').limit(1);
+      if (anyUser && anyUser.length > 0) {
+        userId = anyUser[0].id;
       }
     }
-  });
+    console.log(`✅ Service client initialized. Creator Profile ID: ${userId || 'None'}`);
+  } else {
+    // Sign in as admin fallback
+    const email = 'admin@demo.com';
+    const password = 'admin123';
+    console.log(`🔑 Service key not found. Attempting admin password login (${email})...`);
+    
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (authError) {
+      console.error("❌ Authentication failed:", authError.message);
+      console.error("💡 Please configure SUPABASE_SERVICE_ROLE_KEY in your .env file or run with correct credentials.");
+      process.exit(1);
+    }
+
+    userId = authData.user?.id;
+    const token = authData.session?.access_token;
+    console.log(`✅ Authenticated! Admin User ID: ${userId}`);
+
+    // Create client with authenticated token headers
+    authSupabase = createClient(url, key, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    });
+  }
 
   for (const cData of coursesData) {
     console.log(`\n📚 Seeding course: "${cData.title}"...`);
