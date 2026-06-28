@@ -81,15 +81,18 @@ export function NewMessageModal({ open, onOpenChange, onUserSelect }: NewMessage
     }
   }, [open, user, profile]);
 
-  const handleSearch = async () => {
-    if (!query.trim()) return;
+  const handleSearch = async (searchQuery = query) => {
+    if (!searchQuery.trim()) {
+      setResults([]);
+      return;
+    }
     setLoading(true);
     
     try {
       let q = supabase
         .from('public_profiles')
         .select('id, full_name, avatar_url, role')
-        .ilike('full_name', `%${query}%`)
+        .ilike('full_name', `%${searchQuery}%`)
         .neq('id', user?.id)
         .limit(20);
         
@@ -110,31 +113,37 @@ export function NewMessageModal({ open, onOpenChange, onUserSelect }: NewMessage
     }
   };
 
+  // Live search as user types
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      handleSearch();
+    }, 300);
+    return () => clearTimeout(delayDebounceFn);
+  }, [query]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-surface border border-border-base rounded-2xl shadow-xl p-0 overflow-hidden">
-        <DialogHeader className="px-6 py-4 border-b border-border-base bg-surface-container-lowest">
-          <DialogTitle className="text-xl font-bold font-display text-text-primary">New Message</DialogTitle>
+      <DialogContent className="sm:max-w-2xl bg-surface border border-border-base rounded-3xl shadow-2xl p-0 overflow-hidden">
+        <DialogHeader className="px-8 py-6 border-b border-border-base bg-surface-container-lowest">
+          <DialogTitle className="text-2xl font-bold font-display text-text-primary">Start a Conversation</DialogTitle>
         </DialogHeader>
         
-        <div className="p-6 space-y-4">
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-2.5 h-5 w-5 text-text-secondary" />
-              <Input
-                placeholder="Search by name..."
-                className="pl-10 bg-surface-container-low border-outline-variant/60 focus:border-primary"
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleSearch()}
-              />
-            </div>
-            <Button onClick={() => void handleSearch()} disabled={loading} className="font-bold">
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Search'}
-            </Button>
+        <div className="p-8 space-y-6 bg-surface-container-lowest/30">
+          <div className="relative group">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-6 w-6 text-text-secondary group-focus-within:text-primary transition-colors" />
+            <Input
+              placeholder="Search by name to find someone..."
+              className="pl-14 pr-12 h-16 text-lg rounded-2xl bg-surface border-2 border-border-base focus:border-primary shadow-sm focus:shadow-md transition-all placeholder:text-text-secondary/60"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              autoFocus
+            />
+            {loading && (
+              <Loader2 className="absolute right-5 top-1/2 -translate-y-1/2 h-6 w-6 animate-spin text-primary" />
+            )}
           </div>
 
-          <div className="max-h-[300px] overflow-y-auto space-y-2 mt-4">
+          <div className="max-h-[400px] overflow-y-auto space-y-3 mt-4 pr-2 custom-scrollbar">
             {results.length === 0 && query && !loading && (
               <div className="text-center py-8 text-text-secondary">
                 No users found that you can message.
@@ -145,18 +154,18 @@ export function NewMessageModal({ open, onOpenChange, onUserSelect }: NewMessage
               <button
                 key={u.id}
                 onClick={() => onUserSelect(u.id)}
-                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-surface-container transition-colors text-left group border border-transparent hover:border-border-base"
+                className="w-full flex items-center gap-4 p-4 rounded-2xl bg-surface border border-border-base hover:border-primary/50 hover:shadow-md transition-all text-left group"
               >
                 {u.avatar_url ? (
-                  <img src={u.avatar_url} alt={u.full_name} className="w-10 h-10 rounded-full object-cover shadow-sm group-hover:scale-105 transition-transform" />
+                  <img src={u.avatar_url} alt={u.full_name} className="w-14 h-14 rounded-full object-cover shadow-sm group-hover:scale-105 transition-transform ring-2 ring-transparent group-hover:ring-primary/20" />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg group-hover:scale-105 transition-transform">
+                  <div className="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xl group-hover:scale-105 transition-transform ring-2 ring-transparent group-hover:ring-primary/20">
                     {u.full_name?.charAt(0).toUpperCase() || 'U'}
                   </div>
                 )}
                 <div>
-                  <h4 className="font-bold text-text-primary text-sm leading-tight">{u.full_name}</h4>
-                  <p className="text-xs text-text-secondary capitalize">{u.role}</p>
+                  <h4 className="font-bold text-text-primary text-base leading-tight group-hover:text-primary transition-colors">{u.full_name}</h4>
+                  <p className="text-sm text-text-secondary capitalize mt-0.5">{u.role}</p>
                 </div>
               </button>
             ))}
