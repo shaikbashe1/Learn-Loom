@@ -119,8 +119,9 @@ To populate your database with 4 production-quality, well-structured courses (Py
    npm run seed
    ```
    > [!IMPORTANT]
-   > **Schema Cache Mismatches**: If you see `Could not find the 'content' or 'content_url' column of 'course_modules'` during seeding, PostgREST needs to reload its cache. Run the following command in the **SQL Editor** of your Supabase Dashboard:
+   > **Schema Cache Mismatches**: If you see `Could not find the 'content' or 'content_url' column of 'course_modules'` or `Could not find the 'module_id' column of 'assignments'` during seeding, PostgREST needs to reload its cache. Run the following command in the **SQL Editor** of your Supabase Dashboard:
    > ```sql
+   > -- Add all missing progression columns to the course_modules table
    > ALTER TABLE public.course_modules 
    > ADD COLUMN IF NOT EXISTS content_url TEXT,
    > ADD COLUMN IF NOT EXISTS learning_objectives TEXT,
@@ -133,6 +134,10 @@ To populate your database with 4 production-quality, well-structured courses (Py
    > ADD COLUMN IF NOT EXISTS real_world_use_cases JSONB DEFAULT '[]'::jsonb,
    > ADD COLUMN IF NOT EXISTS key_concepts JSONB DEFAULT '[]'::jsonb,
    > ADD COLUMN IF NOT EXISTS summary TEXT;
+   > 
+   > -- Add module_id to assignments table
+   > ALTER TABLE public.assignments 
+   > ADD COLUMN IF NOT EXISTS module_id UUID REFERENCES public.course_modules(id) ON DELETE CASCADE;
    > 
    > NOTIFY pgrst, 'reload schema';
    > ```

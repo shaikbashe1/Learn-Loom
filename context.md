@@ -200,8 +200,8 @@ LearnLoom is an advanced, AI-driven learning ecosystem designed for software eng
 4. Declared test results icons as `React.ReactNode` to prevent compile-time types evaluation errors.
 
 ### Issue 18: PostgREST Schema Cache Mismatches on Custom Column Inserts
-**Problem:** Attempting to seed modules with `content` and `content_url` columns threw database exceptions (`Could not find the 'content' or 'content_url' column of 'course_modules' in the schema cache`), due to the remote Supabase PostgREST schema cache missing the newly added structured course progression fields.
-**Resolution:** Updated database setup documentation to execute a unified SQL `ALTER TABLE` block adding all missing progression columns (including `content_url`, `learning_objectives`, etc.) and reloading the PostgREST cache using `NOTIFY pgrst, 'reload schema'`.
+**Problem:** Attempting to seed modules and assignments with custom progression fields (like `content_url` on `course_modules` or `module_id` on `assignments`) threw database exceptions (`Could not find the 'column_name' in the schema cache`), due to the remote Supabase PostgREST schema cache missing the column updates.
+**Resolution:** Updated database setup documentation to execute a unified SQL `ALTER TABLE` block adding all missing progression columns (including `content_url`, `learning_objectives`, etc. on `course_modules` and `module_id` on `assignments`) and reloading the PostgREST cache using `NOTIFY pgrst, 'reload schema'`.
 
 ## Reference File & Folder Structure
 
