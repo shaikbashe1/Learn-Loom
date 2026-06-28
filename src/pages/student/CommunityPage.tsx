@@ -589,10 +589,28 @@ Student's Query mentioning @loomie:
         </div>
 
         {post.media && post.media.length > 0 && (
-          <div className="mt-3 overflow-hidden rounded-lg border border-border-base bg-surface-container-low max-h-[500px]">
-             {post.media[0].file_type === 'image' && (
-                <img src={post.media[0].file_url} alt="Post attachment" className="w-full h-full object-cover" />
-             )}
+          <div className={`mt-3 grid gap-1 overflow-hidden rounded-lg border border-border-base bg-surface-container-low ${post.media.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            {post.media.map((m, idx) => {
+              if (m.file_type.startsWith('image')) {
+                return <img key={idx} src={m.file_url} alt="attachment" className="w-full h-full max-h-[500px] object-cover" />;
+              } else if (m.file_type.startsWith('video')) {
+                return <video key={idx} src={m.file_url} controls className="w-full h-full max-h-[500px] object-cover bg-black" />;
+              } else if (m.file_type === 'application/pdf' || m.file_type === 'pdf') {
+                return (
+                  <div key={idx} className="p-4 flex items-center gap-3">
+                    <span className="material-symbols-outlined text-error text-[32px]">picture_as_pdf</span>
+                    <a href={m.file_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium font-body-md">View PDF Document</a>
+                  </div>
+                );
+              } else {
+                return (
+                  <div key={idx} className="p-4 flex items-center gap-3">
+                    <span className="material-symbols-outlined text-text-secondary text-[32px]">insert_drive_file</span>
+                    <a href={m.file_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium font-body-md">View Attachment</a>
+                  </div>
+                );
+              }
+            })}
           </div>
         )}
 
