@@ -170,39 +170,215 @@ const coursesData = [
 
 // Helper to generate module content HTML programmatically
 function generateModuleContent(courseTitle, modTitle, index) {
+  let explanation = `In this module, we dive deep into the concepts of <strong>${modTitle}</strong>. You will learn the best practices, syntax, and architectural patterns needed to master this topic.`;
+  let diagram = `[User/System] ➔ [${modTitle} Handler] ➔ [Execution Engine]`;
+  let codeSample = `// Code Demonstration: ${modTitle}
+public class Demo {
+    public static void main(String[] args) {
+        System.out.println("Executing ${modTitle} demo...");
+    }
+}`;
+
+  // Let's write topic-aware contents
+  if (courseTitle.includes("Python")) {
+    codeSample = `# Python Demonstration: ${modTitle}
+def main():
+    print("Running Python sample for ${modTitle}...")
+    
+if __name__ == "__main__":
+    main()`;
+    if (modTitle.includes("Variables")) {
+      explanation = `Variables in Python are dynamically typed references to objects. Unlike static languages (such as Java), you do not need to declare types explicitly. You simply assign a name to an object using the equal sign (<code>=</code>) operator.`;
+      diagram = `width = 10 (name reference) ➔ [Integer Object: 10]`;
+      codeSample = `# Python Variables & Assignment
+width = 10
+height = 20
+area = width * height
+print(f"Area: {area}") # Output: 200`;
+    } else if (modTitle.includes("OOP")) {
+      explanation = `Object-Oriented Programming (OOP) allows developers to structure programs by grouping related properties and behaviors into individual objects. In Python, this is achieved using the <code>class</code> keyword.`;
+      diagram = `[Parent Class: Animal] ➔ Inherited by ➔ [Child Class: Dog]`;
+      codeSample = `# Python Class OOP inheritance
+class Animal:
+    def __init__(self, name):
+        self.name = name
+    def speak(self):
+        return "Generic sound"
+
+class Dog(Animal):
+    def speak(self):
+        return "Bark!"
+
+my_dog = Dog("Buddy")
+print(my_dog.speak()) # Output: Bark!`;
+    }
+  } else if (courseTitle.includes("Java")) {
+    if (modTitle.includes("Hello World")) {
+      explanation = `The entry point of any standalone Java application is the static <code>main</code> method inside a class. Java is strictly object-oriented, requiring all code to reside within a class definition.`;
+      diagram = `[JVM Execution] ➔ public static void main(String[] args) ➔ Console`;
+      codeSample = `// Hello World class definition
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("Hello, World!");
+    }
+}`;
+    } else if (modTitle.includes("Spring Boot")) {
+      explanation = `Spring Boot provides an production-ready, auto-configured framework to build standalone enterprise applications quickly. Dependency injection handles class lifecycle management automatically.`;
+      diagram = `[Client REST Request] ➔ @RestController ➔ @Service ➔ Database`;
+      codeSample = `@RestController
+@RequestMapping("/api/courses")
+public class CourseController {
+    @GetMapping
+    public ResponseEntity<String> getCourses() {
+        return ResponseEntity.ok("Python, Java, AI, AI Agents");
+    }
+}`;
+    }
+  } else if (courseTitle.includes("AI & Machine Learning")) {
+    codeSample = `# NumPy / Scikit-Learn Demonstration: ${modTitle}
+import numpy as np
+data = np.array([1.2, 2.5, 3.1])
+print(data.mean())`;
+    if (modTitle.includes("Regression")) {
+      explanation = `Linear Regression attempts to model the relationship between a dependent scalar variable Y and one or more explanatory variables X by fitting a linear equation to the observed data.`;
+      diagram = `Data Points (X, Y) ➔ Linear fit line: Y = wX + b`;
+      codeSample = `# Linear Regression Fit
+import numpy as np
+from sklearn.linear_model import LinearRegression
+X = np.array([[1], [2], [3]])
+y = np.dot(X, [2]) + 1
+model = LinearRegression().fit(X, y)
+print(f"Intercept: {model.intercept_}, Coefficient: {model.coef_}")`;
+    }
+  } else if (courseTitle.includes("AI Agents")) {
+    codeSample = `# LangChain / CrewAI Agent definition
+from langchain_openai import ChatOpenAI
+from langchain.agents import AgentExecutor, create_openai_tools_agent
+# Agent definitions`;
+    if (modTitle.includes("RAG")) {
+      explanation = `Retrieval-Augmented Generation (RAG) optimizes the output of a large language model by referencing an authoritative external knowledge base outside of its training data sources before generating a response.`;
+      diagram = `[User Question] ➔ [Vector DB Embeddings Match] ➔ [LLM Prompt Context]`;
+      codeSample = `# Simple Vector Retrieval Query
+from langchain_community.vectorstores import Chroma
+from langchain_openai import OpenAIEmbeddings
+
+vector_store = Chroma(persist_directory="./db", embedding_function=OpenAIEmbeddings())
+retriever = vector_store.as_retriever(search_kwargs={"k": 2})
+docs = retriever.get_relevant_documents("What is LangGraph?")
+print(docs[0].page_content)`;
+    }
+  }
+
   return `
     <div class="space-y-6">
       <section class="prose max-w-none">
         <h3 class="text-xl font-bold text-primary">Overview & Objectives</h3>
-        <p>In this module, we will explore the core concepts of <strong>${modTitle}</strong> within the context of the <em>${courseTitle}</em> course. By the end of this module, you will understand how this concept forms the building block for robust, production-ready system architectures.</p>
+        <p>${explanation}</p>
         
-        <h3 class="text-xl font-bold text-primary mt-6">Detailed Explanation</h3>
-        <p>Understanding the theoretical foundations of this topic is critical for any developer or AI practitioner. We start by exploring the syntax, execution lifecycles, and memory allocation structures relevant to these patterns.</p>
-        <div class="bg-surface-container border border-border-base p-4 rounded-xl font-mono text-sm my-4 shadow-inner">
-          // Conceptual workflow diagram:
-          [Client Application] ➔ [Service Controller Layer] ➔ [Data Mapping Engine]
+        <h3 class="text-xl font-bold text-primary mt-6">Architectural Workflow</h3>
+        <div class="bg-surface-container border border-border-base p-4 rounded-xl font-mono text-sm my-4 shadow-inner text-center select-none text-primary">
+          ${diagram}
         </div>
-        <p>Additionally, we must consider the performance implications. Always avoid memory leaks, nested loops that yield O(N²) execution times, and blockages of the main execution thread when writing applications.</p>
 
         <h3 class="text-xl font-bold text-primary mt-6">Step-by-Step Code Example</h3>
-        <p>Study this illustrative codebase example carefully. It demonstrates standard formatting, variable bounds, and typical application syntax:</p>
-        <pre class="bg-slate-900 text-slate-100 p-4 rounded-xl overflow-x-auto text-xs my-4 shadow-md font-mono">
-# Code Demonstration: ${modTitle}
-def run_process(*args, **kwargs):
-    print("Initiating execution process for ${modTitle}...")
-    try:
-        # Business logic goes here
-        result = "Success status code 200"
-        return {"status": "ok", "payload": result}
-    except Exception as err:
-        return {"status": "error", "message": str(err)}
+        <p>Analyze this production-quality code snippet illustrating standard patterns and syntaxes:</p>
+        <pre class="bg-slate-900 text-slate-100 p-4 rounded-xl overflow-x-auto text-xs my-4 shadow-md font-mono select-text">
+${codeSample}
         </pre>
 
         <h3 class="text-xl font-bold text-primary mt-6">Summary</h3>
-        <p>To conclude, keep this architecture clean, modular, and fully tested. We will leverage these foundational concepts in the subsequent chapters of the curriculum.</p>
+        <p>To conclude, ensure these concepts are modularized, clean, and fully covered. In the next module, we will expand this setup with advanced testing architectures.</p>
       </section>
     </div>
   `;
+}
+
+// Helper to generate topic-appropriate realistic coding questions
+function getRealisticCodingQuestion(courseTitle, modTitle, orderIndex) {
+  let title = `Coding Lab: Implement ${modTitle}`;
+  let problem_statement = `Write a function \`solution(data)\` that cleans, processes, or formats a given input list \`data\`.`;
+  let starter_code = {
+    "python": "def solution(data):\n    # Write your code here\n    return [x for x in data if x is not None]\n",
+    "javascript": "function solution(data) {\n    // Write your code here\n    return data.filter(x => x !== null && x !== undefined);\n}"
+  };
+  let test_cases = [
+    { input: "[1, null, 2, 3]", expected_output: "[1, 2, 3]", is_hidden: false },
+    { input: "[null, null, 1]", expected_output: "[1]", is_hidden: false },
+    { input: "[]", expected_output: "[]", is_hidden: true }
+  ];
+
+  if (courseTitle.includes("Python")) {
+    if (modTitle.includes("Variables")) {
+      title = "Python Lab: Celsius to Fahrenheit Converter";
+      problem_statement = `Implement a function \`solution(celsius)\` that converts a temperature value from Celsius to Fahrenheit.
+Formula: F = C * 1.8 + 32`;
+      starter_code = {
+        "python": "def solution(celsius):\n    # Convert and return fahrenheit\n    return celsius * 1.8 + 32\n",
+        "javascript": "function solution(celsius) {\n    return celsius * 1.8 + 32;\n}"
+      };
+      test_cases = [
+        { input: "0", expected_output: "32", is_hidden: false },
+        { input: "100", expected_output: "212", is_hidden: false },
+        { input: "-40", expected_output: "-40", is_hidden: true }
+      ];
+    } else if (modTitle.includes("Loops")) {
+      title = "Python Lab: Sum Even Numbers";
+      problem_statement = `Implement a function \`solution(limit)\` that computes the sum of all even numbers from 1 up to \`limit\` (inclusive).`;
+      starter_code = {
+        "python": "def solution(limit):\n    # Return sum of all even numbers\n    return sum(x for x in range(1, limit + 1) if x % 2 == 0)\n",
+        "javascript": "function solution(limit) {\n    let sum = 0;\n    for(let i=1; i<=limit; i++) { if(i%2===0) sum+=i; }\n    return sum;\n}"
+      };
+      test_cases = [
+        { input: "10", expected_output: "30", is_hidden: false },
+        { input: "5", expected_output: "6", is_hidden: false },
+        { input: "1", expected_output: "0", is_hidden: true }
+      ];
+    }
+  } else if (courseTitle.includes("Java")) {
+    if (modTitle.includes("Hello World") || modTitle.includes("Variables")) {
+      title = "Java Lab: Reverse a String";
+      problem_statement = `Implement a function \`solution(str)\` that returns the reversed string representation.`;
+      starter_code = {
+        "python": "def solution(str):\n    return str[::-1]\n",
+        "javascript": "function solution(str) {\n    return str.split('').reverse().join('');\n}"
+      };
+      test_cases = [
+        { input: "'java'", expected_output: "'avaj'", is_hidden: false },
+        { input: "'loom'", expected_output: "'mool'", is_hidden: false },
+        { input: "''", expected_output: "''", is_hidden: true }
+      ];
+    }
+  } else if (courseTitle.includes("AI & Machine Learning")) {
+    if (modTitle.includes("NumPy") || modTitle.includes("Math")) {
+      title = "ML Lab: Vector Dot Product";
+      problem_statement = `Write a function \`solution(arr1, arr2)\` that calculates the dot product of two arrays. Assume the arrays are of equal length.`;
+      starter_code = {
+        "python": "def solution(arr1, arr2):\n    # Return dot product\n    return sum(a*b for a,b in zip(arr1, arr2))\n",
+        "javascript": "function solution(arr1, arr2) {\n    return arr1.reduce((sum, val, idx) => sum + val * arr2[idx], 0);\n}"
+      };
+      test_cases = [
+        { input: "[1, 2], [3, 4]", expected_output: "11", is_hidden: false },
+        { input: "[0, 5], [10, 0]", expected_output: "0", is_hidden: false },
+        { input: "[1, 1], [1, 1]", expected_output: "2", is_hidden: true }
+      ];
+    }
+  } else if (courseTitle.includes("AI Agents")) {
+    if (modTitle.includes("Prompt") || modTitle.includes("Chains")) {
+      title = "Agent Lab: Prompt Token Replacer";
+      problem_statement = `Write a function \`solution(template, user)\` that replaces all occurrences of \`{user}\` with the provided string value \`user\`.`;
+      starter_code = {
+        "python": "def solution(template, user):\n    return template.replace('{user}', user)\n",
+        "javascript": "function solution(template, user) {\n    return template.replace(/{user}/g, user);\n}"
+      };
+      test_cases = [
+        { input: "'Hello {user}!', 'Alice'", expected_output: "'Hello Alice!'", is_hidden: false },
+        { input: "'{user} left the channel.', 'Bob'", expected_output: "'Bob left the channel.'", is_hidden: false },
+        { input: "'No tokens here.', 'Charlie'", expected_output: "'No tokens here.'", is_hidden: true }
+      ];
+    }
+  }
+
+  return { title, problem_statement, starter_code, test_cases };
 }
 
 // Seeding function
@@ -410,30 +586,29 @@ Submit your complete source code implementation in the field below for instructo
 
       // 6. Add Coding Assessment to every second module
       if (type === 'coding') {
+        const cqData = getRealisticCodingQuestion(cData.title, mInfo.title, i);
         const { data: cq, error: cqErr } = await authSupabase.from('coding_questions').insert({
           course_id: courseId,
           module_id: moduleId,
-          title: `Coding Lab: Master ${mInfo.title}`,
+          title: cqData.title,
           difficulty: cData.difficulty,
-          problem_statement: `Implement a function that performs clean formatting, sorting, or validation matching **${mInfo.title}**.
-
-Write a function \`solution(data)\` that filters null elements and returns a clean array/list.`,
-          constraints: ["Data elements range from 0 to 1000", "Maximum array length: 100", "Execution time limit: 2 seconds"],
-          starter_code: {
-            "python": "def solution(data):\n    # Write your code here\n    return [x for x in data if x is not None]\n",
-            "javascript": "function solution(data) {\n    // Write your code here\n    return data.filter(x => x !== null && x !== undefined);\n}"
-          },
+          problem_statement: cqData.problem_statement,
+          constraints: ["Execution time limit: 2 seconds", "Memory limit: 512MB"],
+          starter_code: cqData.starter_code,
           is_assessment: true,
           sort_order: 0
         }).select('id').single();
 
         if (!cqErr && cq) {
-          // Insert 3 test cases
-          await authSupabase.from('coding_test_cases').insert([
-            { question_id: cq.id, input: "[1, null, 2, 3]", expected_output: "[1, 2, 3]", is_hidden: false },
-            { question_id: cq.id, input: "[null, null, 1]", expected_output: "[1]", is_hidden: false },
-            { question_id: cq.id, input: "[]", expected_output: "[]", is_hidden: true }
-          ]);
+          // Insert test cases
+          await authSupabase.from('coding_test_cases').insert(
+            cqData.test_cases.map(tc => ({
+              question_id: cq.id,
+              input: tc.input,
+              expected_output: tc.expected_output,
+              is_hidden: tc.is_hidden
+            }))
+          );
         }
       }
     }
