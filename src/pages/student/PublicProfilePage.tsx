@@ -2,14 +2,21 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Skeleton } from '@/components/ui/skeleton';
-import { User, MapPin, GraduationCap, Briefcase, Target, Code, Award, Flame, Star, Search, CheckCircle2, Link as LinkIcon, Github, Linkedin, FileText, LayoutDashboard } from 'lucide-react';
+import { User, MapPin, GraduationCap, Briefcase, Target, Code, Award, Flame, Star, Search, CheckCircle2, Link as LinkIcon, Github, Linkedin, FileText, LayoutDashboard, UserPlus, UserMinus, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
 import { supabase } from '@/db/supabase';
 
 export default function PublicProfilePage() {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -27,6 +34,20 @@ export default function PublicProfilePage() {
           setProfile(null);
         } else {
           setProfile(data);
+          
+          // Fetch followers count
+          const { count: fCount } = await supabase
+            .from('user_followers')
+            .select('*', { count: 'exact', head: true })
+            .eq('following_id', id);
+          setFollowersCount(fCount || 0);
+
+          // Fetch following count
+          const { count: fngCount } = await supabase
+            .from('user_followers')
+            .select('*', { count: 'exact', head: true })
+            .eq('follower_id', id);
+          setFollowingCount(fngCount || 0);
         }
       } catch (err) {
         console.error("Error fetching profile:", err);
@@ -36,6 +57,58 @@ export default function PublicProfilePage() {
     };
     fetchProfile();
   }, [id]);
+
+  useEffect(() => {
+    const checkFollowing = async () => {
+      if (!user || !id) return;
+      const { data } = await supabase
+        .from('user_followers')
+        .select('*')
+        .eq('follower_id', user.id)
+        .eq('following_id', id)
+        .single();
+      setIsFollowing(!!data);
+    };
+    checkFollowing();
+  }, [user, id]);
+
+  const handleFollowToggle = async () => {
+    if (!user) {
+      toast.error('You must be logged in to follow users');
+      return;
+    }
+    if (!id || user.id === id) return;
+
+    setFollowLoading(true);
+    try {
+      if (isFollowing) {
+        // Unfollow
+        const { error } = await supabase
+          .from('user_followers')
+          .delete()
+          .eq('follower_id', user.id)
+          .eq('following_id', id);
+        if (error) throw error;
+        setIsFollowing(false);
+        setFollowersCount(prev => Math.max(0, prev - 1));
+        toast.success(`Unfollowed ${profile.full_name}`);
+      } else {
+        // Follow
+        const { error } = await supabase
+          .from('user_followers')
+          .insert({ follower_id: user.id, following_id: id });
+        if (error) throw error;
+        setIsFollowing(true);
+        setFollowersCount(prev => prev + 1);
+        toast.success(`Following ${profile.full_name}`);
+      }
+    } catch (error: any) {
+      console.error('Follow error:', error);
+      toast.error(error.message || 'Failed to update follow status');
+    } finally {
+      setFollowLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -93,16 +166,51 @@ export default function PublicProfilePage() {
               </div>
               
               {/* Basic Info */}
-              <div className="flex-1 text-center sm:text-left pb-2">
-                <h1 className="text-3xl sm:text-4xl font-bold text-text-primary tracking-tight">{profile.full_name}</h1>
-                <p className="text-lg text-text-secondary font-medium mt-1 flex items-center justify-center sm:justify-start gap-2">
-                  {profile.username && <span className="text-primary font-bold">@{profile.username}</span>}
-                  {profile.username && <span className="text-border-base">•</span>}
-                  <span>{profile.user_type ? profile.user_type.charAt(0).toUpperCase() + profile.user_type.slice(1) : 'Member'}</span>
-                </p>
-                <p className="text-text-primary mt-2 max-w-2xl text-sm sm:text-base leading-relaxed">
-                  {profile.bio || 'This user prefers to keep an air of mystery.'}
-                </p>
+              <div className="flex-1 text-center sm:text-left pb-2 flex flex-col sm:flex-row justify-between items-center sm:items-start gap-4">
+                <div>
+                  <h1 className="text-3xl sm:text-4xl font-bold text-text-primary tracking-tight">{profile.full_name}</h1>
+                  <p className="text-lg text-text-secondary font-medium mt-1 flex items-center justify-center sm:justify-start gap-2">
+                    {profile.username && <span className="text-primary font-bold">@{profile.username}</span>}
+                    {profile.username && <span className="text-border-base">•</span>}
+                    <span>{profile.user_type ? profile.user_type.charAt(0).toUpperCase() + profile.user_type.slice(1) : 'Member'}</span>
+                  </p>
+                  
+                  {/* Followers Info */}
+                  <div className="flex items-center gap-4 mt-3 justify-center sm:justify-start">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-text-primary">{followersCount}</span>
+                      <span className="text-sm text-text-secondary">Followers</span>
+                    </div>
+                    <div className="w-1 h-1 bg-border-base rounded-full"></div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-text-primary">{followingCount}</span>
+                      <span className="text-sm text-text-secondary">Following</span>
+                    </div>
+                  </div>
+
+                  <p className="text-text-primary mt-3 max-w-2xl text-sm sm:text-base leading-relaxed">
+                    {profile.bio || 'This user prefers to keep an air of mystery.'}
+                  </p>
+                </div>
+
+                {/* Follow Button */}
+                {user && user.id !== id && (
+                  <Button 
+                    onClick={handleFollowToggle} 
+                    disabled={followLoading}
+                    variant={isFollowing ? 'outline' : 'default'}
+                    className={`rounded-full shadow-sm mt-2 sm:mt-0 px-6 font-bold ${!isFollowing ? 'bg-primary hover:bg-primary-fixed-dim text-white' : ''}`}
+                  >
+                    {followLoading ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : isFollowing ? (
+                      <UserMinus className="w-4 h-4 mr-2" />
+                    ) : (
+                      <UserPlus className="w-4 h-4 mr-2" />
+                    )}
+                    {isFollowing ? 'Following' : 'Follow'}
+                  </Button>
+                )}
               </div>
             </div>
           </div>
