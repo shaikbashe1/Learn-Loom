@@ -112,8 +112,9 @@ export default function MessagesPage() {
         
       if (error) throw error;
       await refreshConversations(); // Update the sidebar last message preview
-    } catch (err) {
-      toast.error('Failed to send message');
+    } catch (err: any) {
+      console.error('Send message error:', err);
+      toast.error(`Failed to send message: ${err.message || 'Unknown error'}`);
       setNewMessage(content);
     } finally {
       setSending(false);
