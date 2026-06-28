@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,6 +22,14 @@ type ModuleWithStatus = DBModule & {
   passedQuizzes?: string[];
   codingPassed?: boolean;
 };
+
+function formatMarkdownContent(val: string | string[] | null | undefined): string {
+  if (!val) return '';
+  if (Array.isArray(val)) {
+    return val.map(item => `- ${item}`).join('\n');
+  }
+  return val;
+}
 
 // ── Selection-aware Markdown formatting injection helper ─────────────────────
 function insertFormat(
@@ -906,16 +915,17 @@ Question / Request: ${promptMap[action]}`;
           <div className="glass-panel border border-border-base rounded-2xl p-5 sm:p-6 md:p-8 shadow-sm flex flex-col gap-6">
             
             {/* Video Player */}
-            {activeModule.video_url ? (
+            {activeModule.youtube_url ? (
               <div className="relative aspect-video rounded-xl overflow-hidden shadow-md bg-black border border-border-base">
                 <iframe
                   className="absolute inset-0 w-full h-full"
-                  src={buildYouTubeEmbedUrl(activeModule.video_url)}
+                  src={buildYouTubeEmbedUrl(activeModule.youtube_url ?? '') ?? undefined}
                   title={activeModule.title}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
               </div>
+
             ) : (
               <div className="relative aspect-video rounded-xl overflow-hidden shadow-md bg-secondary-container-high border border-border-base flex flex-col items-center justify-center text-center p-6 select-none">
                 <span className="material-symbols-outlined text-[64px] text-primary mb-4 animate-float">smart_toy</span>
@@ -1031,7 +1041,7 @@ Question / Request: ${promptMap[action]}`;
                          <span className="material-symbols-outlined text-primary">key_visualizer</span> Key Concepts
                       </h3>
                       <div className="font-body-md text-text-secondary leading-relaxed pl-1">
-                        {renderMarkdown(activeModule.key_concepts)}
+                        {renderMarkdown(formatMarkdownContent(activeModule.key_concepts))}
                       </div>
                     </div>
                   )}
@@ -1043,7 +1053,7 @@ Question / Request: ${promptMap[action]}`;
                          <span className="material-symbols-outlined text-primary">analytics</span> Real-World Scenarios
                       </h3>
                       <div className="font-body-md text-text-secondary leading-relaxed pl-1">
-                        {renderMarkdown(activeModule.real_world_use_cases)}
+                        {renderMarkdown(formatMarkdownContent(activeModule.real_world_use_cases))}
                       </div>
                     </div>
                   )}
@@ -1055,7 +1065,7 @@ Question / Request: ${promptMap[action]}`;
                          <span className="material-symbols-outlined text-primary">terminal</span> Code Walkthroughs
                       </h3>
                       <div className="font-body-md text-text-secondary leading-relaxed pl-1">
-                        {renderMarkdown(activeModule.examples)}
+                        {renderMarkdown(formatMarkdownContent(activeModule.examples))}
                       </div>
                     </div>
                   )}

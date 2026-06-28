@@ -368,7 +368,7 @@ export default function GrandTestPage() {
                           const isActuallyCorrect = q.answer_index === optIdx;
                           let bgClass = "bg-surface border-border-base";
                           let textClass = "text-text-secondary";
-                          let icon = null;
+                          let icon: React.ReactNode = null;
 
                           if (isActuallyCorrect) {
                             bgClass = "bg-success/10 border-success/30";

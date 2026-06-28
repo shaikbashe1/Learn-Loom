@@ -7,7 +7,8 @@ async function runTest() {
   
   try {
     console.log('Navigating to Signup...');
-    await page.goto('https://learn-loom-indol.vercel.app/signup', { waitUntil: 'networkidle2' });
+    const targetUrl = process.env.TEST_URL || 'https://learn-loom-indol.vercel.app/signup';
+    await page.goto(targetUrl, { waitUntil: 'networkidle2' });
     
     const uniqueEmail = `testuser_${Date.now()}+clerk_test@example.com`;
     const password = 'TestPassword123!';
@@ -16,7 +17,6 @@ async function runTest() {
     await page.type('#name', 'Automated Test User');
     await page.type('#email', uniqueEmail);
     await page.type('#password', password);
-    await page.type('#confirm', password);
     await page.click('#terms');
     
     console.log('Submitting...');

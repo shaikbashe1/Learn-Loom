@@ -277,7 +277,7 @@ export default function CourseDetailPage() {
   );
 
   return (
-    <AppLayout title={course.title} noPadding>
+    <AppLayout title={course.title}>
       <main className="max-w-container-max mx-auto pt-0 md:pt-stack-xl px-margin-mobile md:px-margin-desktop w-full pb-24 lg:pb-0">
         {/* Link back */}
         <Link to="/courses" className="inline-flex items-center gap-2 font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors w-fit mb-6 mt-6 md:mt-0 min-h-[44px]">

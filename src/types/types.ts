@@ -389,3 +389,12 @@ export interface DBRoadmapItem {
   duration_minutes: number;
   created_at: string;
 }
+
+export interface DBActivityLog {
+  id: string;
+  user_id: string;
+  action_type: 'login' | 'logout' | 'complete_course' | 'pass_quiz' | 'solve_problem' | 'module_completed' | 'course_completed' | string;
+  description: string | null;
+  created_at: string;
+}
+

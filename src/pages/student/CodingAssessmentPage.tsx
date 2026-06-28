@@ -84,6 +84,8 @@ export default function CodingAssessmentPage() {
   const [result, setResult]         = useState<JudgeResponse | null>(null);
   const [activeTab, setActiveTab]   = useState<'output' | 'input'>('output');
   const [useCustomInput, setUseCustomInput] = useState(false);
+  const [customInput, setCustomInput]       = useState('');
+
   const [attempts, setAttempts]     = useState(0);
   const [mobileTab, setMobileTab]   = useState<'problem' | 'code' | 'output'>('problem');
   const MAX_ATTEMPTS = 3;

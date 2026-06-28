@@ -66,7 +66,7 @@ export async function generateAndSaveRoadmap(
       order_index: i
     });
 
-    const items = [];
+    const items: any[] = [];
     
     // Convert topics into items
     (phase.topics || []).forEach((topic: string, idx: number) => {

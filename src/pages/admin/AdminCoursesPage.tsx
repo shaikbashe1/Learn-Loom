@@ -19,6 +19,19 @@ import { uploadFile } from '@/lib/uploadFile';
 import { useAuth } from '@/contexts/AuthContext';
 import type { DBCourse, DBModule, DifficultyLevel } from '@/types/types';
 
+interface AIQuizQuestion {
+  question: string;
+  options: string[];
+  answer_index: number;
+  explanation: string;
+}
+
+interface AICodingTestCase {
+  input: string;
+  expected_output: string;
+  is_hidden?: boolean;
+}
+
 // ── helpers ────────────────────────────────────────────────────────────────
 function youtubeEmbedUrl(url: string): string | null {
   try {

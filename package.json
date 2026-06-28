@@ -7,7 +7,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "tsc -p tsconfig.check.json && npx biome lint src",
-    "test": "vitest run"
+    "test": "vitest run",
+    "seed": "node seed-courses.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
