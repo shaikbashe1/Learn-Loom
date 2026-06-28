@@ -259,6 +259,26 @@ async function seedCourses() {
     });
   }
 
+  // 🧹 Clear existing courses and sub-resources to guarantee only the 4 core courses remain
+  console.log("🧹 Clearing all existing courses and resources for a clean setup...");
+  try {
+    const { error: dtcErr } = await authSupabase.from('coding_test_cases').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    const { error: dqErr } = await authSupabase.from('coding_questions').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    const { error: dqqErr } = await authSupabase.from('quiz_questions').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    const { error: dqizErr } = await authSupabase.from('quizzes').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    const { error: dasgErr } = await authSupabase.from('assignments').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    const { error: dmodErr } = await authSupabase.from('course_modules').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    const { error: dcErr } = await authSupabase.from('courses').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    
+    if (dcErr) {
+      console.warn("⚠️ Warning: Failed to clear courses:", dcErr.message);
+    } else {
+      console.log("✅ Database courses and all linked sub-resources cleared successfully.");
+    }
+  } catch (err) {
+    console.warn("⚠️ Warning: Error during database cleanup:", err.message);
+  }
+
   for (const cData of coursesData) {
     console.log(`\n📚 Seeding course: "${cData.title}"...`);
 
@@ -277,8 +297,10 @@ async function seedCourses() {
       level: cData.level,
       topics: cData.topics,
       is_published: false, // Seed in draft mode
+      status: 'pending_review', // Set explicit status so it appears in the Moderation Queue
       created_by: userId
     }).select('id').single();
+
 
     if (cErr) {
       console.error(`❌ Failed to create course "${cData.title}":`, cErr);
