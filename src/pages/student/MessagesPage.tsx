@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { NewMessageModal } from '@/components/messaging/NewMessageModal';
 import { supabase } from '@/db/supabase';
 import { formatDistanceToNow, format } from 'date-fns';
-import { Send, Check, CheckCheck, Loader2, MessageSquarePlus, Clock } from 'lucide-react';
+import { Send, Check, CheckCheck, Loader2, MessageSquarePlus, Clock, Search } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function MessagesPage() {
@@ -22,9 +22,18 @@ export default function MessagesPage() {
   const [sending, setSending] = useState(false);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const activeConv = conversations.find(c => c.conversation.id === activeConvId);
+
+  const filteredConversations = conversations.filter(c => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    const nameMatch = c.otherParticipant?.profiles?.full_name?.toLowerCase().includes(q);
+    const msgMatch = c.lastMessage?.content?.toLowerCase().includes(q);
+    return nameMatch || msgMatch;
+  });
 
   // Load messages when active conversation changes
   useEffect(() => {
@@ -178,6 +187,18 @@ export default function MessagesPage() {
             </Button>
           </div>
           
+          <div className="p-3 border-b border-border-base bg-surface-container-lowest/50">
+            <div className="relative group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary group-focus-within:text-primary transition-colors" />
+              <Input
+                placeholder="Search messages & users..."
+                className="pl-9 bg-surface border-border-base focus:border-primary rounded-xl h-10 w-full shadow-sm transition-all focus:ring-2 focus:ring-primary/20"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
+          
           <div className="flex-1 overflow-y-auto">
             {loading ? (
               <div className="p-4 space-y-4">
@@ -191,15 +212,19 @@ export default function MessagesPage() {
                   </div>
                 ))}
               </div>
-            ) : conversations.length === 0 ? (
+            ) : filteredConversations.length === 0 ? (
               <div className="p-8 text-center flex flex-col items-center justify-center h-full text-text-secondary">
-                <span className="material-symbols-outlined text-4xl opacity-50 mb-3">chat_bubble</span>
-                <p className="text-sm">No messages yet.</p>
-                <p className="text-xs mt-1">Start a conversation!</p>
+                <span className="material-symbols-outlined text-4xl opacity-50 mb-3">search_off</span>
+                <p className="text-sm">No conversations found.</p>
+                {searchQuery ? (
+                  <p className="text-xs mt-1">Try a different search term.</p>
+                ) : (
+                  <p className="text-xs mt-1">Start a new conversation!</p>
+                )}
               </div>
             ) : (
               <div className="divide-y divide-border-base">
-                {conversations.map(conv => (
+                {filteredConversations.map(conv => (
                   <button
                     key={conv.conversation.id}
                     onClick={() => setActiveConvId(conv.conversation.id)}
