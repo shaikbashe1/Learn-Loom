@@ -3,7 +3,7 @@
 -- ============================================================
 
 -- Helper: Check if a user can message another user
-CREATE OR REPLACE FUNCTION public.can_message_user(u1 uuid, u2 uuid)
+CREATE OR REPLACE FUNCTION public.can_message_user(u1 text, u2 text)
 RETURNS boolean AS $$
 DECLARE
   u1_role public.user_role;
@@ -53,7 +53,7 @@ ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
 -- ── 2. Conversation Participants ─────────────────────────────────────────────
 CREATE TABLE public.conversation_participants (
   conversation_id uuid NOT NULL REFERENCES public.conversations(id) ON DELETE CASCADE,
-  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  user_id text NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   created_at timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (conversation_id, user_id)
 );
@@ -63,7 +63,7 @@ ALTER TABLE public.conversation_participants ENABLE ROW LEVEL SECURITY;
 CREATE TABLE public.messages (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   conversation_id uuid NOT NULL REFERENCES public.conversations(id) ON DELETE CASCADE,
-  sender_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  sender_id text NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   content text NOT NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
   read_at timestamptz
@@ -89,7 +89,7 @@ FOR EACH ROW EXECUTE FUNCTION public.update_conversation_last_message();
 CREATE OR REPLACE FUNCTION public.notify_new_message()
 RETURNS trigger AS $$
 DECLARE
-  v_recipient_id uuid;
+  v_recipient_id text;
   v_sender_name text;
 BEGIN
   -- Get sender name
@@ -120,38 +120,38 @@ FOR EACH ROW EXECUTE FUNCTION public.notify_new_message();
 -- Conversations
 CREATE POLICY "Participant can view conversations" ON public.conversations
 FOR SELECT USING (
-  EXISTS (SELECT 1 FROM public.conversation_participants cp WHERE cp.conversation_id = conversations.id AND cp.user_id = auth.uid())
+  EXISTS (SELECT 1 FROM public.conversation_participants cp WHERE cp.conversation_id = conversations.id AND cp.user_id = auth.uid()::text)
 );
 CREATE POLICY "Authenticated users can insert conversations" ON public.conversations
 FOR INSERT TO authenticated WITH CHECK (true);
 CREATE POLICY "Participant can update conversations" ON public.conversations
 FOR UPDATE USING (
-  EXISTS (SELECT 1 FROM public.conversation_participants cp WHERE cp.conversation_id = conversations.id AND cp.user_id = auth.uid())
+  EXISTS (SELECT 1 FROM public.conversation_participants cp WHERE cp.conversation_id = conversations.id AND cp.user_id = auth.uid()::text)
 );
 
 -- Conversation Participants
 CREATE POLICY "Participant can view conversation participants" ON public.conversation_participants
 FOR SELECT USING (
-  EXISTS (SELECT 1 FROM public.conversation_participants cp WHERE cp.conversation_id = conversation_participants.conversation_id AND cp.user_id = auth.uid())
+  EXISTS (SELECT 1 FROM public.conversation_participants cp WHERE cp.conversation_id = conversation_participants.conversation_id AND cp.user_id = auth.uid()::text)
 );
 CREATE POLICY "Users can add themselves and others if permitted" ON public.conversation_participants
 FOR INSERT TO authenticated WITH CHECK (
-  auth.uid() = user_id OR public.can_message_user(auth.uid(), user_id)
+  auth.uid()::text = user_id OR public.can_message_user(auth.uid()::text, user_id)
 );
 
 -- Messages
 CREATE POLICY "Participant can view messages" ON public.messages
 FOR SELECT USING (
-  EXISTS (SELECT 1 FROM public.conversation_participants cp WHERE cp.conversation_id = messages.conversation_id AND cp.user_id = auth.uid())
+  EXISTS (SELECT 1 FROM public.conversation_participants cp WHERE cp.conversation_id = messages.conversation_id AND cp.user_id = auth.uid()::text)
 );
 CREATE POLICY "Participant can insert messages" ON public.messages
 FOR INSERT TO authenticated WITH CHECK (
-  sender_id = auth.uid() AND
-  EXISTS (SELECT 1 FROM public.conversation_participants cp WHERE cp.conversation_id = messages.conversation_id AND cp.user_id = auth.uid())
+  sender_id = auth.uid()::text AND
+  EXISTS (SELECT 1 FROM public.conversation_participants cp WHERE cp.conversation_id = messages.conversation_id AND cp.user_id = auth.uid()::text)
 );
 CREATE POLICY "Participant can update messages" ON public.messages
 FOR UPDATE USING (
-  EXISTS (SELECT 1 FROM public.conversation_participants cp WHERE cp.conversation_id = messages.conversation_id AND cp.user_id = auth.uid())
+  EXISTS (SELECT 1 FROM public.conversation_participants cp WHERE cp.conversation_id = messages.conversation_id AND cp.user_id = auth.uid()::text)
 );
 
 -- ── 6. Realtime Configuration ────────────────────────────────────────────────
