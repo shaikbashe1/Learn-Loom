@@ -31,6 +31,7 @@ const CertificatePage     = lazy(() => import('./pages/student/CertificatePage')
 const ProfilePage         = lazy(() => import('./pages/student/ProfilePage'));
 const PricingPage         = lazy(() => import('./pages/student/PricingPage'));
 const PaymentHistoryPage  = lazy(() => import('./pages/student/PaymentHistoryPage'));
+const SearchPage          = lazy(() => import('./pages/student/SearchPage'));
 
 // Lazy-loaded admin pages
 const AdminDashboard      = lazy(() => import('./pages/admin/AdminDashboard'));
@@ -82,6 +83,7 @@ export const routes: RouteConfig[] = [
   { name: 'Final Assessment',     path: '/courses/:id/assessment',  component: FinalAssessmentPage },
   { name: 'Certificates',         path: '/certificates',            component: CertificatePage },
   { name: 'Profile',              path: '/profile',                 component: ProfilePage },
+  { name: 'Search',               path: '/search',                  component: SearchPage },
   { name: 'Pricing',              path: '/pricing',                 component: PricingPage,       public: true },
   { name: 'Payment History',      path: '/payment-history',         component: PaymentHistoryPage },
 

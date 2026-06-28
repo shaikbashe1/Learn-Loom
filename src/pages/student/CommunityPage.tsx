@@ -298,6 +298,53 @@ function PostCard({
   const [posting, setPosting]     = useState(false);
   const [replyingTo, setReplyingTo] = useState<ForumReply | null>(null);
   
+  const [summary, setSummary] = useState('');
+  const [summarizing, setSummarizing] = useState(false);
+
+  const summarizeThread = async () => {
+     setSummarizing(true);
+     setSummary('');
+     try {
+       const threadHistory = replies.map(r => `${r.profiles?.full_name ?? 'User'}: ${r.content}`).join('\n');
+       const systemPrompt = `Summarize this discussion thread into a concise TL;DR:\nTitle: ${post.title}\nContent: ${post.content}\nComments:\n${threadHistory}`;
+       const { data: sessionData } = await supabase.auth.getSession();
+       const token = sessionData.session?.access_token ?? '';
+       
+       const res = await fetch('/api/ai-mentor', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+         body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: systemPrompt }] }] }),
+       });
+       if (!res.ok) throw new Error('Failed');
+       
+       const reader = res.body?.getReader();
+       if (!reader) return;
+       const decoder = new TextDecoder();
+       let aiText = '';
+       while (true) {
+         const { done, value } = await reader.read();
+         if (done) break;
+         const chunk = decoder.decode(value);
+         const lines = chunk.split('\n');
+         for (const line of lines) {
+           if (line.startsWith('data: ')) {
+             const dataStr = line.slice(6).trim();
+             if (dataStr === '[DONE]') continue;
+             try {
+               const parsed = JSON.parse(dataStr);
+               aiText += parsed?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+             } catch {}
+           }
+         }
+       }
+       setSummary(aiText);
+     } catch (err) {
+       toast.error("Failed to summarize thread");
+     } finally {
+       setSummarizing(false);
+     }
+  };
+  
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
@@ -462,6 +509,15 @@ Student's Query mentioning @loomie:
     setReplyMode('write');
     setReplyingTo(null);
     onReplyCountChange(post.id, 1);
+    
+    if (post.user_id !== currentUserId) {
+       await supabase.from('notifications').insert({
+         user_id: post.user_id,
+         type: 'reply',
+         message: `Someone replied to your post: "${post.title.substring(0, 30)}..."`,
+         read: false
+       });
+    }
     
     if (textToSend.toLowerCase().includes('@loomie')) {
       toast.info('Loomie AI is reviewing the thread...');
@@ -694,6 +750,26 @@ Student's Query mentioning @loomie:
       {/* 5. Expanded Comments & Input */}
       {expanded && (
         <div className="space-y-4 pt-1 animate-in slide-in-from-top-2">
+          {replies.length > 2 && (
+             <div className="flex justify-end mb-2">
+                <button
+                   onClick={summarizeThread}
+                   disabled={summarizing}
+                   className="flex items-center gap-1.5 text-purple-500 font-bold text-xs bg-purple-500/10 hover:bg-purple-500/20 px-3 py-1.5 rounded-full transition-colors"
+                >
+                   <span className="material-symbols-outlined text-[14px]">magic_button</span>
+                   {summarizing ? 'Summarizing...' : 'Summarize Thread'}
+                </button>
+             </div>
+          )}
+          {summary && (
+             <div className="bg-purple-500/10 border border-purple-500/20 p-4 rounded-xl mb-4 text-sm text-text-primary">
+                <div className="font-bold text-purple-500 mb-2 flex items-center gap-1.5">
+                   <span className="material-symbols-outlined text-[16px]">magic_button</span> AI Summary
+                </div>
+                {renderMarkdown(summary)}
+             </div>
+          )}
           {loadingR ? (
             <div className="flex items-center gap-2 text-[13px] text-text-secondary justify-center py-4">
               <span className="material-symbols-outlined animate-spin text-[18px]">autorenew</span> Loading comments…
@@ -994,6 +1070,62 @@ Post Content:
     }
   };
 
+  const enhanceText = async () => {
+    if (!newContent.trim()) { toast.error("Write something first!"); return; }
+    
+    setPosting(true);
+    toast.info("Loomie AI is enhancing your post...");
+    
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token ?? '';
+      
+      const res = await fetch('/api/ai-mentor', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ 
+           contents: [{ role: 'user', parts: [{ text: `Please fix grammar, improve the tone, and add suitable markdown formatting for this community post. Only return the improved text, no conversational filler:\n\n${newContent}` }] }] 
+        }),
+      });
+      
+      if (!res.ok) throw new Error('Failed');
+      if (!res.body) return;
+      
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let aiText = '';
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const dataStr = line.slice(6).trim();
+            if (dataStr === '[DONE]') continue;
+            try {
+              const parsed = JSON.parse(dataStr);
+              aiText += parsed?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+            } catch {}
+          }
+        }
+      }
+      
+      if (aiText.trim()) {
+        setNewContent(aiText.trim());
+        toast.success("Text enhanced!");
+      }
+    } catch (err) {
+      toast.error("Failed to enhance text.");
+    } finally {
+      setPosting(false);
+    }
+  };
+
   const handlePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) { toast.error('Please log in to post'); return; }
@@ -1075,6 +1207,15 @@ Post Content:
         ? { ...p, upvotes: data.total_reactions, user_reaction: data.user_reaction, user_voted: !!data.user_reaction }
         : p
     ));
+
+    if (data.user_reaction && post.user_id !== user.id) {
+       await supabase.from('notifications').insert({
+         user_id: post.user_id,
+         type: 'system',
+         message: `${profile?.full_name || 'Someone'} reacted to your post: "${post.title.substring(0, 30)}..."`,
+         read: false
+       });
+    }
   };
   
   const handleFollow = async (post: ForumPost) => {
@@ -1089,6 +1230,15 @@ Post Content:
        p.user_id === post.user_id ? { ...p, author_is_followed: data } : p
     ));
     toast.success(data ? `You are now following ${post.profiles?.full_name}` : `Unfollowed ${post.profiles?.full_name}`);
+    
+    if (data && post.user_id !== user.id) {
+       await supabase.from('notifications').insert({
+         user_id: post.user_id,
+         type: 'system',
+         message: `${profile?.full_name || 'Someone'} started following you!`,
+         read: false
+       });
+    }
   };
 
   const handleReplyCountChange = (postId: string, delta: number) => {
@@ -1353,6 +1503,15 @@ Post Content:
                      </label>
                   </div>
                   <div className="flex gap-3">
+                    <button 
+                      type="button"
+                      onClick={enhanceText}
+                      disabled={posting || !newContent.trim()}
+                      className="px-4 py-2 text-purple-500 hover:bg-purple-500/10 rounded-lg font-label-md font-bold transition-colors flex items-center gap-1.5"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">magic_button</span>
+                      <span className="hidden sm:inline">Enhance</span>
+                    </button>
                     <button 
                       type="button" 
                       onClick={() => setIsComposerOpen(false)} 

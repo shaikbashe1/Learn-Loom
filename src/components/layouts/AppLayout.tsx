@@ -252,6 +252,12 @@ export function AppLayout({ children, isAdmin: isAdminProp, title }: AppLayoutPr
                   className="w-full bg-surface-container-low border border-outline-variant/60 rounded-full py-1.5 pl-9 pr-4 text-body-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-on-surface-variant" 
                   placeholder="Search courses, concepts, or mentors..." 
                   type="text"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                      navigate(`/search?q=${encodeURIComponent(e.currentTarget.value.trim())}`);
+                      setMobileSearchOpen(false);
+                    }
+                  }}
                 />
               </div>
             </div>
@@ -285,6 +291,11 @@ export function AppLayout({ children, isAdmin: isAdminProp, title }: AppLayoutPr
                   className="w-full bg-surface-container-low border border-outline-variant/60 rounded-full py-2 pl-xl pr-md text-body-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-on-surface-variant" 
                   placeholder="Search courses, concepts, or mentors..." 
                   type="text"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                      navigate(`/search?q=${encodeURIComponent(e.currentTarget.value.trim())}`);
+                    }
+                  }}
                 />
               </div>
 
