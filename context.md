@@ -92,6 +92,7 @@ LearnLoom is an advanced, AI-driven learning ecosystem designed for software eng
 - **Markdown Rendering Engine**: Created a secure [markdown.tsx](file:///d:/Yogesh/Coding/learnloom-main/src/lib/markdown.tsx) module to parse headings, links, bold/italic text, lists, and formatted code blocks (with custom language labels).
 - **Accepted Solutions & XP Rewards**: Added the `is_accepted` column to `forum_replies` via a SQL migration ([00033_accepted_solutions.sql](file:///d:/Yogesh/Coding/learnloom-main/supabase/migrations/00033_accepted_solutions.sql)). Toggling an accepted solution automatically awards/deducts `+25 credits` to the solver, syncing with the overall XP Leaderboard.
 - **Loomie AI Mentions**: Posts or comments mentioning `@loomie` trigger a backend Gemini API edge call that compiles the thread context, streams the output, and inserts a custom AI reply.
+- **Community Hub 2.0 (Phase 1)**: Added SQL database migration (`20260628133500_community_v2_phase1.sql`) creating `post_media`, `followers`, and `reactions` tables, and set up a new public storage bucket `community_media` to support robust rich-media posts, social follows, and multi-reaction emoji expressions on the community timeline.
 - **Lesson-Linked Discussions**: Replaced the static placeholder tab in [CoursePlayerPage.tsx](file:///d:/Yogesh/Coding/learnloom-main/src/pages/student/CoursePlayerPage.tsx) with a working Q&A discussion board that automatically links questions to the active module.
 
 ### 14. Course Seeding Pipeline & Premium Catalog UI
