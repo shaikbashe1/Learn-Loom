@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 export default function AuthCallbackPage() {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,15 +26,22 @@ export default function AuthCallbackPage() {
 
     if (!loading) {
       if (user) {
-        // Direct admin users to the Admin dashboard, standard users to the student dashboard
+        // Direct admin users to the Admin dashboard. Standard users go through
+        // first-time onboarding until their profile is completed.
         const isAdmin = user.email === 'shaikbashe2222@gmail.com';
-        navigate(isAdmin ? '/admin' : '/dashboard', { replace: true });
+        if (isAdmin) {
+          navigate('/admin', { replace: true });
+        } else if (profile && !profile.onboarding_completed) {
+          navigate('/onboarding', { replace: true });
+        } else {
+          navigate('/dashboard', { replace: true });
+        }
       } else if (!hasCode && !hasToken) {
         // If we finished loading, have no user, and no active OAuth token exchange parameters exist, fallback to login
         navigate('/login', { replace: true });
       }
     }
-  }, [loading, user, navigate]);
+  }, [loading, user, profile, navigate]);
 
   useEffect(() => {
     // Safety timeout: if login session doesn't exchange within 10 seconds, redirect back to login
