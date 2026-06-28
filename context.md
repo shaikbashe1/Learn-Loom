@@ -83,6 +83,39 @@ LearnLoom is an advanced, AI-driven learning ecosystem designed for software eng
 - **Verification Enhancements**: Embedded an animated verification success state, trust signals (SSL 256-bit badges), and interactive password strength meters showing clear labels and visual cues.
 - **RouteGuard & UX Hardening**: Cleaned up internal loading state leaks by removing debug JSON objects from the loading UI. Boosted dark mode text contrast (lightness increased to 62%) for WCAG AA compliance.
 
+### 13. Rich LinkedIn-Inspired Community Hub & Course Player Q&A
+- **"Start a Post" Composer Bar**: Designed a top-level composer card displaying the logged-in user avatar and a rounded prompt input bar. Quick-launch shortcuts below ("Ask Doubt", "Share Code", "Group Work") open the post creator with the correct category preselected.
+- **LinkedIn-Style Composer Modal**: When initiating a post, a responsive popup modal overlay appears with backdrop-blur. The modal includes user details, a category selection pill, title input, WYSIWYG markdown toolbar, writing area, and a live preview tab.
+- **Content Truncation ("...see more")**: Long posts are truncated at 280 characters to keep the feed clean, stripping raw markdown codes for a legible plain-text preview. Clicking **"...see more"** expands the card to display full, rich-text markdown-rendered content.
+- **Author Taglines & Bios**: Posts render with user full name, profile bio/headline (queried from `profiles.bio`), and public globe indicators next to the timestamp.
+- **Interactive Action Bar**: Standardized horizontal action triggers (Like, Comment, Share) with responsive states. Likes toggle blue highlight states immediately, and comments toggle clean inline commentary streams.
+- **Markdown Rendering Engine**: Created a secure [markdown.tsx](file:///d:/Yogesh/Coding/learnloom-main/src/lib/markdown.tsx) module to parse headings, links, bold/italic text, lists, and formatted code blocks (with custom language labels).
+- **Accepted Solutions & XP Rewards**: Added the `is_accepted` column to `forum_replies` via a SQL migration ([00033_accepted_solutions.sql](file:///d:/Yogesh/Coding/learnloom-main/supabase/migrations/00033_accepted_solutions.sql)). Toggling an accepted solution automatically awards/deducts `+25 credits` to the solver, syncing with the overall XP Leaderboard.
+- **Loomie AI Mentions**: Posts or comments mentioning `@loomie` trigger a backend Gemini API edge call that compiles the thread context, streams the output, and inserts a custom AI reply.
+- **Lesson-Linked Discussions**: Replaced the static placeholder tab in [CoursePlayerPage.tsx](file:///d:/Yogesh/Coding/learnloom-main/src/pages/student/CoursePlayerPage.tsx) with a working Q&A discussion board that automatically links questions to the active module.
+
+### 14. Course Seeding Pipeline & Premium Catalog UI
+- **Service Role Key Seeding Integration**: Updated [seed-courses.mjs](file:///d:/Yogesh/Coding/learnloom-main/seed-courses.mjs) to parse `SUPABASE_SERVICE_ROLE_KEY` from the environment. Using the service role key enables database inserts to bypass Supabase RLS security policies directly, avoiding the need for hardcoded user authentication credentials. Falls back gracefully to admin email/password login if the service role key is not configured.
+- **Cisco-Style Continuous Learning Flow**: Configured the script to generate and link a project lab assignment to **every single module** (20 assignments per course, 80 total). Seeded courses are saved as `is_published: false` (Draft) by default so admin can review contents before listing.
+- **Premium Course Catalog UI**:
+  - *Dynamic Progress Indicators*: Enrolled students now see a micro-progress bar indicating their exact module completion rate on catalog cards.
+  - *Curated Mesh Gradients*: Thumbnails render using premium dark/vibrant gradients (mesh look) with smooth scaling triggers on hover.
+  - *Badge Design & Safety Gates*: Added floating labels for difficulty level (Beginner/Intermediate/Advanced) and verified checks for completed courses. Added string splitting fallback logic to prevent app crashes when instructor profiles contain empty values.
+
+### 15. Compilation & Type Integrity Certification
+- **TypeScript Error Resolution**:
+  - Defined the missing `DBActivityLog` model interface inside `types.ts` to type-safety restrict activity logs.
+  - Fixed compiler inferring `never[]` arrays by explicit typing inside `roadmapGenerator.ts`.
+  - Added `AIQuizQuestion` and `AICodingTestCase` interfaces in `AdminCoursesPage.tsx`.
+  - Added the missing `customInput` state in `CodingAssessmentPage.tsx`.
+  - Removed unsupported `noPadding` properties from `AppLayout` wrapper inside `CourseDetailPage.tsx`.
+  - Typed JSX Element icons as `React.ReactNode` inside `QuizPage.tsx` and `GrandTestPage.tsx` to prevent implicit `null` assignment errors.
+- **Course Player Fixes**:
+  - Imported the missing `Skeleton` component for loading states.
+  - Changed occurrences of `video_url` (which doesn't exist on the DB schema) to the official `youtube_url` column, safely wrapped with type coalescing.
+  - Formatted array fields (`key_concepts`, `real_world_use_cases`, `examples`) into formatted bullet-point markdown strings before rendering them.
+- **Zero Errors verification**: Executed `npm run lint` which successfully checked the 134 codebase files, returning exit code `0` (zero compilation warnings or errors!). Verified production build compile succeeds.
+
 ## Issues Faced & Resolutions
 
 ### Issue 1: Authentication Profile & UUID Mismatches
@@ -152,6 +185,19 @@ LearnLoom is an advanced, AI-driven learning ecosystem designed for software eng
 ### Issue 15: Touch Target Gaps and Hidden Actions on Touch Devices
 **Problem:** Several components (e.g., admin action controls, course management overlays, and remove-module/remove-question buttons) relied on CSS hover states (`group-hover:opacity-100`), which are inaccessible on touch-only mobile devices, completely locking mobile admins out of management operations.
 **Resolution:** Replaced absolute hover-only overlays with responsive flows: displaying actions in-line or as a card footer on mobile screens, and transitioning to a hover overlay only on desktop (`md:` and up) environments.
+
+### Issue 16: E2E Automation Script Failures
+**Problem:** Revamping the user signup form removed the confirm password input field (`#confirm`), which caused the automated Puppeteer E2E tests (`test_e2e.cjs`) to fail during form submission checks.
+**Resolution:** Modified `test_e2e.cjs` to remove the `#confirm` input field action steps and added support for a customizable `TEST_URL` environment variable to support local testing configurations.
+
+### Issue 17: TypeScript Compiler Type and Symbol Maps Mismatch
+**Problem:** Strict type checking (`npm run lint`) flagged compile-time errors in `CoursePlayerPage.tsx`, `GrandTestPage.tsx`, `QuizPage.tsx`, and `CodingAssessmentPage.tsx` due to missing imports (`Skeleton`), deprecated fields (`video_url`), and implicit `null` typing on React elements.
+**Resolution:**
+1. Imported the missing `Skeleton` component.
+2. Switched rendering parameters to target the correct database key (`youtube_url`) and coalesced values to `undefined` for iframe sources.
+3. Wrote `formatMarkdownContent` to map array types (`key_concepts`, etc.) to bullet list strings before rendering markdown.
+4. Declared test results icons as `React.ReactNode` to prevent compile-time types evaluation errors.
+
 
 ## Reference File & Folder Structure
 

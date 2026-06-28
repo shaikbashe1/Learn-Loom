@@ -105,7 +105,26 @@ To enable **Continue with Google** sign-in:
 5. In your Supabase Dashboard, go to **Authentication → Providers → Google**.
 6. Enable Google, paste in the Client ID and Secret, and save.
 
+
+### 5. Seeding Realistic Course & Community Data
+
+To populate your database with 4 production-quality, well-structured courses (Python, Java, AI & ML, and AI Agents) along with community discussions:
+
+1. **Configure Service Role Key**: Add the `SUPABASE_SERVICE_ROLE_KEY` to your `.env` file. This is your project's administrative key that allows bypassing RLS constraints during seeding.
+   ```
+   SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+   ```
+2. **Run Course Seeding**: Runs the curated seeder creating 20 structured modules, quizzes, coding labs, final grand tests, and a practical assignment for every module in Draft mode:
+   ```bash
+   npm run seed
+   ```
+3. **Run Community Seeding**: Populates initial welcome announcements, programming doubts, and community discussions:
+   ```bash
+   node seed-community.mjs
+   ```
+
 ---
+
 
 You can manage the local development lifecycle using standard npm commands:
 
