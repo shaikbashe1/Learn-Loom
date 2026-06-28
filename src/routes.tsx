@@ -29,6 +29,7 @@ const CommunityPage       = lazy(() => import('./pages/student/CommunityPage'));
 const FinalAssessmentPage = lazy(() => import('./pages/student/FinalAssessmentPage'));
 const CertificatePage     = lazy(() => import('./pages/student/CertificatePage'));
 const ProfilePage         = lazy(() => import('./pages/student/ProfilePage'));
+const PublicProfilePage   = lazy(() => import('./pages/student/PublicProfilePage'));
 const PricingPage         = lazy(() => import('./pages/student/PricingPage'));
 const PaymentHistoryPage  = lazy(() => import('./pages/student/PaymentHistoryPage'));
 const SearchPage          = lazy(() => import('./pages/student/SearchPage'));
@@ -83,6 +84,7 @@ export const routes: RouteConfig[] = [
   { name: 'Final Assessment',     path: '/courses/:id/assessment',  component: FinalAssessmentPage },
   { name: 'Certificates',         path: '/certificates',            component: CertificatePage },
   { name: 'Profile',              path: '/profile',                 component: ProfilePage },
+  { name: 'Public Profile',       path: '/profile/:id',             component: PublicProfilePage },
   { name: 'Search',               path: '/search',                  component: SearchPage },
   { name: 'Pricing',              path: '/pricing',                 component: PricingPage,       public: true },
   { name: 'Payment History',      path: '/payment-history',         component: PaymentHistoryPage },
