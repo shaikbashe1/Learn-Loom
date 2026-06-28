@@ -112,10 +112,11 @@ LearnLoom is an advanced, AI-driven learning ecosystem designed for software eng
   - Added the missing `customInput` state in `CodingAssessmentPage.tsx`.
   - Removed unsupported `noPadding` properties from `AppLayout` wrapper inside `CourseDetailPage.tsx`.
   - Typed JSX Element icons as `React.ReactNode` inside `QuizPage.tsx` and `GrandTestPage.tsx` to prevent implicit `null` assignment errors.
-- **Course Player Fixes**:
+- **Course Player Fixes & Content Body**:
   - Imported the missing `Skeleton` component for loading states.
   - Changed occurrences of `video_url` (which doesn't exist on the DB schema) to the official `youtube_url` column, safely wrapped with type coalescing.
   - Formatted array fields (`key_concepts`, `real_world_use_cases`, `examples`) into formatted bullet-point markdown strings before rendering them.
+  - Rendered the main structured module `content` block (with detailed explanations, sequence flowcharts, and code blocks) dynamically inside the main content view.
 - **Zero Errors verification**: Executed `npm run lint` which successfully checked the 134 codebase files, returning exit code `0` (zero compilation warnings or errors!). Verified production build compile succeeds.
 
 ## Issues Faced & Resolutions

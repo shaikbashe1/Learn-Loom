@@ -958,6 +958,15 @@ Question / Request: ${promptMap[action]}`;
               )}
             </div>
 
+            {/* Lesson Module Content Body */}
+            {activeModule.content && (
+              <div className="border-t border-border-base/50 pt-6">
+                <div className="text-text-secondary leading-relaxed font-body-md max-w-none">
+                  {renderMarkdown(activeModule.content)}
+                </div>
+              </div>
+            )}
+
             {/* Assessment Warning Gate */}
             {!isCompleted && !canMarkComplete && (
               <div className="rounded-xl border border-warning/30 bg-warning/5 p-4 flex gap-3 items-start select-none">
