@@ -39,6 +39,7 @@ interface ForumReply {
   is_ai?: boolean;
   profiles?: { full_name: string | null; avatar_url: string | null; bio: string | null };
   user_voted?: boolean;
+  children?: ForumReply[];
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -157,6 +158,115 @@ function MarkdownToolbar({ textareaRef, textValue, setValue }: MarkdownToolbarPr
   );
 }
 
+// ── ReplyNode (Recursive Comment Tree) ────────────────────────────────────────
+
+function ReplyNode({ 
+  reply, 
+  postUserId, 
+  currentUserId, 
+  onVoteReply, 
+  onAcceptReply, 
+  onReplyTo 
+}: { 
+  reply: ForumReply; 
+  postUserId: string; 
+  currentUserId: string | undefined; 
+  onVoteReply: (reply: ForumReply) => void; 
+  onAcceptReply: (reply: ForumReply) => void; 
+  onReplyTo: (reply: ForumReply) => void; 
+}) {
+  const isThreadAuthor = postUserId === currentUserId;
+
+  return (
+    <div className="flex gap-2.5 items-start mt-4">
+      {reply.is_ai ? (
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-[hsl(var(--chart-4))] flex items-center justify-center text-white shrink-0 shadow-md">
+          <span className="material-symbols-outlined text-[14px] animate-pulse">smart_toy</span>
+        </div>
+      ) : reply.profiles?.avatar_url ? (
+        <img src={reply.profiles.avatar_url} alt="Avatar" className="w-8 h-8 rounded-full border border-border-base object-cover shrink-0 shadow-sm" />
+      ) : (
+        <div className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-[11px] font-bold shrink-0 text-text-primary shadow-sm border border-border-base select-none">
+          {initials(reply.profiles?.full_name)}
+        </div>
+      )}
+      
+      <div className="flex-1 min-w-0">
+        <div className={`border rounded-r-xl rounded-bl-xl px-3 py-2.5 sm:px-4 sm:py-3 shadow-sm relative group/reply ${reply.is_ai ? 'bg-primary/5 border-primary/20' : 'bg-surface-container-low border-border-base'}`}>
+          <div className="flex items-center justify-between flex-wrap gap-2 mb-1.5">
+            <div>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[13px] sm:text-[14px] font-label-md text-text-primary font-bold">
+                  {reply.is_ai ? 'Loomie AI' : reply.profiles?.full_name ?? 'Community Member'}
+                </span>
+                
+                {reply.is_ai && (
+                  <span className="bg-gradient-to-r from-primary to-[hsl(var(--chart-4))] text-white text-[8px] font-bold font-mono px-1.5 py-0.5 rounded-full shadow-sm select-none">BOT</span>
+                )}
+
+                {reply.is_accepted && (
+                  <span className="flex items-center gap-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-500/20 shadow-sm animate-pulse-glow select-none">
+                    <span className="material-symbols-outlined text-[12px] font-extrabold">check_circle</span>
+                    Accepted Solution
+                  </span>
+                )}
+              </div>
+              <p className="text-[10px] sm:text-[11px] text-text-secondary leading-tight mt-0.5 line-clamp-1 max-w-[200px] sm:max-w-sm">{reply.profiles?.bio ?? 'Student @ LearnLoom'}</p>
+            </div>
+            <span className="text-[9px] sm:text-[10px] text-text-secondary font-medium select-none">{formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}</span>
+          </div>
+
+          <div className="text-[13px] sm:text-[14px] font-body-md text-text-secondary leading-relaxed">
+            {renderMarkdown(reply.content)}
+          </div>
+
+          <div className="flex items-center justify-between mt-3 pt-2 border-t border-border-base/50">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onVoteReply(reply)}
+                className={`flex items-center gap-1.5 text-[11px] sm:text-[12px] font-bold transition-colors py-1 px-2 rounded hover:bg-surface-container min-h-[28px] ${reply.user_voted ? 'text-primary' : 'text-text-secondary hover:text-primary'}`}
+              >
+                <span className={`material-symbols-outlined text-[15px] ${reply.user_voted ? 'fill' : ''}`}>thumb_up</span>
+                <span>{reply.upvotes}</span>
+              </button>
+              
+              <button
+                onClick={() => onReplyTo(reply)}
+                className="flex items-center gap-1.5 text-[11px] sm:text-[12px] font-bold transition-colors py-1 px-2 rounded hover:bg-surface-container min-h-[28px] text-text-secondary hover:text-primary"
+              >
+                <span className="material-symbols-outlined text-[15px]">reply</span>
+                <span>Reply</span>
+              </button>
+            </div>
+
+            {isThreadAuthor && (
+              <button
+                onClick={() => onAcceptReply(reply)}
+                className={`flex items-center gap-1.5 text-[11px] sm:text-[12px] font-bold transition-colors py-1 px-2.5 rounded border min-h-[28px] ${
+                  reply.is_accepted 
+                    ? 'bg-rose-500/10 text-rose-500 border-rose-500/20 hover:bg-rose-500/20' 
+                    : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/20'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[15px]">{reply.is_accepted ? 'cancel' : 'check_circle'}</span>
+                <span>{reply.is_accepted ? 'Unaccept' : 'Accept'}</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {reply.children && reply.children.length > 0 && (
+          <div className="ml-2 sm:ml-4 pl-3 sm:pl-4 border-l-2 border-border-base mt-2 space-y-2">
+            {reply.children.map(child => (
+              <ReplyNode key={child.id} reply={child} postUserId={postUserId} currentUserId={currentUserId} onVoteReply={onVoteReply} onAcceptReply={onAcceptReply} onReplyTo={onReplyTo} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── PostCard (LinkedIn Feed Card Style) ───────────────────────────────────────
 
 function PostCard({
@@ -186,6 +296,7 @@ function PostCard({
   const [replyText, setReplyText] = useState('');
   const [replyMode, setReplyMode] = useState<'write' | 'preview'>('write');
   const [posting, setPosting]     = useState(false);
+  const [replyingTo, setReplyingTo] = useState<ForumReply | null>(null);
   
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -196,10 +307,9 @@ function PostCard({
       .from('forum_replies')
       .select('*')
       .eq('post_id', post.id)
-      .is('parent_id', null)
       .order('is_accepted', { ascending: false })
       .order('created_at', { ascending: true })
-      .limit(100);
+      .limit(300);
 
     let enrichedData: ForumReply[] = [];
     if (data && data.length > 0) {
@@ -223,10 +333,24 @@ function PostCard({
         .eq('user_id', currentUserId)
         .in('reply_id', replyIds);
       const votedSet = new Set(voted?.map(v => v.reply_id) ?? []);
-      setReplies(enrichedData.map(r => ({ ...r, user_voted: votedSet.has(r.id) })));
-    } else {
-      setReplies(enrichedData);
+      enrichedData = enrichedData.map(r => ({ ...r, user_voted: votedSet.has(r.id) }));
     }
+
+    // Build tree
+    const replyMap = new Map<string, ForumReply>();
+    const rootReplies: ForumReply[] = [];
+    
+    enrichedData.forEach(r => replyMap.set(r.id, { ...r, children: [] }));
+    enrichedData.forEach(r => {
+      const node = replyMap.get(r.id)!;
+      if (r.parent_id && replyMap.has(r.parent_id)) {
+        replyMap.get(r.parent_id)!.children!.push(node);
+      } else {
+        rootReplies.push(node);
+      }
+    });
+
+    setReplies(rootReplies);
     setLoadingR(false);
   }, [post.id, currentUserId]);
 
@@ -239,25 +363,12 @@ function PostCard({
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'forum_replies', filter: `post_id=eq.${post.id}` },
-        async payload => {
-          const newReply = payload.new as ForumReply;
-          const { data: prof } = await supabase
-            .from('profiles')
-            .select('full_name, avatar_url, bio')
-            .eq('id', newReply.user_id)
-            .maybeSingle();
-          setReplies(prev => {
-            if (prev.some(r => r.id === newReply.id)) return prev;
-            return [...prev, { ...newReply, profiles: prof ?? undefined, user_voted: false }];
-          });
-        }
+        () => loadReplies()
       )
       .on(
         'postgres_changes',
         { event: 'DELETE', schema: 'public', table: 'forum_replies', filter: `post_id=eq.${post.id}` },
-        payload => {
-          setReplies(prev => prev.filter(r => r.id !== (payload.old as ForumReply).id));
-        }
+        () => loadReplies()
       )
       .subscribe();
 
@@ -339,7 +450,7 @@ Student's Query mentioning @loomie:
     const textToSend = replyText.trim();
     const { error } = await supabase.from('forum_replies').insert({
       post_id: post.id,
-      parent_id: null,
+      parent_id: replyingTo ? replyingTo.id : null,
       user_id: currentUserId,
       content: textToSend,
       is_ai: false,
@@ -349,27 +460,24 @@ Student's Query mentioning @loomie:
     if (error) { toast.error('Failed to post reply'); return; }
     setReplyText('');
     setReplyMode('write');
+    setReplyingTo(null);
     onReplyCountChange(post.id, 1);
     
     if (textToSend.toLowerCase().includes('@loomie')) {
       toast.info('Loomie AI is reviewing the thread...');
       await triggerLoomieAI(post.id, textToSend);
     }
+    loadReplies();
   };
 
   const voteReply = async (reply: ForumReply) => {
     if (!currentUserId) { toast.error('Please log in to vote'); return; }
-    const { data, error } = await supabase.rpc('toggle_reply_vote', {
+    const { error } = await supabase.rpc('toggle_reply_vote', {
       p_reply_id: reply.id,
       p_user_id: currentUserId,
     });
     if (error) return;
-    const result = Array.isArray(data) ? data[0] : data;
-    setReplies(prev => prev.map(r =>
-      r.id === reply.id
-        ? { ...r, upvotes: result?.new_upvotes ?? r.upvotes, user_voted: result?.user_voted ?? !reply.user_voted }
-        : r
-    ));
+    loadReplies();
   };
 
   const acceptReply = async (reply: ForumReply) => {
@@ -576,78 +684,17 @@ Student's Query mentioning @loomie:
             <p className="text-[13px] text-text-secondary text-center py-4 bg-surface-container-low rounded-lg border border-dashed border-border-base select-none">Be the first to share your thoughts!</p>
           ) : (
             <div className="space-y-4">
-              {replies.map(reply => {
-                const isThreadAuthor = post.user_id === currentUserId;
-
-                return (
-                  <div key={reply.id} className="flex gap-2.5 items-start">
-                    {reply.is_ai ? (
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-[hsl(var(--chart-4))] flex items-center justify-center text-white shrink-0 shadow-md">
-                        <span className="material-symbols-outlined text-[16px] animate-pulse">smart_toy</span>
-                      </div>
-                    ) : reply.profiles?.avatar_url ? (
-                      <img src={reply.profiles.avatar_url} alt="Avatar" className="w-9 h-9 rounded-full border border-border-base object-cover shrink-0 shadow-sm" />
-                    ) : (
-                      <div className="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-xs font-bold shrink-0 text-text-primary shadow-sm border border-border-base select-none">
-                        {initials(reply.profiles?.full_name)}
-                      </div>
-                    )}
-                    
-                    <div className={`flex-1 min-w-0 border rounded-r-xl rounded-bl-xl px-3 py-2.5 sm:px-4 sm:py-3 shadow-sm relative group/reply ${reply.is_ai ? 'bg-primary/5 border-primary/20' : 'bg-surface-container-low border-border-base'}`}>
-                      <div className="flex items-center justify-between flex-wrap gap-2 mb-1.5">
-                        <div>
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="text-[13px] sm:text-[14px] font-label-md text-text-primary font-bold">
-                              {reply.is_ai ? 'Loomie AI' : reply.profiles?.full_name ?? 'Community Member'}
-                            </span>
-                            
-                            {reply.is_ai && (
-                              <span className="bg-gradient-to-r from-primary to-[hsl(var(--chart-4))] text-white text-[8px] font-bold font-mono px-1.5 py-0.5 rounded-full shadow-sm select-none">BOT</span>
-                            )}
-
-                            {reply.is_accepted && (
-                              <span className="flex items-center gap-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-500/20 shadow-sm animate-pulse-glow select-none">
-                                <span className="material-symbols-outlined text-[12px] font-extrabold">check_circle</span>
-                                Accepted Solution
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-[10px] sm:text-[11px] text-text-secondary leading-tight mt-0.5 line-clamp-1 max-w-[200px] sm:max-w-sm">{reply.profiles?.bio ?? 'Student @ LearnLoom'}</p>
-                        </div>
-                        <span className="text-[9px] sm:text-[10px] text-text-secondary font-medium select-none">{formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}</span>
-                      </div>
-
-                      <div className="text-[13px] sm:text-[14px] font-body-md text-text-secondary leading-relaxed">
-                        {renderMarkdown(reply.content)}
-                      </div>
-
-                      <div className="flex items-center justify-between mt-3 pt-2 border-t border-border-base/50">
-                        <button
-                          onClick={() => voteReply(reply)}
-                          className={`flex items-center gap-1.5 text-[11px] sm:text-[12px] font-bold transition-colors py-1 px-2 rounded hover:bg-surface-container min-h-[28px] ${reply.user_voted ? 'text-primary' : 'text-text-secondary hover:text-primary'}`}
-                        >
-                          <span className={`material-symbols-outlined text-[15px] ${reply.user_voted ? 'fill' : ''}`}>thumb_up</span>
-                          <span>{reply.upvotes}</span>
-                        </button>
-
-                        {isThreadAuthor && (
-                          <button
-                            onClick={() => acceptReply(reply)}
-                            className={`flex items-center gap-1.5 text-[11px] sm:text-[12px] font-bold transition-colors py-1 px-2.5 rounded border min-h-[28px] ${
-                              reply.is_accepted 
-                                ? 'bg-rose-500/10 text-rose-500 border-rose-500/20 hover:bg-rose-500/20' 
-                                : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/20'
-                            }`}
-                          >
-                            <span className="material-symbols-outlined text-[15px]">{reply.is_accepted ? 'cancel' : 'check_circle'}</span>
-                            <span>{reply.is_accepted ? 'Unaccept Answer' : 'Accept Answer'}</span>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {replies.map(reply => (
+                <ReplyNode
+                  key={reply.id}
+                  reply={reply}
+                  postUserId={post.user_id}
+                  currentUserId={currentUserId}
+                  onVoteReply={voteReply}
+                  onAcceptReply={acceptReply}
+                  onReplyTo={setReplyingTo}
+                />
+              ))}
             </div>
           )}
 
@@ -658,6 +705,12 @@ Student's Query mentioning @loomie:
                </div>
                <div className="flex-1 flex flex-col gap-2">
                  
+                 {replyingTo && (
+                   <div className="flex items-center justify-between bg-primary/10 text-primary text-[11px] font-bold px-3 py-1.5 rounded-md mb-1 border border-primary/20">
+                     <span>Replying to {replyingTo.profiles?.full_name ?? 'Comment'}</span>
+                     <button onClick={() => setReplyingTo(null)} className="hover:text-primary-focus"><span className="material-symbols-outlined text-[14px]">close</span></button>
+                   </div>
+                 )}
                  <MarkdownToolbar 
                    textareaRef={textareaRef.current} 
                    textValue={replyText} 
