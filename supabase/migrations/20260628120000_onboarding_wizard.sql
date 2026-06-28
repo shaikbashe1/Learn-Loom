@@ -33,7 +33,19 @@ ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS interests            TEXT[] NOT NULL DEFAULT '{}',
   ADD COLUMN IF NOT EXISTS learning_goal        TEXT,
   ADD COLUMN IF NOT EXISTS daily_learning_time  TEXT,
-  ADD COLUMN IF NOT EXISTS onboarding_completed BOOLEAN NOT NULL DEFAULT false;
+  ADD COLUMN IF NOT EXISTS resume_url           TEXT,
+  ADD COLUMN IF NOT EXISTS portfolio_url        TEXT,
+  -- Forward-compatible catch-all: future modular onboarding sections
+  -- (projects, achievements, certifications, etc.) live here as JSON keys so
+  -- they can be added WITHOUT new schema migrations. Promote a key to its own
+  -- column later only if you need to index/query it.
+  ADD COLUMN IF NOT EXISTS extensions           JSONB   NOT NULL DEFAULT '{}'::jsonb,
+  -- onboarding_completed stays FALSE for everyone (incl. existing users) so the
+  -- whole user base is guided through the new wizard exactly once on next login.
+  ADD COLUMN IF NOT EXISTS onboarding_completed BOOLEAN NOT NULL DEFAULT false,
+  -- Records which wizard step a user last reached, enabling server-side resume
+  -- across devices (the client also mirrors this in localStorage).
+  ADD COLUMN IF NOT EXISTS onboarding_step      INTEGER NOT NULL DEFAULT 0;
 
 -- Sanity check constraints (guarded so they never fail on existing rows) ------
 DO $$ BEGIN
