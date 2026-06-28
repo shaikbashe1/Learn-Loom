@@ -4,6 +4,7 @@ import { AppLayout } from '@/components/layouts/AppLayout';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Map, Trophy, Target, BookOpen, ChevronRight, Activity, Zap } from 'lucide-react';
+import { ProfileStrength } from '@/components/profile/ProfileStrength';
 import type { DBCourse, DBEnrollment, DBModule, DBUserRoadmap, DBRoadmapStage } from '@/types/types';
 
 type EnrollWithCourse = DBEnrollment & {
@@ -239,7 +240,10 @@ export default function StudentDashboard() {
 
           {/* Sidebar Content (Right Column) */}
           <div className="space-y-8">
-            
+
+            {/* Profile Strength (LinkedIn-style completion score) */}
+            <ProfileStrength />
+
             {/* Quick Stats */}
             <section className="grid grid-cols-2 gap-4">
               <div className="bg-surface border border-outline-variant rounded-2xl p-5 shadow-sm flex flex-col justify-center items-center text-center card-lift">

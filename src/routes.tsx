@@ -8,6 +8,7 @@ const ForgotPasswordPage  = lazy(() => import('./pages/auth/ForgotPasswordPage')
 const ResetPasswordPage   = lazy(() => import('./pages/auth/ResetPasswordPage'));
 const EmailVerificationPage = lazy(() => import('./pages/auth/EmailVerificationPage'));
 const ProfileSetupPage    = lazy(() => import('./pages/auth/ProfileSetupPage'));
+const OnboardingPage      = lazy(() => import('./pages/auth/OnboardingPage'));
 const AuthCallbackPage    = lazy(() => import('./pages/auth/AuthCallbackPage'));
 const CertVerifyPage      = lazy(() => import('./pages/student/CertVerifyPage'));
 
@@ -60,6 +61,7 @@ export const routes: RouteConfig[] = [
   { name: 'Email Verification',   path: '/verify-email',      component: EmailVerificationPage, public: true },
   { name: 'Profile Setup',        path: '/profile-setup',     component: ProfileSetupPage,      public: true },
   { name: 'Auth Callback',        path: '/auth/callback',     component: AuthCallbackPage,      public: true },
+  { name: 'Onboarding',           path: '/onboarding',        component: OnboardingPage },
   { name: 'Cert Verify',          path: '/verify/:code',      component: CertVerifyPage,        public: true },
 
   // ── Student ──────────────────────────────────────────────────────────

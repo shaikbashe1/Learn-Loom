@@ -31,13 +31,31 @@ export function RouteGuard({ children }: RouteGuardProps) {
     // Strict RBAC: Only shaikbashe2222@gmail.com has Admin Dashboard access
     const isAdminUser = user?.email === 'shaikbashe2222@gmail.com' && profile?.role === 'super_admin';
 
+    // First-time onboarding: a logged-in, non-admin user whose profile exists
+    // but isn't completed is forced through the wizard before anything else.
+    const needsOnboarding =
+      !!user && !!profile && !profile.onboarding_completed && !isAdminUser;
+    const onOnboarding = location.pathname === '/onboarding';
+
     if (user && isAuthPage) {
-      navigate(isAdminUser ? '/admin' : '/dashboard', { replace: true });
+      navigate(needsOnboarding ? '/onboarding' : (isAdminUser ? '/admin' : '/dashboard'), { replace: true });
       return;
     }
 
     if (!user && !isPublic) {
       navigate('/login', { state: { from: location.pathname }, replace: true });
+      return;
+    }
+
+    // Block all app pages until onboarding is finished.
+    if (needsOnboarding && !onOnboarding) {
+      navigate('/onboarding', { replace: true });
+      return;
+    }
+
+    // Don't let a completed user sit on the wizard.
+    if (user && onOnboarding && profile?.onboarding_completed) {
+      navigate(isAdminUser ? '/admin' : '/dashboard', { replace: true });
       return;
     }
 

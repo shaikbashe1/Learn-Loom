@@ -18,6 +18,36 @@ export interface Profile {
   updated_at?: string;
   courses_completed?: number;
   certificates_earned?: number;
+
+  // ── Onboarding / personalization (see migration 20260628120000) ───────────
+  username?: string | null;
+  /** Onboarding persona — NOT the RBAC `role`. */
+  user_type?: 'student' | 'professional' | 'job_seeker' | 'teacher' | 'other' | null;
+  college_name?: string | null;
+  course?: string | null;
+  degree?: string | null;
+  branch?: string | null;
+  year?: number | null;
+  semester?: number | null;
+  graduation_year?: number | null;
+  mobile_number?: string | null;
+  mobile_verified?: boolean | null;
+  country?: string | null;
+  state?: string | null;
+  city?: string | null;
+  pincode?: string | null;
+  language_preference?: string | null;
+  dream_roles?: string[] | null;
+  dream_companies?: string[] | null;
+  interests?: string[] | null;
+  learning_goal?: string | null;
+  daily_learning_time?: string | null;
+  resume_url?: string | null;
+  portfolio_url?: string | null;
+  /** Catch-all for future modular sections (projects, certifications, etc.). */
+  extensions?: Record<string, unknown> | null;
+  onboarding_completed?: boolean | null;
+  onboarding_step?: number | null;
 }
 
 export type DifficultyLevel = 'Beginner' | 'Intermediate' | 'Advanced';
