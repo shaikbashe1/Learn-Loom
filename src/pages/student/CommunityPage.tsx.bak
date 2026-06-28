@@ -22,7 +22,6 @@ interface ForumPost {
   is_pinned?: boolean;
   profiles?: { full_name: string | null; avatar_url: string | null; bio: string | null };
   user_voted?: boolean;
-  media?: { file_url: string; file_type: string }[];
 }
 
 interface ForumReply {
@@ -455,14 +454,6 @@ Student's Query mentioning @loomie:
           )}
         </div>
 
-        {post.media && post.media.length > 0 && (
-          <div className="mt-3 overflow-hidden rounded-lg border border-border-base bg-surface-container-low max-h-[500px]">
-             {post.media[0].file_type === 'image' && (
-                <img src={post.media[0].file_url} alt="Post attachment" className="w-full h-full object-cover" />
-             )}
-          </div>
-        )}
-
         <div className="flex flex-wrap gap-1.5 mt-3 select-none">
           <span className={`text-[10px] font-label-sm font-bold px-2 py-0.5 rounded border ${CAT_DETAILS[post.category]?.color ?? 'bg-surface-container text-text-secondary'}`}>
             #{post.category}
@@ -685,79 +676,46 @@ export default function CommunityPage() {
   const [posting, setPosting]           = useState(false);
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [realtimeOk, setRealtimeOk]     = useState(false);
-  const [newImage, setNewImage]         = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  
-  // Pagination State
-  const [page, setPage]                 = useState(0);
-  const [hasMore, setHasMore]           = useState(true);
-  const POSTS_PER_PAGE = 10;
 
   const mainComposerRef = useRef<HTMLTextAreaElement | null>(null);
 
   // ── Fetch posts ──────────────────────────────────────────────────────────
-  const fetchPosts = useCallback(async (isLoadMore = false) => {
-    if (!isLoadMore) {
-       setLoading(true); setError(null); setPage(0); setHasMore(true);
-    }
-    
-    const currentPage = isLoadMore ? page + 1 : 0;
-    const from = currentPage * POSTS_PER_PAGE;
-    const to = from + POSTS_PER_PAGE - 1;
-
+  const fetchPosts = useCallback(async () => {
+    setLoading(true); setError(null);
     try {
       const { data, error: fetchErr } = await supabase
         .from('forum_posts')
         .select('*')
         .order('is_pinned', { ascending: false })
         .order('created_at', { ascending: false })
-        .range(from, to);
-        
+        .limit(100);
       if (fetchErr) throw fetchErr;
 
       let enrichedData: ForumPost[] = [];
       if (data && data.length > 0) {
         const userIds = Array.from(new Set(data.map(p => p.user_id)));
-        const postIds = data.map(p => p.id);
-        
-        const [profilesRes, mediaRes, voteRes] = await Promise.all([
-           supabase.from('profiles').select('id, full_name, avatar_url, bio').in('id', userIds),
-           supabase.from('post_media').select('post_id, file_url, file_type').in('post_id', postIds),
-           user ? supabase.from('forum_votes').select('post_id').eq('user_id', user.id).in('post_id', postIds) : Promise.resolve({ data: [] })
-        ]);
-
-        const profileMap = new Map(profilesRes.data?.map(p => [p.id, p]) ?? []);
-        const votedSet = new Set(voteRes.data?.map(v => v.post_id) ?? []);
-        
-        // Group media by post_id
-        const mediaMap = new Map<string, {file_url: string, file_type: string}[]>();
-        mediaRes.data?.forEach(m => {
-           if (!mediaMap.has(m.post_id)) mediaMap.set(m.post_id, []);
-           mediaMap.get(m.post_id)!.push({ file_url: m.file_url, file_type: m.file_type });
-        });
-
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url, bio')
+          .in('id', userIds);
+        const profileMap = new Map(profiles?.map(p => [p.id, p]) ?? []);
         enrichedData = data.map(p => ({
           ...p,
-          profiles: profileMap.get(p.user_id) ?? undefined,
-          user_voted: votedSet.has(p.id),
-          media: mediaMap.get(p.id) || []
+          profiles: profileMap.get(p.user_id) ?? undefined
         }));
       }
 
-      if (isLoadMore) {
-         setPosts(prev => {
-           // Prevent duplicates if Realtime already inserted it
-           const existingIds = new Set(prev.map(p => p.id));
-           const newUnique = enrichedData.filter(p => !existingIds.has(p.id));
-           return [...prev, ...newUnique];
-         });
-         setPage(currentPage);
+      if (user && enrichedData.length > 0) {
+        const postIds = enrichedData.map(p => p.id);
+        const { data: voteData } = await supabase
+          .from('forum_votes')
+          .select('post_id')
+          .eq('user_id', user.id)
+          .in('post_id', postIds);
+        const votedSet = new Set(voteData?.map(v => v.post_id) ?? []);
+        setPosts(enrichedData.map(p => ({ ...p, user_voted: votedSet.has(p.id) })));
       } else {
-         setPosts(enrichedData);
-      }
-      
-      if (!data || data.length < POSTS_PER_PAGE) {
-         setHasMore(false);
+        setPosts(enrichedData);
       }
     } catch (err) {
       console.error('Community load error:', err);
@@ -765,7 +723,7 @@ export default function CommunityPage() {
     } finally {
       setLoading(false);
     }
-  }, [user, page]);
+  }, [user]);
 
   useEffect(() => { fetchPosts(); }, [fetchPosts]);
 
@@ -886,55 +844,22 @@ Post Content:
       category: newCategory,
     }).select();
 
-    if (err) { setPosting(false); toast.error('Failed to post', { description: err.message }); return; }
-    const newPostId = data?.[0]?.id;
-    
-    // Handle Image Upload if exists
-    if (newImage && newPostId) {
-        toast.info('Uploading media...');
-        const fileExt = newImage.name.split('.').pop();
-        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-        
-        const { error: uploadError } = await supabase.storage
-           .from('community_media')
-           .upload(fileName, newImage);
-           
-        if (uploadError) {
-           toast.error('Post created, but media upload failed.');
-        } else {
-           const { data: publicUrlData } = supabase.storage.from('community_media').getPublicUrl(fileName);
-           
-           await supabase.from('post_media').insert({
-              post_id: newPostId,
-              user_id: user.id,
-              file_url: publicUrlData.publicUrl,
-              file_type: 'image'
-           });
-        }
-    }
-
     setPosting(false);
+    if (err) { toast.error('Failed to post', { description: err.message }); return; }
+    
     toast.success('Discussion posted!');
     setIsComposerOpen(false);
     setNewTitle(''); setNewContent(''); setNewCategory('general');
-    setNewImage(null); setImagePreview(null);
     setComposerMode('write');
-    fetchPosts(false);
+    fetchPosts();
 
     if (postContent.toLowerCase().includes('@loomie') || postTitle.toLowerCase().includes('@loomie')) {
+      const newPostId = data?.[0]?.id;
       if (newPostId) {
         toast.info('Loomie AI is formulating a response...');
         await triggerLoomieForPost(newPostId, postTitle, postContent);
       }
     }
-  };
-  
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-     if (e.target.files && e.target.files[0]) {
-        const file = e.target.files[0];
-        setNewImage(file);
-        setImagePreview(URL.createObjectURL(file));
-     }
   };
 
   const handleVote = async (post: ForumPost) => {
@@ -1188,46 +1113,25 @@ Post Content:
                       {newContent.trim() ? renderMarkdown(newContent) : <span className="italic text-muted-foreground">Nothing to preview.</span>}
                     </div>
                   )}
-                  
-                  {imagePreview && (
-                    <div className="relative w-full max-h-[200px] rounded-lg overflow-hidden border border-border-base shrink-0 mt-2">
-                       <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                       <button 
-                          type="button" 
-                          onClick={() => { setNewImage(null); setImagePreview(null); }}
-                          className="absolute top-2 right-2 bg-black/50 hover:bg-black/80 text-white rounded-full p-1 transition-colors flex items-center justify-center"
-                       >
-                          <span className="material-symbols-outlined text-[16px]">close</span>
-                       </button>
-                    </div>
-                  )}
                 </div>
 
                 {/* Modal Footer */}
-                <div className="px-5 py-4 border-t border-border-base bg-surface-container flex justify-between items-center select-none">
-                  <div className="flex gap-2">
-                     <label className="text-text-secondary hover:text-primary hover:bg-primary/10 p-2 rounded-full transition-colors cursor-pointer flex items-center justify-center" title="Upload Image">
-                        <input type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
-                        <span className="material-symbols-outlined text-[20px]">image</span>
-                     </label>
-                  </div>
-                  <div className="flex gap-3">
-                    <button 
-                      type="button" 
-                      onClick={() => setIsComposerOpen(false)} 
-                      className="px-4 py-2 text-text-secondary hover:text-text-primary font-label-md font-bold transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button 
-                      type="submit" 
-                      disabled={posting} 
-                      className="bg-gradient-to-r from-primary to-[hsl(var(--chart-4))] text-white hover:shadow-md px-6 py-2 rounded-lg font-label-md font-bold disabled:opacity-50 flex items-center gap-2 shadow-sm transition-all min-h-[40px]"
-                    >
-                      {posting ? <span className="material-symbols-outlined text-[18px] animate-spin">autorenew</span> : <span className="material-symbols-outlined text-[18px]">send</span>}
-                      Post
-                    </button>
-                  </div>
+                <div className="px-5 py-4 border-t border-border-base bg-surface-container flex justify-end gap-3 select-none">
+                  <button 
+                    type="button" 
+                    onClick={() => setIsComposerOpen(false)} 
+                    className="px-4 py-2 text-text-secondary hover:text-text-primary font-label-md font-bold transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    disabled={posting} 
+                    className="bg-gradient-to-r from-primary to-[hsl(var(--chart-4))] text-white hover:shadow-md px-6 py-2 rounded-lg font-label-md font-bold disabled:opacity-50 flex items-center gap-2 shadow-sm transition-all min-h-[40px]"
+                  >
+                    {posting ? <span className="material-symbols-outlined text-[18px] animate-spin">autorenew</span> : <span className="material-symbols-outlined text-[18px]">send</span>}
+                    Post
+                  </button>
                 </div>
               </form>
             </div>
@@ -1291,18 +1195,6 @@ Post Content:
                   refreshProfile={refreshProfile}
                 />
               ))
-            )}
-            
-            {hasMore && !loading && (
-               <div className="flex justify-center py-6">
-                  <button 
-                     onClick={() => fetchPosts(true)}
-                     className="bg-surface-container text-text-secondary hover:text-text-primary hover:bg-surface-container-high px-6 py-2 rounded-full font-label-md font-bold transition-colors flex items-center gap-2 shadow-sm"
-                  >
-                     Load More
-                     <span className="material-symbols-outlined text-[18px]">expand_more</span>
-                  </button>
-               </div>
             )}
           </div>
         </div>
