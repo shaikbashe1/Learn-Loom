@@ -120,19 +120,19 @@ FOR EACH ROW EXECUTE FUNCTION public.notify_new_message();
 -- Conversations
 CREATE POLICY "Participant can view conversations" ON public.conversations
 FOR SELECT USING (
-  EXISTS (SELECT 1 FROM public.conversation_participants cp WHERE cp.conversation_id = id AND cp.user_id = auth.uid())
+  EXISTS (SELECT 1 FROM public.conversation_participants cp WHERE cp.conversation_id = conversations.id AND cp.user_id = auth.uid())
 );
 CREATE POLICY "Authenticated users can insert conversations" ON public.conversations
 FOR INSERT TO authenticated WITH CHECK (true);
 CREATE POLICY "Participant can update conversations" ON public.conversations
 FOR UPDATE USING (
-  EXISTS (SELECT 1 FROM public.conversation_participants cp WHERE cp.conversation_id = id AND cp.user_id = auth.uid())
+  EXISTS (SELECT 1 FROM public.conversation_participants cp WHERE cp.conversation_id = conversations.id AND cp.user_id = auth.uid())
 );
 
 -- Conversation Participants
 CREATE POLICY "Participant can view conversation participants" ON public.conversation_participants
 FOR SELECT USING (
-  EXISTS (SELECT 1 FROM public.conversation_participants cp WHERE cp.conversation_id = conversation_id AND cp.user_id = auth.uid())
+  EXISTS (SELECT 1 FROM public.conversation_participants cp WHERE cp.conversation_id = conversation_participants.conversation_id AND cp.user_id = auth.uid())
 );
 CREATE POLICY "Users can add themselves and others if permitted" ON public.conversation_participants
 FOR INSERT TO authenticated WITH CHECK (
@@ -142,16 +142,16 @@ FOR INSERT TO authenticated WITH CHECK (
 -- Messages
 CREATE POLICY "Participant can view messages" ON public.messages
 FOR SELECT USING (
-  EXISTS (SELECT 1 FROM public.conversation_participants cp WHERE cp.conversation_id = conversation_id AND cp.user_id = auth.uid())
+  EXISTS (SELECT 1 FROM public.conversation_participants cp WHERE cp.conversation_id = messages.conversation_id AND cp.user_id = auth.uid())
 );
 CREATE POLICY "Participant can insert messages" ON public.messages
 FOR INSERT TO authenticated WITH CHECK (
   sender_id = auth.uid() AND
-  EXISTS (SELECT 1 FROM public.conversation_participants cp WHERE cp.conversation_id = conversation_id AND cp.user_id = auth.uid())
+  EXISTS (SELECT 1 FROM public.conversation_participants cp WHERE cp.conversation_id = messages.conversation_id AND cp.user_id = auth.uid())
 );
 CREATE POLICY "Participant can update messages" ON public.messages
 FOR UPDATE USING (
-  EXISTS (SELECT 1 FROM public.conversation_participants cp WHERE cp.conversation_id = conversation_id AND cp.user_id = auth.uid())
+  EXISTS (SELECT 1 FROM public.conversation_participants cp WHERE cp.conversation_id = messages.conversation_id AND cp.user_id = auth.uid())
 );
 
 -- ── 6. Realtime Configuration ────────────────────────────────────────────────
