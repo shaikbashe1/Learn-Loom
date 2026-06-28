@@ -118,6 +118,12 @@ To populate your database with 4 production-quality, well-structured courses (Py
    ```bash
    npm run seed
    ```
+   > [!IMPORTANT]
+   > **Schema Cache Mismatches**: If you see `Could not find the 'content' column of 'course_modules'` during seeding, PostgREST needs to reload its cache. Run the following command in the **SQL Editor** of your Supabase Dashboard:
+   > ```sql
+   > ALTER TABLE public.course_modules ADD COLUMN IF NOT EXISTS content TEXT;
+   > NOTIFY pgrst, 'reload schema';
+   > ```
 3. **Run Community Seeding**: Populates initial welcome announcements, programming doubts, and community discussions:
    ```bash
    node seed-community.mjs

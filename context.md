@@ -97,6 +97,7 @@ LearnLoom is an advanced, AI-driven learning ecosystem designed for software eng
 ### 14. Course Seeding Pipeline & Premium Catalog UI
 - **Service Role Key Seeding Integration**: Updated [seed-courses.mjs](file:///d:/Yogesh/Coding/learnloom-main/seed-courses.mjs) to parse `SUPABASE_SERVICE_ROLE_KEY` from the environment. Using the service role key enables database inserts to bypass Supabase RLS security policies directly, avoiding the need for hardcoded user authentication credentials. Falls back gracefully to admin email/password login if the service role key is not configured.
 - **Cisco-Style Continuous Learning Flow**: Configured the script to generate and link a project lab assignment to **every single module** (20 assignments per course, 80 total). Seeded courses are saved as `is_published: false` (Draft) by default so admin can review contents before listing.
+- **Database Clean-Wipe & Queue Status**: Configured the seeding script to clear out any old courses and sub-resources (modules, quizzes, assignments) at the start of execution, leaving only the 4 core courses. Set `status: 'pending_review'` explicitly to ensure they appear in the Admin Moderation Queue for quick approval.
 - **Premium Course Catalog UI**:
   - *Dynamic Progress Indicators*: Enrolled students now see a micro-progress bar indicating their exact module completion rate on catalog cards.
   - *Curated Mesh Gradients*: Thumbnails render using premium dark/vibrant gradients (mesh look) with smooth scaling triggers on hover.
@@ -198,6 +199,9 @@ LearnLoom is an advanced, AI-driven learning ecosystem designed for software eng
 3. Wrote `formatMarkdownContent` to map array types (`key_concepts`, etc.) to bullet list strings before rendering markdown.
 4. Declared test results icons as `React.ReactNode` to prevent compile-time types evaluation errors.
 
+### Issue 18: PostgREST Schema Cache Mismatches on Custom Column Inserts
+**Problem:** Attempting to seed modules with the `content` column threw a `Could not find the 'content' column of 'course_modules' in the schema cache` database exception, due to the remote Supabase schema caching missing the progression column updates.
+**Resolution:** Updated database setup document references to execute structural migrations (adding progression columns if missing) and invoke the cache notifier command: `NOTIFY pgrst, 'reload schema'`.
 
 ## Reference File & Folder Structure
 
