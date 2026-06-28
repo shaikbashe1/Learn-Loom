@@ -11,6 +11,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/contexts/NotificationContext';
+import { useMessaging } from '@/contexts/MessagingContext';
 import { formatDistanceToNow } from 'date-fns';
 
 const studentNavItems = [
@@ -21,6 +22,7 @@ const studentNavItems = [
   { label: 'Coding Practice', path: '/coding',       icon: 'terminal' },
   { label: 'Assignments',     path: '/assignments',  icon: 'assignment' },
   { label: 'Community',       path: '/community',    icon: 'group' },
+  { label: 'Messages',        path: '/messages',     icon: 'chat' },
   { label: 'Leaderboard',     path: '/leaderboard',  icon: 'leaderboard' },
   { label: 'Grand Test',      path: '/grand-test',   icon: 'school' },
   { label: 'Certificates',    path: '/certificates', icon: 'workspace_premium' },
@@ -32,6 +34,7 @@ const adminNavItems = [
   { label: 'Review Drafts',   path: '/admin/courses/drafts', icon: 'rate_review' },
   { label: 'Manage Courses',  path: '/admin/courses',       icon: 'menu_book' },
   { label: 'Manage Students', path: '/admin/students',      icon: 'group' },
+  { label: 'Messages',        path: '/messages',            icon: 'chat' },
   { label: 'Certificates',    path: '/admin/certificates',  icon: 'workspace_premium' },
   { label: 'Community',       path: '/admin/community',     icon: 'forum' },
   { label: 'Submissions',     path: '/admin/submissions',   icon: 'assignment' },
@@ -41,6 +44,8 @@ const adminNavItems = [
 
 function SidebarNav({ items, onClose }: { items: typeof studentNavItems, onClose?: () => void }) {
   const location = useLocation();
+  const { unreadCount: unreadMessages } = useMessaging();
+
   return (
     <nav className="flex-1 flex flex-col gap-xs font-label-md text-label-md overflow-y-auto pr-2">
       {items.map((item) => {
@@ -64,7 +69,12 @@ function SidebarNav({ items, onClose }: { items: typeof studentNavItems, onClose
             <span className={cn("material-symbols-outlined transition-transform", isActive ? 'fill group-hover:scale-110' : 'group-hover:scale-110')}>
               {item.icon}
             </span>
-            <span>{item.label}</span>
+            <span className="flex-1">{item.label}</span>
+            {item.path === '/messages' && unreadMessages > 0 && (
+              <Badge className="ml-auto bg-primary text-white text-[10px] h-5 min-w-[20px] flex items-center justify-center rounded-full px-1 border-0">
+                {unreadMessages > 99 ? '99+' : unreadMessages}
+              </Badge>
+            )}
           </Link>
         );
       })}

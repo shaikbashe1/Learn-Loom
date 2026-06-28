@@ -33,6 +33,7 @@ const PublicProfilePage   = lazy(() => import('./pages/student/PublicProfilePage
 const PricingPage         = lazy(() => import('./pages/student/PricingPage'));
 const PaymentHistoryPage  = lazy(() => import('./pages/student/PaymentHistoryPage'));
 const SearchPage          = lazy(() => import('./pages/student/SearchPage'));
+const MessagesPage        = lazy(() => import('./pages/student/MessagesPage'));
 
 // Lazy-loaded admin pages
 const AdminDashboard      = lazy(() => import('./pages/admin/AdminDashboard'));
@@ -86,6 +87,7 @@ export const routes: RouteConfig[] = [
   { name: 'Profile',              path: '/profile',                 component: ProfilePage },
   { name: 'Public Profile',       path: '/profile/:id',             component: PublicProfilePage },
   { name: 'Search',               path: '/search',                  component: SearchPage },
+  { name: 'Messages',             path: '/messages',                component: MessagesPage },
   { name: 'Pricing',              path: '/pricing',                 component: PricingPage,       public: true },
   { name: 'Payment History',      path: '/payment-history',         component: PaymentHistoryPage },
 
