@@ -43,7 +43,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ── 1. Conversations Table ───────────────────────────────────────────────────
-CREATE TABLE public.conversations (
+CREATE TABLE IF NOT EXISTS public.conversations (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   created_at timestamptz NOT NULL DEFAULT now(),
   last_message_at timestamptz NOT NULL DEFAULT now(),
@@ -52,7 +52,7 @@ CREATE TABLE public.conversations (
 ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
 
 -- ── 2. Conversation Participants ─────────────────────────────────────────────
-CREATE TABLE public.conversation_participants (
+CREATE TABLE IF NOT EXISTS public.conversation_participants (
   conversation_id uuid NOT NULL REFERENCES public.conversations(id) ON DELETE CASCADE,
   user_id text NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   created_at timestamptz NOT NULL DEFAULT now(),
@@ -61,7 +61,7 @@ CREATE TABLE public.conversation_participants (
 ALTER TABLE public.conversation_participants ENABLE ROW LEVEL SECURITY;
 
 -- ── 3. Messages ─────────────────────────────────────────────────────────────
-CREATE TABLE public.messages (
+CREATE TABLE IF NOT EXISTS public.messages (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   conversation_id uuid NOT NULL REFERENCES public.conversations(id) ON DELETE CASCADE,
   sender_id text NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,

@@ -1,5 +1,5 @@
 -- Create user_followers table
-CREATE TABLE public.user_followers (
+CREATE TABLE IF NOT EXISTS public.user_followers (
   follower_id text NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   following_id text NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   created_at timestamptz NOT NULL DEFAULT now(),
