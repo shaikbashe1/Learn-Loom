@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { AIMentorChat } from '@/components/chat/AIMentorChat';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/db/supabase';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Target, TrendingUp, AlertTriangle, BookOpen } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface MentorAnalytics {
   completedCourses: number;
@@ -66,12 +67,11 @@ export default function AIMentorPage() {
           });
         }
         
-        // Deduplicate
         strong = Array.from(new Set(strong)).slice(0, 3);
         weak = Array.from(new Set(weak)).slice(0, 3);
 
         if (strong.length === 0) strong = Object.keys(categories).slice(0, 2);
-        if (weak.length === 0) weak = ['DSA Algorithms', 'System Design']; // Default placeholders if no bad scores
+        if (weak.length === 0) weak = ['DSA Algorithms', 'System Design'];
 
         setAnalytics({
           completedCourses: completed,
@@ -92,80 +92,88 @@ export default function AIMentorPage() {
 
   return (
     <AppLayout title="AI Mentor">
-      <div className="flex-1 flex flex-col xl:flex-row h-[calc(100vh-80px)] overflow-hidden w-full relative bg-background">
+      <div className="flex-grow flex flex-col xl:flex-row h-[calc(100vh-80px)] overflow-hidden w-full relative bg-background select-none">
         
         {/* Mentor Analytics Sidebar */}
-        <div className="w-full xl:w-[400px] 2xl:w-[500px] shrink-0 border-r border-outline-variant/40 bg-surface/50 overflow-y-auto hidden xl:block p-6 space-y-6">
+        <div className="w-full xl:w-[360px] 2xl:w-[420px] shrink-0 border-r border-border bg-card/50 overflow-y-auto hidden xl:block p-6 space-y-6">
           
           <div>
-            <h2 className="text-2xl font-heading font-bold text-on-surface mb-2">Loomie Intelligence</h2>
-            <p className="text-on-surface-variant font-body-md">Your personalized AI Mentor constantly analyzes your learning patterns to accelerate your career.</p>
+            <h2 className="text-sm font-bold text-foreground mb-1">Loomie Intelligence</h2>
+            <p className="text-xs text-muted-foreground font-semibold leading-relaxed">
+              Your personalized AI Mentor constantly analyzes your learning patterns to accelerate your career.
+            </p>
           </div>
 
           {!loading && analytics ? (
             <div className="space-y-6">
               {/* Core Metrics */}
               <div className="grid grid-cols-2 gap-4">
-                <Card className="bg-surface border-outline-variant shadow-sm">
+                <Card className="bg-card border-border shadow-sm rounded-2xl">
                   <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-                    <BookOpen className="w-6 h-6 text-primary mb-2" />
-                    <p className="text-3xl font-bold text-on-surface">{analytics.completedCourses}</p>
-                    <p className="text-xs font-label-sm text-on-surface-variant uppercase tracking-wider">Courses Done</p>
+                    <BookOpen className="w-5 h-5 text-primary mb-2" />
+                    <p className="text-xl font-extrabold text-foreground leading-none">{analytics.completedCourses}</p>
+                    <p className="text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider mt-2">Courses Done</p>
                   </CardContent>
                 </Card>
-                <Card className="bg-surface border-outline-variant shadow-sm">
+                <Card className="bg-card border-border shadow-sm rounded-2xl">
                   <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-                    <Target className="w-6 h-6 text-secondary mb-2" />
-                    <p className="text-3xl font-bold text-on-surface">{analytics.averageQuizScore}%</p>
-                    <p className="text-xs font-label-sm text-on-surface-variant uppercase tracking-wider">Avg Quiz Score</p>
+                    <Target className="w-5 h-5 text-primary mb-2" />
+                    <p className="text-xl font-extrabold text-foreground leading-none">{analytics.averageQuizScore}%</p>
+                    <p className="text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider mt-2">Avg Quiz Score</p>
                   </CardContent>
                 </Card>
               </div>
 
               {/* Strength Analysis */}
-              <Card className="bg-primary/5 border-primary/20 shadow-sm">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center gap-2 text-primary">
-                    <TrendingUp className="w-5 h-5" /> Strong Areas
+              <Card className="bg-primary/5 border-primary/20 shadow-sm rounded-2xl">
+                <CardHeader className="pb-2 p-4">
+                  <CardTitle className="text-xs font-bold flex items-center gap-1.5 text-primary uppercase tracking-wider">
+                    <TrendingUp className="w-4 h-4" /> Strong Areas
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-4 pt-0">
                   <ul className="space-y-2">
                     {analytics.strongAreas.map(area => (
-                      <li key={area} className="flex items-center gap-2 text-on-surface font-body-md">
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary" /> {area}
+                      <li key={area} className="flex items-center gap-2 text-foreground text-xs font-semibold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" /> 
+                        <span className="truncate">{area}</span>
                       </li>
                     ))}
                   </ul>
-                  <p className="text-xs text-primary/80 mt-4">Loomie recommends exploring Advanced courses in these topics.</p>
+                  <p className="text-[10px] text-primary/80 mt-4 font-semibold">
+                    Loomie recommends exploring Advanced courses in these topics.
+                  </p>
                 </CardContent>
               </Card>
 
               {/* Weakness Analysis */}
-              <Card className="bg-error/5 border-error/20 shadow-sm">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center gap-2 text-error">
-                    <AlertTriangle className="w-5 h-5" /> Focus Required
+              <Card className="bg-destructive/5 border-destructive/20 shadow-sm rounded-2xl">
+                <CardHeader className="pb-2 p-4">
+                  <CardTitle className="text-xs font-bold flex items-center gap-1.5 text-destructive uppercase tracking-wider">
+                    <AlertTriangle className="w-4 h-4" /> Focus Required
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-4 pt-0">
                   <ul className="space-y-2">
                     {analytics.weakAreas.map(area => (
-                      <li key={area} className="flex items-center gap-2 text-on-surface font-body-md">
-                        <span className="w-1.5 h-1.5 rounded-full bg-error" /> {area}
+                      <li key={area} className="flex items-center gap-2 text-foreground text-xs font-semibold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-destructive shrink-0" /> 
+                        <span className="truncate">{area}</span>
                       </li>
                     ))}
                   </ul>
-                  <p className="text-xs text-error/80 mt-4">Ask Loomie to generate a customized 7-day study plan to tackle these weaknesses.</p>
+                  <p className="text-[10px] text-destructive/80 mt-4 font-semibold">
+                    Ask Loomie to generate a customized 7-day study plan to tackle these weaknesses.
+                  </p>
                 </CardContent>
               </Card>
 
             </div>
           ) : (
-            <div className="space-y-4 animate-pulse">
-              <div className="h-24 bg-surface-container rounded-xl w-full" />
-              <div className="h-40 bg-surface-container rounded-xl w-full" />
-              <div className="h-40 bg-surface-container rounded-xl w-full" />
+            <div className="space-y-4">
+              <Skeleton className="h-24 bg-muted rounded-2xl w-full" />
+              <Skeleton className="h-40 bg-muted rounded-2xl w-full" />
+              <Skeleton className="h-40 bg-muted rounded-2xl w-full" />
             </div>
           )}
 
@@ -180,3 +188,4 @@ export default function AIMentorPage() {
     </AppLayout>
   );
 }
+export { AIMentorPage };

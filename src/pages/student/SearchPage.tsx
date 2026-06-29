@@ -3,6 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { supabase } from '@/db/supabase';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Search, MessageSquare } from 'lucide-react';
 
 interface SearchResult {
   id: string;
@@ -76,21 +77,23 @@ export default function SearchPage() {
 
   return (
     <AppLayout title="Search Results">
-      <div className="max-w-3xl mx-auto px-4 md:px-8 py-10 w-full min-h-[80vh]">
-        <h1 className="font-display text-3xl font-bold mb-2">Search Results for "{query}"</h1>
-        <p className="text-text-secondary mb-8">Found {results.length} results</p>
+      <div className="max-w-3xl mx-auto px-4 md:px-8 py-10 w-full min-h-[80vh] select-none">
+        <h1 className="font-display text-2xl font-bold mb-1">Search Results for "{query}"</h1>
+        <p className="text-xs text-muted-foreground font-semibold mb-8">Found {results.length} results</p>
         
         {loading ? (
           <div className="space-y-4">
-            <Skeleton className="h-20 w-full bg-surface-container rounded-xl" />
-            <Skeleton className="h-20 w-full bg-surface-container rounded-xl" />
-            <Skeleton className="h-20 w-full bg-surface-container rounded-xl" />
+            <Skeleton className="h-20 w-full bg-muted rounded-2xl" />
+            <Skeleton className="h-20 w-full bg-muted rounded-2xl" />
+            <Skeleton className="h-20 w-full bg-muted rounded-2xl" />
           </div>
         ) : results.length === 0 ? (
-          <div className="text-center py-20 bg-surface rounded-xl border border-border-base shadow-sm">
-            <span className="material-symbols-outlined text-5xl text-text-secondary opacity-50 mb-4">search_off</span>
-            <h3 className="font-headline-md text-xl font-bold mb-2">No results found</h3>
-            <p className="text-text-secondary">Try adjusting your keywords and searching again.</p>
+          <div className="text-center py-20 bg-card rounded-3xl border border-border shadow-sm">
+            <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4 border border-border">
+              <Search className="w-6 h-6 text-muted-foreground/40" />
+            </div>
+            <h3 className="text-sm font-bold mb-1">No results found</h3>
+            <p className="text-xs text-muted-foreground font-semibold">Try adjusting your keywords and searching again.</p>
           </div>
         ) : (
           <div className="flex flex-col gap-4">
@@ -98,28 +101,32 @@ export default function SearchPage() {
               <Link 
                 key={`${r.type}-${r.id}-${idx}`}
                 to={r.url}
-                className="bg-surface border border-border-base rounded-xl p-5 flex items-center gap-4 hover:shadow-md transition-shadow group card-lift"
+                className="bg-card border border-border rounded-2xl p-5 flex items-center gap-4 hover:border-border/80 shadow-sm hover:shadow-md transition-all group"
               >
                 {r.type === 'user' ? (
                   r.imageUrl ? (
-                    <img src={r.imageUrl} alt={r.title} className="w-12 h-12 rounded-full object-cover shadow-sm" />
+                    <img src={r.imageUrl} alt={r.title} className="w-12 h-12 rounded-full object-cover shadow-sm shrink-0" />
                   ) : (
-                    <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg border border-primary/20">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-base border border-primary/20 shrink-0">
                       {r.title.charAt(0).toUpperCase()}
                     </div>
                   )
                 ) : (
-                  <div className="w-12 h-12 rounded-lg bg-surface-container-low border border-border-base text-primary flex items-center justify-center shadow-sm">
-                    <span className="material-symbols-outlined">forum</span>
+                  <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shadow-sm shrink-0">
+                    <MessageSquare className="w-5 h-5" />
                   </div>
                 )}
                 
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-[16px] text-text-primary truncate group-hover:text-primary transition-colors">{r.title}</h4>
-                  <p className="text-[13px] text-text-secondary truncate mt-0.5">{r.subtitle}</p>
+                  <h4 className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors leading-normal">
+                    {r.title}
+                  </h4>
+                  <p className="text-[11px] text-muted-foreground truncate mt-1 font-semibold leading-normal">
+                    {r.subtitle}
+                  </p>
                 </div>
                 
-                <div className="text-xs font-bold px-2.5 py-1 rounded-md bg-surface-container-low text-text-secondary border border-border-base uppercase tracking-wider">
+                <div className="text-[9px] font-extrabold px-2.5 py-1 rounded-lg bg-muted text-muted-foreground border border-border uppercase tracking-wider">
                   {r.type}
                 </div>
               </Link>
@@ -130,3 +137,4 @@ export default function SearchPage() {
     </AppLayout>
   );
 }
+export { SearchPage };
