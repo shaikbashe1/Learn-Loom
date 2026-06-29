@@ -427,6 +427,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+DROP TRIGGER IF EXISTS update_conv_last_message ON public.messages;
 CREATE TRIGGER update_conv_last_message
 AFTER INSERT ON public.messages
 FOR EACH ROW EXECUTE FUNCTION public.update_conversation_last_message();
@@ -457,6 +458,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+DROP TRIGGER IF EXISTS notify_new_message_trigger ON public.messages;
 CREATE TRIGGER notify_new_message_trigger
 AFTER INSERT ON public.messages
 FOR EACH ROW EXECUTE FUNCTION public.notify_new_message();
