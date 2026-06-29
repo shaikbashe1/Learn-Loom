@@ -162,15 +162,18 @@ VALUES ('community_media', 'community_media', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- Storage Policies for community_media
+DROP POLICY IF EXISTS "community_media_public_access" ON storage.objects;
 CREATE POLICY "community_media_public_access" 
 ON storage.objects FOR SELECT 
 USING (bucket_id = 'community_media');
 
+DROP POLICY IF EXISTS "community_media_upload" ON storage.objects;
 CREATE POLICY "community_media_upload" 
 ON storage.objects FOR INSERT 
 TO authenticated 
 WITH CHECK (bucket_id = 'community_media' AND (storage.foldername(name))[1] = auth.uid()::text);
 
+DROP POLICY IF EXISTS "community_media_delete" ON storage.objects;
 CREATE POLICY "community_media_delete"
 ON storage.objects FOR DELETE
 TO authenticated
@@ -189,8 +192,11 @@ CREATE TABLE IF NOT EXISTS public.post_media (
 CREATE INDEX IF NOT EXISTS idx_post_media_post_id ON public.post_media(post_id);
 
 ALTER TABLE public.post_media ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "post_media_select" ON public.post_media;
 CREATE POLICY "post_media_select" ON public.post_media FOR SELECT USING (true);
+DROP POLICY IF EXISTS "post_media_insert" ON public.post_media;
 CREATE POLICY "post_media_insert" ON public.post_media FOR INSERT TO authenticated WITH CHECK (auth.uid()::text = user_id);
+DROP POLICY IF EXISTS "post_media_delete" ON public.post_media;
 CREATE POLICY "post_media_delete" ON public.post_media FOR DELETE TO authenticated USING (auth.uid()::text = user_id);
 
 -- 3. Create followers table
@@ -205,8 +211,11 @@ CREATE INDEX IF NOT EXISTS idx_followers_follower_id ON public.followers(followe
 CREATE INDEX IF NOT EXISTS idx_followers_following_id ON public.followers(following_id);
 
 ALTER TABLE public.followers ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "followers_select" ON public.followers;
 CREATE POLICY "followers_select" ON public.followers FOR SELECT USING (true);
+DROP POLICY IF EXISTS "followers_insert" ON public.followers;
 CREATE POLICY "followers_insert" ON public.followers FOR INSERT TO authenticated WITH CHECK (auth.uid()::text = follower_id);
+DROP POLICY IF EXISTS "followers_delete" ON public.followers;
 CREATE POLICY "followers_delete" ON public.followers FOR DELETE TO authenticated USING (auth.uid()::text = follower_id);
 
 -- 4. Create reactions table (Migrating away from forum_votes)
@@ -222,9 +231,13 @@ CREATE TABLE IF NOT EXISTS public.reactions (
 CREATE INDEX IF NOT EXISTS idx_reactions_post_id ON public.reactions(post_id);
 
 ALTER TABLE public.reactions ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "reactions_select" ON public.reactions;
 CREATE POLICY "reactions_select" ON public.reactions FOR SELECT USING (true);
+DROP POLICY IF EXISTS "reactions_insert" ON public.reactions;
 CREATE POLICY "reactions_insert" ON public.reactions FOR INSERT TO authenticated WITH CHECK (auth.uid()::text = user_id);
+DROP POLICY IF EXISTS "reactions_update" ON public.reactions;
 CREATE POLICY "reactions_update" ON public.reactions FOR UPDATE TO authenticated USING (auth.uid()::text = user_id);
+DROP POLICY IF EXISTS "reactions_delete" ON public.reactions;
 CREATE POLICY "reactions_delete" ON public.reactions FOR DELETE TO authenticated USING (auth.uid()::text = user_id);
 
 -- Note: In Phase 2 we will migrate data from forum_votes to reactions.
@@ -461,34 +474,42 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Conversations
+DROP POLICY IF EXISTS "Participant can view conversations" ON public.conversations;
 CREATE POLICY "Participant can view conversations" ON public.conversations
 FOR SELECT USING ( created_by = auth.uid()::text OR public.is_conversation_participant(id) );
 
+DROP POLICY IF EXISTS "Authenticated users can insert conversations" ON public.conversations;
 CREATE POLICY "Authenticated users can insert conversations" ON public.conversations
 FOR INSERT TO authenticated WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Participant can update conversations" ON public.conversations;
 CREATE POLICY "Participant can update conversations" ON public.conversations
 FOR UPDATE USING ( public.is_conversation_participant(id) );
 
 -- Conversation Participants
+DROP POLICY IF EXISTS "Participant can view conversation participants" ON public.conversation_participants;
 CREATE POLICY "Participant can view conversation participants" ON public.conversation_participants
 FOR SELECT USING ( public.is_conversation_participant(conversation_id) );
 
+DROP POLICY IF EXISTS "Users can add themselves and others if permitted" ON public.conversation_participants;
 CREATE POLICY "Users can add themselves and others if permitted" ON public.conversation_participants
 FOR INSERT TO authenticated WITH CHECK (
   auth.uid()::text = user_id OR public.can_message_user(auth.uid()::text, user_id)
 );
 
 -- Messages
+DROP POLICY IF EXISTS "Participant can view messages" ON public.messages;
 CREATE POLICY "Participant can view messages" ON public.messages
 FOR SELECT USING ( public.is_conversation_participant(conversation_id) );
 
+DROP POLICY IF EXISTS "Participant can insert messages" ON public.messages;
 CREATE POLICY "Participant can insert messages" ON public.messages
 FOR INSERT TO authenticated WITH CHECK (
   sender_id = auth.uid()::text AND
   public.is_conversation_participant(conversation_id)
 );
 
+DROP POLICY IF EXISTS "Participant can update messages" ON public.messages;
 CREATE POLICY "Participant can update messages" ON public.messages
 FOR UPDATE USING ( public.is_conversation_participant(conversation_id) );
 
@@ -513,14 +534,17 @@ CREATE TABLE public.user_followers (
 ALTER TABLE public.user_followers ENABLE ROW LEVEL SECURITY;
 
 -- Allow anyone to read followers (so public profiles can show follower counts)
+DROP POLICY IF EXISTS "Anyone can view followers" ON public.user_followers;
 CREATE POLICY "Anyone can view followers" ON public.user_followers
 FOR SELECT USING (true);
 
 -- Allow users to follow others (insert where follower_id is themselves)
+DROP POLICY IF EXISTS "Users can follow others" ON public.user_followers;
 CREATE POLICY "Users can follow others" ON public.user_followers
 FOR INSERT TO authenticated WITH CHECK (follower_id = auth.uid()::text);
 
 -- Allow users to unfollow others (delete where follower_id is themselves)
+DROP POLICY IF EXISTS "Users can unfollow others" ON public.user_followers;
 CREATE POLICY "Users can unfollow others" ON public.user_followers
 FOR DELETE TO authenticated USING (follower_id = auth.uid()::text);
 

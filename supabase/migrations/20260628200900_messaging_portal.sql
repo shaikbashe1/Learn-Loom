@@ -129,34 +129,42 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Conversations
+DROP POLICY IF EXISTS "Participant can view conversations" ON public.conversations;
 CREATE POLICY "Participant can view conversations" ON public.conversations
 FOR SELECT USING ( created_by = auth.uid()::text OR public.is_conversation_participant(id) );
 
+DROP POLICY IF EXISTS "Authenticated users can insert conversations" ON public.conversations;
 CREATE POLICY "Authenticated users can insert conversations" ON public.conversations
 FOR INSERT TO authenticated WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Participant can update conversations" ON public.conversations;
 CREATE POLICY "Participant can update conversations" ON public.conversations
 FOR UPDATE USING ( public.is_conversation_participant(id) );
 
 -- Conversation Participants
+DROP POLICY IF EXISTS "Participant can view conversation participants" ON public.conversation_participants;
 CREATE POLICY "Participant can view conversation participants" ON public.conversation_participants
 FOR SELECT USING ( public.is_conversation_participant(conversation_id) );
 
+DROP POLICY IF EXISTS "Users can add themselves and others if permitted" ON public.conversation_participants;
 CREATE POLICY "Users can add themselves and others if permitted" ON public.conversation_participants
 FOR INSERT TO authenticated WITH CHECK (
   auth.uid()::text = user_id OR public.can_message_user(auth.uid()::text, user_id)
 );
 
 -- Messages
+DROP POLICY IF EXISTS "Participant can view messages" ON public.messages;
 CREATE POLICY "Participant can view messages" ON public.messages
 FOR SELECT USING ( public.is_conversation_participant(conversation_id) );
 
+DROP POLICY IF EXISTS "Participant can insert messages" ON public.messages;
 CREATE POLICY "Participant can insert messages" ON public.messages
 FOR INSERT TO authenticated WITH CHECK (
   sender_id = auth.uid()::text AND
   public.is_conversation_participant(conversation_id)
 );
 
+DROP POLICY IF EXISTS "Participant can update messages" ON public.messages;
 CREATE POLICY "Participant can update messages" ON public.messages
 FOR UPDATE USING ( public.is_conversation_participant(conversation_id) );
 
