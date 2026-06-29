@@ -1,9 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CreditCard, Calendar, CheckCircle, XCircle, Clock, Download } from 'lucide-react';
+import { 
+  CreditCard, 
+  Calendar, 
+  CheckCircle2, 
+  XCircle, 
+  Clock, 
+  Download, 
+  PlusCircle 
+} from 'lucide-react';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -21,9 +28,9 @@ interface PaymentOrder {
 }
 
 const STATUS_CONFIG = {
-  paid:    { label: 'Paid',    color: 'bg-success/10 text-success', icon: CheckCircle },
-  created: { label: 'Pending', color: 'bg-warning/10 text-warning', icon: Clock },
-  failed:  { label: 'Failed',  color: 'bg-error/10 text-error', icon: XCircle },
+  paid:    { label: 'Paid',    color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20', icon: CheckCircle2 },
+  created: { label: 'Pending', color: 'bg-amber-500/10 text-amber-500 border-amber-500/20', icon: Clock },
+  failed:  { label: 'Failed',  color: 'bg-destructive/10 text-destructive border-destructive/20', icon: XCircle },
 };
 
 export default function PaymentHistoryPage() {
@@ -48,140 +55,155 @@ export default function PaymentHistoryPage() {
 
   return (
     <AppLayout title="Payment History">
-      <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-xl space-y-stack-xl w-full">
+      <div className="max-w-container-max mx-auto px-4 md:px-8 py-8 space-y-8 w-full select-none">
+        
+        {/* Header */}
         <div>
-          <h2 className="font-display-lg-mobile md:font-display-lg text-[32px] font-bold text-text-primary">Payment History</h2>
-          <p className="font-body-sm text-[16px] text-text-secondary mt-1">
+          <h2 className="font-display text-2xl font-bold text-foreground">Payment History</h2>
+          <p className="text-xs text-muted-foreground mt-1 font-semibold">
             Manage your billing and view past transactions.
           </p>
         </div>
 
-        {/* Bento Grid: Top Metrics & Subscription */}
+        {/* Bento Grid: Current Plan & Payment Method */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
           {/* Current Plan Card */}
-          <div className="glass-panel border border-border-base rounded-2xl p-6 md:p-8 col-span-1 md:col-span-2 flex flex-col justify-between group hover:-translate-y-1 transition-transform duration-300 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-tertiary to-secondary"></div>
+          <div className="bg-card border border-border rounded-3xl p-6 md:p-8 col-span-1 md:col-span-2 flex flex-col justify-between hover:border-border/80 transition-all duration-300 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-chart-4" />
             
             <div className="flex justify-between items-start mb-6">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="font-label-sm text-[12px] font-bold text-tertiary uppercase tracking-widest">Current Plan</span>
-                  <span className="px-2 py-0.5 rounded-full bg-tertiary/10 text-tertiary font-label-sm text-[10px] border border-tertiary/20">PRO</span>
+                  <span className="text-[9px] font-extrabold text-primary uppercase tracking-wider">Current Plan</span>
+                  <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[9px] font-extrabold border border-primary/20">PRO</span>
                 </div>
-                <h3 className="font-headline-lg text-[28px] font-bold text-text-primary mt-2 capitalize">{currentPlanId === 'free' ? 'Free Tier' : currentPlanId + ' Plan'}</h3>
+                <h3 className="font-display text-2xl font-extrabold text-foreground capitalize mt-1.5">
+                  {currentPlanId === 'free' ? 'Free Tier' : currentPlanId + ' Plan'}
+                </h3>
               </div>
+              
               {activeSub && currentPlanId !== 'free' && (
-                <div className="bg-surface-container p-3 rounded-xl border border-border-base shadow-inner">
-                  <span className="font-headline-lg text-[24px] font-bold text-primary">Active</span>
+                <div className="bg-primary/5 border border-primary/15 px-4 py-2 rounded-xl text-primary font-bold text-xs">
+                  Active
                 </div>
               )}
             </div>
 
-            <div className="border-t border-border-base pt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-2 text-text-secondary">
-                <span className="material-symbols-outlined text-[18px]">event</span>
+            <div className="border-t border-border pt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-2 text-muted-foreground text-xs font-semibold">
+                <Calendar className="h-4 w-4 text-muted-foreground/60" />
                 {activeSub?.expires_at ? (
-                  <span className="font-body-sm text-[14px]">
-                    Renews automatically on <strong className="text-text-primary">{new Date(activeSub.expires_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>
+                  <span>
+                    Renews automatically on <strong className="text-foreground">{new Date(activeSub.expires_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>
                   </span>
                 ) : (
-                  <span className="font-body-sm text-[14px]">Free tier active. No upcoming renewals.</span>
+                  <span>Free tier active. No upcoming renewals.</span>
                 )}
               </div>
               <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                 {activeSub && currentPlanId !== 'free' && (
-                  <Link to="/pricing" className="px-5 py-2.5 rounded-xl border border-border-base text-text-primary font-label-md text-[14px] font-bold hover:bg-surface-container transition-colors bg-surface shadow-sm inline-flex items-center justify-center min-h-[44px]">
+                  <Link to="/pricing" className="px-5 py-2.5 rounded-xl border border-border text-foreground font-bold text-xs hover:bg-muted/50 transition-all shadow-sm flex items-center justify-center min-h-[40px]">
                     Cancel Plan
                   </Link>
                 )}
-                <Link to="/pricing" className="px-5 py-2.5 rounded-xl bg-primary text-white font-label-md text-[14px] font-bold hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm inline-flex items-center justify-center min-h-[44px]">
+                <Link to="/pricing" className="px-5 py-2.5 bg-primary text-primary-foreground font-bold text-xs hover:brightness-110 active:scale-[0.99] transition-all shadow-md shadow-primary/10 flex items-center justify-center min-h-[40px]">
                   Manage Billing
                 </Link>
               </div>
             </div>
           </div>
 
-          {/* Payment Method Card - Placeholder for SaaS feel */}
-          <div className="glass-panel rounded-2xl p-6 md:p-8 border border-border-base shadow-sm col-span-1 hover:-translate-y-1 transition-transform duration-300 flex flex-col">
-            <h4 className="font-label-sm text-[12px] font-bold text-text-secondary uppercase mb-4 tracking-widest">Payment Method</h4>
-            <div className="flex items-center gap-4 p-4 border border-border-base rounded-xl mb-auto bg-surface/50 shadow-inner">
-              <div className="w-12 h-8 bg-surface-container rounded flex items-center justify-center border border-border-base">
-                 <CreditCard className="w-5 h-5 text-text-secondary" />
-              </div>
-              <div className="flex-1">
-                <p className="font-body-md text-[14px] font-bold text-text-primary">Secured by Razorpay</p>
-                <p className="font-body-sm text-[12px] text-text-secondary">UPI / Cards</p>
+          {/* Payment Method Card */}
+          <div className="bg-card rounded-3xl p-6 md:p-8 border border-border shadow-sm col-span-1 hover:border-border/80 transition-all duration-300 flex flex-col justify-between">
+            <div>
+              <h4 className="text-[9px] font-extrabold text-muted-foreground uppercase mb-4 tracking-wider">
+                Payment Method
+              </h4>
+              
+              <div className="flex items-center gap-4 p-4 border border-border rounded-2xl bg-muted/20 shadow-inner">
+                <div className="w-12 h-8 bg-card rounded-lg flex items-center justify-center border border-border shadow-sm">
+                   <CreditCard className="w-4 h-4 text-muted-foreground/80" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-foreground">Secured by Razorpay</p>
+                  <p className="text-[10px] text-muted-foreground font-semibold mt-0.5">UPI / Cards</p>
+                </div>
               </div>
             </div>
-            <Link to="/pricing" className="w-full mt-6 py-2.5 flex items-center justify-center gap-2 text-primary font-label-md text-[14px] font-bold hover:bg-primary/10 rounded-xl transition-colors border border-primary/20 bg-primary/5 min-h-[44px]">
-              <span className="material-symbols-outlined text-[18px]">add_circle</span>
-              Update Method
+            
+            <Link to="/pricing" className="w-full mt-6 py-2.5 flex items-center justify-center gap-1.5 text-primary text-xs font-bold hover:bg-primary/10 rounded-xl transition-all border border-primary/20 bg-primary/5 min-h-[40px]">
+              <PlusCircle className="h-4 w-4" />
+              <span>Update Method</span>
             </Link>
           </div>
         </div>
 
         {/* Transactions Table Section */}
-        <div className="glass-panel rounded-2xl border border-border-base shadow-sm overflow-hidden">
-          <div className="p-6 md:p-8 border-b border-border-base flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-surface/30">
+        <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden">
+          <div className="p-6 md:p-8 border-b border-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-muted/20">
             <div>
-              <h3 className="font-headline-md text-[24px] font-bold text-text-primary">Transaction History</h3>
-              <p className="font-body-sm text-[14px] text-text-secondary mt-1">View and download your recent invoices.</p>
+              <h3 className="text-base font-bold text-foreground">Transaction History</h3>
+              <p className="text-xs text-muted-foreground mt-1 font-semibold">
+                View and download your recent invoices.
+              </p>
             </div>
-            <button className="flex items-center gap-2 px-4 py-2 border border-border-base rounded-xl text-text-secondary hover:bg-surface-container hover:text-text-primary transition-colors font-label-md text-[14px] font-bold shadow-sm bg-surface min-h-[44px]">
-              <span className="material-symbols-outlined text-[18px]">download</span>
-              Export All
+            <button className="flex items-center gap-1.5 px-4 py-2 border border-border rounded-xl text-muted-foreground hover:bg-muted/80 hover:text-foreground transition-all text-xs font-bold shadow-sm bg-card min-h-[40px]">
+              <Download className="h-4 w-4" />
+              <span>Export All</span>
             </button>
           </div>
           
-          <div className="overflow-x-auto custom-scrollbar">
+          <div className="overflow-x-auto">
             {loading ? (
               <div className="p-6 space-y-4">
-                {[1, 2, 3].map(i => <Skeleton key={i} className="h-16 bg-surface-container rounded-xl border border-border-base" />)}
+                {[1, 2, 3].map(i => <Skeleton key={i} className="h-16 bg-muted rounded-2xl" />)}
               </div>
             ) : orders.length === 0 ? (
-              <div className="text-center py-20 bg-surface/20">
-                <CreditCard className="w-14 h-14 mx-auto mb-4 text-text-secondary opacity-30" />
-                <p className="font-headline-md text-[20px] font-bold text-text-primary">No payment history yet</p>
-                <p className="text-[15px] mt-2 text-text-secondary">
+              <div className="text-center py-20">
+                <CreditCard className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
+                <p className="text-sm font-bold text-foreground">No payment history yet</p>
+                <p className="text-xs mt-2 text-muted-foreground">
                   <Link to="/pricing" className="text-primary font-bold hover:underline">Browse plans →</Link>
                 </p>
               </div>
             ) : (
               <table className="w-full text-left border-collapse min-w-[700px]">
                 <thead>
-                  <tr className="bg-surface-container/50 border-b border-border-base">
-                    <th className="p-4 px-6 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Invoice ID</th>
-                    <th className="p-4 px-6 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Date</th>
-                    <th className="p-4 px-6 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Plan</th>
-                    <th className="p-4 px-6 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Amount</th>
-                    <th className="p-4 px-6 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Status</th>
-                    <th className="p-4 px-6 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider text-right">Action</th>
+                  <tr className="bg-muted/30 border-b border-border">
+                    <th className="p-4 px-6 text-[10px] text-muted-foreground font-extrabold uppercase tracking-wider">Invoice ID</th>
+                    <th className="p-4 px-6 text-[10px] text-muted-foreground font-extrabold uppercase tracking-wider">Date</th>
+                    <th className="p-4 px-6 text-[10px] text-muted-foreground font-extrabold uppercase tracking-wider">Plan</th>
+                    <th className="p-4 px-6 text-[10px] text-muted-foreground font-extrabold uppercase tracking-wider">Amount</th>
+                    <th className="p-4 px-6 text-[10px] text-muted-foreground font-extrabold uppercase tracking-wider">Status</th>
+                    <th className="p-4 px-6 text-[10px] text-muted-foreground font-extrabold uppercase tracking-wider text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border-base">
+                <tbody className="divide-y divide-border">
                   {orders.map(order => {
                     const cfg = STATUS_CONFIG[order.status as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.created;
                     return (
-                      <tr key={order.id} className="hover:bg-surface-container/30 transition-colors group">
-                        <td className="p-4 px-6 font-label-md text-[14px] text-text-primary font-mono bg-surface/10">
+                      <tr key={order.id} className="hover:bg-muted/10 transition-colors">
+                        <td className="p-4 px-6 text-xs text-foreground font-mono font-bold">
                            {order.razorpay_payment_id ? `INV-${order.razorpay_payment_id.slice(-6).toUpperCase()}` : `INV-${order.id.slice(0,6).toUpperCase()}`}
                         </td>
-                        <td className="p-4 px-6 font-body-sm text-[14px] text-text-secondary">
+                        <td className="p-4 px-6 text-xs text-muted-foreground font-semibold">
                            <div className="flex items-center gap-1.5">
-                             <Calendar className="w-4 h-4" />
-                             {new Date(order.paid_at ?? order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                             <Calendar className="w-3.5 h-3.5 text-muted-foreground/60" />
+                             <span>
+                               {new Date(order.paid_at ?? order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                             </span>
                            </div>
                         </td>
-                        <td className="p-4 px-6 font-body-sm text-[14px] text-text-primary font-bold capitalize">{order.plan_id}</td>
-                        <td className="p-4 px-6 font-body-md text-[15px] font-bold text-text-primary">₹{(order.amount_paise / 100).toLocaleString('en-IN')}</td>
+                        <td className="p-4 px-6 text-xs text-foreground font-bold capitalize">{order.plan_id}</td>
+                        <td className="p-4 px-6 text-xs font-bold text-foreground">₹{(order.amount_paise / 100).toLocaleString('en-IN')}</td>
                         <td className="p-4 px-6">
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full font-label-sm text-[11px] font-bold uppercase tracking-wider border ${cfg.color.replace('text-', 'border-').replace('10', '20')} ${cfg.color}`}>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider border ${cfg.color}`}>
                             {cfg.label}
                           </span>
                         </td>
                         <td className="p-4 px-6 text-right">
-                          <button className="text-text-secondary hover:text-primary transition-colors w-11 h-11 flex items-center justify-center rounded-xl hover:bg-primary/10 border border-transparent hover:border-primary/20 inline-flex shrink-0 ml-auto" title="Download Invoice">
+                          <button className="text-muted-foreground hover:text-foreground transition-colors w-10 h-10 flex items-center justify-center rounded-xl hover:bg-muted/50 border border-transparent inline-flex shrink-0 ml-auto" title="Download Invoice">
                             <Download className="w-4 h-4" />
                           </button>
                         </td>
@@ -193,8 +215,10 @@ export default function PaymentHistoryPage() {
             )}
             
             {orders.length > 0 && (
-              <div className="p-4 border-t border-border-base bg-surface-container/20 flex justify-center">
-                <button className="text-primary font-label-md text-[14px] font-bold hover:underline min-h-[44px] py-2 px-4">Load More Transactions</button>
+              <div className="p-4 border-t border-border bg-muted/5 flex justify-center">
+                <button className="text-primary font-bold text-xs hover:underline py-2 px-4">
+                  Load More Transactions
+                </button>
               </div>
             )}
           </div>

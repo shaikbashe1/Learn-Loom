@@ -6,6 +6,28 @@ import { toast } from 'sonner';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { checkAndAwardCertificate } from '@/lib/progress';
+import { 
+  GraduationCap, 
+  ListTodo, 
+  Timer, 
+  Flag, 
+  Video, 
+  VideoOff, 
+  Rule, 
+  ArrowRight, 
+  AlertTriangle, 
+  CheckCircle2, 
+  XCircle, 
+  Award, 
+  Home, 
+  CloudLightning, 
+  ChevronLeft, 
+  ChevronRight, 
+  Send, 
+  BookOpen, 
+  Loader2,
+  FileText
+} from 'lucide-react';
 
 type TestStage = 'instructions' | 'camera' | 'exam' | 'submitted';
 
@@ -38,7 +60,6 @@ export default function FinalAssessmentPage() {
   const [cooldownTime, setCooldownTime] = useState<number | null>(null);
   const [checkingCooldown, setCheckingCooldown] = useState(true);
 
-  // Check cooldown on mount/user change
   useEffect(() => {
     if (!user) return;
     let active = true;
@@ -76,9 +97,8 @@ export default function FinalAssessmentPage() {
     return () => {
       active = false;
     };
-  }, [user]);
+  }, [user, courseId]);
 
-  // Cooldown countdown timer
   useEffect(() => {
     if (cooldownTime === null || cooldownTime <= 0) return;
     const interval = setInterval(() => {
@@ -93,10 +113,9 @@ export default function FinalAssessmentPage() {
     return () => clearInterval(interval);
   }, [cooldownTime]);
 
-  // Load questions from DB when entering exam stage
   useEffect(() => {
     if (stage !== 'exam') return;
-    if (questions.length > 0) return; // already loaded
+    if (questions.length > 0) return;
     setLoadingQ(true);
     supabase
       .from('grand_test_questions')
@@ -117,9 +136,8 @@ export default function FinalAssessmentPage() {
           correct: q.correct_idx,
           explanation: q.explanation ?? undefined,
         }));
-        // Randomize questions for the assessment
         const shuffled = mapped.sort(() => 0.5 - Math.random());
-        const selected = shuffled.slice(0, 20); // Pick up to 20 random questions
+        const selected = shuffled.slice(0, 20);
 
         setQuestions(selected);
         setAnswers(Array(selected.length).fill(null));
@@ -127,7 +145,6 @@ export default function FinalAssessmentPage() {
       });
   }, [stage, questions.length, courseId, navigate]);
 
-  // Timer
   useEffect(() => {
     if (stage !== 'exam') return;
     if (timeLeft === 0) {
@@ -137,10 +154,8 @@ export default function FinalAssessmentPage() {
     }
     const t = setInterval(() => setTimeLeft(prev => Math.max(0, prev - 1)), 1000);
     return () => clearInterval(t);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stage, timeLeft]);
+  }, [stage, timeLeft, handleSubmit]);
 
-  // Tab switch detection
   const handleVisibilityChange = useCallback(() => {
     if (stage !== 'exam') return;
     if (document.hidden) {
@@ -154,15 +169,13 @@ export default function FinalAssessmentPage() {
         toast.warning(`Tab switch detected! Warning ${next}/3. Switching again will auto-submit.`, { duration: 5000 });
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stage]);
+  }, [stage, handleSubmit]);
 
   useEffect(() => {
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [handleVisibilityChange]);
 
-  // Camera cleanup
   useEffect(() => {
     return () => {
       streamRef.current?.getTracks().forEach(t => t.stop());
@@ -194,7 +207,6 @@ export default function FinalAssessmentPage() {
   const handleSubmit = useCallback(async () => {
     if (submitting) return;
     setSubmitting(true);
-    // Stop camera
     streamRef.current?.getTracks().forEach(t => t.stop());
     streamRef.current = null;
 
@@ -202,7 +214,6 @@ export default function FinalAssessmentPage() {
     const scoreVal = questions.reduce((acc, q, i) => acc + (finalAnswers[i] === q.correct ? 1 : 0), 0);
     const passed = questions.length > 0 && scoreVal / questions.length >= 0.6;
 
-    // Persist attempt to DB
     if (user && courseId) {
       const scorePercentage = Math.round((scoreVal / questions.length) * 100);
       
@@ -225,17 +236,15 @@ export default function FinalAssessmentPage() {
         metrics: metrics,
       });
 
-      // Award credits if passed
       if (passed) {
         try { await supabase.rpc('increment_credits', { p_user_id: user.id, p_amount: 100 }); } catch { /* best-effort */ }
-        // Check and award certificate if both assessments are passed
         await checkAndAwardCertificate(user.id, courseId);
       }
     }
 
     setStage('submitted');
     setSubmitting(false);
-  }, [answers, questions, submitting, user]);
+  }, [answers, questions, submitting, user, courseId]);
 
   const formatTime = (s: number) =>
     `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
@@ -245,36 +254,41 @@ export default function FinalAssessmentPage() {
   if (stage === 'instructions') {
     return (
       <AppLayout title="Final Assessment">
-        <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg flex justify-center items-center min-h-[calc(100vh-100px)]">
-          <div className="glass-panel rounded-2xl p-8 md:p-12 max-w-2xl w-full relative overflow-hidden shadow-lg card-lift">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
+        <div className="max-w-container-max mx-auto px-4 md:px-8 py-8 flex justify-center items-center min-h-[calc(100vh-100px)] select-none">
+          <div className="bg-card border border-border rounded-3xl p-8 md:p-12 max-w-2xl w-full relative overflow-hidden shadow-sm">
+            <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-primary/5 rounded-full blur-3xl opacity-30 pointer-events-none" />
+            
             <div className="text-center mb-10 relative z-10">
-              <div className="w-20 h-20 rounded-2xl bg-surface border-2 border-primary/20 shadow-sm flex items-center justify-center mx-auto mb-6 relative">
-                <div className="absolute inset-0 bg-primary/5 rounded-2xl"></div>
-                <span className="material-symbols-outlined text-[40px] text-primary relative z-10" style={{ fontVariationSettings: "'FILL' 1" }}>school</span>
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-6 shadow-sm">
+                <GraduationCap className="h-9 w-9" />
               </div>
-              <h2 className="font-display-lg text-display-lg-mobile md:text-display-lg text-text-primary">Final Assessment</h2>
-              <p className="font-body-lg text-body-lg text-text-secondary mt-2">Comprehensive Certification Exam</p>
+              <h2 className="font-display text-2xl font-extrabold text-foreground">Final Assessment</h2>
+              <p className="text-xs text-muted-foreground mt-2 font-semibold">
+                Comprehensive Certification Exam
+              </p>
             </div>
             
-            <div className="grid grid-cols-2 gap-2.5 sm:gap-4 mb-10 relative z-10">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8 relative z-10">
               {[
-                { label: 'Questions', value: '20', icon: 'format_list_bulleted' },
-                { label: 'Duration', value: '30 min', icon: 'timer' },
-                { label: 'Passing Score', value: '60%', icon: 'flag' },
-                { label: 'Attempts', value: 'Proctored', icon: 'videocam' },
-              ].map(item => (
-                <div key={item.label} className="p-3.5 sm:p-5 rounded-xl bg-surface border border-border-base text-center flex flex-col items-center shadow-sm">
-                  <span className="material-symbols-outlined text-primary mb-1 sm:mb-2 text-[20px] sm:text-[24px]">{item.icon}</span>
-                  <div className="font-headline-md text-lg sm:text-[24px] font-bold text-text-primary mb-0.5 sm:mb-1">{item.value}</div>
-                  <div className="font-label-sm text-[9px] sm:text-[11px] text-text-secondary uppercase tracking-widest font-bold">{item.label}</div>
-                </div>
-              ))}
+                { label: 'Questions', value: '20', icon: ListTodo },
+                { label: 'Duration', value: '30 min', icon: Timer },
+                { label: 'Passing Score', value: '60%', icon: Flag },
+                { label: 'Attempts', value: 'Proctored', icon: Video },
+              ].map(item => {
+                const StatIcon = item.icon;
+                return (
+                  <div key={item.label} className="p-4 rounded-2xl bg-background border border-border text-center flex flex-col items-center shadow-sm hover:-translate-y-0.5 transition-transform duration-200">
+                    <StatIcon className="h-5 w-5 text-primary mb-1.5" />
+                    <div className="text-base font-extrabold text-foreground mb-0.5">{item.value}</div>
+                    <div className="text-[9px] text-muted-foreground uppercase tracking-widest font-extrabold">{item.label}</div>
+                  </div>
+                );
+              })}
             </div>
             
-            <div className="space-y-4 mb-10 relative z-10 bg-surface/50 p-6 rounded-xl border border-border-base">
-              <h4 className="font-headline-md text-[20px] font-bold text-text-primary mb-4 flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary">rule</span> Instructions
+            <div className="space-y-4 mb-8 relative z-10 bg-muted/30 p-6 rounded-2xl border border-border">
+              <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+                <FileText className="h-4.5 w-4.5 text-primary" /> Instructions
               </h4>
               {[
                 'Your webcam will be monitored throughout the exam.',
@@ -283,41 +297,41 @@ export default function FinalAssessmentPage() {
                 'You cannot go back to previous questions once answered.',
                 'Submitting incomplete answers will mark them as incorrect.',
               ].map((inst, i) => (
-                <div key={i} className="flex items-start gap-4">
-                  <div className="w-6 h-6 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center shrink-0">
-                    <span className="font-label-sm text-[12px] text-primary">{i + 1}</span>
+                <div key={i} className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                    <span className="text-[10px] font-extrabold text-primary">{i + 1}</span>
                   </div>
-                  <span className="font-body-sm text-[14px] text-text-secondary mt-0.5">{inst}</span>
+                  <span className="text-xs text-muted-foreground leading-normal mt-0.5">{inst}</span>
                 </div>
               ))}
             </div>
             
             <div className="relative z-10">
               {checkingCooldown ? (
-                <button disabled className="w-full h-14 bg-surface text-text-secondary rounded-xl font-label-md flex items-center justify-center gap-2 border border-border-base shadow-sm">
-                  <span className="material-symbols-outlined animate-spin text-[20px]">autorenew</span> Checking Status...
+                <button disabled className="w-full h-12 bg-muted text-muted-foreground rounded-xl font-bold text-xs flex items-center justify-center gap-2 border border-border shadow-sm">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Checking Status...
                 </button>
               ) : cooldownTime !== null && cooldownTime > 0 ? (
                 <div className="space-y-4">
-                  <div className="p-5 rounded-xl bg-error/5 border border-error/20 flex items-start gap-4 text-error shadow-sm">
-                    <span className="material-symbols-outlined text-[24px] mt-0.5">warning</span>
+                  <div className="p-5 rounded-2xl bg-destructive/5 border border-destructive/10 flex items-start gap-4 text-destructive shadow-sm">
+                    <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-headline-md text-[18px] font-bold mb-1">Cooldown Active</p>
-                      <p className="font-body-sm text-[14px] text-error/80">
+                      <p className="text-sm font-bold mb-1">Cooldown Active</p>
+                      <p className="text-xs text-destructive/80 leading-relaxed">
                         You must wait 1 hour between Final Assessment attempts. Please try again after the cooldown expires.
                       </p>
                     </div>
                   </div>
-                  <button disabled className="w-full h-14 bg-surface text-text-secondary rounded-xl font-label-md flex items-center justify-center gap-2 cursor-not-allowed border border-border-base shadow-sm">
-                    <span className="material-symbols-outlined text-[20px]">schedule</span> Retry in {formatTime(cooldownTime)}
+                  <button disabled className="w-full h-12 bg-muted text-muted-foreground rounded-xl font-bold text-xs flex items-center justify-center gap-2 cursor-not-allowed border border-border shadow-sm">
+                    <Timer className="h-4 w-4" /> Retry in {formatTime(cooldownTime)}
                   </button>
                 </div>
               ) : (
                 <button 
-                  onClick={() => setStage('camera')} 
-                  className="w-full bg-primary text-on-primary hover:bg-primary-container h-14 rounded-xl font-headline-md text-[16px] font-bold flex justify-center items-center gap-3 shadow-md transition-all card-lift active:scale-[0.98]"
+                  onClick={() => void startCamera().then(() => setStage('camera'))} 
+                  className="w-full bg-primary text-primary-foreground hover:brightness-110 h-12 rounded-xl font-bold text-xs flex justify-center items-center gap-2 shadow-md shadow-primary/10 active:scale-[0.99] transition-all"
                 >
-                  Proceed to Camera Setup <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
+                  Proceed to Camera Setup <ArrowRight className="h-4 w-4" />
                 </button>
               )}
             </div>
@@ -330,33 +344,32 @@ export default function FinalAssessmentPage() {
   if (stage === 'camera') {
     return (
       <AppLayout title="Camera Setup">
-        <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop flex justify-center items-center min-h-[calc(100vh-100px)] py-stack-lg">
-          <div className="glass-panel rounded-2xl p-8 md:p-12 max-w-2xl w-full relative overflow-hidden shadow-lg card-lift ai-gradient-border">
-            <div className="absolute top-0 left-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/4 pointer-events-none"></div>
+        <div className="max-w-container-max mx-auto px-4 md:px-8 flex justify-center items-center min-h-[calc(100vh-100px)] py-8 select-none">
+          <div className="bg-card border border-border rounded-3xl p-8 md:p-12 max-w-2xl w-full relative overflow-hidden shadow-sm">
+            <div className="absolute top-[-10%] left-[-10%] w-64 h-64 bg-primary/5 rounded-full blur-3xl opacity-30 pointer-events-none" />
             
             <div className="text-center mb-8 relative z-10">
-              <div className="w-20 h-20 rounded-2xl bg-surface border-2 border-primary/20 shadow-sm flex items-center justify-center mx-auto mb-6 relative">
-                <div className="absolute inset-0 bg-primary/5 rounded-2xl"></div>
-                <span className="material-symbols-outlined text-[40px] text-primary relative z-10" style={{ fontVariationSettings: "'FILL' 1" }}>shield_person</span>
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-6 shadow-sm">
+                <Video className="h-9 w-9" />
               </div>
-              <h3 className="font-headline-lg text-[28px] font-bold text-text-primary">Webcam Verification</h3>
-              <p className="font-body-md text-text-secondary mt-2">Please enable your camera for identity verification.</p>
+              <h3 className="font-display text-xl font-bold text-foreground">Webcam Verification</h3>
+              <p className="text-xs text-muted-foreground mt-2">Please enable your camera for identity verification.</p>
             </div>
             
-            <div className="aspect-video rounded-xl overflow-hidden bg-surface border border-border-base mb-8 flex items-center justify-center relative shadow-inner z-10">
+            <div className="aspect-video rounded-2xl overflow-hidden bg-background border border-border mb-8 flex items-center justify-center relative shadow-inner z-10">
               {cameraOn ? (
                 <>
                   <video ref={videoRef} autoPlay muted className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 border-4 border-primary/20 pointer-events-none rounded-xl"></div>
-                  <div className="absolute top-4 right-4 flex items-center gap-2 bg-black/50 backdrop-blur px-3 py-1.5 rounded-full border border-white/10 shadow-sm">
-                    <span className="w-2.5 h-2.5 rounded-full bg-error animate-pulse"></span>
-                    <span className="font-label-sm text-[11px] font-bold text-white tracking-widest">REC</span>
+                  <div className="absolute inset-0 border-4 border-primary/10 pointer-events-none rounded-2xl" />
+                  <div className="absolute top-4 right-4 flex items-center gap-2 bg-black/60 backdrop-blur px-3 py-1.5 rounded-full border border-white/10 shadow-sm">
+                    <span className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
+                    <span className="text-[9px] font-extrabold text-white tracking-widest">REC</span>
                   </div>
                 </>
               ) : (
                 <div className="text-center">
-                  <span className="material-symbols-outlined text-[48px] text-text-secondary opacity-30 mb-3">videocam_off</span>
-                  <p className="font-body-md text-text-secondary">Camera not enabled</p>
+                  <VideoOff className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
+                  <p className="text-xs text-muted-foreground font-semibold">Camera not enabled</p>
                 </div>
               )}
             </div>
@@ -366,34 +379,34 @@ export default function FinalAssessmentPage() {
                 <>
                   <button 
                     onClick={startCamera} 
-                    className="w-full bg-primary text-on-primary hover:bg-primary-container h-14 rounded-xl font-headline-md text-[16px] font-bold flex justify-center items-center gap-3 shadow-md transition-all card-lift"
+                    className="w-full bg-primary text-primary-foreground hover:brightness-110 h-12 rounded-xl font-bold text-xs flex justify-center items-center gap-2 shadow-md shadow-primary/10 active:scale-[0.99] transition-all"
                   >
-                    <span className="material-symbols-outlined text-[24px]">videocam</span> Enable Camera
+                    <Video className="h-4 w-4" /> Enable Camera
                   </button>
                   {cameraError && (
-                    <div className="p-4 rounded-xl bg-error/5 border border-error/20 text-error flex items-start gap-3 shadow-sm">
-                      <span className="material-symbols-outlined text-[20px] mt-0.5">error</span>
-                      <p className="font-body-sm text-[14px]">{cameraError}</p>
+                    <div className="p-4 rounded-xl bg-destructive/5 border border-destructive/10 text-destructive flex items-start gap-3 shadow-sm">
+                      <AlertTriangle className="h-4.5 w-4.5 shrink-0 mt-0.5" />
+                      <p className="text-xs leading-relaxed">{cameraError}</p>
                     </div>
                   )}
                   <button 
                     onClick={() => setStage('exam')} 
-                    className="w-full bg-surface text-text-secondary hover:text-text-primary border border-border-base h-14 rounded-xl font-label-md transition-colors shadow-sm card-lift"
+                    className="w-full bg-muted text-foreground border border-border h-12 rounded-xl font-bold text-xs hover:bg-muted/85 transition-all shadow-sm"
                   >
                     Skip Camera (Demo Mode)
                   </button>
                 </>
               ) : (
                 <>
-                  <div className="p-4 rounded-xl bg-success/5 border border-success/30 flex items-center gap-3 shadow-sm mb-4">
-                    <span className="material-symbols-outlined text-[24px] text-success" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                    <span className="font-body-md text-[15px] font-medium text-text-primary">Camera active — you're ready to begin.</span>
+                  <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/15 flex items-center gap-2.5 shadow-sm mb-4">
+                    <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
+                    <span className="text-xs font-bold text-foreground">Camera active — you're ready to begin.</span>
                   </div>
                   <button 
                     onClick={() => setStage('exam')} 
-                    className="w-full bg-primary text-on-primary hover:bg-primary-container h-14 rounded-xl font-headline-md text-[16px] font-bold flex justify-center items-center gap-3 shadow-md transition-all card-lift active:scale-[0.98]"
+                    className="w-full bg-primary text-primary-foreground hover:brightness-110 h-12 rounded-xl font-bold text-xs flex justify-center items-center gap-2 shadow-md shadow-primary/10 active:scale-[0.99] transition-all"
                   >
-                    Start Assessment <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
+                    Start Assessment <ArrowRight className="h-4 w-4" />
                   </button>
                 </>
               )}
@@ -408,43 +421,61 @@ export default function FinalAssessmentPage() {
     const passed = questions.length > 0 && score / questions.length >= 0.6;
     return (
       <AppLayout title="Exam Results">
-        <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg flex justify-center items-center min-h-[calc(100vh-100px)]">
-          <div className="glass-panel rounded-2xl p-8 md:p-12 max-w-2xl w-full border border-border-base shadow-lg text-center relative overflow-hidden card-lift">
-            <div className={`absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none ${passed ? 'bg-primary/10' : 'bg-error/10'}`}></div>
+        <div className="max-w-container-max mx-auto px-4 md:px-8 py-8 flex justify-center items-center min-h-[calc(100vh-100px)] select-none">
+          <div className="bg-card border border-border rounded-3xl p-8 md:p-12 max-w-2xl w-full shadow-sm text-center relative overflow-hidden">
+            <div className={`absolute top-[-10%] right-[-10%] w-64 h-64 rounded-full blur-3xl opacity-25 pointer-events-none ${
+              passed ? 'bg-emerald-500' : 'bg-destructive'
+            }`} />
 
-            <div className={`w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-8 border-4 relative z-10 bg-surface shadow-sm ${passed ? 'border-primary text-primary' : 'border-error text-error'}`}>
-              <span className="material-symbols-outlined text-[64px]" style={{ fontVariationSettings: "'FILL' 1" }}>{passed ? 'verified' : 'gpp_bad'}</span>
+            <div className={`w-24 h-24 rounded-2xl flex items-center justify-center mx-auto mb-8 border-2 relative z-10 bg-background shadow-sm ${
+              passed ? 'border-primary text-primary' : 'border-destructive text-destructive'
+            }`}>
+              {passed ? <CheckCircle2 className="h-12 w-12" /> : <XCircle className="h-12 w-12" />}
             </div>
             
-            <h3 className="font-display-lg text-[40px] font-bold text-text-primary mb-3 relative z-10">{passed ? 'You Passed!' : 'Not Quite Yet'}</h3>
-            <p className="font-body-lg text-[16px] text-text-secondary mb-8 relative z-10 max-w-lg mx-auto leading-relaxed">
-              {passed ? 'Congratulations! You have successfully completed the Final Assessment and earned your certification.' : 'Keep practicing and try again when you feel ready. Review your mistakes to improve.'}
+            <h3 className="font-display text-2xl font-extrabold text-foreground mb-3 relative z-10">
+              {passed ? 'You Passed!' : 'Not Quite Yet'}
+            </h3>
+            
+            <p className="text-sm text-muted-foreground mb-8 relative z-10 max-w-md mx-auto leading-relaxed">
+              {passed 
+                ? 'Congratulations! You have successfully completed the Final Assessment and earned your certification.' 
+                : 'Keep practicing and try again when you feel ready. Review your mistakes to improve.'}
             </p>
             
-            <div className="bg-surface rounded-xl border border-border-base p-6 mb-8 inline-block min-w-[200px] shadow-sm relative z-10">
-              <div className="text-[64px] font-bold leading-none mb-1 font-headline-md tracking-tight" style={{ color: passed ? 'var(--primary)' : 'var(--error)' }}>
+            <div className="bg-background rounded-2xl border border-border p-6 mb-8 inline-block min-w-[200px] shadow-sm relative z-10">
+              <div className={`text-5xl font-extrabold leading-none mb-2 font-display tracking-tight ${
+                passed ? 'text-primary' : 'text-destructive'
+              }`}>
                 {questions.length > 0 ? Math.round((score / questions.length) * 100) : 0}%
               </div>
-              <p className="font-label-md text-[14px] text-text-secondary">{score} of {questions.length} correct</p>
+              <p className="text-xs text-muted-foreground font-semibold">
+                {score} of {questions.length} correct answers
+              </p>
             </div>
             
-            <div className="w-full h-3 bg-surface-container rounded-full overflow-hidden mb-10 border border-border-base relative z-10 shadow-inner">
-              <div className={`h-full rounded-full transition-all duration-1000 ${passed ? 'bg-primary shadow-[0_0_10px_rgba(37,99,235,0.5)]' : 'bg-error'}`} style={{ width: `${questions.length > 0 ? (score / questions.length) * 100 : 0}%` }}></div>
+            <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden mb-10 border border-border relative z-10 shadow-inner">
+              <div 
+                className={`h-full rounded-full transition-all duration-1000 ${
+                  passed ? 'bg-primary' : 'bg-destructive'
+                }`} 
+                style={{ width: `${questions.length > 0 ? (score / questions.length) * 100 : 0}%` }} 
+              />
             </div>
             
             <div className="space-y-4 relative z-10">
               {passed && (
                 <Link to="/student/certificates" className="block">
-                  <button className="w-full bg-primary text-on-primary hover:bg-primary-container h-14 rounded-xl font-headline-md text-[16px] font-bold flex justify-center items-center gap-3 shadow-md transition-all card-lift">
-                    <span className="material-symbols-outlined text-[24px]">workspace_premium</span> View Your Certificate
+                  <button className="w-full bg-primary text-primary-foreground hover:brightness-110 h-12 rounded-xl font-bold text-xs flex justify-center items-center gap-2 shadow-md shadow-primary/10">
+                    <Award className="h-4.5 w-4.5" /> View Your Certificate
                   </button>
                 </Link>
               )}
               <button 
                 onClick={() => navigate(`/courses/${courseId}`)} 
-                className="w-full bg-surface text-text-secondary hover:text-text-primary border border-border-base h-14 rounded-xl font-label-md text-[16px] transition-colors flex justify-center items-center gap-3 shadow-sm card-lift"
+                className="w-full bg-muted text-foreground border border-border h-12 rounded-xl font-bold text-xs hover:bg-muted/85 transition-all shadow-sm flex justify-center items-center gap-2"
               >
-                <span className="material-symbols-outlined text-[20px]">home</span> Back to Course
+                <Home className="h-4 w-4" /> Back to Course
               </button>
             </div>
           </div>
@@ -453,7 +484,6 @@ export default function FinalAssessmentPage() {
     );
   }
 
-  // EXAM STATE (Lockdown Environment)
   const q = questions[current];
   const progressPercent = questions.length > 0 ? ((answers.filter(a => a !== null).length) / questions.length) * 100 : 0;
 
@@ -461,39 +491,47 @@ export default function FinalAssessmentPage() {
     return (
       <div className="bg-background min-h-screen flex items-center justify-center">
         <div className="space-y-6 w-full max-w-3xl px-6">
-          <Skeleton className="h-20 w-full bg-surface rounded-xl" />
-          <Skeleton className="h-[500px] w-full bg-surface rounded-2xl" />
+          <Skeleton className="h-20 w-full bg-muted rounded-2xl" />
+          <Skeleton className="h-[450px] w-full bg-muted rounded-3xl" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-background text-text-primary font-body-md h-screen w-screen overflow-hidden flex flex-col">
+    <div className="bg-background text-foreground h-screen w-screen overflow-hidden flex flex-col select-none">
       {/* Top Navigation (Exam Header) */}
-      <header className="bg-surface/70 backdrop-blur-xl border-b border-border-base shadow-sm flex justify-between items-center w-full px-4 md:px-10 h-16 md:h-20 shrink-0 z-40 relative">
+      <header className="bg-card border-b border-border shadow-sm flex justify-between items-center w-full px-6 h-16 shrink-0 z-40 relative">
         <div className="flex items-center gap-3">
-          <span className="font-headline-md text-[20px] md:text-[24px] font-bold text-primary">LearnLoom</span>
-          <div className="h-6 w-px bg-border-base mx-1 hidden md:block"></div>
+          <span className="font-display text-lg font-bold text-foreground">LearnLoom</span>
+          <div className="h-6 w-px bg-border mx-2 hidden md:block" />
           <div className="hidden md:block">
-            <h1 className="font-headline-md text-[18px] font-bold text-text-primary">Final Assessment</h1>
-            <p className="font-label-sm text-[12px] text-text-secondary flex items-center gap-1">
-              <span className="material-symbols-outlined text-[14px]">cloud_done</span> Auto-saving
+            <h1 className="text-sm font-bold text-foreground">Final Assessment</h1>
+            <p className="text-[10px] text-muted-foreground flex items-center gap-1 font-medium mt-0.5">
+              <CloudLightning className="h-3 w-3 text-primary animate-pulse" /> Auto-saving
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-4 md:gap-6">
+        
+        <div className="flex items-center gap-4">
           {/* Progress */}
           <div className="hidden md:flex items-center gap-3">
-            <span className="font-label-md text-[14px] font-bold text-text-secondary">Progress: {answers.filter(a => a !== null).length}/{questions.length}</span>
-            <div className="w-32 h-2.5 bg-surface-container rounded-full overflow-hidden shadow-inner border border-border-base">
-              <div className="h-full bg-primary rounded-full transition-all duration-300" style={{ width: `${progressPercent}%` }}></div>
+            <span className="text-xs font-bold text-muted-foreground">
+              Progress: {answers.filter(a => a !== null).length}/{questions.length}
+            </span>
+            <div className="w-32 h-2 bg-muted rounded-full overflow-hidden border border-border">
+              <div className="h-full bg-primary rounded-full transition-all duration-300" style={{ width: `${progressPercent}%` }} />
             </div>
           </div>
+          
           {/* Timer */}
-          <div className={`flex items-center gap-1.5 px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-label-md text-sm md:text-[15px] shadow-sm border ${timeLeft < 300 ? 'bg-error/10 text-error border-error/30 animate-pulse' : 'bg-primary/5 text-primary border-primary/20'}`}>
-            <span className="material-symbols-outlined text-[18px] md:text-[20px]">timer</span>
-            <span className="font-bold tracking-wider">{formatTime(timeLeft)}</span>
+          <div className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold border ${
+            timeLeft < 300 
+              ? 'bg-destructive/10 text-destructive border-destructive/20 animate-pulse' 
+              : 'bg-primary/5 text-primary border-primary/10'
+          }`}>
+            <Timer className="h-4 w-4" />
+            <span className="tracking-wider font-mono">{formatTime(timeLeft)}</span>
           </div>
         </div>
       </header>
@@ -503,38 +541,42 @@ export default function FinalAssessmentPage() {
         
         {/* Tab-switch warning overlay */}
         {tabSwitches > 0 && (
-          <div className="absolute top-24 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md bg-error/95 backdrop-blur-md text-white p-5 rounded-2xl border-2 border-error shadow-2xl flex items-center gap-4 animate-in slide-in-from-top-8">
-            <span className="material-symbols-outlined text-[36px]">warning</span>
+          <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md bg-destructive text-destructive-foreground p-5 rounded-2xl border-2 border-destructive shadow-2xl flex items-center gap-4 animate-in slide-in-from-top-8">
+            <AlertTriangle className="h-8 w-8 shrink-0 text-white" />
             <div>
-              <p className="font-bold text-[18px] mb-1">Tab switch warning: {tabSwitches}/3</p>
-              <p className="text-[14px] opacity-90">{tabSwitches >= 3 ? 'Exam auto-submitted.' : 'One more switch will auto-submit your exam.'}</p>
+              <p className="font-bold text-sm mb-0.5">Tab switch warning: {tabSwitches}/3</p>
+              <p className="text-xs opacity-90">{tabSwitches >= 3 ? 'Exam auto-submitted.' : 'One more switch will auto-submit your exam.'}</p>
             </div>
           </div>
         )}
 
         {/* Left Panel: Question Navigator */}
-        <aside className="w-72 bg-surface border-r border-border-base flex flex-col shrink-0 relative z-30 hidden lg:flex shadow-[-4px_0_15px_rgba(0,0,0,0.02)]">
-          <div className="p-5 border-b border-border-base bg-surface-bright/50">
-            <h2 className="font-headline-md text-[18px] font-bold text-text-primary mb-3">Question Navigator</h2>
-            <div className="flex gap-x-4 gap-y-2 font-label-sm text-[12px] flex-wrap">
-              <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_5px_rgba(37,99,235,0.4)]"></div> Answered</div>
-              <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-surface border border-border-base"></div> Unanswered</div>
+        <aside className="w-72 bg-card border-r border-border flex flex-col shrink-0 relative z-30 hidden lg:flex">
+          <div className="p-6 border-b border-border">
+            <h2 className="text-xs font-bold text-foreground mb-3">Question Navigator</h2>
+            <div className="flex gap-x-4 gap-y-2 text-[10px] text-muted-foreground font-semibold flex-wrap">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-primary shadow-sm shadow-primary/10" /> Answered
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-background border border-border" /> Unanswered
+              </div>
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto custom-scrollbar p-5">
+          <div className="flex-grow overflow-y-auto p-6 scrollbar-hide">
             <div className="grid grid-cols-4 gap-2.5">
               {questions.map((_, i) => {
                 const isAnswered = answers[i] !== null;
                 const isActive = current === i;
                 
-                let btnClass = "w-full aspect-square rounded-lg flex items-center justify-center font-label-md text-[14px] font-bold transition-all duration-200 card-lift ring-0 ";
+                let btnClass = "w-full aspect-square rounded-xl flex items-center justify-center text-xs font-bold transition-all ";
                 
                 if (isActive) {
-                  btnClass += "bg-surface border-2 border-primary text-primary shadow-[0_0_12px_rgba(37,99,235,0.2)]";
+                  btnClass += "bg-primary text-primary-foreground shadow-md shadow-primary/10";
                 } else if (isAnswered) {
-                  btnClass += "bg-primary text-white hover:bg-primary-container border border-primary";
+                  btnClass += "bg-primary/10 text-primary border border-primary/20";
                 } else {
-                  btnClass += "bg-surface border border-border-base text-text-secondary hover:border-primary/50 hover:bg-surface-container/50";
+                  btnClass += "bg-background border border-border text-muted-foreground hover:border-border/80 hover:text-foreground";
                 }
 
                 return (
@@ -552,29 +594,33 @@ export default function FinalAssessmentPage() {
         </aside>
 
         {/* Center Panel: Question Area */}
-        <section className="flex-1 bg-surface-bright overflow-hidden relative z-20 flex flex-col">
-          <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-10 pb-32">
-            <div className="max-w-[800px] mx-auto w-full">
+        <section className="flex-grow bg-muted/10 overflow-hidden relative z-20 flex flex-col">
+          <div className="flex-grow overflow-y-auto p-6 md:p-10 pb-32 scrollbar-hide">
+            <div className="max-w-[700px] mx-auto w-full">
               
               <div className="mb-6 flex justify-between items-center">
-                <span className="bg-surface text-text-secondary border border-border-base px-3 py-1.5 rounded-lg font-label-sm text-[12px] font-bold uppercase tracking-wider shadow-sm">
+                <span className="bg-card text-muted-foreground border border-border px-3.5 py-1.5 rounded-xl text-[10px] font-extrabold uppercase tracking-wider shadow-sm">
                   Question {current + 1} of {questions.length}
                 </span>
               </div>
               
               {/* Question Text */}
-              <div className="bg-surface rounded-xl sm:rounded-2xl p-5 sm:p-8 shadow-sm border border-border-base mb-6 card-lift">
-                <h3 className="font-body-lg text-lg sm:text-[20px] leading-relaxed text-text-primary font-bold whitespace-pre-wrap">
+              <div className="bg-card rounded-2xl p-6 sm:p-8 shadow-sm border border-border mb-6">
+                <h3 className="text-base sm:text-lg leading-relaxed text-foreground font-bold whitespace-pre-wrap">
                   {q.text}
                 </h3>
               </div>
 
               {/* Options */}
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {q.options.map((opt, i) => (
                   <label 
                     key={i} 
-                    className={`group relative flex items-center p-4 sm:p-5 min-h-[56px] rounded-xl border cursor-pointer transition-all duration-200 card-lift ${answers[current] === i ? 'bg-surface border-primary shadow-[0_0_15px_rgba(37,99,235,0.1)]' : 'bg-surface border-border-base hover:bg-surface-container-lowest'}`}
+                    className={`group relative flex items-center p-4 sm:p-5 min-h-[56px] rounded-2xl border cursor-pointer transition-all duration-200 ${
+                      answers[current] === i 
+                        ? 'bg-primary/5 border-primary shadow-sm' 
+                        : 'bg-card border-border hover:bg-muted/30'
+                    }`}
                   >
                     <input 
                       type="radio" 
@@ -583,12 +629,16 @@ export default function FinalAssessmentPage() {
                       checked={answers[current] === i}
                       onChange={() => { const a = [...answers]; a[current] = i; setAnswers(a); }}
                     />
-                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mr-4 transition-colors shrink-0 ${answers[current] === i ? 'border-primary bg-primary' : 'border-outline-variant group-hover:border-primary/50'}`}>
-                      <span className={`material-symbols-outlined text-[16px] text-white transition-opacity ${answers[current] === i ? 'opacity-100' : 'opacity-0'}`} style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
+                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center mr-4 transition-colors shrink-0 ${
+                      answers[current] === i 
+                        ? 'border-primary bg-primary text-primary-foreground' 
+                        : 'border-border group-hover:border-primary/40'
+                    }`}>
+                      {answers[current] === i && <CheckCircle2 className="h-3 w-3 stroke-[3]" />}
                     </div>
-                    <span className="font-body-lg text-[16px] text-text-primary flex-1">{opt}</span>
-                    <div className={`absolute inset-0 rounded-xl border-2 pointer-events-none transition-colors ${answers[current] === i ? 'border-primary' : 'border-transparent'}`}></div>
-                    <div className={`absolute inset-0 rounded-xl bg-primary-fixed/5 pointer-events-none transition-opacity ${answers[current] === i ? 'opacity-100' : 'opacity-0'}`}></div>
+                    <span className="text-sm font-medium text-foreground flex-1 leading-normal">
+                      {opt}
+                    </span>
                   </label>
                 ))}
               </div>
@@ -596,15 +646,15 @@ export default function FinalAssessmentPage() {
             </div>
           </div>
 
-          {/* Bottom Navigation Bar (Exam Actions) */}
-          <div className="bg-surface/90 backdrop-blur-md border-t border-border-base p-4 pb-6 md:pb-4 absolute bottom-0 left-0 right-0 z-30 shadow-[0_-4px_15px_rgba(0,0,0,0.03)]">
-            <div className="max-w-[800px] mx-auto flex justify-between items-center px-2 sm:px-4 w-full gap-2">
+          {/* Bottom Navigation Bar */}
+          <div className="bg-card/90 backdrop-blur-md border-t border-border p-4 pb-6 md:pb-4 absolute bottom-0 left-0 right-0 z-30 shadow-lg">
+            <div className="max-w-[700px] mx-auto flex justify-between items-center w-full gap-3">
               <button 
                 onClick={() => { if (current > 0) setCurrent(current - 1); }}
                 disabled={current === 0}
-                className="px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl border border-border-base bg-surface text-text-secondary font-label-md text-[14px] font-bold hover:bg-surface-container-lowest hover:text-text-primary transition-colors flex items-center gap-1.5 disabled:opacity-30 shadow-sm card-lift min-h-[44px]"
+                className="px-4 py-2.5 rounded-xl border border-border bg-card text-muted-foreground font-bold text-xs hover:bg-muted/30 hover:text-foreground transition-all flex items-center gap-1.5 disabled:opacity-30 min-h-[40px]"
               >
-                <span className="material-symbols-outlined text-[20px]">chevron_left</span> <span className="text-xs sm:text-sm">Previous</span>
+                <ChevronLeft className="h-4 w-4" /> <span>Previous</span>
               </button>
               
               <div className="flex gap-2">
@@ -613,18 +663,22 @@ export default function FinalAssessmentPage() {
                     if (current < questions.length - 1) setCurrent(current + 1);
                   }}
                   disabled={current === questions.length - 1 || answers[current] === null}
-                  className={`px-5 sm:px-8 py-2.5 sm:py-3 rounded-xl font-label-md text-[15px] font-bold transition-all shadow-md flex items-center gap-1.5 card-lift min-h-[44px] ${current === questions.length - 1 ? 'hidden' : 'bg-primary text-on-primary hover:bg-primary-container disabled:opacity-50'}`}
+                  className={`px-6 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 min-h-[40px] ${
+                    current === questions.length - 1 
+                      ? 'hidden' 
+                      : 'bg-primary text-primary-foreground hover:brightness-110 disabled:opacity-50'
+                  }`}
                 >
-                  <span className="text-xs sm:text-sm">Next</span> <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+                  <span>Next</span> <ChevronRight className="h-4 w-4" />
                 </button>
 
                 {current === questions.length - 1 && (
                   <button 
                     onClick={handleSubmit}
                     disabled={submitting || answers.includes(null)}
-                    className="px-5 sm:px-8 py-2.5 sm:py-3 rounded-xl bg-error text-white font-label-md text-[15px] font-bold hover:bg-error/90 transition-all shadow-md flex items-center gap-1.5 card-lift disabled:opacity-50 min-h-[44px]"
+                    className="px-6 py-2.5 rounded-xl bg-destructive text-destructive-foreground font-bold text-xs hover:brightness-110 transition-all flex items-center gap-1.5 min-h-[40px] disabled:opacity-50"
                   >
-                    <span className="text-xs sm:text-sm">{submitting ? 'Submitting...' : 'Submit Exam'}</span> <span className="material-symbols-outlined text-[20px]">send</span>
+                    <span>{submitting ? 'Submitting...' : 'Submit Exam'}</span> <Send className="h-4 w-4" />
                   </button>
                 )}
               </div>
@@ -632,28 +686,30 @@ export default function FinalAssessmentPage() {
           </div>
         </section>
         
-        {/* Right Panel: Tools / Info (Optional, keeping it simple as per original design but matching new theme) */}
-        <aside className="w-64 bg-surface border-l border-border-base flex flex-col shrink-0 z-30 hidden xl:flex shadow-[4px_0_15px_rgba(0,0,0,0.02)]">
-          <div className="p-5 border-b border-border-base bg-surface-bright/50">
-            <h2 className="font-headline-md text-[18px] font-bold text-text-primary">Exam Info</h2>
+        {/* Right Panel: Exam Guidelines */}
+        <aside className="w-64 bg-card border-l border-border flex flex-col shrink-0 z-30 hidden xl:flex">
+          <div className="p-6 border-b border-border">
+            <h2 className="text-xs font-bold text-foreground">Exam Info</h2>
           </div>
-          <div className="p-5 space-y-6 flex-1 overflow-y-auto">
+          
+          <div className="p-6 space-y-6 flex-grow overflow-y-auto">
              <div>
-                <h3 className="font-label-md text-[12px] text-text-secondary mb-3 uppercase tracking-widest font-bold">Guidelines</h3>
-                <div className="space-y-3 font-body-sm text-[13px] text-text-secondary bg-surface-container/30 p-4 rounded-xl border border-border-base">
-                  <p>• Do not exit full screen</p>
-                  <p>• Answer all questions</p>
-                  <p>• Click submit on the last page</p>
+                <h3 className="text-[10px] text-muted-foreground mb-3 uppercase tracking-widest font-extrabold">Guidelines</h3>
+                <div className="space-y-3 text-xs text-muted-foreground bg-muted/30 p-4 rounded-xl border border-border">
+                  <p className="leading-normal">• Do not exit full screen</p>
+                  <p className="leading-normal">• Answer all questions</p>
+                  <p className="leading-normal">• Click submit on the last page</p>
                 </div>
              </div>
           </div>
-          <div className="p-5 border-t border-border-base bg-surface-bright/50 mt-auto">
+          
+          <div className="p-6 border-t border-border bg-muted/10 mt-auto">
             <button 
               onClick={handleSubmit}
               disabled={submitting}
-              className="w-full px-6 py-3.5 rounded-xl bg-error text-white font-label-md text-[14px] font-bold hover:bg-error/90 transition-all shadow-md flex items-center justify-center gap-2 card-lift disabled:opacity-50"
+              className="w-full px-5 py-3 rounded-xl bg-destructive text-destructive-foreground font-bold text-xs hover:brightness-110 transition-all flex items-center justify-center gap-1.5"
             >
-              <span className="material-symbols-outlined text-[20px]">assignment_turned_in</span> Finish Early
+              <CheckCircle2 className="h-4.5 w-4.5" /> Finish Early
             </button>
           </div>
         </aside>

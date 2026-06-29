@@ -1,13 +1,28 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { logUserActivity } from '@/lib/activity';
 import { checkAndAwardCertificate } from '@/lib/progress';
 import { toast } from 'sonner';
+import { 
+  ArrowLeft, 
+  ChevronLeft, 
+  ChevronRight, 
+  RefreshCw, 
+  Play, 
+  Send, 
+  FileText, 
+  Terminal, 
+  Keyboard, 
+  CheckCircle2, 
+  XCircle, 
+  AlertCircle, 
+  Award, 
+  Loader2 
+} from 'lucide-react';
 
 type Lang = 'python' | 'javascript' | 'java' | 'cpp' | 'c';
 
@@ -56,18 +71,18 @@ const LANG_LABELS: Record<Lang, string> = {
 };
 
 const DIFF_COLORS = {
-  Beginner:     'bg-primary/10 text-primary',
-  Intermediate: 'bg-tertiary/10 text-tertiary',
-  Advanced:     'bg-error/10 text-error',
+  Beginner:     'bg-primary/10 text-primary border-primary/10',
+  Intermediate: 'bg-chart-4/10 text-chart-4 border-chart-4/10',
+  Advanced:     'bg-destructive/10 text-destructive border-destructive/10',
 };
 
-const VERDICT_META: Record<string, { label: string; color: string; icon: string }> = {
-  accepted:             { label: 'Accepted',         color: 'text-[#4ade80]', icon: 'check_circle' },
-  wrong_answer:         { label: 'Wrong Answer',     color: 'text-error',     icon: 'cancel' },
-  time_limit_exceeded:  { label: 'TLE',              color: 'text-tertiary',  icon: 'schedule' },
-  compilation_error:    { label: 'Compile Error',    color: 'text-error',     icon: 'error' },
-  runtime_error:        { label: 'Runtime Error',    color: 'text-error',     icon: 'cancel' },
-  pending:              { label: 'Pending',          color: 'text-outline',   icon: 'schedule' },
+const VERDICT_META: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
+  accepted:             { label: 'Accepted',         color: 'text-emerald-500', icon: CheckCircle2 },
+  wrong_answer:         { label: 'Wrong Answer',     color: 'text-destructive', icon: XCircle },
+  time_limit_exceeded:  { label: 'TLE',              color: 'text-amber-500',   icon: AlertCircle },
+  compilation_error:    { label: 'Compile Error',    color: 'text-destructive', icon: AlertCircle },
+  runtime_error:        { label: 'Runtime Error',    color: 'text-destructive', icon: XCircle },
+  pending:              { label: 'Pending',          color: 'text-muted-foreground', icon: Loader2 },
 };
 
 export default function CodingAssessmentPage() {
@@ -90,7 +105,6 @@ export default function CodingAssessmentPage() {
   const [mobileTab, setMobileTab]   = useState<'problem' | 'code' | 'output'>('problem');
   const MAX_ATTEMPTS = 3;
 
-  // Load problems from DB
   useEffect(() => {
     if (!courseId) return;
     supabase
@@ -110,11 +124,8 @@ export default function CodingAssessmentPage() {
   }, [courseId, navigate]);
 
   const problem = problems[idx];
-
-  // Storage key for local storage persistence
   const storageKey = problem ? `code_assess_${user?.id || 'default'}_${problem.id}_${language}` : '';
 
-  // Load saved code when problem, language, or storage key changes
   useEffect(() => {
     if (!problem || !storageKey) return;
     const saved = localStorage.getItem(storageKey);
@@ -126,7 +137,6 @@ export default function CodingAssessmentPage() {
     setResult(null);
   }, [problem?.id, language, storageKey]);
 
-  // Reset code manually
   const resetCode = useCallback(() => {
     if (!problem) return;
     const starter = problem.starter_code[language] ?? '';
@@ -281,7 +291,6 @@ export default function CodingAssessmentPage() {
         toast.success(`All ${testResults.length} test cases passed!`);
         void logUserActivity(user.id, 'code_run', `Successfully completed coding assessment: ${problem?.title}`);
         
-        // Log pass attempt
         await supabase.from('assessment_attempts').insert({
           user_id: user.id,
           course_id: courseId!,
@@ -301,7 +310,6 @@ export default function CodingAssessmentPage() {
       
       if (attempts + 1 >= MAX_ATTEMPTS && overallVerdict !== 'accepted') {
          toast.error("Maximum attempts reached. Assessment failed.");
-         // Log fail attempt
          await supabase.from('assessment_attempts').insert({
             user_id: user.id,
             course_id: courseId!,
@@ -322,9 +330,9 @@ export default function CodingAssessmentPage() {
     return (
       <AppLayout title="Coding Assessment">
         <div className="flex-1 flex flex-col md:flex-row h-[calc(100vh-80px)] overflow-hidden gap-4 w-full p-4">
-          <Skeleton className="flex-1 bg-surface rounded-lg border border-border-base shadow-sm min-w-[300px]" />
-          <Skeleton className="flex-[1.5] bg-[#1e1e1e] rounded-lg border border-border-base shadow-sm min-w-[400px]" />
-          <Skeleton className="flex-1 glass-panel rounded-lg border border-border-base shadow-sm min-w-[300px]" />
+          <Skeleton className="flex-1 bg-card rounded-2xl border border-border shadow-sm min-w-[300px]" />
+          <Skeleton className="flex-[1.5] bg-[#1e1e1e] rounded-2xl border border-border shadow-sm min-w-[400px]" />
+          <Skeleton className="flex-1 bg-card rounded-2xl border border-border shadow-sm min-w-[300px]" />
         </div>
       </AppLayout>
     );
@@ -333,9 +341,9 @@ export default function CodingAssessmentPage() {
   if (!problem) {
     return (
       <AppLayout title="Coding Assessment">
-        <div className="text-center py-20 text-on-surface-variant h-[calc(100vh-80px)] flex flex-col items-center justify-center">
-          <span className="material-symbols-outlined text-[48px] opacity-30 mb-4">terminal</span>
-          <p className="font-label-md text-label-md text-on-surface">No problems available</p>
+        <div className="text-center py-20 text-muted-foreground h-[calc(100vh-80px)] flex flex-col items-center justify-center">
+          <Terminal className="h-12 w-12 text-muted-foreground/40 mb-4" />
+          <p className="text-sm font-bold text-foreground">No problems available</p>
         </div>
       </AppLayout>
     );
@@ -343,113 +351,137 @@ export default function CodingAssessmentPage() {
 
   return (
     <AppLayout title="Coding Assessment">
-      <div className="flex flex-col h-[calc(100vh-80px)] w-full gap-3 relative px-margin-mobile md:px-margin-desktop py-4">
+      <div className="flex flex-col h-[calc(100vh-80px)] w-full gap-3 relative px-4 md:px-6 py-4 select-none">
         
         {/* Actions Bar */}
-        <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between bg-surface/80 backdrop-blur-md border border-border-base rounded-lg p-2 shrink-0 z-10 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between bg-card border border-border rounded-2xl p-3 shrink-0 z-10 shadow-sm">
           <div className="flex flex-wrap items-center gap-3 pl-1">
-            <button onClick={() => navigate(`/courses/${courseId}`)} className="text-text-secondary hover:text-primary transition-colors flex items-center gap-1 font-label-sm min-h-[38px] md:min-h-[auto]">
-              <span className="material-symbols-outlined text-[18px]">arrow_back</span> Course
+            <button 
+              onClick={() => navigate(`/courses/${courseId}`)} 
+              className="text-xs font-bold text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 min-h-[38px] md:min-h-[auto]"
+            >
+              <ArrowLeft className="h-4 w-4" /> <span>Course</span>
             </button>
-            <div className="h-4 w-px bg-border-base hidden sm:block"></div>
+            
+            <div className="h-4 w-px bg-border hidden sm:block" />
+            
             <div className="flex items-center gap-1.5">
               <button 
                 onClick={() => setIdx(Math.max(0, idx - 1))} 
                 disabled={idx === 0}
-                className="text-text-secondary hover:text-primary transition-colors disabled:opacity-50 p-1"
+                className="text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30 p-1"
                 aria-label="Previous Problem"
               >
-                <span className="material-symbols-outlined text-[20px]">chevron_left</span>
+                <ChevronLeft className="h-4 w-4" />
               </button>
-              <span className="font-label-sm text-label-sm text-text-secondary min-w-[40px] text-center">{idx + 1} / {problems.length}</span>
+              <span className="text-xs font-bold text-muted-foreground min-w-[40px] text-center">
+                {idx + 1} / {problems.length}
+              </span>
               <button 
                 onClick={() => setIdx(Math.min(problems.length - 1, idx + 1))} 
                 disabled={idx === problems.length - 1}
-                className="text-text-secondary hover:text-primary transition-colors disabled:opacity-50 p-1"
+                className="text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30 p-1"
                 aria-label="Next Problem"
               >
-                <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+                <ChevronRight className="h-4 w-4" />
               </button>
             </div>
-            <div className="h-4 w-px bg-border-base hidden sm:block"></div>
-            <div className="flex items-center gap-2">
-              <span className="font-label-sm text-[10px] text-text-secondary uppercase">Attempts:</span>
-              <span className={`font-bold text-[14px] ${attempts >= MAX_ATTEMPTS ? 'text-error' : 'text-primary'}`}>{attempts} / {MAX_ATTEMPTS}</span>
+            
+            <div className="h-4 w-px bg-border hidden sm:block" />
+            
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider">Attempts:</span>
+              <span className={`text-xs font-bold ${attempts >= MAX_ATTEMPTS ? 'text-destructive' : 'text-primary'}`}>
+                {attempts} / {MAX_ATTEMPTS}
+              </span>
             </div>
-            <div className="h-4 w-px bg-border-base hidden sm:block"></div>
+            
+            <div className="h-4 w-px bg-border hidden sm:block" />
+            
             <select 
               value={language} 
               onChange={e => changeLang(e.target.value as Lang)}
-              className="bg-surface border border-border-base text-text-primary font-label-sm text-label-sm rounded px-3 py-2 md:py-1.5 focus:ring-1 focus:ring-primary focus:border-primary outline-none shadow-inner min-h-[38px] md:min-h-[auto]"
+              className="bg-background border border-border text-foreground text-xs font-bold rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none min-h-[38px] md:min-h-[auto]"
             >
               {(Object.keys(LANG_LABELS) as Lang[]).map(l => (
                 <option key={l} value={l}>{LANG_LABELS[l]}</option>
               ))}
             </select>
           </div>
+          
           <div className="flex items-center gap-2 pr-1">
-            <button onClick={() => resetCode()} className="flex-1 sm:flex-initial flex items-center justify-center gap-1 px-3 py-2 md:py-1.5 rounded-md border border-border-base bg-surface text-text-primary font-label-sm text-label-sm hover:bg-surface-bright transition-colors shadow-sm min-h-[38px] md:min-h-[auto]">
-              <span className="material-symbols-outlined text-[16px]">refresh</span> Reset
+            <button 
+              onClick={() => resetCode()} 
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl border border-border bg-background text-foreground text-xs font-bold hover:bg-muted/30 transition-all min-h-[38px] md:min-h-[auto]"
+            >
+              <RefreshCw className="h-3.5 w-3.5" /> <span>Reset</span>
             </button>
-            <button onClick={handleRun} disabled={judging || running || !user} className="flex-1 sm:flex-initial flex items-center justify-center gap-1 px-3 py-2 md:py-1.5 rounded-md border border-border-base bg-surface text-primary font-label-sm text-label-sm font-bold hover:bg-surface-bright transition-colors disabled:opacity-50 shadow-sm min-h-[38px] md:min-h-[auto]">
-              {running ? <span className="material-symbols-outlined animate-spin text-[16px]">autorenew</span> : <span className="material-symbols-outlined text-[16px]">play_arrow</span>}
-              {running ? 'Running' : 'Run'}
+            
+            <button 
+              onClick={handleRun} 
+              disabled={judging || running || !user} 
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl border border-border bg-background text-primary text-xs font-bold hover:bg-muted/30 transition-all disabled:opacity-50 min-h-[38px] md:min-h-[auto]"
+            >
+              {running ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
+              <span>{running ? 'Running' : 'Run'}</span>
             </button>
-            <button onClick={handleSubmit} disabled={judging || running || attempts >= MAX_ATTEMPTS || !user} className="flex-1 sm:flex-initial flex items-center justify-center gap-1 bg-primary text-on-primary px-4 py-2 md:py-1.5 rounded-md font-label-sm text-label-sm font-bold hover:bg-primary-container transition-colors disabled:opacity-50 shadow-md min-h-[38px] md:min-h-[auto]">
-              {judging ? <span className="material-symbols-outlined animate-spin text-[16px]">autorenew</span> : <span className="material-symbols-outlined text-[16px]">publish</span>}
-              {judging ? 'Evaluating' : 'Submit'}
+            
+            <button 
+              onClick={handleSubmit} 
+              disabled={judging || running || attempts >= MAX_ATTEMPTS || !user} 
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 bg-primary text-primary-foreground px-4 py-2 rounded-xl text-xs font-bold hover:brightness-110 active:scale-[0.99] transition-all disabled:opacity-50 shadow-md shadow-primary/10 min-h-[38px] md:min-h-[auto]"
+            >
+              {judging ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+              <span>{judging ? 'Evaluating' : 'Submit'}</span>
             </button>
           </div>
         </div>
 
-        {/* Mobile Tab Selector (only visible on mobile) */}
-        <div className="flex md:hidden border border-border-base rounded-lg bg-surface p-1 shrink-0 gap-1">
-          <button
-            onClick={() => setMobileTab('problem')}
-            className={`flex-1 py-2 text-center rounded-md font-label-sm text-label-sm transition-colors ${
-              mobileTab === 'problem' ? 'bg-primary text-on-primary font-bold shadow-sm' : 'text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            Problem
-          </button>
-          <button
-            onClick={() => setMobileTab('code')}
-            className={`flex-1 py-2 text-center rounded-md font-label-sm text-label-sm transition-colors ${
-              mobileTab === 'code' ? 'bg-primary text-on-primary font-bold shadow-sm' : 'text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            Code
-          </button>
-          <button
-            onClick={() => setMobileTab('output')}
-            className={`flex-1 py-2 text-center rounded-md font-label-sm text-label-sm transition-colors ${
-              mobileTab === 'output' ? 'bg-primary text-on-primary font-bold shadow-sm' : 'text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            Console
-          </button>
+        {/* Mobile Tab Selector */}
+        <div className="flex md:hidden border border-border rounded-xl bg-card p-1 shrink-0 gap-1">
+          {['problem', 'code', 'output'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setMobileTab(tab as any)}
+              className={`flex-1 py-2 text-center rounded-lg text-xs font-bold transition-all capitalize ${
+                mobileTab === tab 
+                  ? 'bg-primary text-primary-foreground shadow-sm' 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {tab === 'output' ? 'Console' : tab}
+            </button>
+          ))}
         </div>
 
         {/* Workspace Layout */}
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden gap-4 pb-2">
           
           {/* Left Pane: Problem Description */}
-          <section className={`w-full md:w-1/4 md:min-w-[300px] flex flex-col bg-surface rounded-lg border border-border-base shadow-[0_2px_4px_rgba(0,0,0,0.02)] overflow-hidden flex-shrink-0 transition-all duration-200 ${mobileTab === 'problem' ? 'flex' : 'hidden md:flex'}`}>
-            <div className="h-10 border-b border-border-base flex justify-between items-center px-4 bg-surface-bright shrink-0">
-              <span className="font-label-md text-label-md font-bold flex items-center gap-2 text-text-primary">
-                <span className="material-symbols-outlined text-[18px]">description</span> Description
+          <section className={`w-full md:w-1/4 md:min-w-[300px] flex flex-col bg-card rounded-2xl border border-border shadow-sm overflow-hidden flex-shrink-0 transition-all duration-200 ${
+            mobileTab === 'problem' ? 'flex' : 'hidden md:flex'
+          }`}>
+            <div className="h-11 border-b border-border flex justify-between items-center px-4 bg-muted/40 shrink-0">
+              <span className="text-xs font-bold flex items-center gap-1.5 text-foreground">
+                <FileText className="h-4 w-4 text-primary" /> <span>Description</span>
               </span>
-              <span className={`px-2 py-0.5 rounded-full font-label-sm text-[10px] ${DIFF_COLORS[problem.difficulty]}`}>{problem.difficulty}</span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${DIFF_COLORS[problem.difficulty]}`}>
+                {problem.difficulty}
+              </span>
             </div>
-            <div className="flex-1 overflow-y-auto p-4 font-body-sm text-body-sm text-text-secondary custom-scrollbar">
-              <h3 className="font-headline-md text-headline-md text-text-primary mb-4">{problem.title}</h3>
-              <p className="mb-4 leading-relaxed whitespace-pre-line text-pretty">{problem.problem_statement}</p>
+            <div className="flex-grow overflow-y-auto p-5 text-xs text-muted-foreground space-y-4 leading-relaxed scrollbar-hide">
+              <h3 className="text-sm font-bold text-foreground">{problem.title}</h3>
+              <p className="whitespace-pre-line leading-relaxed text-pretty text-foreground/90">
+                {problem.problem_statement}
+              </p>
               
-              {problem.constraints.length > 0 && (
-                <div className="mb-4 border-t border-border-base pt-4">
-                  <h4 className="font-label-md text-label-md font-bold text-text-primary mb-2">Constraints:</h4>
-                  <ul className="list-disc pl-5 font-label-sm text-label-sm text-text-secondary space-y-1 ml-1">
-                    {problem.constraints.map((c, i) => <li key={i}><code>{c}</code></li>)}
+              {problem.constraints && problem.constraints.length > 0 && (
+                <div className="border-t border-border pt-4 mt-4">
+                  <h4 className="text-xs font-bold text-foreground mb-2">Constraints</h4>
+                  <ul className="list-disc pl-4 space-y-1 text-muted-foreground/80">
+                    {problem.constraints.map((c, i) => (
+                      <li key={i}><code className="bg-muted px-1.5 py-0.5 rounded text-[10px] text-foreground font-mono">{c}</code></li>
+                    ))}
                   </ul>
                 </div>
               )}
@@ -457,20 +489,28 @@ export default function CodingAssessmentPage() {
           </section>
 
           {/* Middle Pane: Code Editor */}
-          <section className={`flex-1 md:flex-[1.5] bg-[#1e1e1e] rounded-lg border border-border-base flex flex-col overflow-hidden md:min-w-[300px] shadow-[0_2px_4px_rgba(0,0,0,0.02)] ${mobileTab === 'code' ? 'flex' : 'hidden md:flex'}`}>
-            <div className="h-10 border-b border-[#333] bg-[#252526] flex items-center px-4 shrink-0">
-              <span className="font-label-sm text-label-sm text-[#cccccc] flex items-center gap-2">
-                <span className="material-symbols-outlined text-[16px] text-[#569cd6]">code</span>
-                solution.{language === 'python' ? 'py' : language === 'javascript' ? 'js' : language === 'java' ? 'java' : language === 'cpp' ? 'cpp' : 'c'}
+          <section className={`flex-grow md:flex-[1.5] bg-[#1e1e1e] rounded-2xl border border-[#333] flex flex-col overflow-hidden md:min-w-[300px] shadow-sm ${
+            mobileTab === 'code' ? 'flex' : 'hidden md:flex'
+          }`}>
+            <div className="h-11 border-b border-[#2d2d2d] bg-[#252526] flex items-center px-4 shrink-0 justify-between">
+              <span className="text-[11px] font-bold text-[#cccccc] flex items-center gap-1.5 font-mono">
+                <Terminal className="h-3.5 w-3.5 text-[#569cd6]" />
+                <span>
+                  solution.{language === 'python' ? 'py' : language === 'javascript' ? 'js' : language === 'java' ? 'java' : language === 'cpp' ? 'cpp' : 'c'}
+                </span>
               </span>
             </div>
-            <div className="flex-1 overflow-auto flex relative code-editor-bg">
-              {/* Line Numbers Fake */}
-              <div className="w-12 bg-[#1e1e1e] border-r border-[#333] text-[#858585] font-mono text-[13px] sm:text-sm text-right pr-3 pt-4 flex flex-col select-none shrink-0 overflow-hidden" aria-hidden="true">
-                 {Array.from({length: 40}).map((_, i) => <span key={i} className="h-[21px]">{i + 1}</span>)}
+            
+            <div className="flex-grow overflow-auto flex relative bg-[#1e1e1e]">
+              {/* Line Numbers */}
+              <div className="w-10 bg-[#1e1e1e] border-r border-[#2d2d2d] text-[#858585] font-mono text-xs text-right pr-3.5 pt-4 flex flex-col select-none shrink-0 overflow-hidden" aria-hidden="true">
+                 {Array.from({ length: 40 }).map((_, i) => (
+                   <span key={i} className="h-[22px] leading-[22px]">{i + 1}</span>
+                 ))}
               </div>
+              
               <textarea
-                className="w-full h-full p-4 pt-4 bg-transparent text-[#d4d4d4] font-mono text-[13px] sm:text-sm resize-none outline-none leading-[21px]"
+                className="flex-grow h-full p-4 bg-transparent text-[#d4d4d4] font-mono text-xs resize-none outline-none leading-[22px]"
                 value={code}
                 onChange={e => {
                   const val = e.target.value;
@@ -486,24 +526,33 @@ export default function CodingAssessmentPage() {
           </section>
 
           {/* Right Pane: Console/Output */}
-          <section className={`w-full md:w-1/4 md:min-w-[300px] flex flex-col glass-panel rounded-lg overflow-hidden flex-shrink-0 relative border border-border-base shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] ${mobileTab === 'output' ? 'flex' : 'hidden md:flex'}`}>
-            <div className="absolute inset-0 bg-gradient-to-br from-tertiary-fixed/10 to-primary-fixed/20 z-0 pointer-events-none"></div>
-            
-            <div className="h-10 border-b border-border-base flex px-2 gap-1 bg-white/40 backdrop-blur-md shrink-0 relative z-10">
+          <section className={`w-full md:w-1/4 md:min-w-[300px] flex flex-col bg-card rounded-2xl overflow-hidden flex-shrink-0 relative border border-border shadow-sm ${
+            mobileTab === 'output' ? 'flex' : 'hidden md:flex'
+          }`}>
+            <div className="h-11 border-b border-border flex px-2 gap-1 bg-muted/20 shrink-0 relative z-10">
               <button 
                 onClick={() => setActiveTab('output')}
-                className={`font-label-sm text-label-sm pb-1 px-4 mt-1 border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'output' ? 'text-primary border-primary font-bold' : 'text-text-secondary border-transparent hover:text-text-primary'}`}
+                className={`text-xs font-bold pb-1 px-4 mt-1 border-b-2 transition-colors flex items-center gap-1.5 ${
+                  activeTab === 'output' 
+                    ? 'text-primary border-primary' 
+                    : 'text-muted-foreground border-transparent hover:text-foreground'
+                }`}
               >
-                <span className="material-symbols-outlined text-[16px]">terminal</span> Output
+                <Terminal className="h-3.5 w-3.5" /> <span>Output</span>
               </button>
               <button 
                 onClick={() => setActiveTab('input')}
-                className={`font-label-sm text-label-sm pb-1 px-4 mt-1 border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'input' ? 'text-primary border-primary font-bold' : 'text-text-secondary border-transparent hover:text-text-primary'}`}
+                className={`text-xs font-bold pb-1 px-4 mt-1 border-b-2 transition-colors flex items-center gap-1.5 ${
+                  activeTab === 'input' 
+                    ? 'text-primary border-primary' 
+                    : 'text-muted-foreground border-transparent hover:text-foreground'
+                }`}
               >
-                <span className="material-symbols-outlined text-[16px]">keyboard</span> Custom Input
+                <Keyboard className="h-3.5 w-3.5" /> <span>Custom Input</span>
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-4 font-label-sm text-label-sm relative z-10 custom-scrollbar">
+            
+            <div className="flex-grow overflow-y-auto p-4 relative z-10 scrollbar-hide">
               
               {activeTab === 'input' && (
                 <div className="space-y-4">
@@ -513,10 +562,10 @@ export default function CodingAssessmentPage() {
                       id="customInputCheck"
                       checked={useCustomInput}
                       onChange={e => setUseCustomInput(e.target.checked)}
-                      className="rounded border-border-base text-primary focus:ring-primary h-4 w-4 shadow-sm"
+                      className="rounded border-border text-primary focus:ring-primary/20 h-4 w-4 cursor-pointer"
                     />
-                    <label htmlFor="customInputCheck" className="text-text-secondary font-label-sm cursor-pointer select-none">
-                      Use Custom Input
+                    <label htmlFor="customInputCheck" className="text-xs text-muted-foreground font-semibold cursor-pointer select-none">
+                      Enable Custom Input
                     </label>
                   </div>
                   {useCustomInput && (
@@ -524,7 +573,7 @@ export default function CodingAssessmentPage() {
                       value={customInput}
                       onChange={e => setCustomInput(e.target.value)}
                       placeholder="Type custom stdin here..."
-                      className="w-full h-32 p-3 bg-surface border border-border-base rounded-md font-mono text-xs text-text-primary focus:ring-2 focus:ring-primary-container outline-none resize-none shadow-inner"
+                      className="w-full h-36 p-3 bg-background border border-border rounded-xl font-mono text-[11px] text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none shadow-inner"
                     />
                   )}
                 </div>
@@ -533,67 +582,65 @@ export default function CodingAssessmentPage() {
               {activeTab === 'output' && (
                 <>
                   {!result && !judging && !running && (
-                    <div className="text-center py-10 text-on-surface-variant">
-                      <span className="material-symbols-outlined text-[32px] opacity-30 mb-2">science</span>
+                    <div className="text-center py-12 text-muted-foreground/60">
+                      <Terminal className="h-8 w-8 mx-auto mb-2 opacity-30" />
                       <p className="text-xs">Run or Submit code to see results</p>
                     </div>
                   )}
 
                   {(judging || running) && (
-                    <div className="space-y-3 animate-pulse">
-                      {[1, 2].map(i => (
-                        <div key={i} className="h-20 rounded bg-surface-variant border border-outline-variant/30"></div>
-                      ))}
-                      <p className="text-center text-xs text-on-surface-variant">{running ? 'Running code...' : 'Running tests...'}</p>
+                    <div className="space-y-3 animate-pulse py-4">
+                      <div className="h-16 rounded-xl bg-muted border border-border" />
+                      <div className="h-16 rounded-xl bg-muted border border-border" />
+                      <p className="text-center text-xs text-muted-foreground">{running ? 'Running code...' : 'Running tests...'}</p>
                     </div>
                   )}
 
                   {result && !judging && !running && (
                     <div className="space-y-3">
                       
-                      {/* Credits banner */}
                       {result.creditsAwarded > 0 && (
-                        <div className="p-3 rounded border border-[#6f00be]/40 bg-[#6f00be]/10 text-center mb-4">
-                          <span className="material-symbols-outlined text-[#d6a9ff] mb-1 text-[24px]">workspace_premium</span>
-                          <p className="font-bold text-[#d6a9ff]">+{result.creditsAwarded} Credits Earned!</p>
-                          <p className="text-[10px] text-[#ddb7ff]">Daily challenge complete</p>
+                        <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 text-center mb-4">
+                          <Award className="h-6 w-6 text-primary mx-auto mb-1.5" />
+                          <p className="font-bold text-primary text-xs">+{result.creditsAwarded} Credits Earned!</p>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">Daily challenge complete</p>
                         </div>
                       )}
 
                       {/* Run Only Results */}
                       {result.run_only && (
                         <div className="space-y-3 font-mono text-xs">
-                          <div className="flex gap-4 text-[10px] text-on-surface-variant px-1 border-b border-outline-variant/30 pb-2">
-                            <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[12px]">timer</span> {result.time_ms.toFixed(0)}ms</span>
-                            <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[12px]">memory</span> {result.memory_kb > 0 ? `${result.memory_kb}KB` : '—'}</span>
+                          <div className="flex gap-4 text-[10px] text-muted-foreground px-1 border-b border-border pb-2">
+                            <span className="flex items-center gap-1">Time: {result.time_ms.toFixed(0)}ms</span>
+                            <span className="flex items-center gap-1">Memory: {result.memory_kb > 0 ? `${result.memory_kb}KB` : '—'}</span>
                           </div>
                           
                           {result.compileError && (
-                            <div className="p-sm rounded border border-[#3b2f2f] bg-[#2e1a1a]">
-                              <div className="flex items-center gap-sm mb-sm text-error font-sans">
-                                <span className="material-symbols-outlined text-[16px]">error</span>
-                                <span className="font-bold">Compilation Error</span>
+                            <div className="p-3 rounded-xl border border-destructive/20 bg-destructive/5">
+                              <div className="flex items-center gap-1.5 mb-2 text-destructive font-sans font-bold">
+                                <AlertCircle className="h-4 w-4" />
+                                <span>Compilation Error</span>
                               </div>
-                              <pre className="text-error/80 text-[10px] whitespace-pre-wrap">{result.compileError}</pre>
+                              <pre className="text-destructive/80 text-[10px] whitespace-pre-wrap">{result.compileError}</pre>
                             </div>
                           )}
 
                           {!result.compileError && (
                             <>
                               {result.stdout && (
-                                <div className="p-sm rounded border border-outline-variant/30 bg-surface-container">
-                                  <div className="text-[10px] text-on-surface-variant font-bold mb-1 font-sans">Standard Output:</div>
-                                  <pre className="text-on-surface whitespace-pre-wrap">{result.stdout}</pre>
+                                <div className="p-3 rounded-xl border border-border bg-background">
+                                  <div className="text-[10px] text-muted-foreground font-bold mb-1.5 font-sans">Standard Output</div>
+                                  <pre className="text-foreground whitespace-pre-wrap leading-relaxed">{result.stdout}</pre>
                                 </div>
                               )}
                               {result.stderr && (
-                                <div className="p-sm rounded border border-[#3b2f2f] bg-[#2e1a1a]">
-                                  <div className="text-[10px] text-error font-bold mb-1 font-sans">Standard Error:</div>
-                                  <pre className="text-error/80 whitespace-pre-wrap">{result.stderr}</pre>
+                                <div className="p-3 rounded-xl border border-destructive/25 bg-destructive/5">
+                                  <div className="text-[10px] text-destructive font-bold mb-1.5 font-sans">Standard Error</div>
+                                  <pre className="text-destructive/80 whitespace-pre-wrap leading-relaxed">{result.stderr}</pre>
                                 </div>
                               )}
                               {!result.stdout && !result.stderr && (
-                                <div className="text-center py-4 text-on-surface-variant italic font-sans">
+                                <div className="text-center py-6 text-muted-foreground/60 italic font-sans text-xs">
                                   (Code executed successfully with no output)
                                 </div>
                               )}
@@ -602,31 +649,27 @@ export default function CodingAssessmentPage() {
                         </div>
                       )}
 
-                      {/* Summary */}
+                      {/* Submit Summary */}
                       {!result.run_only && (
-                        <div className={`p-2 rounded border font-bold flex items-center gap-2 ${result.verdict === 'accepted' ? 'border-[#2f3b2f] bg-[#1a2e1e] text-[#4ade80]' : 'border-[#3b2f2f] bg-[#2e1a1a] text-error'}`}>
-                          <span className="material-symbols-outlined text-[18px]">{VERDICT_META[result.verdict]?.icon ?? 'info'}</span>
-                          <span>{VERDICT_META[result.verdict]?.label ?? result.verdict}</span>
-                          <span className="ml-auto text-xs font-normal opacity-80">{result.passedCount}/{result.totalCount} passed</span>
-                        </div>
-                      )}
-
-                      {/* Stats */}
-                      {result.verdict === 'accepted' && !result.run_only && (
-                        <div className="flex gap-4 text-[10px] text-on-surface-variant px-1">
-                          <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[12px]">timer</span> {result.time_ms.toFixed(0)}ms</span>
-                          <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[12px]">memory</span> {(result.memory_kb / 1024).toFixed(1)}MB</span>
+                        <div className={`p-3.5 rounded-xl border font-bold flex items-center gap-2 text-xs ${
+                          result.verdict === 'accepted' 
+                            ? 'border-emerald-500/20 bg-emerald-500/5 text-emerald-500' 
+                            : 'border-destructive/20 bg-destructive/5 text-destructive'
+                        }`}>
+                          {result.verdict === 'accepted' ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+                          <span className="capitalize">{VERDICT_META[result.verdict]?.label ?? result.verdict}</span>
+                          <span className="ml-auto text-[10px] font-medium opacity-80">{result.passedCount}/{result.totalCount} passed</span>
                         </div>
                       )}
 
                       {/* Compile error */}
                       {result.compileError && !result.run_only && (
-                        <div className="p-sm rounded border border-[#3b2f2f] bg-[#2e1a1a]">
-                          <div className="flex items-center gap-sm mb-sm text-error">
-                            <span className="material-symbols-outlined text-[16px]">error</span>
-                            <span className="font-bold">Compilation Error</span>
+                        <div className="p-3 rounded-xl border border-destructive/25 bg-destructive/5">
+                          <div className="flex items-center gap-1.5 mb-2 text-destructive font-bold">
+                            <AlertCircle className="h-4 w-4" />
+                            <span>Compilation Error</span>
                           </div>
-                          <pre className="text-error/80 text-[10px] whitespace-pre-wrap font-mono">{result.compileError}</pre>
+                          <pre className="text-destructive/85 text-[10px] whitespace-pre-wrap font-mono">{result.compileError}</pre>
                         </div>
                       )}
 
@@ -634,21 +677,34 @@ export default function CodingAssessmentPage() {
                       {!result.run_only && result.testResults.map((t, i) => {
                         const pass = t.verdict === 'accepted';
                         return (
-                          <div key={i} className={`p-sm rounded border ${pass ? 'border-[#2f3b2f] bg-[#1a2e1e]' : 'border-[#3b2f2f] bg-[#2e1a1a]'}`}>
-                            <div className={`flex justify-between items-center mb-2 ${pass ? 'text-[#4ade80]' : 'text-error'}`}>
-                              <div className="flex items-center gap-1">
-                                <span className="material-symbols-outlined text-[14px]">{pass ? 'check_circle' : 'cancel'}</span>
+                          <div key={i} className={`p-4 rounded-xl border ${
+                            pass ? 'border-emerald-500/15 bg-emerald-500/5' : 'border-destructive/15 bg-destructive/5'
+                          }`}>
+                            <div className={`flex justify-between items-center mb-2.5 ${pass ? 'text-emerald-500' : 'text-destructive'}`}>
+                              <div className="flex items-center gap-1.5">
+                                {pass ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
                                 <span className="font-bold text-xs">Test Case {t.case}</span>
                               </div>
-                              {!pass && <span className="text-[10px] bg-error/20 px-1 rounded">{VERDICT_META[t.verdict]?.label ?? t.verdict}</span>}
+                              {!pass && (
+                                <span className="text-[9px] bg-destructive/20 text-destructive px-1.5 py-0.5 rounded font-extrabold capitalize">
+                                  {VERDICT_META[t.verdict]?.label ?? t.verdict}
+                                </span>
+                              )}
                             </div>
-                            <div className="text-on-surface-variant grid grid-cols-[65px_1fr] gap-x-2 gap-y-1 text-[11px] font-mono overflow-x-auto scrollbar-hide">
-                              <span>Input:</span><span className="text-on-surface overflow-x-auto whitespace-pre-wrap break-all">{t.input}</span>
-                              <span>Expected:</span><span className="text-on-surface overflow-x-auto whitespace-pre-wrap break-all">{t.expectedOutput}</span>
+                            
+                            <div className="text-muted-foreground grid grid-cols-[65px_1fr] gap-x-2 gap-y-1.5 text-[10px] font-mono overflow-x-auto">
+                              <span className="font-bold text-foreground/70">Input</span>
+                              <span className="text-foreground whitespace-pre-wrap break-all">{t.input}</span>
+                              
+                              <span className="font-bold text-foreground/70">Expected</span>
+                              <span className="text-foreground whitespace-pre-wrap break-all">{t.expectedOutput}</span>
+                              
                               {!pass && (
                                 <>
-                                  <span className="text-error mt-1">Output:</span>
-                                  <span className="text-error mt-1 overflow-x-auto whitespace-pre-wrap break-all bg-error/10 px-1 rounded">{t.actualOutput || '(empty)'}</span>
+                                  <span className="text-destructive font-bold mt-1">Output</span>
+                                  <span className="text-destructive mt-1 whitespace-pre-wrap break-all bg-destructive/10 px-2 py-1 rounded">
+                                    {t.actualOutput || '(empty)'}
+                                  </span>
                                 </>
                               )}
                             </div>

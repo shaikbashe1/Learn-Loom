@@ -5,7 +5,25 @@ import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { completeModule } from '@/lib/progress';
+import { 
+  GraduationCap, 
+  BookOpen, 
+  Trophy, 
+  Target, 
+  ListTodo, 
+  History, 
+  Timer, 
+  Check, 
+  X, 
+  ChevronRight, 
+  ChevronLeft, 
+  CheckCircle2, 
+  Play, 
+  RotateCcw, 
+  Award, 
+  Frown,
+  AlertCircle
+} from 'lucide-react';
 
 interface Quiz {
   id: string;
@@ -52,7 +70,6 @@ export default function QuizPage() {
     if (!user) return;
     (async () => {
       setLoading(true);
-      // Fetch enrolled course quizzes (non-grand-test)
       const { data: enrollments } = await supabase
         .from('user_course_enrollments')
         .select('course_id')
@@ -120,12 +137,7 @@ export default function QuizPage() {
     else {
       setPastAttempt({ score: correct, total, passed, completed_at: new Date().toISOString() });
       toast[passed ? 'success' : 'info'](passed ? `Passed! Score: ${score}%` : `Score: ${score}% — Keep practising!`);
-      // Log activity for streak tracking (fire-and-forget)
       void supabase.rpc('log_activity', { p_user_id: user.id, p_type: 'quiz', p_value: 1 }).then(() => {});
-
-      if (passed && selectedQuiz.module_id) {
-        // Progression is handled by CoursePlayerPage which requires all quizzes/assessments to be passed before marking complete
-      }
     }
     setSubmitting(false);
     setShowResult(true);
@@ -139,11 +151,14 @@ export default function QuizPage() {
   if (loading) {
     return (
       <AppLayout title="Quizzes">
-        <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg space-y-stack-md">
-          <Skeleton className="h-12 w-48 bg-surface-container rounded-lg" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-             <div className="space-y-4"><Skeleton className="h-20 w-full bg-surface-container rounded-xl" /><Skeleton className="h-20 w-full bg-surface-container rounded-xl" /></div>
-             <Skeleton className="md:col-span-2 h-[400px] w-full bg-surface-container rounded-xl" />
+        <div className="max-w-container-max mx-auto px-4 md:px-8 py-8 space-y-6">
+          <Skeleton className="h-10 w-48 bg-muted rounded-xl" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+             <div className="space-y-4">
+               <Skeleton className="h-20 w-full bg-muted rounded-2xl" />
+               <Skeleton className="h-20 w-full bg-muted rounded-2xl" />
+             </div>
+             <Skeleton className="lg:col-span-2 h-[450px] w-full bg-muted rounded-2xl" />
           </div>
         </div>
       </AppLayout>
@@ -153,11 +168,13 @@ export default function QuizPage() {
   if (quizzes.length === 0) {
     return (
       <AppLayout title="Quizzes">
-        <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg flex justify-center items-center min-h-[60vh]">
-          <div className="text-center p-10 glass-panel rounded-xl card-lift">
-            <span className="material-symbols-outlined text-[48px] text-text-secondary opacity-40 mb-3">quiz</span>
-            <p className="font-headline-md text-headline-md text-text-primary">No quizzes available</p>
-            <p className="font-body-md text-body-md text-text-secondary mt-1">Enroll in a course to unlock its quizzes.</p>
+        <div className="max-w-container-max mx-auto px-4 md:px-8 py-12 flex justify-center items-center min-h-[60vh]">
+          <div className="text-center p-10 bg-card border border-border rounded-3xl max-w-sm shadow-sm">
+            <AlertCircle className="h-12 w-12 text-muted-foreground/40 mx-auto mb-4" />
+            <p className="text-sm font-bold text-foreground">No quizzes available</p>
+            <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+              Enroll in a course to unlock its module quizzes.
+            </p>
           </div>
         </div>
       </AppLayout>
@@ -169,60 +186,74 @@ export default function QuizPage() {
     const progressPercent = ((current + 1) / questions.length) * 100;
     
     return (
-      <div className="min-h-screen flex flex-col bg-background text-text-primary overflow-hidden">
+      <div className="min-h-screen flex flex-col bg-background text-foreground overflow-hidden select-none">
         {/* Active Quiz Header */}
-        <header className="flex justify-between items-center h-16 px-6 bg-surface/70 backdrop-blur-md shadow-sm z-40 shrink-0 border-b border-border-base">
+        <header className="flex justify-between items-center h-16 px-6 bg-card border-b border-border shadow-sm z-40 shrink-0">
           <div className="flex items-center gap-4">
             <button 
               onClick={reset}
-              className="text-text-secondary hover:text-primary transition-colors flex items-center justify-center p-2 rounded-full hover:bg-surface-container-low"
+              className="text-muted-foreground hover:text-foreground p-2 rounded-xl hover:bg-muted transition-colors flex items-center justify-center min-w-[40px] min-h-[40px]"
               title="Exit Quiz"
             >
-              <span className="material-symbols-outlined">close</span>
+              <X className="h-5 w-5" />
             </button>
-            <div className="h-6 w-px bg-border-base mx-2 hidden md:block"></div>
+            <div className="h-6 w-px bg-border mx-2 hidden md:block" />
             <div className="hidden md:block">
-              <h1 className="font-headline-md text-[18px] font-bold text-primary truncate max-w-[300px] lg:max-w-md">{selectedQuiz?.title}</h1>
-              <p className="font-label-sm text-[12px] text-text-secondary">{selectedQuiz?.courses?.title}</p>
+              <h1 className="text-sm font-bold text-foreground truncate max-w-[280px] lg:max-w-md">
+                {selectedQuiz?.title}
+              </h1>
+              <p className="text-[10px] text-muted-foreground font-medium mt-0.5">
+                {selectedQuiz?.courses?.title}
+              </p>
             </div>
           </div>
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2 bg-surface-container-low px-4 py-2 rounded-full border border-primary/20">
-              <span className="material-symbols-outlined text-primary text-[18px]">timer</span>
-              <span className="font-label-md text-label-md text-primary font-bold tracking-wider">Active</span>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5 bg-primary/5 border border-primary/10 px-3.5 py-1.5 rounded-full text-primary">
+              <Timer className="h-4 w-4 animate-pulse" />
+              <span className="text-[11px] font-extrabold uppercase tracking-wider">Active</span>
             </div>
-            <button onClick={() => handleFinish(answers)} className="bg-primary text-on-primary px-6 py-2 rounded-lg font-label-md text-label-md hover:bg-primary-container transition-colors shadow-sm hidden md:block">
-                Finish Early
+            <button 
+              onClick={() => void handleFinish(answers)} 
+              className="bg-muted text-foreground border border-border px-5 py-2 rounded-xl text-xs font-bold hover:bg-muted/80 transition-all shadow-sm hidden md:block"
+            >
+              Finish Early
             </button>
           </div>
         </header>
 
         {/* Progress Bar */}
-        <div className="w-full h-2 bg-surface-container-lowest border-b border-border-base shrink-0 relative">
-          <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-tertiary-container transition-all duration-500 rounded-r-full" style={{ width: `${progressPercent}%` }}></div>
+        <div className="w-full h-1.5 bg-muted shrink-0 relative">
+          <div 
+            className="absolute top-0 left-0 h-full bg-primary transition-all duration-500 rounded-r-full" 
+            style={{ width: `${progressPercent}%` }} 
+          />
         </div>
 
         <div className="flex flex-1 overflow-hidden">
           <main className="flex-1 overflow-y-auto p-6 md:p-10 flex justify-center pb-32 relative">
-            <div className="w-full max-w-[800px] flex flex-col gap-8">
+            <div className="w-full max-w-[700px] flex flex-col gap-6">
               {q && (
                 <>
                   {/* Question Header */}
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-start gap-4">
-                      <span className="flex items-center justify-center w-10 h-10 rounded-full bg-primary-fixed text-primary font-headline-md text-headline-md shrink-0 border border-primary/20 shadow-sm">{current + 1}</span>
-                      <h2 className="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-text-primary mt-1 whitespace-pre-wrap">
-                        {q.question}
-                      </h2>
-                    </div>
+                  <div className="flex items-start gap-4">
+                    <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary/10 text-primary text-sm font-bold shrink-0 border border-primary/10 shadow-sm">
+                      {current + 1}
+                    </span>
+                    <h2 className="text-base font-bold text-foreground leading-snug pt-1.5 whitespace-pre-wrap">
+                      {q.question}
+                    </h2>
                   </div>
 
                   {/* Options Grid */}
-                  <div className="flex flex-col gap-4 mt-2">
+                  <div className="flex flex-col gap-3 mt-4">
                     {q.options.map((option, i) => (
                       <label 
                         key={i} 
-                        className={`group relative flex items-center p-4 sm:p-5 min-h-[56px] rounded-xl border cursor-pointer transition-all duration-200 card-lift ${selectedOpt === i ? 'bg-surface border-primary shadow-[0_0_15px_rgba(37,99,235,0.1)]' : 'bg-surface border-border-base hover:bg-surface-container-lowest'}`}
+                        className={`group relative flex items-center p-4 rounded-2xl border cursor-pointer transition-all duration-200 ${
+                          selectedOpt === i 
+                            ? 'bg-primary/5 border-primary shadow-sm' 
+                            : 'bg-card border-border hover:bg-muted/30'
+                        }`}
                       >
                         <input 
                           type="radio" 
@@ -231,12 +262,16 @@ export default function QuizPage() {
                           checked={selectedOpt === i}
                           onChange={() => setSelectedOpt(i)}
                         />
-                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mr-4 transition-colors shrink-0 ${selectedOpt === i ? 'border-primary bg-primary' : 'border-outline-variant group-hover:border-primary/50'}`}>
-                          <span className={`material-symbols-outlined text-[16px] text-white transition-opacity ${selectedOpt === i ? 'opacity-100' : 'opacity-0'}`} style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
+                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center mr-4 transition-colors shrink-0 ${
+                          selectedOpt === i 
+                            ? 'border-primary bg-primary text-primary-foreground' 
+                            : 'border-border group-hover:border-primary/40'
+                        }`}>
+                          {selectedOpt === i && <Check className="h-3 w-3 stroke-[3]" />}
                         </div>
-                        <span className="font-body-lg text-body-lg text-text-primary flex-1">{option}</span>
-                        <div className={`absolute inset-0 rounded-xl border-2 pointer-events-none transition-colors ${selectedOpt === i ? 'border-primary' : 'border-transparent'}`}></div>
-                        <div className={`absolute inset-0 rounded-xl bg-primary-fixed/10 pointer-events-none transition-opacity ${selectedOpt === i ? 'opacity-100' : 'opacity-0'}`}></div>
+                        <span className="text-sm font-medium text-foreground flex-1 leading-normal">
+                          {option}
+                        </span>
                       </label>
                     ))}
                   </div>
@@ -246,28 +281,40 @@ export default function QuizPage() {
           </main>
           
           {/* Right Sidebar (Questions Navigator) */}
-          <aside className="w-80 bg-surface border-l border-border-base flex flex-col shrink-0 z-10 hidden lg:flex shadow-[-4px_0_15px_rgba(0,0,0,0.02)]">
-            <div className="p-6 border-b border-border-base bg-surface-bright/50">
-              <h3 className="font-headline-md text-[18px] font-bold text-text-primary">Questions overview</h3>
-              <p className="font-body-sm text-[13px] text-text-secondary mt-1">{answers.filter(a => a !== undefined && a !== null).length} of {questions.length} answered</p>
+          <aside className="w-72 bg-card border-l border-border flex flex-col shrink-0 z-10 hidden lg:flex shadow-sm">
+            <div className="p-6 border-b border-border">
+              <h3 className="text-xs font-bold text-foreground">Questions Overview</h3>
+              <p className="text-[11px] text-muted-foreground mt-1 font-medium">
+                {answers.filter(a => a !== null).length + (selectedOpt !== null && answers[current] === null ? 1 : 0)} of {questions.length} answered
+              </p>
             </div>
-            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-              <div className="grid grid-cols-4 gap-3">
+            <div className="flex-grow overflow-y-auto p-6 scrollbar-hide">
+              <div className="grid grid-cols-4 gap-2.5">
                 {questions.map((_, i) => {
-                  const isAnswered = answers[i] !== undefined && answers[i] !== null;
+                  const isAnswered = answers[i] !== null;
                   const isActive = current === i;
                   
-                  let btnClass = "aspect-square rounded-lg flex items-center justify-center font-label-md text-label-md font-bold transition-colors relative ";
+                  let btnClass = "aspect-square rounded-xl flex items-center justify-center text-xs font-bold transition-all ";
                   if (isActive) {
-                    btnClass += "bg-surface border-2 border-primary text-primary shadow-[0_0_12px_rgba(37,99,235,0.2)]";
+                    btnClass += "bg-primary text-primary-foreground shadow-md shadow-primary/10";
                   } else if (isAnswered) {
-                    btnClass += "bg-primary text-white hover:bg-primary-container border border-primary";
+                    btnClass += "bg-primary/10 text-primary border border-primary/20";
                   } else {
-                    btnClass += "bg-surface border border-border-base text-text-secondary hover:border-outline-variant hover:bg-surface-container-lowest";
+                    btnClass += "bg-background border border-border text-muted-foreground hover:border-border/80 hover:text-foreground";
                   }
 
                   return (
-                    <button key={i} onClick={() => { setCurrent(i); setSelectedOpt(answers[i] ?? null); }} className={btnClass}>
+                    <button 
+                      key={i} 
+                      onClick={() => { 
+                        const newAnswers = [...answers];
+                        newAnswers[current] = selectedOpt;
+                        setAnswers(newAnswers);
+                        setCurrent(i); 
+                        setSelectedOpt(newAnswers[i] ?? null); 
+                      }} 
+                      className={btnClass}
+                    >
                       {i + 1}
                     </button>
                   );
@@ -278,27 +325,37 @@ export default function QuizPage() {
         </div>
 
         {/* Bottom Navigation Bar */}
-        <div className="fixed bottom-0 left-0 right-0 lg:right-80 bg-surface/90 backdrop-blur-md border-t border-border-base p-4 pb-6 md:pb-4 z-20 shadow-[0_-4px_6px_-1px_rgb(0,0,0,0.05)]">
-          <div className="max-w-[800px] mx-auto flex justify-between items-center px-2 sm:px-4 gap-2">
+        <div className="fixed bottom-0 left-0 right-0 lg:right-72 bg-card/90 backdrop-blur-md border-t border-border p-4 pb-6 md:pb-4 z-20 shadow-lg">
+          <div className="max-w-[700px] mx-auto flex justify-between items-center gap-3">
             <button 
-              onClick={() => { setCurrent(current - 1); setSelectedOpt(answers[current - 1] ?? null); }}
+              onClick={() => { 
+                const newAnswers = [...answers];
+                newAnswers[current] = selectedOpt;
+                setAnswers(newAnswers);
+                setCurrent(current - 1); 
+                setSelectedOpt(newAnswers[current - 1] ?? null); 
+              }}
               disabled={current === 0 || submitting}
-              className="flex items-center justify-center gap-1.5 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg border border-border-base bg-surface text-text-secondary font-label-md text-label-md hover:bg-surface-container-lowest hover:text-text-primary transition-colors disabled:opacity-30 shadow-sm min-h-[44px]"
+              className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-border bg-card text-muted-foreground font-bold text-xs hover:bg-muted/30 hover:text-foreground transition-all disabled:opacity-30 min-h-[40px]"
             >
-              <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-              <span className="text-xs sm:text-sm">Previous</span>
+              <ChevronLeft className="h-4 w-4" />
+              <span>Previous</span>
             </button>
+            
             <button 
               onClick={handleNext}
               disabled={selectedOpt === null || submitting}
-              className="flex items-center justify-center gap-1.5 px-5 sm:px-8 py-2.5 sm:py-3 rounded-lg bg-primary text-on-primary font-label-md text-label-md font-bold hover:bg-primary-container transition-colors shadow-md disabled:opacity-50 min-h-[44px]"
+              className="flex items-center justify-center gap-1.5 px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs hover:brightness-110 active:scale-[0.99] transition-all disabled:opacity-50 min-h-[40px]"
             >
               {submitting ? (
-                <><span className="material-symbols-outlined text-[18px] animate-spin">autorenew</span> <span className="text-xs sm:text-sm">Saving...</span></>
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  <span>Submitting...</span>
+                </>
               ) : (
                 <>
-                  <span className="text-xs sm:text-sm">{current === questions.length - 1 ? 'Submit Assessment' : 'Next Question'}</span>
-                  <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                  <span>{current === questions.length - 1 ? 'Submit Assessment' : 'Next Question'}</span>
+                  <ChevronRight className="h-4 w-4" />
                 </>
               )}
             </button>
@@ -312,75 +369,125 @@ export default function QuizPage() {
     const score = finalScore;
     const passed = selectedQuiz ? score >= selectedQuiz.passing_score : false;
     const correct = questions.filter((q, i) => answers[i] === q.answer_index).length;
+    
     return (
       <AppLayout title="Quiz Results">
-        <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg space-y-stack-xl relative z-10">
-          <div className="flex items-center gap-2 mb-6">
+        <div className="max-w-container-max mx-auto px-4 md:px-8 py-8 space-y-8 relative z-10">
+          
+          {/* Back Action */}
+          <div className="flex items-center gap-2">
             <button 
               onClick={() => {
                 if (selectedQuiz) navigate(`/courses/${selectedQuiz.course_id}`);
                 else reset();
               }}
-              className="flex items-center gap-1 text-text-secondary hover:text-primary transition-colors font-label-md text-label-md bg-surface px-4 py-2 rounded-lg border border-border-base shadow-sm card-lift"
+              className="flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors bg-card px-4 py-2.5 rounded-xl border border-border shadow-sm hover:border-border/80"
             >
-              <span className="material-symbols-outlined text-[18px]">arrow_back</span> Back to Course
+              <ChevronLeft className="h-4 w-4" /> Back to Course
             </button>
           </div>
           
-          <div className="glass-panel rounded-2xl p-8 md:p-12 max-w-3xl mx-auto text-center relative overflow-hidden card-lift">
-            <div className={`absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none ${passed ? 'bg-primary/10' : 'bg-error/10'}`}></div>
+          {/* Score Card Panel */}
+          <div className="bg-card border border-border rounded-3xl p-8 md:p-12 max-w-2xl mx-auto text-center relative overflow-hidden shadow-sm">
+            <div className={`absolute top-[-10%] right-[-10%] w-48 h-48 rounded-full blur-3xl opacity-20 pointer-events-none ${
+              passed ? 'bg-emerald-500' : 'bg-destructive'
+            }`} />
             
-            <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 border-4 relative z-10 ${passed ? 'bg-surface-bright border-primary text-primary shadow-[0_0_30px_rgba(37,99,235,0.2)]' : 'bg-surface-bright border-error text-error shadow-[0_0_30px_rgba(239,68,68,0.2)]'}`}>
-              <span className="material-symbols-outlined text-[48px]">{passed ? 'emoji_events' : 'sentiment_dissatisfied'}</span>
+            <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 border-2 relative z-10 ${
+              passed 
+                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 shadow-sm' 
+                : 'bg-destructive/10 border-destructive/20 text-destructive shadow-sm'
+            }`}>
+              {passed ? <Award className="h-10 w-10" /> : <Frown className="h-10 w-10" />}
             </div>
             
-            <h3 className="font-display-lg text-display-lg text-text-primary mb-2 relative z-10">{passed ? 'Congratulations!' : 'Keep Practising!'}</h3>
-            <p className="font-body-lg text-body-lg text-text-secondary mb-8 relative z-10 max-w-lg mx-auto">{passed ? 'You passed the assessment with flying colors!' : "You didn't reach the passing score. Review your answers and try again."}</p>
+            <h3 className="font-display text-2xl font-extrabold text-foreground mb-2 relative z-10">
+              {passed ? 'Congratulations!' : 'Keep Practising!'}
+            </h3>
             
-            <div className="bg-surface rounded-xl border border-border-base p-6 mb-8 inline-block min-w-[200px] shadow-sm relative z-10">
-              <div className="text-[64px] font-bold leading-none mb-1 font-headline-md tracking-tight" style={{ color: passed ? 'var(--primary)' : 'var(--error)' }}>
+            <p className="text-sm text-muted-foreground mb-8 relative z-10 max-w-md mx-auto leading-relaxed">
+              {passed 
+                ? 'You have successfully passed the module assessment and verified your concept mastery!' 
+                : "You didn't reach the required passing score. Review the details below and try again."}
+            </p>
+            
+            {/* Score Ring / Display */}
+            <div className="bg-background rounded-2xl border border-border p-6 mb-8 inline-block min-w-[200px] shadow-sm relative z-10">
+              <div className={`text-5xl font-extrabold leading-none mb-2 font-display tracking-tight ${
+                passed ? 'text-primary' : 'text-destructive'
+              }`}>
                 {score}%
               </div>
-              <p className="font-label-md text-[14px] text-text-secondary">{correct} of {questions.length} correct</p>
+              <p className="text-xs text-muted-foreground font-semibold">
+                {correct} of {questions.length} correct answers
+              </p>
             </div>
             
-            <div className="w-full h-3 bg-surface-container rounded-full overflow-hidden mb-10 border border-border-base relative z-10 shadow-inner">
-              <div className={`h-full rounded-full transition-all duration-1000 ${passed ? 'bg-primary shadow-[0_0_10px_rgba(37,99,235,0.5)]' : 'bg-error'}`} style={{ width: `${score}%` }}></div>
+            {/* Progress Bar */}
+            <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden mb-10 border border-border relative z-10 shadow-inner">
+              <div 
+                className={`h-full rounded-full transition-all duration-1000 ${
+                  passed ? 'bg-primary' : 'bg-destructive'
+                }`} 
+                style={{ width: `${score}%` }} 
+              />
             </div>
 
+            {/* Detailed Review */}
             <div className="space-y-4 text-left mb-10 relative z-10">
-              <h4 className="font-headline-md text-[20px] font-bold text-text-primary pb-3 border-b border-border-base">Detailed Review</h4>
+              <h4 className="text-sm font-bold text-foreground pb-3 border-b border-border">
+                Detailed Review
+              </h4>
+              
               {questions.map((q, i) => {
                 const isCorrect = answers[i] === q.answer_index;
                 return (
-                  <div key={i} className={`flex items-start gap-4 p-5 rounded-xl border transition-all ${isCorrect ? 'bg-surface border-primary/30 shadow-sm' : 'bg-error/5 border-error/20'}`}>
-                    <span className={`material-symbols-outlined text-[24px] mt-0.5 ${isCorrect ? 'text-success' : 'text-error'}`} style={{ fontVariationSettings: "'FILL' 1" }}>
-                      {isCorrect ? 'check_circle' : 'cancel'}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-body-md text-body-md text-text-primary font-medium mb-3">{q.question}</p>
+                  <div 
+                    key={i} 
+                    className={`flex items-start gap-4 p-5 rounded-2xl border transition-all ${
+                      isCorrect 
+                        ? 'bg-background border-border/80 shadow-sm' 
+                        : 'bg-destructive/5 border-destructive/10'
+                    }`}
+                  >
+                    <div className="mt-0.5 shrink-0">
+                      {isCorrect ? (
+                        <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                      ) : (
+                        <X className="h-5 w-5 text-destructive" />
+                      )}
+                    </div>
+                    
+                    <div className="flex-grow min-w-0">
+                      <p className="text-sm text-foreground font-bold mb-3 leading-relaxed">
+                        {q.question}
+                      </p>
                       
                       <div className="space-y-2">
                         {q.options.map((opt, optIdx) => {
                           const isUserSelected = answers[i] === optIdx;
                           const isActuallyCorrect = q.answer_index === optIdx;
-                          let bgClass = "bg-surface border-border-base";
-                          let textClass = "text-text-secondary";
+                          let bgClass = "bg-card border-border";
+                          let textClass = "text-muted-foreground";
                           let icon: React.ReactNode = null;
 
                           if (isActuallyCorrect) {
-                            bgClass = "bg-success/10 border-success/30";
-                            textClass = "text-success font-medium";
-                            icon = <span className="material-symbols-outlined text-[16px] text-success ml-auto">check</span>;
+                            bgClass = "bg-emerald-500/10 border-emerald-500/20";
+                            textClass = "text-emerald-500 font-bold";
+                            icon = <Check className="h-4 w-4 text-emerald-500 ml-auto stroke-[3]" />;
                           } else if (isUserSelected && !isActuallyCorrect) {
-                            bgClass = "bg-error/10 border-error/30";
-                            textClass = "text-error";
-                            icon = <span className="material-symbols-outlined text-[16px] text-error ml-auto">close</span>;
+                            bgClass = "bg-destructive/10 border-destructive/20";
+                            textClass = "text-destructive font-bold";
+                            icon = <X className="h-4 w-4 text-destructive ml-auto" />;
                           }
 
                           return (
-                            <div key={optIdx} className={`px-4 py-2 rounded-lg border text-[14px] flex items-center ${bgClass} ${textClass}`}>
-                              {String.fromCharCode(65 + optIdx)}. {opt}
+                            <div 
+                              key={optIdx} 
+                              className={`px-4 py-2.5 rounded-xl border text-xs flex items-center gap-2 ${bgClass} ${textClass}`}
+                            >
+                              <span className="font-semibold">{String.fromCharCode(65 + optIdx)}.</span>
+                              <span className="flex-grow leading-normal">{opt}</span>
                               {icon}
                             </div>
                           );
@@ -393,10 +500,16 @@ export default function QuizPage() {
             </div>
 
             <button 
-              onClick={() => { setAnswers(Array(questions.length).fill(null)); setStarted(true); setShowResult(false); setCurrent(0); }} 
-              className="bg-primary text-on-primary hover:bg-primary-container font-label-md text-label-md px-8 py-3 rounded-lg shadow-md transition-colors flex items-center justify-center gap-2 mx-auto relative z-10"
+              onClick={() => { 
+                setAnswers(Array(questions.length).fill(null)); 
+                setStarted(true); 
+                setShowResult(false); 
+                setCurrent(0); 
+                setSelectedOpt(null);
+              }} 
+              className="bg-primary text-primary-foreground font-bold text-xs px-8 py-3 rounded-xl shadow-md shadow-primary/10 hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-2 mx-auto relative z-10"
             >
-              <span className="material-symbols-outlined text-[20px]">refresh</span> Try Again
+              <RotateCcw className="h-4 w-4" /> Try Again
             </button>
           </div>
         </div>
@@ -404,31 +517,46 @@ export default function QuizPage() {
     );
   }
 
-  // Pre-quiz / Listing state
   return (
     <AppLayout title="Quizzes">
-      <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg space-y-stack-xl relative z-10">
-        <div className="text-center md:text-left mb-8">
-          <h1 className="font-display-lg-mobile md:font-display-lg text-text-primary mb-2">Module Assessments</h1>
-          <p className="font-body-lg text-text-secondary max-w-2xl">Evaluate your understanding of the course materials and earn certifications.</p>
+      <div className="max-w-container-max mx-auto px-4 md:px-8 py-8 space-y-8 relative z-10 select-none">
+        {/* Header */}
+        <div className="text-center md:text-left">
+          <h1 className="font-display text-2xl font-bold text-foreground mb-2">Module Assessments</h1>
+          <p className="text-xs text-muted-foreground max-w-xl leading-relaxed">
+            Evaluate your understanding of the course materials and earn certifications.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           {/* Quiz list */}
           <div className="space-y-3 flex flex-col">
-            <h4 className="font-label-md text-[13px] text-text-secondary uppercase tracking-widest px-2 mb-2 font-bold">Available Assessments</h4>
+            <h4 className="text-[10px] text-muted-foreground uppercase tracking-widest font-extrabold px-1.5 mb-1">
+              Available Assessments
+            </h4>
             {quizzes.map(quiz => (
               <button
                 key={quiz.id}
                 onClick={() => setSelectedQuiz(quiz)}
-                className={`w-full text-left p-5 rounded-xl border transition-all duration-200 glass-panel card-lift ${selectedQuiz?.id === quiz.id ? 'border-primary ring-1 ring-primary/20 shadow-md scale-[1.02]' : 'border-border-base hover:border-primary/40'}`}
+                className={`w-full text-left p-5 rounded-2xl border transition-all duration-200 ${
+                  selectedQuiz?.id === quiz.id 
+                    ? 'bg-primary/5 border-primary shadow-sm' 
+                    : 'bg-card border-border hover:border-border/80 hover:shadow-sm'
+                }`}
               >
-                <div className="flex justify-between items-start mb-2">
-                  <p className={`font-headline-md text-[16px] font-bold pr-2 ${selectedQuiz?.id === quiz.id ? 'text-primary' : 'text-text-primary'}`}>{quiz.title}</p>
-                  <span className={`material-symbols-outlined text-[20px] ${selectedQuiz?.id === quiz.id ? 'text-primary' : 'text-text-secondary'}`}>chevron_right</span>
+                <div className="flex justify-between items-start gap-2 mb-2">
+                  <p className={`text-sm font-bold leading-snug pr-2 ${
+                    selectedQuiz?.id === quiz.id ? 'text-primary' : 'text-foreground'
+                  }`}>
+                    {quiz.title}
+                  </p>
+                  <ChevronRight className={`h-4 w-4 shrink-0 mt-0.5 ${
+                    selectedQuiz?.id === quiz.id ? 'text-primary' : 'text-muted-foreground'
+                  }`} />
                 </div>
-                <p className="font-body-sm text-[13px] text-text-secondary flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[14px]">book</span> {quiz.courses?.title}
+                <p className="text-[11px] text-muted-foreground flex items-center gap-1.5 font-medium">
+                  <BookOpen className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" /> 
+                  <span className="truncate">{quiz.courses?.title}</span>
                 </p>
               </button>
             ))}
@@ -437,54 +565,63 @@ export default function QuizPage() {
           {/* Quiz detail */}
           <div className="lg:col-span-2">
             {selectedQuiz && (
-              <div className="glass-panel border border-border-base rounded-2xl p-8 md:p-10 shadow-lg relative overflow-hidden card-lift">
-                <div className="absolute top-0 right-0 w-80 h-80 bg-primary-container/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
+              <div className="bg-card border border-border rounded-3xl p-8 md:p-10 shadow-sm relative overflow-hidden">
+                <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-primary/5 rounded-full blur-3xl opacity-30 pointer-events-none" />
                 
                 {loadingQuestions ? (
-                  <div className="space-y-6">
-                    <Skeleton className="h-12 w-2/3 bg-surface-container rounded-lg mx-auto" />
-                    <Skeleton className="h-32 w-full bg-surface-container rounded-xl" />
+                  <div className="space-y-6 py-8">
+                    <Skeleton className="h-8 w-1/2 bg-muted rounded-xl mx-auto" />
+                    <Skeleton className="h-28 w-full bg-muted rounded-2xl" />
                   </div>
                 ) : (
                   <>
                     <div className="text-center mb-10 relative z-10">
-                      <div className="w-20 h-20 rounded-2xl bg-surface border-2 border-primary/20 shadow-sm flex items-center justify-center mx-auto mb-6 relative">
-                        <div className="absolute inset-0 bg-primary/5 rounded-2xl"></div>
-                        <span className="material-symbols-outlined text-[40px] text-primary relative z-10" style={{ fontVariationSettings: "'FILL' 1" }}>quiz</span>
+                      <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-6 shadow-sm">
+                        <ListTodo className="h-8 w-8" />
                       </div>
-                      <h3 className="font-headline-lg text-[28px] font-bold text-text-primary text-balance mb-3">{selectedQuiz.title}</h3>
-                      <p className="font-body-md text-text-secondary inline-flex items-center gap-2 bg-surface-container px-3 py-1 rounded-full text-sm">
-                        <span className="material-symbols-outlined text-[16px]">school</span> {selectedQuiz.courses?.title}
+                      <h3 className="font-display text-xl font-bold text-foreground mb-3 px-4">
+                        {selectedQuiz.title}
+                      </h3>
+                      <p className="text-[11px] text-muted-foreground inline-flex items-center gap-1.5 bg-muted px-3 py-1 rounded-full font-semibold">
+                        <GraduationCap className="h-3.5 w-3.5 text-muted-foreground/80" /> 
+                        {selectedQuiz.courses?.title}
                       </p>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-10 relative z-10">
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-3 gap-3 mb-8 relative z-10">
                       {[
-                        { label: 'Questions', value: questions.length, icon: 'format_list_bulleted' },
-                        { label: 'Pass Score', value: `${selectedQuiz.passing_score}%`, icon: 'flag' },
-                        { label: 'Best Score', value: pastAttempt ? `${Math.round((pastAttempt.score / pastAttempt.total) * 100)}%` : '—', icon: 'military_tech' },
-                      ].map(item => (
-                        <div key={item.label} className="text-center p-3 sm:p-5 rounded-xl bg-surface border border-border-base flex flex-col items-center shadow-sm hover:-translate-y-1 transition-transform">
-                          <span className="material-symbols-outlined text-primary mb-1 sm:mb-2 text-[20px] sm:text-[24px]">{item.icon}</span>
-                          <div className="font-headline-md text-lg sm:text-[24px] font-bold text-text-primary mb-0.5 sm:mb-1">{item.value}</div>
-                          <div className="font-label-sm text-[9px] sm:text-[11px] text-text-secondary uppercase tracking-widest font-bold">{item.label}</div>
-                        </div>
-                      ))}
+                        { label: 'Questions', value: questions.length, icon: ListTodo },
+                        { label: 'Pass Score', value: `${selectedQuiz.passing_score}%`, icon: Target },
+                        { label: 'Best Score', value: pastAttempt ? `${Math.round((pastAttempt.score / pastAttempt.total) * 100)}%` : '—', icon: Trophy },
+                      ].map(item => {
+                        const StatIcon = item.icon;
+                        return (
+                          <div key={item.label} className="text-center p-4 rounded-2xl bg-background border border-border flex flex-col items-center shadow-sm hover:-translate-y-0.5 transition-transform duration-200">
+                            <StatIcon className="h-5 w-5 text-primary mb-1.5" />
+                            <div className="text-lg font-extrabold text-foreground mb-0.5">{item.value}</div>
+                            <div className="text-[9px] text-muted-foreground uppercase tracking-widest font-extrabold">{item.label}</div>
+                          </div>
+                        );
+                      })}
                     </div>
 
+                    {/* Past Attempt Summary */}
                     {pastAttempt && (
-                      <div className={`flex items-center gap-4 p-5 rounded-xl mb-10 border relative z-10 shadow-sm ${pastAttempt.passed ? 'bg-success/5 border-success/30' : 'bg-surface border-border-base'}`}>
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${pastAttempt.passed ? 'bg-success text-white' : 'bg-surface-container text-text-secondary'}`}>
-                          <span className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                            {pastAttempt.passed ? 'verified' : 'history'}
-                          </span>
+                      <div className={`flex items-center gap-4 p-5 rounded-2xl mb-8 border relative z-10 shadow-sm ${
+                        pastAttempt.passed ? 'bg-emerald-500/5 border-emerald-500/10' : 'bg-background border-border'
+                      }`}>
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                          pastAttempt.passed ? 'bg-emerald-500/10 text-emerald-500' : 'bg-muted text-muted-foreground'
+                        }`}>
+                          {pastAttempt.passed ? <CheckCircle2 className="h-5 w-5" /> : <History className="h-5 w-5" />}
                         </div>
                         <div>
-                          <p className={`font-headline-md text-[18px] font-bold ${pastAttempt.passed ? 'text-success' : 'text-text-primary'}`}>
+                          <p className={`text-sm font-bold ${pastAttempt.passed ? 'text-emerald-500' : 'text-foreground'}`}>
                             {pastAttempt.passed ? 'Assessment Passed' : 'Assessment Attempted'}
                           </p>
-                          <p className="font-body-sm text-[14px] text-text-secondary mt-1">
-                            Your highest score is <strong className="text-text-primary">{Math.round((pastAttempt.score / pastAttempt.total) * 100)}%</strong>
+                          <p className="text-xs text-muted-foreground mt-0.5 leading-normal">
+                            Your highest score is <strong className="text-foreground">{Math.round((pastAttempt.score / pastAttempt.total) * 100)}%</strong>
                           </p>
                         </div>
                       </div>
@@ -494,9 +631,9 @@ export default function QuizPage() {
                       <button
                         onClick={() => { setAnswers(Array(questions.length).fill(null)); setStarted(true); }}
                         disabled={questions.length === 0}
-                        className="w-full sm:w-auto min-w-[250px] bg-primary text-on-primary font-label-md text-[16px] font-bold py-4 px-8 rounded-xl hover:bg-primary-container hover:shadow-lg transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-3 active:scale-95"
+                        className="w-full sm:w-auto min-w-[220px] bg-primary text-primary-foreground font-bold py-3 px-6 rounded-xl hover:brightness-110 active:scale-[0.99] transition-all shadow-md shadow-primary/10 flex items-center justify-center gap-2 text-xs"
                       >
-                        <span className="material-symbols-outlined text-[24px]">{pastAttempt ? 'replay' : 'play_arrow'}</span>
+                        {pastAttempt ? <RotateCcw className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                         {pastAttempt ? 'Retake Assessment' : 'Start Assessment'}
                       </button>
                     </div>

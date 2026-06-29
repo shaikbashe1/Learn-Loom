@@ -5,8 +5,16 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
-  CheckCircle, XCircle, GraduationCap, User, BookOpen,
-  Calendar, ShieldCheck, Zap, ArrowLeft,
+  CheckCircle2, 
+  XCircle, 
+  GraduationCap, 
+  User, 
+  BookOpen,
+  Calendar, 
+  ShieldCheck, 
+  Zap, 
+  ArrowLeft,
+  AlertTriangle
 } from 'lucide-react';
 import { supabase } from '@/db/supabase';
 import QRCodeDataUrl from '@/components/ui/qrcodedataurl';
@@ -93,117 +101,133 @@ export default function CertVerifyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col select-none relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-primary/5 blur-[120px] pointer-events-none z-0" />
+      <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] rounded-full bg-chart-4/5 blur-[120px] pointer-events-none z-0" />
+
       {/* Minimal header */}
-      <header className="border-b border-border px-4 py-3 flex items-center gap-3">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <Zap className="w-4 h-4 text-white" />
+      <header className="border-b border-border bg-card/60 backdrop-blur-md px-6 py-4 flex items-center justify-between z-10 shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-chart-4 flex items-center justify-center">
+            <img src="/images/logo/logo-icon-light.png" alt="LearnLoom Logo" className="w-4 h-4 object-contain" />
           </div>
-          <span className="font-bold text-foreground">LearnLoom</span>
+          <span className="font-display text-sm font-bold text-foreground">LearnLoom</span>
         </div>
-        <span className="text-muted-foreground text-sm">Certificate Verification</span>
+        <span className="text-xs font-bold text-muted-foreground bg-muted px-2.5 py-1 rounded-full border border-border">
+          Certificate Verification
+        </span>
       </header>
 
-      <main className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-lg space-y-4">
-          <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="w-3.5 h-3.5" />Back to Home
+      <main className="flex-grow flex items-center justify-center p-4 relative z-10">
+        <div className="w-full max-w-md space-y-4">
+          <Link to="/" className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to Home
           </Link>
 
           {loading ? (
-            <Card className="border-border">
-              <CardContent className="p-8 space-y-4">
-                <Skeleton className="h-12 w-12 rounded-full bg-muted mx-auto" />
-                <Skeleton className="h-6 w-48 bg-muted mx-auto" />
-                {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-4 w-full bg-muted" />)}
+            <Card className="border-border bg-card/80 backdrop-blur-xl rounded-3xl shadow-2xl">
+              <CardContent className="p-8 space-y-6">
+                <Skeleton className="h-12 w-12 rounded-2xl bg-muted mx-auto" />
+                <Skeleton className="h-6 w-48 bg-muted mx-auto rounded-xl" />
+                <div className="space-y-3">
+                  <Skeleton className="h-4 w-full bg-muted rounded-lg" />
+                  <Skeleton className="h-4 w-full bg-muted rounded-lg" />
+                  <Skeleton className="h-4 w-3/4 bg-muted rounded-lg" />
+                </div>
               </CardContent>
             </Card>
           ) : !result?.found ? (
-            <Card className="border-border">
-              <CardContent className="p-6 sm:p-8 flex flex-col items-center text-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
-                  <XCircle className="w-8 h-8 text-destructive" />
+            <Card className="border-border bg-card/80 backdrop-blur-xl rounded-3xl shadow-2xl">
+              <CardContent className="p-8 flex flex-col items-center text-center gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-destructive/10 flex items-center justify-center text-destructive">
+                  <XCircle className="w-8 h-8" />
                 </div>
-                <h1 className="text-xl font-bold text-foreground text-balance">Certificate Not Found</h1>
-                <p className="text-sm text-muted-foreground text-pretty">
-                  No certificate found for code <code className="font-mono bg-muted px-1 rounded">{code}</code>.
-                  Please double-check the verification code.
+                <h1 className="text-lg font-bold text-foreground">Certificate Not Found</h1>
+                <p className="text-xs text-muted-foreground leading-relaxed max-w-xs">
+                  No certificate found for code <code className="font-mono bg-muted/60 px-1.5 py-0.5 rounded border border-border text-foreground">{code}</code>. Please double-check the verification code.
                 </p>
                 <Link to="/">
-                  <Button variant="outline" size="sm" className="min-h-[44px]">Back to Home</Button>
+                  <Button variant="outline" className="min-h-[40px] rounded-xl text-xs font-bold border-border">
+                    Back to Home
+                  </Button>
                 </Link>
               </CardContent>
             </Card>
           ) : (
-            <Card className="border-border overflow-hidden">
+            <Card className="border-border bg-card/80 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden">
               {/* Status banner */}
-              <div className={`px-6 py-4 flex items-center gap-3 ${result.valid ? 'bg-chart-2/10 border-b border-chart-2/20' : 'bg-destructive/10 border-b border-destructive/20'}`}>
-                {result.valid
-                  ? <CheckCircle className="w-6 h-6 text-chart-2 shrink-0" />
-                  : <XCircle className="w-6 h-6 text-destructive shrink-0" />}
-                <div>
-                  <p className={`font-semibold text-sm ${result.valid ? 'text-chart-2' : 'text-destructive'}`}>
+              <div className={`px-6 py-4 flex items-center gap-3 border-b ${
+                result.valid 
+                  ? 'bg-emerald-500/5 border-emerald-500/10' 
+                  : 'bg-destructive/5 border-destructive/10'
+              }`}>
+                {result.valid ? (
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                ) : (
+                  <XCircle className="w-5 h-5 text-destructive shrink-0" />
+                )}
+                <div className="min-w-0">
+                  <p className={`font-bold text-xs ${result.valid ? 'text-emerald-500' : 'text-destructive'}`}>
                     {result.valid ? 'Certificate Valid' : result.revoked ? 'Certificate Revoked' : 'Certificate Invalid'}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    Code: <span className="font-mono">{result.verification_code}</span>
+                  <p className="text-[10px] text-muted-foreground font-semibold mt-0.5">
+                    Code: <span className="font-mono text-foreground">{result.verification_code}</span>
                   </p>
-                </div>
-                <div className="ml-auto">
-                  <Badge className={result.valid ? 'bg-chart-2/15 text-chart-2 border-chart-2/30' : 'bg-destructive/15 text-destructive border-destructive/30'}>
-                    {result.valid ? 'Valid' : 'Invalid'}
-                  </Badge>
                 </div>
               </div>
 
-              <CardContent className="p-6 sm:p-8 space-y-5">
+              <CardContent className="p-8 space-y-6">
                 {/* Certificate body */}
-                <div className="text-center space-y-1">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                    <GraduationCap className="w-6 h-6 text-primary" />
+                <div className="text-center space-y-2">
+                  <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4">
+                    <GraduationCap className="w-7 h-7" />
                   </div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide">This certificate is awarded to</p>
-                  <h2 className="text-2xl font-bold text-foreground text-balance">{result.student_name ?? '—'}</h2>
-                  <p className="text-sm text-muted-foreground">for successfully completing</p>
-                  <h3 className="text-lg font-semibold text-primary text-balance">{result.course_title ?? '—'}</h3>
+                  <p className="text-[10px] text-muted-foreground font-extrabold uppercase tracking-wider">
+                    This certificate is awarded to
+                  </p>
+                  <h2 className="text-xl font-extrabold text-foreground leading-snug">{result.student_name ?? '—'}</h2>
+                  <p className="text-xs text-muted-foreground">for successfully completing</p>
+                  <h3 className="text-sm font-bold text-primary leading-normal px-2">{result.course_title ?? '—'}</h3>
                 </div>
 
-                <div className="grid grid-cols-1 xs:grid-cols-2 gap-4 text-sm">
+                <div className="grid grid-cols-2 gap-4 text-xs border-t border-border pt-6">
                   <div className="flex items-start gap-2">
-                    <User className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                    <User className="w-4 h-4 text-muted-foreground/60 shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-xs text-muted-foreground">Student Name</p>
-                      <p className="font-medium text-foreground">{result.student_name ?? '—'}</p>
+                      <p className="text-[10px] text-muted-foreground font-semibold">Student Name</p>
+                      <p className="font-bold text-foreground mt-0.5">{result.student_name ?? '—'}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-2">
-                    <BookOpen className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                    <BookOpen className="w-4 h-4 text-muted-foreground/60 shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-xs text-muted-foreground">Instructor</p>
-                      <p className="font-medium text-foreground">{result.instructor_name ?? '—'}</p>
+                      <p className="text-[10px] text-muted-foreground font-semibold">Instructor</p>
+                      <p className="font-bold text-foreground mt-0.5">{result.instructor_name ?? '—'}</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-2">
-                    <Calendar className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                  <div className="flex items-start gap-2 mt-2">
+                    <Calendar className="w-4 h-4 text-muted-foreground/60 shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-xs text-muted-foreground">Issued On</p>
-                      <p className="font-medium text-foreground">{formatDate(result.issued_at)}</p>
+                      <p className="text-[10px] text-muted-foreground font-semibold">Issued On</p>
+                      <p className="font-bold text-foreground mt-0.5">{formatDate(result.issued_at)}</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-2">
-                    <ShieldCheck className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                  <div className="flex items-start gap-2 mt-2">
+                    <ShieldCheck className="w-4 h-4 text-muted-foreground/60 shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-xs text-muted-foreground">Issued By</p>
-                      <p className="font-medium text-foreground">LearnLoom</p>
+                      <p className="text-[10px] text-muted-foreground font-semibold">Issued By</p>
+                      <p className="font-bold text-foreground mt-0.5">LearnLoom</p>
                     </div>
                   </div>
                 </div>
 
                 {/* QR Code */}
-                <div className="flex flex-col items-center gap-2 pt-4 border-t border-border">
-                  <QRCodeDataUrl text={verifyUrl} width={128} />
-                  <p className="text-[11px] text-muted-foreground">Scan QR code to verify again</p>
+                <div className="flex flex-col items-center gap-2 pt-6 border-t border-border">
+                  <div className="p-3 bg-white rounded-xl border border-border">
+                    <QRCodeDataUrl text={verifyUrl} width={100} />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground font-medium">Scan QR code to verify again</p>
                 </div>
               </CardContent>
             </Card>
