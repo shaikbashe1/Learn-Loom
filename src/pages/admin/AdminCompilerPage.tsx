@@ -3,8 +3,17 @@ import { AppLayout } from '@/components/layouts/AppLayout';
 import { supabase } from '@/db/supabase';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Terminal, Save, CheckCircle2, ShieldAlert, Code2, Server } from 'lucide-react';
+import { 
+  Terminal, 
+  Save, 
+  CheckCircle2, 
+  ShieldAlert, 
+  Code2, 
+  Server,
+  Loader2
+} from 'lucide-react';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
 interface PistonConfig {
   id: string;
@@ -64,13 +73,13 @@ export default function AdminCompilerPage() {
 
   return (
     <AppLayout title="Compiler Settings" isAdmin>
-      <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-xl flex flex-col gap-stack-lg w-full max-w-4xl">
+      <div className="max-w-container-max mx-auto px-4 md:px-8 py-8 flex flex-col gap-6 w-full max-w-4xl select-none">
         
         {/* Header Section */}
         <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h1 className="font-display-lg-mobile md:font-display-lg text-[32px] md:text-[40px] font-bold text-text-primary tracking-tight">Compiler Settings</h1>
-            <p className="font-body-md text-[16px] text-text-secondary mt-2 max-w-2xl">
+            <h1 className="font-display text-2xl font-bold text-foreground">Compiler Settings</h1>
+            <p className="text-xs text-muted-foreground mt-1 font-semibold">
               Configure the Piston remote code execution sandbox and allowed runtimes.
             </p>
           </div>
@@ -78,33 +87,42 @@ export default function AdminCompilerPage() {
 
         {loading ? (
           <div className="space-y-6 mt-4">
-            <Skeleton className="h-[500px] w-full bg-surface-container border border-border-base rounded-2xl" />
+            <Skeleton className="h-[450px] w-full bg-muted rounded-3xl" />
           </div>
         ) : config ? (
-          <div className="glass-panel p-6 md:p-8 rounded-2xl border border-border-base shadow-sm space-y-8 mt-4 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-bl-full -mr-32 -mt-32 transition-transform group-hover:scale-110"></div>
+          <div className="bg-card p-6 md:p-8 rounded-3xl border border-border shadow-sm space-y-8 mt-4 relative overflow-hidden group">
+            <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
             
-            <div className="flex items-center justify-between border-b border-border-base pb-6 relative z-10">
+            <div className="flex items-center justify-between border-b border-border pb-6 relative z-10">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-inner border border-primary/20">
-                  <Terminal className="w-7 h-7" />
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shadow-sm shrink-0">
+                  <Terminal className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-headline-md text-[20px] font-bold text-text-primary">Piston Integration</h3>
-                  <p className="text-[13px] font-medium text-text-secondary mt-1">Self-hosted remote execution API</p>
+                  <h3 className="text-sm font-bold text-foreground">Piston Integration</h3>
+                  <p className="text-[10px] font-semibold text-muted-foreground mt-0.5">Self-hosted remote execution API</p>
                 </div>
               </div>
+              
               <div className="flex flex-col items-end gap-2">
                 <div className="flex items-center gap-3">
-                  <span className="text-[13px] font-bold uppercase tracking-wider text-text-secondary">Status:</span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Status:</span>
                   <button 
                     onClick={() => setConfig({ ...config, is_active: !config.is_active })}
-                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${config.is_active ? 'bg-primary' : 'bg-surface-container'}`}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all focus:outline-none ${
+                      config.is_active ? 'bg-primary' : 'bg-muted border border-border'
+                    }`}
                   >
-                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${config.is_active ? 'translate-x-6' : 'translate-x-1'}`} />
+                    <span className={`inline-block h-4.5 w-4.5 transform rounded-full bg-white shadow-sm transition-all ${
+                      config.is_active ? 'translate-x-5.5' : 'translate-x-0.5'
+                    }`} />
                   </button>
                 </div>
-                <span className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${config.is_active ? 'bg-success/10 text-success' : 'bg-surface-container text-text-secondary'}`}>
+                <span className={`text-[9px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-lg border ${
+                  config.is_active 
+                    ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' 
+                    : 'bg-muted text-muted-foreground border-border'
+                }`}>
                   {config.is_active ? 'Active' : 'Inactive'}
                 </span>
               </div>
@@ -113,40 +131,44 @@ export default function AdminCompilerPage() {
             <div className="space-y-8 relative z-10">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <Label className="text-[13px] font-bold text-text-primary flex items-center gap-2 mb-2">
-                    <Server className="w-4 h-4 text-text-secondary" /> Proxy URL
+                  <Label className="text-xs font-bold text-foreground flex items-center gap-1.5 mb-2">
+                    <Server className="w-4 h-4 text-muted-foreground/80" /> 
+                    <span>Proxy URL</span>
                   </Label>
                   <input 
                     type="text" 
                     value={config.proxy_url}
                     onChange={e => setConfig({ ...config, proxy_url: e.target.value })}
-                    className="w-full bg-surface-container border border-border-base rounded-xl px-4 py-3 text-[14px] font-medium text-text-primary focus:outline-none focus:ring-2 focus:ring-primary transition-all shadow-inner"
+                    className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-xs font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-inner"
                     placeholder="https://emkc.org/api/v2/piston"
                   />
                 </div>
 
                 <div>
-                  <Label className="text-[13px] font-bold text-text-primary flex items-center gap-2 mb-2">
-                    <ShieldAlert className="w-4 h-4 text-warning" /> Max Execution Time (ms)
+                  <Label className="text-xs font-bold text-foreground flex items-center gap-1.5 mb-2">
+                    <ShieldAlert className="w-4 h-4 text-amber-500" /> 
+                    <span>Max Execution Time (ms)</span>
                   </Label>
                   <input 
                     type="number" 
                     value={config.max_execution_time_ms}
                     onChange={e => setConfig({ ...config, max_execution_time_ms: parseInt(e.target.value) || 5000 })}
-                    className="w-full bg-surface-container border border-border-base rounded-xl px-4 py-3 text-[14px] font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-warning transition-all shadow-inner"
+                    className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-inner"
                     min={100}
                     max={30000}
                   />
-                  <p className="text-[11px] font-medium text-text-secondary mt-2 flex items-center gap-1">
-                    High execution times may cause denial of service.
+                  <p className="text-[10px] font-semibold text-muted-foreground mt-2 flex items-center gap-1">
+                    High execution times may cause performance issues.
                   </p>
                 </div>
               </div>
 
               <div>
-                <Label className="text-[13px] font-bold text-text-primary flex items-center gap-2 mb-4">
-                  <Code2 className="w-4 h-4 text-text-secondary" /> Allowed Runtimes
+                <Label className="text-xs font-bold text-foreground flex items-center gap-1.5 mb-4">
+                  <Code2 className="w-4 h-4 text-muted-foreground/80" /> 
+                  <span>Allowed Runtimes</span>
                 </Label>
+                
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {ALL_RUNTIMES.map(rt => {
                     const isActive = config.allowed_runtimes.includes(rt);
@@ -154,12 +176,19 @@ export default function AdminCompilerPage() {
                       <button
                         key={rt}
                         onClick={() => handleRuntimeToggle(rt)}
-                        className={`flex items-center gap-3 p-3.5 rounded-xl border transition-all shadow-sm ${isActive ? 'bg-primary/5 border-primary shadow-[0_0_10px_rgba(192,193,255,0.2)] text-primary' : 'bg-surface border-border-base text-text-secondary hover:border-text-secondary/30'}`}
+                        className={`flex items-center gap-3 p-3.5 rounded-2xl border transition-all shadow-sm 
+                          ${
+                            isActive 
+                              ? 'bg-primary/5 border-primary/50 text-primary' 
+                              : 'bg-background border-border text-muted-foreground hover:border-muted-foreground/30'
+                          }`}
                       >
-                        <div className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 transition-colors ${isActive ? 'bg-primary border-primary' : 'border-border-base'}`}>
-                          {isActive && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                        <div className={`w-4.5 h-4.5 rounded-md border flex items-center justify-center shrink-0 transition-colors ${
+                          isActive ? 'bg-primary border-primary' : 'border-border bg-background'
+                        }`}>
+                          {isActive && <CheckCircle2 className="w-3 h-3 text-primary-foreground" />}
                         </div>
-                        <span className={`font-label-md capitalize text-[14px] ${isActive ? 'font-bold' : 'font-medium'}`}>{rt}</span>
+                        <span className={`text-xs capitalize ${isActive ? 'font-bold' : 'font-semibold'}`}>{rt}</span>
                       </button>
                     );
                   })}
@@ -167,19 +196,29 @@ export default function AdminCompilerPage() {
               </div>
             </div>
 
-            <div className="pt-6 border-t border-border-base flex justify-end relative z-10">
-              <button onClick={handleSave} disabled={saving} className="bg-primary text-white font-bold py-3 px-8 rounded-xl shadow-sm hover:bg-primary-container hover:text-on-primary-container transition-all text-[15px] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed card-lift w-full md:w-auto">
-                {saving ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <Save className="w-5 h-5" />}
-                {saving ? 'Saving Changes...' : 'Save Settings'}
-              </button>
+            <div className="pt-6 border-t border-border flex justify-end relative z-10">
+              <Button 
+                onClick={handleSave} 
+                disabled={saving} 
+                className="bg-primary text-primary-foreground font-bold py-3 px-8 rounded-xl shadow-md shadow-primary/10 hover:brightness-110 active:scale-[0.99] transition-all text-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto min-h-[44px]"
+              >
+                {saving ? (
+                  <><Loader2 className="w-4.5 h-4.5 animate-spin" /><span>Saving Changes...</span></>
+                ) : (
+                  <>
+                    <Save className="w-4.5 h-4.5" />
+                    <span>Save Settings</span>
+                  </>
+                )}
+              </Button>
             </div>
           </div>
         ) : (
-          <div className="p-16 text-center glass-panel rounded-2xl border border-border-base shadow-sm mt-4">
-             <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mx-auto mb-4 border border-border-base">
-               <Terminal className="w-6 h-6 text-text-secondary" />
+          <div className="p-16 text-center bg-card rounded-3xl border border-border shadow-sm mt-4">
+             <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4 border border-border">
+               <Terminal className="w-6 h-6 text-muted-foreground/40" />
              </div>
-             <p className="font-headline-md text-[18px] font-bold text-text-primary">No configuration found</p>
+             <p className="text-sm font-bold text-foreground">No configuration found</p>
           </div>
         )}
       </div>

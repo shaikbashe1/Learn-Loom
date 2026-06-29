@@ -4,7 +4,13 @@ import { supabase } from '@/db/supabase';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Trophy, Save, Loader2, Coins, TrendingUp } from 'lucide-react';
+import { 
+  Trophy, 
+  Save, 
+  Loader2, 
+  Coins, 
+  TrendingUp 
+} from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -38,7 +44,6 @@ export default function AdminRewardsPage() {
     e.preventDefault();
     setSaving(true);
     
-    // Upsert all configs
     const updates = configs.map(c => ({
       id: c.id,
       action_type: c.action_type,
@@ -64,100 +69,119 @@ export default function AdminRewardsPage() {
 
   return (
     <AppLayout title="Rewards & Credits" isAdmin>
-      <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-xl flex flex-col gap-stack-lg w-full">
+      <div className="max-w-container-max mx-auto px-4 md:px-8 py-8 flex flex-col gap-6 w-full select-none">
         
         {/* Header Section */}
         <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h1 className="font-display-lg-mobile md:font-display-lg text-[32px] md:text-[40px] font-bold text-text-primary tracking-tight">Rewards Configuration</h1>
-            <p className="font-body-md text-[16px] text-text-secondary mt-2 max-w-2xl">
+            <h1 className="font-display text-2xl font-bold text-foreground">Rewards Configuration</h1>
+            <p className="text-xs text-muted-foreground mt-1 font-semibold">
               Manage how many credits and experience points students earn for completing actions on the platform.
             </p>
           </div>
         </section>
 
         {loading ? (
-          <div className="glass-panel p-6 md:p-8 rounded-2xl border border-border-base shadow-sm space-y-6 mt-4">
-            <Skeleton className="h-10 w-1/3 rounded-xl bg-surface-container" />
-            <Skeleton className="h-40 w-full rounded-xl bg-surface-container" />
-            <Skeleton className="h-40 w-full rounded-xl bg-surface-container" />
+          <div className="bg-card p-6 md:p-8 rounded-3xl border border-border shadow-sm space-y-6 mt-4">
+            <Skeleton className="h-10 w-1/3 rounded-xl bg-muted" />
+            <Skeleton className="h-40 w-full rounded-xl bg-muted" />
+            <Skeleton className="h-40 w-full rounded-xl bg-muted" />
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4">
             <div className="lg:col-span-2">
-              <form onSubmit={handleSave} className="glass-panel p-6 md:p-8 rounded-2xl border border-border-base shadow-sm flex flex-col gap-6">
-                <div className="flex items-center gap-3 border-b border-border-base pb-4">
-                  <div className="w-10 h-10 rounded-xl bg-tertiary/10 flex items-center justify-center text-tertiary border border-tertiary/20 shadow-inner">
-                    <Trophy className="w-5 h-5" />
+              <form onSubmit={handleSave} className="bg-card p-6 md:p-8 rounded-3xl border border-border shadow-sm flex flex-col gap-6">
+                <div className="flex items-center gap-2.5 border-b border-border pb-4">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shadow-sm shrink-0">
+                    <Trophy className="w-4.5 h-4.5" />
                   </div>
-                  <h2 className="font-headline-md text-[20px] font-bold text-text-primary">Action Point Values</h2>
+                  <h2 className="text-sm font-bold text-foreground">Action Point Values</h2>
                 </div>
                 
                 <div className="space-y-4">
                   {configs.map(config => (
-                    <div key={config.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-surface border border-border-base rounded-xl shadow-sm hover:border-tertiary/50 transition-colors group">
+                    <div 
+                      key={config.id} 
+                      className="flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-background border border-border rounded-2xl shadow-sm hover:border-border/80 transition-colors group"
+                    >
                       <div className="mb-4 sm:mb-0">
-                        <Label className="text-[15px] font-bold text-text-primary group-hover:text-tertiary transition-colors">{formatActionName(config.action_type)}</Label>
-                        <p className="text-[12px] font-medium text-text-secondary mt-1 flex items-center gap-2">
-                          System Action: <code className="bg-surface-container px-2 py-0.5 rounded border border-border-base font-mono text-[11px] text-text-primary shadow-inner">{config.action_type}</code>
+                        <Label className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
+                          {formatActionName(config.action_type)}
+                        </Label>
+                        <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-2 font-semibold">
+                          <span>System Action:</span>
+                          <code className="bg-muted px-2 py-0.5 rounded border border-border font-mono text-[9px] text-foreground font-bold">
+                            {config.action_type}
+                          </code>
                         </p>
                       </div>
+                      
                       <div className="flex items-center gap-3 self-end sm:self-auto">
                         <Input 
                           type="number" 
                           min={0}
-                          className="w-28 bg-surface-container border-border-base text-text-primary text-center font-bold text-[18px] focus:ring-2 focus:ring-tertiary shadow-inner h-12" 
+                          className="w-28 bg-background border-border text-foreground text-center font-bold text-sm focus:ring-primary/20 shadow-inner h-11 rounded-xl" 
                           value={config.points}
                           onChange={e => updateConfig(config.id, parseInt(e.target.value) || 0)}
                           required
                         />
-                        <span className="text-[14px] font-bold text-tertiary bg-tertiary/10 px-3 py-1.5 rounded-md border border-tertiary/20">PTS</span>
+                        <span className="text-[10px] font-extrabold text-primary bg-primary/5 px-3 py-1.5 rounded-lg border border-primary/10">
+                          PTS
+                        </span>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="pt-6 border-t border-border-base flex justify-end mt-2">
-                  <button type="submit" disabled={saving} className="w-full sm:w-auto bg-tertiary text-white font-bold py-3.5 px-8 flex items-center justify-center gap-2 rounded-xl shadow-sm hover:bg-tertiary/90 transition-all text-[15px] card-lift">
-                    {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                    Save Configuration
-                  </button>
+                <div className="pt-6 border-t border-border flex justify-end mt-2">
+                  <Button 
+                    type="submit" 
+                    disabled={saving} 
+                    className="w-full sm:w-auto bg-primary text-primary-foreground font-bold py-3.5 px-8 flex items-center justify-center gap-2 rounded-xl shadow-md shadow-primary/10 hover:brightness-110 active:scale-[0.99] transition-all text-xs min-h-[44px]"
+                  >
+                    {saving ? <Loader2 className="w-4.5 h-4.5 animate-spin" /> : <Save className="w-4.5 h-4.5" />}
+                    <span>Save Configuration</span>
+                  </Button>
                 </div>
               </form>
             </div>
 
             <div className="space-y-6">
-              <div className="glass-panel p-6 md:p-8 rounded-2xl border border-border-base shadow-sm flex flex-col justify-between relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-warning/5 rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-110"></div>
+              <div className="bg-card p-6 md:p-8 rounded-3xl border border-border shadow-sm flex flex-col justify-between relative overflow-hidden group">
+                <div className="absolute top-[-10%] right-[-10%] w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none" />
+                
                 <div className="flex justify-between items-start mb-6 relative z-10">
-                  <h3 className="font-headline-md text-[20px] font-bold text-text-primary flex items-center gap-2">
-                    <Coins className="w-5 h-5 text-warning" />
-                    Economy Stats
+                  <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <Coins className="w-4.5 h-4.5 text-amber-500" />
+                    <span>Economy Stats</span>
                   </h3>
                 </div>
+                
                 <div className="space-y-6 relative z-10">
                   <div>
-                    <p className="text-[12px] font-bold text-text-secondary uppercase tracking-widest mb-1">Total Points Issued</p>
-                    <p className="text-[36px] font-bold text-text-primary leading-none">1,492,050</p>
+                    <p className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1">Total Points Issued</p>
+                    <p className="text-3xl font-extrabold text-foreground leading-none">1,492,050</p>
                   </div>
-                  <div className="pt-6 border-t border-border-base">
-                    <p className="text-[12px] font-bold text-text-secondary uppercase tracking-widest mb-1">Avg Points / Student</p>
-                    <p className="text-[28px] font-bold text-text-primary leading-none">450</p>
+                  <div className="pt-6 border-t border-border">
+                    <p className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1">Avg Points / Student</p>
+                    <p className="text-2xl font-extrabold text-foreground leading-none">450</p>
                   </div>
                 </div>
               </div>
 
-              <div className="glass-panel p-6 md:p-8 rounded-2xl bg-gradient-to-br from-tertiary/10 to-surface border border-tertiary/20 shadow-sm relative overflow-hidden">
-                <div className="absolute -right-4 -bottom-4 text-tertiary/10 opacity-50">
+              <div className="bg-card p-6 md:p-8 rounded-3xl border border-border shadow-sm relative overflow-hidden">
+                <div className="absolute -right-4 -bottom-4 text-primary/5 opacity-50">
                   <TrendingUp className="w-32 h-32" />
                 </div>
                 <div className="relative z-10">
                   <div className="flex items-center gap-2 mb-3">
-                    <TrendingUp className="w-5 h-5 text-tertiary" />
-                    <h3 className="font-bold text-[16px] text-tertiary uppercase tracking-wider">Economy Tip</h3>
+                    <TrendingUp className="w-4.5 h-4.5 text-primary" />
+                    <h3 className="font-bold text-xs text-primary uppercase tracking-wider">Economy Tip</h3>
                   </div>
-                  <p className="text-[14px] text-text-primary leading-relaxed font-medium">
-                    Keeping problem-solving points high encourages active learning over passive video watching. Consider a <strong className="text-tertiary">5:1 ratio</strong> between solving problems and passing quizzes to drive deeper engagement.
+                  
+                  <p className="text-xs text-muted-foreground leading-relaxed font-semibold">
+                    Keeping problem-solving points high encourages active learning over passive video watching. Consider a{' '}
+                    <strong className="text-primary font-bold">5:1 ratio</strong> between solving problems and passing quizzes to drive deeper engagement.
                   </p>
                 </div>
               </div>
