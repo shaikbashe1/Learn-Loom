@@ -22,6 +22,7 @@ export default {
                 '2xl': '1400px'
             }
         },
+        extend: {
             colors: {
                 border: 'hsl(var(--border))',
                 borderColor: {
@@ -228,6 +229,7 @@ export default {
                 'slide-in': 'slide-in 0.5s ease-out',
                 'slide-up': 'slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
             }
+        }
     },
     plugins: [
         tailwindAnimate,
