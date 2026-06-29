@@ -10,16 +10,16 @@ VALUES ('community_media', 'community_media', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- Storage Policies for community_media
-CREATE POLICY "Public Access" 
+CREATE POLICY "community_media_public_access" 
 ON storage.objects FOR SELECT 
 USING (bucket_id = 'community_media');
 
-CREATE POLICY "Authenticated users can upload media" 
+CREATE POLICY "community_media_upload" 
 ON storage.objects FOR INSERT 
 TO authenticated 
 WITH CHECK (bucket_id = 'community_media' AND (storage.foldername(name))[1] = auth.uid()::text);
 
-CREATE POLICY "Users delete own media"
+CREATE POLICY "community_media_delete"
 ON storage.objects FOR DELETE
 TO authenticated
 USING (bucket_id = 'community_media' AND (storage.foldername(name))[1] = auth.uid()::text);
