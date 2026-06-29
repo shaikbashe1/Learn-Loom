@@ -1,12 +1,52 @@
-// Small presentational building blocks shared across onboarding steps.
-// Kept dependency-free and aligned with LearnLoom's glass/material design tokens.
 import type { ReactNode } from 'react';
+import { 
+  GraduationCap, 
+  Briefcase, 
+  Building2, 
+  Phone, 
+  Globe, 
+  User, 
+  AtSign, 
+  Rocket, 
+  Building, 
+  Code, 
+  Flag, 
+  Clock, 
+  Brain, 
+  Star, 
+  CheckCircle2,
+  HelpCircle
+} from 'lucide-react';
+
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  school: GraduationCap,
+  work: Briefcase,
+  account_balance: Building2,
+  call: Phone,
+  public: Globe,
+  person: User,
+  alternate_email: AtSign,
+  rocket_launch: Rocket,
+  apartment: Building,
+  code: Code,
+  flag: Flag,
+  schedule: Clock,
+  psychology: Brain,
+  work_outline: Briefcase,
+  star: Star,
+  check_circle: CheckCircle2,
+};
+
+function getIcon(name?: string) {
+  if (!name) return null;
+  return iconMap[name] || HelpCircle;
+}
 
 export function FieldLabel({ children, hint }: { children: ReactNode; hint?: string }) {
   return (
-    <label className="block font-label-md text-label-md text-on-surface-variant mb-sm">
+    <label className="block text-xs font-bold text-foreground mb-2">
       {children}
-      {hint && <span className="ml-2 text-on-surface-variant/60 font-body-sm text-body-sm">{hint}</span>}
+      {hint && <span className="ml-2 text-muted-foreground font-normal text-[11px]">{hint}</span>}
     </label>
   );
 }
@@ -22,12 +62,14 @@ export function TextField({
   maxLength?: number;
   inputMode?: 'text' | 'numeric' | 'tel' | 'email';
 }) {
+  const IconComponent = getIcon(icon);
+
   return (
     <div className="relative">
-      {icon && (
-        <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">
-          {icon}
-        </span>
+      {IconComponent && (
+        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground">
+          <IconComponent className="h-4 w-4" />
+        </div>
       )}
       <input
         type={type}
@@ -36,7 +78,9 @@ export function TextField({
         maxLength={maxLength}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className={`w-full bg-surface-container border border-outline-variant text-on-surface focus:border-primary focus:bg-surface-container-high focus:outline-none focus:ring-1 focus:ring-primary rounded-full py-md ${icon ? 'pl-[3rem]' : 'pl-5'} pr-5 font-body-md text-body-md placeholder:text-outline transition-all duration-200`}
+        className={`w-full bg-background border border-border text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none rounded-xl py-3 ${
+          IconComponent ? 'pl-11' : 'pl-4'
+        } pr-4 text-sm placeholder:text-muted-foreground/60 transition-all duration-200 min-h-[44px]`}
       />
     </div>
   );
@@ -51,18 +95,20 @@ export function Chip({
   onClick: () => void;
   icon?: string;
 }) {
+  const IconComponent = getIcon(icon);
+  
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`flex items-center gap-2 px-4 py-2 rounded-full font-label-sm text-label-sm border transition-all ${
+      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border transition-all duration-200 ${
         selected
-          ? 'bg-primary/20 text-primary border-primary/50 shadow-[0_0_8px_rgba(0,74,198,0.2)]'
-          : 'bg-surface-container text-on-surface-variant border-outline-variant/60 hover:border-outline-variant hover:text-on-surface'
+          ? 'bg-primary/10 text-primary border-primary/30 shadow-sm shadow-primary/5'
+          : 'bg-background text-muted-foreground border-border hover:border-border/80 hover:text-foreground'
       }`}
     >
-      {icon && <span className="material-symbols-outlined text-[16px]">{icon}</span>}
-      {selected && !icon && <span className="material-symbols-outlined text-[16px]">check_circle</span>}
+      {IconComponent && <IconComponent className="h-3.5 w-3.5" />}
+      {selected && !IconComponent && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
       {label}
     </button>
   );
@@ -78,26 +124,28 @@ export function OptionCard({
   icon: string;
   description?: string;
 }) {
+  const IconComponent = getIcon(icon);
+
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`flex items-center gap-4 w-full text-left px-4 py-3.5 rounded-2xl border transition-all ${
+      className={`flex items-center gap-4 w-full text-left px-4 py-3.5 rounded-2xl border transition-all duration-200 ${
         selected
-          ? 'bg-primary/15 border-primary/60 shadow-[0_0_12px_rgba(0,74,198,0.18)]'
-          : 'bg-surface-container border-outline-variant/50 hover:border-outline-variant hover:bg-surface-container-high'
+          ? 'bg-primary/5 border-primary/40 shadow-sm shadow-primary/5'
+          : 'bg-background border-border hover:border-border/80 hover:bg-muted/30'
       }`}
     >
-      <span
-        className={`material-symbols-outlined text-[24px] ${selected ? 'text-primary' : 'text-on-surface-variant'}`}
-      >
-        {icon}
+      {IconComponent && (
+        <div className={`p-2 rounded-xl ${selected ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+          <IconComponent className="h-5 w-5" />
+        </div>
+      )}
+      <span className="flex-1 min-w-0">
+        <span className={`block text-sm font-bold ${selected ? 'text-primary' : 'text-foreground'}`}>{label}</span>
+        {description && <span className="block text-xs text-muted-foreground mt-0.5 leading-normal">{description}</span>}
       </span>
-      <span className="flex-1">
-        <span className={`block font-label-lg text-label-lg ${selected ? 'text-primary' : 'text-on-surface'}`}>{label}</span>
-        {description && <span className="block font-body-sm text-body-sm text-on-surface-variant">{description}</span>}
-      </span>
-      {selected && <span className="material-symbols-outlined text-[20px] text-primary">check_circle</span>}
+      {selected && <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />}
     </button>
   );
 }

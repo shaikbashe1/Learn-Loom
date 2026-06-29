@@ -8,6 +8,12 @@ import { OnboardingProvider } from '@/components/onboarding/OnboardingContext';
 import { STEPS } from '@/components/onboarding/steps';
 import type { OnboardingForm, ArrayField, OnboardingContextValue } from '@/components/onboarding/types';
 import { EMPTY_FORM } from '@/components/onboarding/types';
+import { 
+  ArrowLeft, 
+  ArrowRight, 
+  Loader2, 
+  Rocket 
+} from 'lucide-react';
 
 const TOTAL_STEPS = STEPS.length;
 const STEP_KEY = 'll_onboarding_step';
@@ -98,8 +104,8 @@ export default function OnboardingPage() {
       const ext = file.name.split('.').pop()?.toLowerCase() || 'png';
       const path = `${user.id}/avatar_${Date.now()}.${ext}`;
       const { error } = await supabase.storage
-        .from('avatars')
-        .upload(path, file, { upsert: true, contentType: file.type });
+          .from('avatars')
+          .upload(path, file, { upsert: true, contentType: file.type });
       if (error) throw error;
       const { data } = supabase.storage.from('avatars').getPublicUrl(path);
       set('avatar_url', data.publicUrl);
@@ -153,8 +159,8 @@ export default function OnboardingPage() {
     const { error } = await supabase.from('profiles').update(payload).eq('id', user.id);
     if (error) {
       const msg = /duplicate|unique/i.test(error.message)
-        ? 'That username was just taken. Please pick another.'
-        : error.message;
+          ? 'That username was just taken. Please pick another.'
+          : error.message;
       toast.error('Could not save your progress', { description: msg });
       return false;
     }
@@ -196,27 +202,30 @@ export default function OnboardingPage() {
   const StepComponent = current.Component;
 
   return (
-    <div className="bg-background text-on-surface font-body-md min-h-screen flex items-center justify-center p-gutter relative overflow-hidden">
-      {/* Ambient background, consistent with auth pages */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[10%] left-[15%] w-96 h-96 bg-primary-container/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-[pulse_10s_ease-in-out_infinite_alternate]" />
-        <div className="absolute top-[40%] right-[10%] w-80 h-80 bg-secondary-container/30 rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-[pulse_12s_ease-in-out_infinite_alternate_reverse]" />
-        <div className="absolute bottom-[10%] left-[30%] w-[30rem] h-[30rem] bg-tertiary-container/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50" />
-      </div>
+    <div className="bg-background text-foreground min-h-screen flex items-center justify-center p-4 sm:p-6 select-none relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-primary/5 blur-[120px] pointer-events-none z-0" />
+      <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] rounded-full bg-chart-4/5 blur-[120px] pointer-events-none z-0" />
 
-      <main className="relative z-10 w-full max-w-2xl px-margin-mobile md:px-0 py-2xl">
-        {/* Progress header */}
-        <div className="mb-xl">
-          <div className="flex items-center justify-between mb-3">
-            <h1 className="font-display text-headline-lg text-primary tracking-tight">LearnLoom</h1>
-            <span className="font-label-md text-label-md text-on-surface-variant">
+      <main className="relative z-10 w-full max-w-2xl py-12 flex flex-col">
+        {/* Progress Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <Link to="/" className="flex items-center gap-2.5 no-underline justify-center">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-chart-4 flex items-center justify-center">
+                <img src="/images/logo/logo-icon-light.png" alt="LearnLoom Logo" className="w-5 h-5 object-contain" />
+              </div>
+              <span className="font-display text-xl font-bold text-foreground tracking-tight">LearnLoom</span>
+            </Link>
+            <span className="text-xs font-semibold text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full border border-border">
               Step {step + 1} of {TOTAL_STEPS}
             </span>
           </div>
+          
           {/* Segmented multi-step progress bar */}
-          <div className="flex gap-1.5">
+          <div className="flex gap-2">
             {STEPS.map((s, i) => (
-              <div key={s.id} className="h-2 flex-1 rounded-full bg-surface-container-high overflow-hidden">
+              <div key={s.id} className="h-1.5 flex-1 rounded-full bg-muted overflow-hidden">
                 <div
                   className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
                   style={{ width: i <= step ? '100%' : '0%' }}
@@ -227,42 +236,59 @@ export default function OnboardingPage() {
           <p className="sr-only">{Math.round(progressPct)}% complete</p>
         </div>
 
-        <div className="glass-panel rounded-[24px] p-stack-xl flex flex-col shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
-          <div className="mb-stack-lg">
-            <h2 className="font-headline-md text-headline-md text-on-surface mb-xs">{current.title}</h2>
+        {/* Card Panel */}
+        <div className="bg-card/80 backdrop-blur-xl border border-border rounded-3xl p-8 sm:p-10 flex flex-col shadow-2xl relative">
+          <div className="mb-8 text-center sm:text-left">
+            <h2 className="font-display text-xl font-bold text-foreground mb-2">{current.title}</h2>
             {current.subtitle && (
-              <p className="font-body-md text-body-md text-on-surface-variant">{current.subtitle}</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">{current.subtitle}</p>
             )}
           </div>
 
-          {/* Animated step body */}
-          <div key={current.id} className="animate-in fade-in slide-in-from-right-4 duration-300 min-h-[260px]">
+          {/* Step body */}
+          <div key={current.id} className="animate-in fade-in slide-in-from-right-4 duration-300 min-h-[260px] flex flex-col justify-center">
             <OnboardingProvider value={ctx}>
               <StepComponent />
             </OnboardingProvider>
           </div>
 
-          {/* Navigation */}
-          <div className="flex items-center gap-3 mt-stack-lg pt-5 border-t border-outline-variant/30">
+          {/* Navigation Actions */}
+          <div className="flex items-center gap-3 mt-8 pt-6 border-t border-border">
             {step > 0 && (
-              <button type="button" onClick={goBack}
-                className="flex items-center gap-1 px-5 py-md rounded-full text-on-surface-variant hover:text-on-surface font-label-lg text-label-lg transition">
-                <span className="material-symbols-outlined text-[20px]">arrow_back</span> Back
+              <button 
+                type="button" 
+                onClick={goBack}
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold text-muted-foreground hover:text-foreground transition hover:bg-muted/30"
+              >
+                <ArrowLeft className="h-4 w-4" /> Back
               </button>
             )}
-            <div className="flex-1" />
+            <div className="flex-grow" />
             {!isLast ? (
-              <button type="button" onClick={goNext} disabled={!stepValid || saving}
-                className="flex items-center gap-2 bg-primary text-on-primary font-label-lg text-label-lg rounded-full px-7 py-md hover:bg-primary-fixed transition-all shadow-[0_0_15px_rgba(192,193,255,0.2)] hover:shadow-[0_0_20px_rgba(192,193,255,0.4)] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none">
-                {saving ? <span className="material-symbols-outlined animate-spin text-[20px]">progress_activity</span> : null}
+              <button 
+                type="button" 
+                onClick={goNext} 
+                disabled={!stepValid || saving}
+                className="flex items-center gap-2 bg-primary text-primary-foreground font-bold rounded-xl px-6 py-2.5 hover:brightness-110 active:scale-[0.99] transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none shadow-md shadow-primary/10"
+              >
+                {saving && <Loader2 className="h-4 w-4 animate-spin" />}
                 {step === 0 ? 'Get started' : 'Continue'}
-                <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
+                <ArrowRight className="h-4 w-4" />
               </button>
             ) : (
-              <button type="button" onClick={finish} disabled={saving}
-                className="flex items-center gap-2 bg-primary text-on-primary font-label-lg text-label-lg rounded-full px-7 py-md hover:bg-primary-fixed transition-all shadow-[0_0_15px_rgba(192,193,255,0.2)] hover:shadow-[0_0_20px_rgba(192,193,255,0.4)] active:scale-[0.98] disabled:opacity-60">
-                {saving ? <span className="material-symbols-outlined animate-spin text-[20px]">progress_activity</span> : <span className="material-symbols-outlined text-[20px]">rocket_launch</span>}
-                Go to Dashboard
+              <button 
+                type="button" 
+                onClick={finish} 
+                disabled={saving}
+                className="flex items-center gap-2 bg-primary text-primary-foreground font-bold rounded-xl px-6 py-2.5 hover:brightness-110 active:scale-[0.99] transition-all duration-200 disabled:opacity-60 shadow-md shadow-primary/10"
+              >
+                {saving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    Go to Dashboard <Rocket className="h-4 w-4" />
+                  </>
+                )}
               </button>
             )}
           </div>
