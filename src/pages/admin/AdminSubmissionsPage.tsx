@@ -7,7 +7,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/db/supabase';
 import { toast } from 'sonner';
-import { RefreshCw, FileText, CheckCircle, TrendingUp, Code, File, ExternalLink } from 'lucide-react';
+import { 
+  RefreshCw, 
+  FileText, 
+  CheckCircle2, 
+  TrendingUp, 
+  Code, 
+  File, 
+  ExternalLink,
+  Edit,
+  ClipboardCheck,
+  X
+} from 'lucide-react';
 
 interface Submission {
   id: string;
@@ -89,112 +100,136 @@ export default function AdminSubmissionsPage() {
 
   return (
     <AppLayout title="Assignment Submissions" isAdmin>
-      <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-xl flex flex-col gap-stack-lg w-full">
+      <div className="max-w-container-max mx-auto px-4 md:px-8 py-8 flex flex-col gap-6 w-full select-none">
         
         {/* Header Section */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h1 className="font-display-lg-mobile md:font-display-lg text-[32px] md:text-[40px] font-bold text-text-primary tracking-tight">Submissions Queue</h1>
-            <p className="font-body-md text-[16px] text-text-secondary mt-2 max-w-2xl">
+            <h1 className="font-display text-2xl font-bold text-foreground">Submissions Queue</h1>
+            <p className="text-xs text-muted-foreground mt-1 font-semibold">
               Manage and grade high-performance student contributions across all courses.
             </p>
           </div>
+          
           <div className="flex flex-wrap items-center gap-3">
-             <button onClick={fetchSubmissions} className="flex items-center justify-center w-11 h-11 rounded-xl border border-border-base bg-surface text-text-secondary hover:text-primary hover:border-primary/30 transition-all card-lift shadow-sm">
-               <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+             <button 
+               onClick={fetchSubmissions} 
+               className="flex items-center justify-center w-10 h-10 rounded-xl border border-border bg-card text-muted-foreground hover:text-foreground transition-all shadow-sm"
+             >
+               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
              </button>
-             <div className="flex flex-col justify-center px-5 py-2 bg-surface border border-border-base rounded-xl shadow-sm h-11">
-               <div className="flex items-center gap-2">
-                 <span className="w-2 h-2 rounded-full bg-warning animate-pulse"></span>
-                 <span className="text-[12px] font-bold text-text-secondary uppercase tracking-wider">Pending</span>
-                 <span className="text-[14px] font-bold text-text-primary ml-1">{submissions.filter(s => s.status === 'submitted').length}</span>
-               </div>
+             
+             <div className="flex items-center justify-center px-4 py-2 bg-card border border-border rounded-xl shadow-sm h-10">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Pending</span>
+                  <span className="text-xs font-bold text-foreground ml-1">
+                    {submissions.filter(s => s.status === 'submitted').length}
+                  </span>
+                </div>
              </div>
-             <div className="flex flex-col justify-center px-5 py-2 bg-surface border border-border-base rounded-xl shadow-sm h-11">
-               <div className="flex items-center gap-2">
-                 <span className="w-2 h-2 rounded-full bg-tertiary"></span>
-                 <span className="text-[12px] font-bold text-text-secondary uppercase tracking-wider">Graded</span>
-                 <span className="text-[14px] font-bold text-text-primary ml-1">{submissions.filter(s => s.status === 'graded').length}</span>
-               </div>
+             
+             <div className="flex items-center justify-center px-4 py-2 bg-card border border-border rounded-xl shadow-sm h-10">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-primary" />
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Graded</span>
+                  <span className="text-xs font-bold text-foreground ml-1">
+                    {submissions.filter(s => s.status === 'graded').length}
+                  </span>
+                </div>
              </div>
           </div>
         </header>
 
         {/* Quick Stats Bento */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="glass-panel border border-border-base rounded-2xl p-6 shadow-sm card-lift relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-110"></div>
-            <div className="flex justify-between items-start mb-4 relative z-10">
-              <span className="font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-widest">Total Submissions</span>
-              <div className="p-2.5 bg-primary/10 rounded-xl text-primary border border-primary/20 shadow-inner">
+          {/* Stat 1 */}
+          <div className="bg-card border border-border rounded-3xl p-6 shadow-sm relative overflow-hidden group">
+            <div className="absolute top-[-20%] right-[-20%] w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none" />
+            <div className="flex justify-between items-start mb-4">
+              <span className="text-[10px] text-muted-foreground font-extrabold uppercase tracking-widest">Total Submissions</span>
+              <div className="p-2.5 bg-primary/10 rounded-xl text-primary border border-primary/20 shrink-0">
                 <FileText className="w-5 h-5" />
               </div>
             </div>
-            <div className="relative z-10">
-              <div className="text-headline-lg text-[36px] font-bold text-text-primary">{loading ? <Skeleton className="h-10 w-20 bg-surface-container" /> : submissions.length}</div>
-            </div>
-          </div>
-
-          <div className="glass-panel border border-border-base rounded-2xl p-6 shadow-sm card-lift relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-tertiary/5 rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-110"></div>
-            <div className="flex justify-between items-start mb-4 relative z-10">
-              <span className="font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-widest">Graded Today</span>
-              <div className="p-2.5 bg-tertiary/10 rounded-xl text-tertiary border border-tertiary/20 shadow-inner">
-                <CheckCircle className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="relative z-10">
-              <div className="text-headline-lg text-[36px] font-bold text-text-primary">
-                {loading ? <Skeleton className="h-10 w-16 bg-surface-container" /> : submissions.filter(s => s.status === 'graded' && new Date(s.submitted_at) > new Date(Date.now() - 86400000)).length}
+            <div>
+              <div className="text-3xl font-extrabold text-foreground">
+                {loading ? <Skeleton className="h-9 w-20 bg-muted" /> : submissions.length}
               </div>
             </div>
           </div>
 
-          <div className="glass-panel border border-border-base rounded-2xl p-6 shadow-sm card-lift relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/5 rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-110"></div>
-            <div className="flex justify-between items-start mb-4 relative z-10">
-              <span className="font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-widest">Throughput</span>
-              <div className="p-2.5 bg-secondary/10 rounded-xl text-secondary border border-secondary/20 shadow-inner">
+          {/* Stat 2 */}
+          <div className="bg-card border border-border rounded-3xl p-6 shadow-sm relative overflow-hidden group">
+            <div className="absolute top-[-20%] right-[-20%] w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none" />
+            <div className="flex justify-between items-start mb-4">
+              <span className="text-[10px] text-muted-foreground font-extrabold uppercase tracking-widest">Graded Today</span>
+              <div className="p-2.5 bg-primary/10 rounded-xl text-primary border border-primary/20 shrink-0">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
+            </div>
+            <div>
+              <div className="text-3xl font-extrabold text-foreground">
+                {loading ? (
+                  <Skeleton className="h-9 w-16 bg-muted" />
+                ) : (
+                  submissions.filter(s => s.status === 'graded' && new Date(s.submitted_at) > new Date(Date.now() - 86400000)).length
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Stat 3 */}
+          <div className="bg-card border border-border rounded-3xl p-6 shadow-sm relative overflow-hidden group">
+            <div className="absolute top-[-20%] right-[-20%] w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none" />
+            <div className="flex justify-between items-start mb-4">
+              <span className="text-[10px] text-muted-foreground font-extrabold uppercase tracking-widest">Throughput</span>
+              <div className="p-2.5 bg-primary/10 rounded-xl text-primary border border-primary/20 shrink-0">
                 <TrendingUp className="w-5 h-5" />
               </div>
             </div>
-            <div className="relative z-10">
-              <div className="text-headline-lg text-[36px] font-bold text-secondary">+12.5%</div>
+            <div>
+              <div className="text-3xl font-extrabold text-primary">+12.5%</div>
             </div>
           </div>
         </section>
 
         {/* Submissions Table */}
-        <section className="glass-panel border border-border-base rounded-2xl shadow-sm overflow-hidden flex flex-col">
-          <div className="p-6 md:px-8 py-5 border-b border-border-base flex justify-between items-center bg-surface/50">
-            <h3 className="font-headline-md text-[20px] font-bold text-text-primary flex items-center gap-2">
-               <FileText className="w-5 h-5 text-primary" />
+        <section className="bg-card border border-border rounded-3xl shadow-sm overflow-hidden flex flex-col">
+          <div className="p-6 border-b border-border flex justify-between items-center bg-muted/20">
+            <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+               <FileText className="w-4.5 h-4.5 text-primary" />
                Recent Submissions
             </h3>
           </div>
-          <div className="overflow-x-auto custom-scrollbar">
+          
+          <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[1000px]">
               <thead>
-                <tr className="bg-surface-container/50 border-b border-border-base">
-                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Student</th>
-                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Assignment</th>
-                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider text-center">Status</th>
-                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider text-center">Score</th>
-                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider text-right">Actions</th>
+                <tr className="bg-muted/30 border-b border-border">
+                  <th className="px-6 py-4 text-[10px] text-muted-foreground font-extrabold uppercase tracking-wider">Student</th>
+                  <th className="px-6 py-4 text-[10px] text-muted-foreground font-extrabold uppercase tracking-wider">Assignment</th>
+                  <th className="px-6 py-4 text-[10px] text-muted-foreground font-extrabold uppercase tracking-wider text-center">Status</th>
+                  <th className="px-6 py-4 text-[10px] text-muted-foreground font-extrabold uppercase tracking-wider text-center">Score</th>
+                  <th className="px-6 py-4 text-[10px] text-muted-foreground font-extrabold uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border-base">
+              <tbody className="divide-y divide-border">
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
-                    <tr key={i}><td colSpan={5} className="px-6 py-4"><Skeleton className="h-12 w-full bg-surface-container rounded-lg" /></td></tr>
+                    <tr key={i}>
+                      <td colSpan={5} className="px-6 py-4">
+                        <Skeleton className="h-12 w-full bg-muted rounded-xl" />
+                      </td>
+                    </tr>
                   ))
                 ) : submissions.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-6 py-16 text-center">
-                       <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mx-auto mb-4 border border-border-base">
-                         <FileText className="w-6 h-6 text-text-secondary" />
+                       <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4 border border-border">
+                         <FileText className="w-5 h-5 text-muted-foreground/40" />
                        </div>
-                       <p className="font-headline-md text-[18px] font-bold text-text-primary">No submissions found</p>
+                       <p className="text-sm font-bold text-foreground">No submissions found</p>
                     </td>
                   </tr>
                 ) : (
@@ -204,37 +239,49 @@ export default function AdminSubmissionsPage() {
                     const maxScore = Array.isArray(s.assignments) ? s.assignments[0]?.max_score : s.assignments?.max_score;
 
                     return (
-                      <tr key={s.id} className={`transition-colors group ${s.status === 'submitted' ? 'bg-warning/5 hover:bg-warning/10' : 'hover:bg-surface-container/50'}`}>
+                      <tr key={s.id} className={`transition-colors ${s.status === 'submitted' ? 'bg-amber-500/5 hover:bg-amber-500/10' : 'hover:bg-muted/10'}`}>
                         <td className="px-6 py-4">
-                          <span className="font-body-md text-[15px] font-bold text-text-primary block">{studentName ?? 'Unknown'}</span>
+                          <span className="text-xs font-bold text-foreground block">{studentName ?? 'Unknown'}</span>
                         </td>
                         <td className="px-6 py-4">
-                          <span className="text-[14px] font-medium text-text-secondary">{assignmentTitle ?? 'Unknown'}</span>
+                          <span className="text-xs font-semibold text-muted-foreground">{assignmentTitle ?? 'Unknown'}</span>
                         </td>
                         <td className="px-6 py-4 text-center">
                           {s.status === 'graded' ? (
-                            <span className="px-3 py-1 rounded-md bg-success/10 text-success text-[11px] border border-success/20 font-bold uppercase tracking-wider inline-block">GRADED</span>
+                            <span className="px-2.5 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-500 text-[9px] border border-emerald-500/20 font-extrabold uppercase tracking-wider inline-block">
+                              GRADED
+                            </span>
                           ) : (
-                            <span className="px-3 py-1 rounded-md bg-warning/10 text-warning text-[11px] border border-warning/20 font-bold uppercase tracking-wider inline-block">PENDING</span>
+                            <span className="px-2.5 py-0.5 rounded-lg bg-amber-500/10 text-amber-500 text-[9px] border border-amber-500/20 font-extrabold uppercase tracking-wider inline-block">
+                              PENDING
+                            </span>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-center font-label-md text-[15px] font-bold text-text-primary">
+                        <td className="px-6 py-4 text-center text-xs font-bold text-foreground">
                           {s.score !== null ? `${s.score} / ${maxScore ?? 100}` : '—'}
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <button 
+                          <Button 
                             onClick={() => openGradeModal(s)}
-                            className={`flex items-center gap-2 px-4 py-2 ml-auto rounded-xl text-[13px] font-bold transition-all shadow-sm ${
-                              s.status === 'graded' 
-                                ? 'bg-surface border border-border-base text-text-primary hover:bg-surface-container hover:text-primary' 
-                                : 'bg-primary border border-primary text-white hover:bg-primary-container hover:text-on-primary-container'
-                            }`}
+                            className={`h-9 px-4 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 ml-auto
+                              ${
+                                s.status === 'graded' 
+                                  ? 'bg-background border border-border text-foreground hover:bg-muted/50' 
+                                  : 'bg-primary text-primary-foreground hover:brightness-110 active:scale-[0.98]'
+                              }`}
                           >
-                            <span className="material-symbols-outlined text-[18px]">
-                              {s.status === 'graded' ? 'edit' : 'grading'}
-                            </span>
-                            {s.status === 'graded' ? 'Update Grade' : 'Review & Grade'}
-                          </button>
+                            {s.status === 'graded' ? (
+                              <>
+                                <Edit className="h-3.5 w-3.5" />
+                                <span>Update Grade</span>
+                              </>
+                            ) : (
+                              <>
+                                <ClipboardCheck className="h-3.5 w-3.5" />
+                                <span>Review & Grade</span>
+                              </>
+                            )}
+                          </Button>
                         </td>
                       </tr>
                     );
@@ -247,85 +294,97 @@ export default function AdminSubmissionsPage() {
 
         {/* Grading Dialog */}
         <Dialog open={gradingOpen} onOpenChange={setGradingOpen}>
-          <DialogContent className="bg-surface border-border-base text-text-primary rounded-2xl shadow-2xl overflow-hidden p-0 max-w-4xl max-h-[90vh] flex flex-col">
-            <div className="bg-surface/80 backdrop-blur-md p-6 border-b border-border-base flex items-center justify-between z-10 shrink-0">
+          <DialogContent className="bg-card border-border text-foreground rounded-3xl shadow-2xl overflow-hidden p-0 max-w-4xl max-h-[90vh] flex flex-col">
+            <div className="bg-card/80 backdrop-blur-md p-6 border-b border-border flex items-center justify-between z-10 shrink-0">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-inner">
-                  <Code className="text-primary w-6 h-6" />
+                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-sm shrink-0">
+                  <Code className="text-primary w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="font-bold text-text-primary font-headline-md text-[20px]">Review Submission</h2>
-                  <p className="text-[13px] font-medium text-text-secondary mt-1">Submission ID: <span className="font-mono">{selectedSub?.id.split('-')[0]}</span></p>
+                  <h2 className="font-bold text-foreground text-sm">Review Submission</h2>
+                  <p className="text-[10px] font-semibold text-muted-foreground mt-0.5">Submission ID: <span className="font-mono text-foreground">{selectedSub?.id.split('-')[0]}</span></p>
                 </div>
               </div>
             </div>
 
             {selectedSub && (
-              <div className="flex flex-col md:flex-row flex-1 min-h-0 overflow-hidden">
+              <div className="flex flex-col md:flex-row flex-grow min-h-0 overflow-hidden">
                 {/* Answer / File Area */}
-                <div className="md:w-[60%] bg-surface-container/30 p-6 md:p-8 overflow-y-auto custom-scrollbar border-r border-border-base">
-                  <p className="text-primary mb-4 font-bold uppercase tracking-widest text-[11px] flex items-center gap-2">
-                     <span className="w-1.5 h-1.5 rounded-full bg-primary"></span> Student Answer
+                <div className="md:w-[60%] bg-muted/20 p-6 md:p-8 overflow-y-auto border-r border-border">
+                  <p className="text-primary mb-4 font-extrabold uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+                     <span className="w-1.5 h-1.5 rounded-full bg-primary" /> Student Answer
                   </p>
-                  <div className="bg-surface border border-border-base rounded-xl p-5 shadow-sm">
-                    <pre className="text-text-primary whitespace-pre-wrap font-body-md text-[14px] leading-relaxed font-mono">{selectedSub.answer_text}</pre>
+                  <div className="bg-card border border-border rounded-2xl p-5 shadow-inner">
+                    <pre className="text-foreground whitespace-pre-wrap text-xs leading-relaxed font-mono">{selectedSub.answer_text}</pre>
                   </div>
                   
                   {selectedSub.file_url && (
-                    <a href={selectedSub.file_url} target="_blank" rel="noreferrer" className="mt-6 flex items-center justify-between p-4 rounded-xl border border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors group">
+                    <a 
+                      href={selectedSub.file_url} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      className="mt-6 flex items-center justify-between p-4 rounded-2xl border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors group"
+                    >
                       <div className="flex items-center gap-3">
-                         <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
-                            <File className="w-5 h-5" />
+                         <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+                            <File className="w-4.5 h-4.5" />
                          </div>
                          <div>
-                            <span className="font-bold text-[14px] text-text-primary group-hover:text-primary transition-colors block">View Attached File</span>
-                            <span className="text-[12px] text-text-secondary">Click to open in new tab</span>
+                            <span className="font-bold text-xs text-foreground group-hover:text-primary transition-colors block">View Attached File</span>
+                            <span className="text-[10px] text-muted-foreground font-semibold">Click to open in new tab</span>
                          </div>
                       </div>
-                      <ExternalLink className="w-5 h-5 text-primary opacity-50 group-hover:opacity-100 transition-opacity" />
+                      <ExternalLink className="w-4.5 h-4.5 text-primary opacity-50 group-hover:opacity-100 transition-opacity" />
                     </a>
                   )}
                 </div>
 
                 {/* Grading Sidebar */}
-                <div className="md:w-[40%] bg-surface p-6 md:p-8 flex flex-col overflow-y-auto custom-scrollbar">
-                  <section className="mb-8">
-                    <h3 className="text-[11px] font-bold text-text-secondary uppercase mb-4 tracking-widest flex items-center gap-2">
-                       <span className="w-1.5 h-1.5 rounded-full bg-warning"></span> Grading Input
+                <div className="md:w-[40%] bg-card p-6 md:p-8 flex flex-col overflow-y-auto">
+                  <section className="mb-6">
+                    <h3 className="text-[10px] font-extrabold text-muted-foreground uppercase mb-4 tracking-wider flex items-center gap-1.5">
+                       <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Grading Input
                     </h3>
                     <div>
-                      <Label htmlFor="score" className="text-[13px] font-bold text-text-primary block mb-2">Score (0 - {(Array.isArray(selectedSub.assignments) ? selectedSub.assignments[0]?.max_score : selectedSub.assignments?.max_score) ?? 100})</Label>
+                      <Label htmlFor="score" className="text-xs font-bold text-foreground block mb-2">Score (0 - {(Array.isArray(selectedSub.assignments) ? selectedSub.assignments[0]?.max_score : selectedSub.assignments?.max_score) ?? 100})</Label>
                       <Input
                         id="score"
                         type="number"
                         value={scoreInput}
                         onChange={(e) => setScoreInput(e.target.value)}
-                        className="bg-surface-container border-border-base text-text-primary h-12 text-[16px] font-bold focus:ring-2 focus:ring-primary shadow-inner"
+                        className="bg-background border-border text-xs h-11 rounded-xl font-bold focus:ring-primary/20 focus:border-primary shadow-inner"
                         placeholder="Enter score..."
                       />
                     </div>
                   </section>
 
-                  <section className="flex-1 flex flex-col mb-8">
-                    <h3 className="text-[11px] font-bold text-text-secondary uppercase mb-4 tracking-widest flex items-center gap-2">
-                       <span className="w-1.5 h-1.5 rounded-full bg-secondary"></span> Private Feedback
+                  <section className="flex-grow flex flex-col mb-6">
+                    <h3 className="text-[10px] font-extrabold text-muted-foreground uppercase mb-4 tracking-wider flex items-center gap-1.5">
+                       <span className="w-1.5 h-1.5 rounded-full bg-primary" /> Private Feedback
                     </h3>
                     <Textarea
                       id="feedback"
                       value={feedbackInput}
                       onChange={(e) => setFeedbackInput(e.target.value)}
-                      className="flex-1 min-h-[150px] bg-surface-container border-border-base rounded-xl p-4 text-[14px] text-text-primary focus:ring-2 focus:ring-primary outline-none resize-none shadow-inner"
+                      className="flex-grow min-h-[150px] bg-background border-border rounded-xl p-4 text-xs text-foreground focus:ring-primary/20 outline-none resize-none shadow-inner font-semibold leading-relaxed"
                       placeholder="Add private feedback to student..."
                     />
                   </section>
 
                   <div className="flex flex-col gap-3 mt-auto shrink-0">
-                    <button onClick={submitGrade} className="w-full h-12 bg-primary text-white rounded-xl font-bold text-[14px] hover:bg-primary-container hover:text-on-primary-container transition-all shadow-sm">
+                    <Button 
+                      onClick={submitGrade} 
+                      className="w-full h-11 bg-primary text-primary-foreground rounded-xl font-bold text-xs hover:brightness-110 active:scale-[0.99] transition-all shadow-md shadow-primary/10"
+                    >
                       {selectedSub.status === 'graded' ? 'Update Grade' : 'Submit Grade'}
-                    </button>
-                    <button onClick={() => setGradingOpen(false)} className="w-full h-12 bg-surface text-text-primary border border-border-base rounded-xl font-bold text-[14px] hover:bg-surface-container transition-all shadow-sm">
+                    </Button>
+                    <Button 
+                      onClick={() => setGradingOpen(false)} 
+                      variant="outline"
+                      className="w-full h-11 border-border text-foreground hover:bg-muted/50 rounded-xl font-bold text-xs"
+                    >
                       Cancel
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>

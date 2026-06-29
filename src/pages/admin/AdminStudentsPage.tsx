@@ -4,7 +4,21 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { RefreshCw, Zap, Flame, BookOpen, Search, Filter } from 'lucide-react';
+import { 
+  RefreshCw, 
+  Zap, 
+  Flame, 
+  GraduationCap, 
+  Search, 
+  Filter,
+  Download,
+  UserPlus,
+  Users,
+  Eye,
+  UserCheck,
+  UserX,
+  Calendar
+} from 'lucide-react';
 import { supabase } from '@/db/supabase';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
@@ -35,7 +49,6 @@ export default function AdminStudentsPage() {
       .limit(100);
     if (error) { toast.error('Failed to load students'); setLoading(false); return; }
 
-    // Get enrollment counts
     const ids = (data ?? []).map(s => s.id);
     const { data: enrollData } = await supabase
       .from('user_course_enrollments')
@@ -76,93 +89,103 @@ export default function AdminStudentsPage() {
 
   return (
     <AppLayout title="Student Directory" isAdmin>
-      <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-xl flex flex-col gap-stack-lg w-full">
+      <div className="max-w-container-max mx-auto px-4 md:px-8 py-8 flex flex-col gap-6 w-full select-none">
         
         {/* Header Section */}
         <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h1 className="font-display-lg-mobile md:font-display-lg text-[32px] md:text-[40px] font-bold text-text-primary tracking-tight">Student Directory</h1>
-            <p className="font-body-md text-[16px] text-text-secondary mt-2 max-w-2xl">
+            <h1 className="font-display text-2xl font-bold text-foreground">Student Directory</h1>
+            <p className="text-xs text-muted-foreground mt-1 font-semibold">
               Manage your learner ecosystem. Monitor engagement levels, track curriculum progress, and manage community access.
             </p>
           </div>
+          
           <div className="flex flex-wrap items-center gap-3">
-             <button onClick={fetchStudents} className="flex items-center justify-center w-11 h-11 rounded-xl border border-border-base bg-surface text-text-secondary hover:text-primary hover:border-primary/30 transition-all card-lift shadow-sm">
-               <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+             <button 
+               onClick={fetchStudents} 
+               className="flex items-center justify-center w-10 h-10 rounded-xl border border-border bg-card text-muted-foreground hover:text-foreground transition-all shadow-sm"
+             >
+               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
              </button>
-             <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-border-base bg-surface text-text-primary hover:bg-surface-container font-label-md text-[14px] font-bold transition-all card-lift shadow-sm">
-                <span className="material-symbols-outlined text-[18px]">download</span> Export
+             
+             <button className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-border bg-card text-muted-foreground hover:bg-muted/50 hover:text-foreground text-xs font-bold transition-all shadow-sm min-h-[40px]">
+                <Download className="h-4 w-4" /> Export
              </button>
-             <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white hover:bg-primary-container hover:text-on-primary-container font-label-md text-[14px] font-bold shadow-sm transition-all card-lift">
-                <span className="material-symbols-outlined text-[18px]">person_add</span> Invite Student
+             
+             <button className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground hover:brightness-110 active:scale-[0.99] text-xs font-bold shadow-md shadow-primary/10 transition-all min-h-[40px]">
+                <UserPlus className="h-4 w-4" /> Invite Student
              </button>
           </div>
         </section>
 
         {/* Bento Stats Grid */}
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="glass-panel border border-border-base rounded-2xl p-6 shadow-sm card-lift relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-110"></div>
-            <div className="flex justify-between items-start mb-4 relative z-10">
+          {/* Stat 1 */}
+          <div className="bg-card border border-border rounded-3xl p-6 shadow-sm relative overflow-hidden group">
+            <div className="absolute top-[-20%] right-[-20%] w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none" />
+            <div className="flex justify-between items-start mb-4">
               <div>
-                <p className="font-label-sm text-[11px] text-text-secondary font-bold uppercase tracking-widest">Total Active</p>
-                <h3 className="font-headline-lg text-[32px] font-bold text-text-primary mt-1">{loading ? '—' : students.length}</h3>
+                <p className="text-[10px] text-muted-foreground font-extrabold uppercase tracking-widest">Total Active</p>
+                <h3 className="font-display text-2xl font-extrabold text-foreground mt-1.5">{loading ? '—' : students.length}</h3>
               </div>
-              <div className="p-3 bg-primary/10 rounded-xl text-primary border border-primary/20 shadow-inner">
-                <span className="material-symbols-outlined text-[24px]">group</span>
+              <div className="p-3 bg-primary/10 rounded-xl text-primary border border-primary/20 shrink-0">
+                <Users className="w-5 h-5" />
               </div>
             </div>
           </div>
 
-          <div className="glass-panel border border-border-base rounded-2xl p-6 shadow-sm card-lift relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-warning/5 rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-110"></div>
-            <div className="flex justify-between items-start mb-4 relative z-10">
+          {/* Stat 2 */}
+          <div className="bg-card border border-border rounded-3xl p-6 shadow-sm relative overflow-hidden group">
+            <div className="absolute top-[-20%] right-[-20%] w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none" />
+            <div className="flex justify-between items-start mb-4">
               <div>
-                <p className="font-label-sm text-[11px] text-text-secondary font-bold uppercase tracking-widest">Avg Credits</p>
-                <h3 className="font-headline-lg text-[32px] font-bold text-text-primary mt-1">{loading ? '—' : avgCredits}</h3>
+                <p className="text-[10px] text-muted-foreground font-extrabold uppercase tracking-widest">Avg Credits</p>
+                <h3 className="font-display text-2xl font-extrabold text-foreground mt-1.5">{loading ? '—' : avgCredits}</h3>
               </div>
-              <div className="p-3 bg-warning/10 rounded-xl text-warning border border-warning/20 shadow-inner">
-                <span className="material-symbols-outlined text-[24px]">bolt</span>
+              <div className="p-3 bg-primary/10 rounded-xl text-primary border border-primary/20 shrink-0">
+                <Zap className="w-5 h-5" />
               </div>
             </div>
           </div>
 
-          <div className="glass-panel border border-border-base rounded-2xl p-6 shadow-sm card-lift relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-error/5 rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-110"></div>
-            <div className="flex justify-between items-start mb-4 relative z-10">
+          {/* Stat 3 */}
+          <div className="bg-card border border-border rounded-3xl p-6 shadow-sm relative overflow-hidden group">
+            <div className="absolute top-[-20%] right-[-20%] w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none" />
+            <div className="flex justify-between items-start mb-4">
               <div>
-                <p className="font-label-sm text-[11px] text-text-secondary font-bold uppercase tracking-widest">Active (7d)</p>
-                <h3 className="font-headline-lg text-[32px] font-bold text-text-primary mt-1">{loading ? '—' : recentlyActive}</h3>
+                <p className="text-[10px] text-muted-foreground font-extrabold uppercase tracking-widest">Active (7d)</p>
+                <h3 className="font-display text-2xl font-extrabold text-foreground mt-1.5">{loading ? '—' : recentlyActive}</h3>
               </div>
-              <div className="p-3 bg-error/10 rounded-xl text-error border border-error/20 shadow-inner">
-                <span className="material-symbols-outlined text-[24px]">local_fire_department</span>
+              <div className="p-3 bg-primary/10 rounded-xl text-primary border border-primary/20 shrink-0">
+                <Flame className="w-5 h-5" />
               </div>
             </div>
           </div>
 
-          <div className="glass-panel border border-border-base rounded-2xl p-6 shadow-sm card-lift relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/5 rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-110"></div>
-            <div className="flex justify-between items-start mb-4 relative z-10">
+          {/* Stat 4 */}
+          <div className="bg-card border border-border rounded-3xl p-6 shadow-sm relative overflow-hidden group">
+            <div className="absolute top-[-20%] right-[-20%] w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none" />
+            <div className="flex justify-between items-start mb-4">
               <div>
-                <p className="font-label-sm text-[11px] text-text-secondary font-bold uppercase tracking-widest">Enrollments</p>
-                <h3 className="font-headline-lg text-[32px] font-bold text-text-primary mt-1">{loading ? '—' : totalEnrollments}</h3>
+                <p className="text-[10px] text-muted-foreground font-extrabold uppercase tracking-widest">Enrollments</p>
+                <h3 className="font-display text-2xl font-extrabold text-foreground mt-1.5">{loading ? '—' : totalEnrollments}</h3>
               </div>
-              <div className="p-3 bg-secondary/10 rounded-xl text-secondary border border-secondary/20 shadow-inner">
-                <span className="material-symbols-outlined text-[24px]">school</span>
+              <div className="p-3 bg-primary/10 rounded-xl text-primary border border-primary/20 shrink-0">
+                <GraduationCap className="w-5 h-5" />
               </div>
             </div>
           </div>
         </section>
 
         {/* Directory Table Area */}
-        <section className="glass-panel rounded-2xl border border-border-base shadow-sm overflow-hidden flex flex-col">
+        <section className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden flex flex-col">
           
           {/* Table Filter Bar */}
-          <div className="p-6 md:p-8 border-b border-border-base flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-surface/30">
+          <div className="p-6 border-b border-border flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-muted/20">
             <div className="relative w-full lg:w-96 group">
-              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary transition-colors text-[20px]">search</span>
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-4.5 h-4.5" />
               <input 
-                className="w-full bg-surface-container border border-border-base rounded-full py-2.5 pl-12 pr-4 text-body-sm text-[14px] focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-inner" 
+                className="w-full bg-background border border-border rounded-xl py-2 pl-11 pr-4 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-transparent transition-all shadow-inner font-medium placeholder:text-muted-foreground/60" 
                 placeholder="Search students by name or email..." 
                 type="text"
                 value={search}
@@ -170,101 +193,126 @@ export default function AdminStudentsPage() {
               />
             </div>
             <div className="flex items-center gap-3 w-full lg:w-auto">
-              <select className="bg-surface border border-border-base rounded-xl px-4 py-2.5 text-label-md text-[13px] font-bold text-text-primary focus:outline-none focus:border-primary shadow-sm flex-1 lg:flex-none">
+              <select className="bg-background border border-border rounded-xl px-4 py-2 text-xs font-bold text-foreground focus:outline-none focus:border-primary shadow-sm flex-grow lg:flex-grow-0 h-10">
                 <option>Status: All</option>
                 <option>Active</option>
                 <option>Suspended</option>
               </select>
-              <button className="bg-surface border border-border-base text-text-secondary px-4 py-2.5 rounded-xl flex items-center justify-center hover:bg-surface-container hover:text-primary transition-colors shadow-sm shrink-0">
-                <span className="material-symbols-outlined text-[20px]">filter_list</span>
+              <button className="bg-background border border-border text-muted-foreground hover:text-foreground px-3.5 py-2 rounded-xl flex items-center justify-center hover:bg-muted/50 transition-all shadow-sm shrink-0 h-10">
+                <Filter className="h-4.5 w-4.5" />
               </button>
             </div>
           </div>
 
           {/* Table Content */}
-          <div className="overflow-x-auto custom-scrollbar">
+          <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[1000px]">
               <thead>
-                <tr className="bg-surface-container/50 border-b border-border-base">
-                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Student Profile</th>
-                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Credits</th>
-                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Streak</th>
-                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Enrollments</th>
-                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider">Last Active</th>
-                  <th className="px-6 py-4 font-label-sm text-[12px] text-text-secondary font-bold uppercase tracking-wider text-right">Actions</th>
+                <tr className="bg-muted/30 border-b border-border">
+                  <th className="px-6 py-4 text-[10px] text-muted-foreground font-extrabold uppercase tracking-wider">Student Profile</th>
+                  <th className="px-6 py-4 text-[10px] text-muted-foreground font-extrabold uppercase tracking-wider">Credits</th>
+                  <th className="px-6 py-4 text-[10px] text-muted-foreground font-extrabold uppercase tracking-wider">Streak</th>
+                  <th className="px-6 py-4 text-[10px] text-muted-foreground font-extrabold uppercase tracking-wider">Enrollments</th>
+                  <th className="px-6 py-4 text-[10px] text-muted-foreground font-extrabold uppercase tracking-wider">Last Active</th>
+                  <th className="px-6 py-4 text-[10px] text-muted-foreground font-extrabold uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border-base">
+              <tbody className="divide-y divide-border">
                 {loading ? (
                   Array.from({ length: 6 }).map((_, i) => (
                     <tr key={i}>
-                      <td colSpan={6} className="px-6 py-4"><Skeleton className="h-12 w-full bg-surface-container rounded-lg" /></td>
+                      <td colSpan={6} className="px-6 py-4">
+                        <Skeleton className="h-12 w-full bg-muted rounded-xl" />
+                      </td>
                     </tr>
                   ))
                 ) : filtered.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-6 py-20 text-center">
-                       <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mx-auto mb-4 border border-border-base">
-                         <Search className="w-6 h-6 text-text-secondary" />
+                       <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4 border border-border">
+                         <Search className="w-6 h-6 text-muted-foreground/40" />
                        </div>
-                       <p className="font-headline-md text-[18px] font-bold text-text-primary">No students found</p>
-                       <p className="text-[14px] text-text-secondary mt-1">Try adjusting your search query.</p>
+                       <p className="text-sm font-bold text-foreground">No students found</p>
+                       <p className="text-xs text-muted-foreground mt-1">Try adjusting your search query.</p>
                     </td>
                   </tr>
                 ) : (
                   filtered.map((s, idx) => {
                     const name = s.full_name ?? 'Unknown Student';
                     const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
-                    const gradients = [
-                      'from-primary to-secondary',
-                      'from-tertiary-container to-primary',
-                      'from-secondary to-primary-container',
+                    
+                    const avatarGradients = [
+                      'from-blue-500/10 to-primary/20 text-primary border-primary/20',
+                      'from-emerald-500/10 to-teal-500/20 text-emerald-500 border-emerald-500/20',
+                      'from-purple-500/10 to-chart-4/20 text-chart-4 border-chart-4/20',
                     ];
-                    const gradient = gradients[idx % gradients.length];
+                    const gradientClass = avatarGradients[idx % avatarGradients.length];
                     
                     return (
-                      <tr key={s.id} className="hover:bg-surface-container/30 transition-colors group">
+                      <tr key={s.id} className="hover:bg-muted/10 transition-colors group">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-4">
-                            <Avatar className={`w-10 h-10 shrink-0 shadow-sm border border-border-base bg-gradient-to-br ${gradient}`}>
-                              <AvatarFallback className="bg-transparent text-white text-[13px] font-bold">{initials}</AvatarFallback>
+                            <Avatar className={`w-9 h-9 shrink-0 shadow-sm border bg-gradient-to-br ${gradientClass}`}>
+                              <AvatarFallback className="bg-transparent text-xs font-bold">{initials}</AvatarFallback>
                             </Avatar>
-                            <div className="min-w-0 flex flex-col justify-center">
+                            <div className="min-w-0">
                               <div className="flex items-center gap-2">
-                                <p className="font-body-md text-[15px] font-bold text-text-primary truncate group-hover:text-primary transition-colors">{name}</p>
-                                {s.is_suspended && <span className="bg-error/10 text-error border border-error/20 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Suspended</span>}
+                                <p className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors">{name}</p>
+                                {s.is_suspended && (
+                                  <span className="bg-destructive/10 text-destructive border border-destructive/20 text-[9px] px-2 py-0.5 rounded-full font-extrabold uppercase tracking-wider">
+                                    Suspended
+                                  </span>
+                                )}
                               </div>
-                              <p className="font-label-sm text-[12px] text-text-secondary truncate">{s.email ?? '—'}</p>
+                              <p className="text-[10px] text-muted-foreground font-semibold truncate">{s.email ?? '—'}</p>
                             </div>
                           </div>
                         </td>
+                        
                         <td className="px-6 py-4">
-                          <div className="flex items-center gap-1.5">
-                            <span className="material-symbols-outlined text-[18px] text-warning" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
-                            <span className="text-body-md text-[15px] font-bold text-text-primary">{s.credits.toLocaleString()}</span>
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+                            <Zap className="h-4 w-4 text-amber-500" />
+                            <span>{s.credits.toLocaleString()}</span>
                           </div>
                         </td>
+                        
                         <td className="px-6 py-4">
-                          <div className="flex items-center gap-1.5">
-                            <span className="material-symbols-outlined text-[18px] text-error" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
-                            <span className="text-body-md text-[15px] font-bold text-text-primary">{s.streak_days} <span className="text-[12px] font-medium text-text-secondary ml-0.5">days</span></span>
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+                            <Flame className="h-4 w-4 text-destructive" />
+                            <span>{s.streak_days} <span className="text-[10px] font-semibold text-muted-foreground ml-0.5">days</span></span>
                           </div>
                         </td>
+                        
                         <td className="px-6 py-4">
-                          <span className="text-body-md text-[15px] font-bold text-text-primary bg-surface/50 px-3 py-1 rounded-lg border border-border-base">{s.enrollments_count}</span>
+                          <span className="text-xs font-bold text-foreground bg-muted px-2.5 py-1 rounded-xl border border-border">
+                            {s.enrollments_count}
+                          </span>
                         </td>
+                        
                         <td className="px-6 py-4">
-                          <p className="text-label-md text-[13px] font-medium text-text-secondary">
+                          <p className="text-xs text-muted-foreground font-semibold">
                             {s.last_activity_date ? formatDistanceToNow(new Date(s.last_activity_date), { addSuffix: true }) : 'Never active'}
                           </p>
                         </td>
+                        
                         <td className="px-6 py-4 text-right">
-                          <div className="flex justify-end gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => { setSelectedStudent(s); setDetailOpen(true); }} className="w-10 h-10 flex items-center justify-center rounded-full text-text-secondary hover:text-primary hover:bg-surface shadow-sm border border-transparent hover:border-border-base transition-all" title="View Details">
-                              <span className="material-symbols-outlined text-[20px]">visibility</span>
+                          <div className="flex justify-end gap-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                            <button 
+                              onClick={() => { setSelectedStudent(s); setDetailOpen(true); }} 
+                              className="w-9 h-9 flex items-center justify-center rounded-xl text-muted-foreground hover:text-primary hover:bg-muted border border-transparent hover:border-border transition-all" 
+                              title="View Details"
+                            >
+                              <Eye className="w-4 h-4" />
                             </button>
-                            <button onClick={() => toggleSuspend(s)} className={`w-10 h-10 flex items-center justify-center rounded-full shadow-sm border border-transparent hover:border-border-base transition-all hover:bg-surface ${s.is_suspended ? 'text-success hover:text-success' : 'text-text-secondary hover:text-error'}`} title={s.is_suspended ? 'Unsuspend' : 'Suspend'}>
-                              <span className="material-symbols-outlined text-[20px]">{s.is_suspended ? 'how_to_reg' : 'person_off'}</span>
+                            
+                            <button 
+                              onClick={() => toggleSuspend(s)} 
+                              className={`w-9 h-9 flex items-center justify-center rounded-xl border border-transparent hover:border-border transition-all hover:bg-muted ${
+                                s.is_suspended ? 'text-emerald-500 hover:text-emerald-500' : 'text-muted-foreground hover:text-destructive'
+                              }`} 
+                              title={s.is_suspended ? 'Unsuspend' : 'Suspend'}
+                            >
+                              {s.is_suspended ? <UserCheck className="w-4 h-4" /> : <UserX className="w-4 h-4" />}
                             </button>
                           </div>
                         </td>
@@ -279,51 +327,71 @@ export default function AdminStudentsPage() {
 
         {/* Detail Dialog */}
         <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-          <DialogContent className="bg-surface border-border-base text-text-primary rounded-2xl shadow-2xl overflow-hidden p-0 max-w-md">
-            <div className="h-24 bg-gradient-to-r from-primary via-secondary to-tertiary relative">
+          <DialogContent className="bg-card border-border text-foreground rounded-3xl shadow-2xl overflow-hidden p-0 max-w-sm">
+            <div className="h-24 bg-gradient-to-r from-primary to-chart-4 relative">
                <div className="absolute -bottom-10 left-6">
-                  <Avatar className="w-20 h-20 border-4 border-surface shadow-md bg-surface-container text-primary">
-                    <AvatarFallback className="text-[24px] font-bold">{selectedStudent?.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}</AvatarFallback>
+                  <Avatar className="w-20 h-20 border-4 border-card shadow-md bg-muted text-primary">
+                    <AvatarFallback className="text-xl font-extrabold">
+                      {selectedStudent?.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                </div>
             </div>
-            <DialogHeader className="pt-14 px-6 pb-2 border-b border-border-base">
-              <DialogTitle className="font-headline-md text-[24px] font-bold text-text-primary">{selectedStudent?.full_name}</DialogTitle>
-              <DialogDescription className="text-text-secondary text-[14px]">
+            
+            <DialogHeader className="pt-14 px-6 pb-2 border-b border-border">
+              <DialogTitle className="text-base font-extrabold text-foreground">
+                {selectedStudent?.full_name}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground font-semibold mt-1">
                 {selectedStudent?.email}
               </DialogDescription>
             </DialogHeader>
+            
             {selectedStudent && (
-              <div className="p-6 space-y-4 bg-surface-container/20">
+              <div className="p-6 space-y-4 bg-muted/10">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-surface border border-border-base p-4 rounded-xl shadow-sm">
-                    <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Joined</p>
-                    <p className="text-[15px] font-bold text-text-primary">{new Date(selectedStudent.created_at).toLocaleDateString()}</p>
+                  <div className="bg-card border border-border p-4 rounded-2xl shadow-sm">
+                    <p className="text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1">Joined</p>
+                    <p className="text-xs font-bold text-foreground">{new Date(selectedStudent.created_at).toLocaleDateString()}</p>
                   </div>
-                  <div className="bg-surface border border-border-base p-4 rounded-xl shadow-sm">
-                    <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Status</p>
+                  
+                  <div className="bg-card border border-border p-4 rounded-2xl shadow-sm">
+                    <p className="text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1">Status</p>
                     {selectedStudent.is_suspended ? (
-                       <span className="inline-block bg-error/10 text-error border border-error/20 px-2.5 py-0.5 rounded-md text-[12px] font-bold">Suspended</span>
+                       <span className="inline-block bg-destructive/10 text-destructive border border-destructive/20 px-2 py-0.5 rounded-lg text-[10px] font-extrabold uppercase">
+                         Suspended
+                       </span>
                     ) : (
-                       <span className="inline-block bg-success/10 text-success border border-success/20 px-2.5 py-0.5 rounded-md text-[12px] font-bold">Active Account</span>
+                       <span className="inline-block bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 rounded-lg text-[10px] font-extrabold uppercase">
+                         Active
+                       </span>
                     )}
                   </div>
-                  <div className="bg-surface border border-border-base p-4 rounded-xl shadow-sm">
-                    <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Credits Earned</p>
-                    <p className="text-[18px] font-bold text-text-primary flex items-center gap-1">
-                      <span className="material-symbols-outlined text-warning text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
-                      {selectedStudent.credits}
+                  
+                  <div className="bg-card border border-border p-4 rounded-2xl shadow-sm">
+                    <p className="text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1">Credits Earned</p>
+                    <p className="text-sm font-bold text-foreground flex items-center gap-1">
+                      <Zap className="h-4 w-4 text-amber-500" />
+                      <span>{selectedStudent.credits}</span>
                     </p>
                   </div>
-                  <div className="bg-surface border border-border-base p-4 rounded-xl shadow-sm">
-                    <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Total Enrollments</p>
-                    <p className="text-[18px] font-bold text-text-primary">{selectedStudent.enrollments_count}</p>
+                  
+                  <div className="bg-card border border-border p-4 rounded-2xl shadow-sm">
+                    <p className="text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1">Total Enrollments</p>
+                    <p className="text-sm font-bold text-foreground">{selectedStudent.enrollments_count}</p>
                   </div>
                 </div>
               </div>
             )}
-            <div className="p-4 border-t border-border-base bg-surface flex justify-end gap-3">
-              <Button onClick={() => setDetailOpen(false)} variant="outline" className="rounded-xl border-border-base font-bold text-[13px]">Close</Button>
+            
+            <div className="p-4 border-t border-border bg-card flex justify-end">
+              <Button 
+                onClick={() => setDetailOpen(false)} 
+                variant="outline" 
+                className="rounded-xl border-border font-bold text-xs"
+              >
+                Close
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
