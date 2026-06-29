@@ -577,8 +577,8 @@ CREATE POLICY "Users can unfollow others" ON public.user_followers
 FOR DELETE TO authenticated USING (follower_id = auth.uid()::text);
 
 -- Add index for fast counting/lookups
-CREATE INDEX idx_user_followers_following_id ON public.user_followers(following_id);
-CREATE INDEX idx_user_followers_follower_id ON public.user_followers(follower_id);
+CREATE INDEX IF NOT EXISTS idx_user_followers_following_id ON public.user_followers(following_id);
+CREATE INDEX IF NOT EXISTS idx_user_followers_follower_id ON public.user_followers(follower_id);
 
 
 -- -------------------------------------------------------------
