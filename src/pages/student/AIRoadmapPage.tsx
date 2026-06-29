@@ -1,20 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Button } from '@/components/ui/button';
+import { Loading } from '@/components/ui/loading';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/db/supabase';
 import { generateAndSaveRoadmap } from '@/lib/roadmapGenerator';
 import { toast } from 'sonner';
-import { CheckCircle2, Lock, PlayCircle, Loader2, Trophy, Clock, Target, Trash2, MessageSquare, Bot, X } from 'lucide-react';
+import { 
+  CheckCircle2, 
+  Lock, 
+  PlayCircle, 
+  Loader2, 
+  Trophy, 
+  Clock, 
+  Target, 
+  Trash2, 
+  MessageSquare, 
+  Bot, 
+  X,
+  Globe,
+  BarChart,
+  Cpu,
+  Shield,
+  Code,
+  BookOpen,
+  Terminal,
+  FileText,
+  Sparkles
+} from 'lucide-react';
 import { AIMentorChat } from '@/components/chat/AIMentorChat';
 import type { DBUserRoadmap, DBRoadmapStage, DBRoadmapItem } from '@/types/types';
+import { cn } from '@/lib/utils';
 
 const DOMAINS = [
-  { id: 'web-development', label: 'Full Stack Web Development', icon: 'globe' },
-  { id: 'data-science', label: 'Data Science & Analytics', icon: 'bar_chart' },
-  { id: 'ai-ml', label: 'Artificial Intelligence & ML', icon: 'memory' },
-  { id: 'cybersecurity', label: 'Cybersecurity', icon: 'shield' },
-  { id: 'dsa', label: 'Data Structures & Algorithms', icon: 'code' },
+  { id: 'web-development', label: 'Full Stack Web Development', icon: Globe },
+  { id: 'data-science', label: 'Data Science & Analytics', icon: BarChart },
+  { id: 'ai-ml', label: 'Artificial Intelligence & ML', icon: Cpu },
+  { id: 'cybersecurity', label: 'Cybersecurity', icon: Shield },
+  { id: 'dsa', label: 'Data Structures & Algorithms', icon: Code },
 ];
 
 export default function AIRoadmapPage() {
@@ -142,11 +165,11 @@ export default function AIRoadmapPage() {
 
   if (loading) {
     return (
-      <AppLayout title="AI Roadmap">
-        <div className="flex items-center justify-center min-h-[60vh]">
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-[60vh] select-none">
           <div className="flex flex-col items-center gap-4">
             <Loader2 className="w-8 h-8 text-primary animate-spin" />
-            <p className="text-on-surface-variant">Loading your personalized journey...</p>
+            <p className="text-xs font-bold text-muted-foreground">Loading your personalized journey...</p>
           </div>
         </div>
       </AppLayout>
@@ -154,121 +177,140 @@ export default function AIRoadmapPage() {
   }
 
   return (
-    <AppLayout title="AI Roadmap">
+    <AppLayout>
       <div className="flex h-[calc(100vh-80px)] overflow-hidden w-full relative bg-background">
         
         {/* Main Content Area */}
-        <div className={`flex-1 overflow-y-auto w-full transition-all duration-300`}>
-          <div className="max-w-6xl mx-auto p-4 md:p-8 space-y-8 pb-20">
+        <div className="flex-1 overflow-y-auto w-full transition-all duration-300">
+          <div className="max-w-4xl mx-auto px-margin-mobile md:px-margin-desktop py-8 space-y-8 pb-20">
             
             {!activeRoadmap ? (
-              <div className="max-w-2xl mx-auto space-y-8 animate-fade-in mt-12">
-                <div className="text-center space-y-4">
-                  <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto shadow-sm border border-primary/20">
-                    <Target className="w-8 h-8 text-primary" />
+              <div className="max-w-xl mx-auto space-y-8 animate-fade-in mt-6">
+                <div className="text-center space-y-3 select-none">
+                  <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto shadow-sm border border-primary/25">
+                    <Target className="w-7 h-7 text-primary" />
                   </div>
-                  <h1 className="text-4xl font-heading font-bold text-on-surface">Design Your Future</h1>
-                  <p className="text-on-surface-variant font-body-lg">Our AI will generate a step-by-step learning roadmap tailored to your specific career goals and current skill level.</p>
+                  <h1 className="text-2xl font-extrabold text-foreground tracking-tight">Design Your Future</h1>
+                  <p className="text-xs text-muted-foreground leading-relaxed max-w-sm mx-auto">
+                    Our AI will generate a step-by-step learning roadmap tailored to your specific career goals and current skill level.
+                  </p>
                 </div>
 
-                <div className="bg-surface border border-outline-variant rounded-2xl p-6 md:p-8 shadow-sm space-y-8">
+                <div className="bg-card border border-border rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
                   
-                  <div className="space-y-4">
-                    <label className="font-label-md font-bold text-on-surface block">1. What is your primary learning domain?</label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {DOMAINS.map(d => (
-                        <button
-                          key={d.id}
-                          onClick={() => setDomain(d.id)}
-                          className={`flex items-center gap-3 p-4 rounded-xl border text-left transition-all ${domain === d.id ? 'border-primary bg-primary/5 shadow-sm' : 'border-outline-variant/60 hover:bg-surface-variant/50'}`}
-                        >
-                          <span className="material-symbols-outlined text-primary">{d.icon}</span>
-                          <span className="font-label-md text-on-surface">{d.label}</span>
-                        </button>
-                      ))}
+                  <div className="space-y-3 select-none">
+                    <label className="text-xs font-bold text-foreground block">1. What is your primary learning domain?</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {DOMAINS.map(d => {
+                        const DomainIcon = d.icon;
+                        const isSelected = domain === d.id;
+                        return (
+                          <button
+                            key={d.id}
+                            onClick={() => setDomain(d.id)}
+                            className={cn(
+                              "flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all text-xs font-semibold",
+                              isSelected 
+                                ? 'border-primary bg-primary/5 text-primary font-bold shadow-sm' 
+                                : 'border-border text-muted-foreground hover:border-primary/20 hover:bg-muted/35 hover:text-foreground'
+                            )}
+                          >
+                            <DomainIcon className={cn("w-4 h-4 shrink-0", isSelected ? 'text-primary' : 'text-muted-foreground')} />
+                            <span>{d.label}</span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <label className="font-label-md font-bold text-on-surface block">2. What is your target role or goal?</label>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-foreground block select-none">2. What is your target role or goal?</label>
                     <input 
                       type="text" 
                       value={role}
                       onChange={(e) => setRole(e.target.value)}
                       placeholder="e.g. Frontend Developer, Machine Learning Engineer"
-                      className="w-full bg-background border border-outline-variant/60 rounded-xl px-4 py-3 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                      className="w-full bg-muted/20 border border-border rounded-xl px-4 py-3 text-xs text-foreground focus:outline-none focus:border-primary transition-all"
                     />
                   </div>
 
-                  <div className="space-y-4">
-                    <label className="font-label-md font-bold text-on-surface block">3. What is your current skill level?</label>
+                  <div className="space-y-3 select-none">
+                    <label className="text-xs font-bold text-foreground block">3. What is your current skill level?</label>
                     <div className="grid grid-cols-3 gap-3">
-                      {(['beginner', 'intermediate', 'advanced'] as const).map(level => (
-                        <button
-                          key={level}
-                          onClick={() => setDifficulty(level)}
-                          className={`p-3 rounded-xl border capitalize font-label-md transition-all ${difficulty === level ? 'border-primary bg-primary text-on-primary shadow-sm' : 'border-outline-variant/60 text-on-surface-variant hover:bg-surface-variant/50'}`}
-                        >
-                          {level}
-                        </button>
-                      ))}
+                      {(['beginner', 'intermediate', 'advanced'] as const).map(level => {
+                        const isSelected = difficulty === level;
+                        return (
+                          <button
+                            key={level}
+                            onClick={() => setDifficulty(level)}
+                            className={cn(
+                              "py-2.5 rounded-xl border capitalize text-xs font-bold transition-all",
+                              isSelected 
+                                ? 'border-primary bg-primary text-primary-foreground shadow-sm' 
+                                : 'border-border text-muted-foreground hover:border-primary/20 hover:bg-muted/35 hover:text-foreground'
+                            )}
+                          >
+                            {level}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
                   <button 
                     onClick={handleGenerate}
                     disabled={generating || !domain || !role}
-                    className="w-full bg-primary text-on-primary py-4 rounded-xl font-bold font-label-lg shadow-sm hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+                    className="w-full bg-primary text-primary-foreground py-3.5 rounded-xl font-bold text-xs shadow-sm hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-1.5 select-none min-h-[44px]"
                   >
-                    {generating ? <><Loader2 className="w-5 h-5 animate-spin" /> Generating AI Roadmap...</> : 'Generate My Roadmap'}
+                    {generating ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating AI Roadmap...</> : 'Generate My Roadmap'}
                   </button>
 
                 </div>
               </div>
             ) : (
-              <div className="space-y-12 animate-fade-in">
+              <div className="space-y-8 animate-fade-in">
                 {/* Roadmap Header */}
-                <div className="bg-surface border border-outline-variant rounded-3xl p-8 shadow-sm relative overflow-hidden">
+                <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 shadow-sm relative overflow-hidden select-none">
                   <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[80px] pointer-events-none" />
                   <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                    <div>
-                      <div className="flex items-center gap-3 mb-3">
-                        <span className="px-3 py-1 rounded-full bg-primary/10 text-primary font-label-sm uppercase tracking-wider text-xs font-bold border border-primary/20">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="px-2.5 py-0.5 rounded-md bg-primary/10 text-primary font-bold border border-primary/15 text-[9px] uppercase tracking-wider">
                           {activeRoadmap.difficulty}
                         </span>
-                        <span className="px-3 py-1 rounded-full bg-secondary/10 text-secondary font-label-sm uppercase tracking-wider text-xs font-bold border border-secondary/20">
+                        <span className="px-2.5 py-0.5 rounded-md bg-secondary/15 text-secondary font-bold border border-secondary/20 text-[9px] uppercase tracking-wider">
                           {activeRoadmap.target_role}
                         </span>
                       </div>
-                      <h1 className="text-3xl md:text-4xl font-heading font-bold text-on-surface mb-2">{activeRoadmap.title}</h1>
-                      <p className="text-on-surface-variant font-body-lg max-w-2xl">{activeRoadmap.description}</p>
+                      <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">{activeRoadmap.title}</h1>
+                      <p className="text-xs text-muted-foreground leading-relaxed max-w-xl">{activeRoadmap.description}</p>
                     </div>
-                    <div className="flex gap-4 items-center">
-                      <div className="text-center p-4 rounded-2xl bg-background border border-outline-variant/60 min-w-[120px]">
-                        <Clock className="w-6 h-6 text-primary mx-auto mb-2" />
-                        <p className="font-bold text-xl text-on-surface">{activeRoadmap.estimated_weeks} Wks</p>
-                        <p className="text-xs text-on-surface-variant uppercase tracking-wider">Est. Time</p>
+                    <div className="flex gap-3 items-center shrink-0">
+                      <div className="text-center p-3 rounded-xl bg-muted/40 border border-border min-w-[100px] space-y-1">
+                        <Clock className="w-4.5 h-4.5 text-primary/75 mx-auto" />
+                        <p className="font-extrabold text-sm text-foreground leading-none">{activeRoadmap.estimated_weeks} Wks</p>
+                        <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Est. Time</p>
                       </div>
-                      <div className="text-center p-4 rounded-2xl bg-background border border-outline-variant/60 min-w-[120px]">
-                        <Trophy className="w-6 h-6 text-secondary mx-auto mb-2" />
-                        <p className="font-bold text-xl text-on-surface">{stages.filter(s => s.status === 'completed').length} / {stages.length}</p>
-                        <p className="text-xs text-on-surface-variant uppercase tracking-wider">Stages</p>
+                      <div className="text-center p-3 rounded-xl bg-muted/40 border border-border min-w-[100px] space-y-1">
+                        <Trophy className="w-4.5 h-4.5 text-chart-3 mx-auto" />
+                        <p className="font-extrabold text-sm text-foreground leading-none">{stages.filter(s => s.status === 'completed').length} / {stages.length}</p>
+                        <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Stages</p>
                       </div>
                     </div>
                   </div>
                   
                   {/* Actions Area */}
-                  <div className="relative z-10 flex flex-wrap gap-3 mt-6 pt-6 border-t border-outline-variant/40">
+                  <div className="relative z-10 flex flex-wrap gap-3 mt-6 pt-6 border-t border-border/40">
                     <Button 
                       onClick={() => setShowMentor(true)} 
-                      className="flex items-center gap-2 px-4 py-2 h-11 bg-primary text-on-primary font-label-md font-bold hover:brightness-110 transition-colors shadow-sm rounded-xl min-h-[44px]"
+                      className="flex items-center gap-1.5 px-4 h-9 bg-primary text-primary-foreground font-bold hover:opacity-90 transition-opacity shadow-sm rounded-xl text-xs"
                     >
                       <Bot className="w-4 h-4" /> Ask AI Mentor
                     </Button>
                     <Button 
                       onClick={handleDeleteRoadmap} 
                       variant="outline"
-                      className="flex items-center gap-2 px-4 py-2 h-11 border border-error/40 text-error font-label-md hover:bg-error/10 hover:text-error transition-colors rounded-xl min-h-[44px]"
+                      className="flex items-center gap-1.5 px-4 h-9 border border-destructive/30 text-destructive font-bold hover:bg-destructive/10 transition-colors rounded-xl text-xs bg-card"
                     >
                       <Trash2 className="w-4 h-4" /> Generate New
                     </Button>
@@ -276,68 +318,90 @@ export default function AIRoadmapPage() {
                 </div>
 
                 {/* Stages Timeline */}
-                <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-outline-variant/40 before:to-transparent">
+                <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border/60 before:to-transparent">
                   {stages.map((stage, idx) => {
                     const isLocked = stage.status === 'locked';
                     const isCompleted = stage.status === 'completed';
                     const isActive = stage.status === 'in_progress';
 
                     return (
-                      <div key={stage.id} className={`relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active ${isLocked ? 'opacity-60' : ''}`}>
+                      <div key={stage.id} className={cn(
+                        "relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group",
+                        isLocked ? 'opacity-60' : ''
+                      )}>
                         {/* Icon */}
-                        <div className={`flex items-center justify-center w-10 h-10 rounded-full border-4 border-background shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-sm relative z-10 
-                          ${isCompleted ? 'bg-primary text-on-primary' : isActive ? 'bg-secondary text-on-primary animate-pulse' : 'bg-surface-variant text-on-surface-variant'}`}>
-                          {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : isLocked ? <Lock className="w-4 h-4" /> : <PlayCircle className="w-5 h-5" />}
+                        <div className={cn(
+                          "flex items-center justify-center w-8 h-8 rounded-full border-4 border-background shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-sm relative z-10",
+                          isCompleted 
+                            ? 'bg-primary text-primary-foreground' 
+                            : isActive 
+                              ? 'bg-secondary text-secondary-foreground animate-pulse' 
+                              : 'bg-muted border-border text-muted-foreground'
+                        )}>
+                          {isCompleted ? <CheckCircle2 className="w-4 h-4" /> : isLocked ? <Lock className="w-3.5 h-3.5" /> : <PlayCircle className="w-4 h-4" />}
                         </div>
 
                         {/* Card */}
-                        <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-surface border border-outline-variant rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
-                          <div className="flex justify-between items-start mb-4">
+                        <div className="w-[calc(100%-3rem)] md:w-[calc(50%-2rem)] bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                          <div className="flex justify-between items-start mb-3 select-none">
                             <div>
-                              <p className={`text-sm font-bold uppercase tracking-wider mb-1 ${isCompleted ? 'text-primary' : isActive ? 'text-secondary' : 'text-on-surface-variant'}`}>
+                              <p className={cn(
+                                "text-[10px] font-bold uppercase tracking-wider mb-0.5",
+                                isCompleted ? 'text-primary' : isActive ? 'text-secondary' : 'text-muted-foreground'
+                              )}>
                                 Stage {stage.phase_number}
                               </p>
-                              <h3 className="text-xl font-heading font-bold text-on-surface">{stage.title}</h3>
+                              <h3 className="text-sm font-bold text-foreground">{stage.title}</h3>
                             </div>
-                            <div className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-1 rounded text-xs font-bold border border-primary/20">
-                              <Trophy className="w-3 h-3" /> {stage.xp_reward} XP
+                            <div className="flex items-center gap-1 bg-primary/10 text-primary px-2.5 py-0.5 rounded-md text-[10px] font-bold border border-primary/20">
+                              <Trophy className="w-3.5 h-3.5" /> {stage.xp_reward} XP
                             </div>
                           </div>
-                          <p className="text-on-surface-variant font-body-sm mb-6">{stage.description}</p>
+                          <p className="text-xs text-muted-foreground mb-4 leading-relaxed">{stage.description}</p>
 
-                          <div className="space-y-3">
-                            {stage.items.map(item => (
-                              <div key={item.id} className="flex items-center justify-between bg-background border border-outline-variant/60 rounded-xl p-3">
-                                <div className="flex items-center gap-3">
-                                  <span className={`material-symbols-outlined text-lg ${item.item_type === 'project' ? 'text-secondary' : 'text-primary'}`}>
-                                    {item.item_type === 'course' ? 'play_lesson' : item.item_type === 'project' ? 'code_blocks' : 'article'}
-                                  </span>
-                                  <span className={`font-label-md ${item.status === 'completed' ? 'text-on-surface-variant line-through' : 'text-on-surface'}`}>
-                                    {item.title}
-                                  </span>
+                          <div className="space-y-2">
+                            {stage.items.map(item => {
+                              const isItemCompleted = item.status === 'completed';
+                              return (
+                                <div key={item.id} className="flex items-center justify-between bg-muted/20 border border-border rounded-xl p-3">
+                                  <div className="flex items-center gap-2.5 min-w-0">
+                                    {item.item_type === 'course' ? (
+                                      <BookOpen className="w-4 h-4 text-primary shrink-0" />
+                                    ) : item.item_type === 'project' ? (
+                                      <Terminal className="w-4 h-4 text-secondary shrink-0" />
+                                    ) : (
+                                      <FileText className="w-4 h-4 text-primary shrink-0" />
+                                    )}
+                                    <span className={cn(
+                                      "text-xs font-semibold truncate", 
+                                      isItemCompleted ? 'text-muted-foreground line-through' : 'text-foreground'
+                                    )}>
+                                      {item.title}
+                                    </span>
+                                  </div>
+                                  {isItemCompleted ? (
+                                    <CheckCircle2 className="w-4.5 h-4.5 text-primary shrink-0" />
+                                  ) : (
+                                    <button 
+                                      onClick={() => markItemComplete(item.id, stage.id)}
+                                      disabled={isLocked}
+                                      className="w-4.5 h-4.5 rounded-full border border-border hover:border-primary hover:bg-primary/10 flex items-center justify-center transition-colors disabled:opacity-50 shrink-0"
+                                    />
+                                  )}
                                 </div>
-                                {item.status === 'completed' ? (
-                                  <CheckCircle2 className="w-5 h-5 text-primary" />
-                                ) : (
-                                  <button 
-                                    onClick={() => markItemComplete(item.id, stage.id)}
-                                    disabled={isLocked}
-                                    className="w-6 h-6 rounded-full border-2 border-outline-variant hover:border-primary flex items-center justify-center transition-colors disabled:opacity-50"
-                                  />
-                                )}
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                           
-                          <div className="mt-6 pt-4 border-t border-outline-variant/20 flex justify-end">
+                          <div className="mt-4 pt-3 border-t border-border/40 flex justify-end select-none">
                             <button 
                               onClick={() => {
                                 setMentorPrompt(`Can you suggest additional resources or explain the concepts in Stage ${stage.phase_number}: ${stage.title}?`);
                                 setShowMentor(true);
                               }}
-                              className="flex items-center gap-2 text-sm font-label-md text-primary hover:text-primary/80 transition-colors"
+                              className="flex items-center gap-1 text-[11px] font-bold text-primary hover:opacity-85 transition-opacity"
                             >
-                              <MessageSquare className="w-4 h-4" /> Ask Mentor about this stage
+                              <MessageSquare className="w-3.5 h-3.5" /> Ask Mentor about this stage
                             </button>
                           </div>
 
@@ -354,15 +418,15 @@ export default function AIRoadmapPage() {
 
         {/* AI Mentor Slide-over Panel */}
         {showMentor && (
-          <div className="w-full md:w-[400px] shrink-0 border-l border-outline-variant/40 bg-surface shadow-xl z-30 flex flex-col animate-fade-in absolute right-0 top-0 bottom-0 md:relative">
-            <div className="flex items-center justify-between p-4 border-b border-outline-variant/40 bg-surface-container">
-               <h2 className="font-heading font-bold flex items-center gap-2"><Bot className="w-5 h-5 text-primary" /> Roadmap Mentor</h2>
+          <div className="w-full md:w-[360px] shrink-0 border-l border-border bg-card shadow-xl z-30 flex flex-col animate-fade-in absolute right-0 top-0 bottom-0 md:relative">
+            <div className="flex items-center justify-between p-4 border-b border-border bg-muted/5 select-none">
+               <h2 className="text-xs sm:text-sm font-bold flex items-center gap-1.5"><Bot className="w-4.5 h-4.5 text-primary" /> Roadmap Mentor</h2>
                <button 
                  onClick={() => setShowMentor(false)} 
-                 className="text-on-surface-variant hover:text-on-surface w-11 h-11 flex items-center justify-center rounded-full hover:bg-surface-variant transition-colors"
+                 className="text-muted-foreground hover:text-foreground w-8 h-8 flex items-center justify-center rounded-xl hover:bg-muted/50 transition-colors"
                  title="Close Panel"
                >
-                 <X className="w-5 h-5" />
+                 <X className="w-4.5 h-4.5" />
                </button>
             </div>
             <div className="flex-1 overflow-hidden relative bg-background">
