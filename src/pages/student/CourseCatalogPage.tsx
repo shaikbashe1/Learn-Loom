@@ -1,9 +1,21 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
+import { Loading } from '@/components/ui/loading';
+import { StatusBadge } from '@/components/ui/status-badge';
+import { 
+  Search, 
+  Star, 
+  BookOpen, 
+  Clock, 
+  SlidersHorizontal, 
+  Check, 
+  RotateCcw,
+  BookMarked
+} from 'lucide-react';
 import type { DBCourse, DBEnrollment } from '@/types/types';
 
 const CATEGORIES = ['All', 'Data Science', 'Web Development', 'AI/ML', 'DSA', 'Programming'];
@@ -58,42 +70,46 @@ export default function CourseCatalogPage() {
       return 0;
     });
 
-  const getDifficultyColor = (diff: string) => {
-    if (diff === 'Beginner') return 'text-success';
-    if (diff === 'Intermediate') return 'text-primary';
-    return 'text-tertiary';
+  const getDifficultyStatus = (diff: string) => {
+    if (diff === 'Beginner') return 'success';
+    if (diff === 'Intermediate') return 'info';
+    return 'purple';
   };
 
   return (
-    <AppLayout title="Course Catalog">
-      <div className="max-w-container-max mx-auto w-full space-y-8 pb-12">
+    <AppLayout>
+      <div className="max-w-container-max mx-auto w-full space-y-8 pb-12 animate-fade-in">
         
-        {/* Hero Section */}
-        <section className="flex flex-col items-center justify-center text-center space-y-6 py-12 relative overflow-hidden rounded-3xl bg-surface-container-lowest/50 border border-border-base">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(37,99,235,0.05)_0%,transparent_70%)]"></div>
-          <div className="relative z-10 w-full max-w-3xl flex flex-col items-center px-4">
-            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-extrabold text-on-surface mb-2 tracking-tight">What will you master today?</h1>
-            <p className="font-body-lg text-body-lg text-text-secondary max-w-2xl mb-8 leading-relaxed text-sm sm:text-base">Discover AI-curated learning paths, industry-recognized certifications, and hands-on projects designed to accelerate your career.</p>
+        {/* Premium Hero Section */}
+        <section className="flex flex-col items-center justify-center text-center space-y-6 py-12 relative overflow-hidden rounded-3xl bg-card border border-border shadow-sm">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(37,99,235,0.03)_0%,transparent_70%)]"></div>
+          <div className="relative z-10 w-full max-w-2xl flex flex-col items-center px-4">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-foreground mb-3 tracking-tight">What will you master today?</h1>
+            <p className="text-muted-foreground max-w-xl mb-8 text-xs sm:text-sm leading-relaxed">
+              Discover AI-curated learning paths, industry-recognized certifications, and hands-on projects designed to accelerate your career.
+            </p>
             
-            <div className="w-full relative">
-              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary">search</span>
+            <div className="w-full relative select-none">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
               <input 
-                className="w-full pl-12 pr-[110px] py-4 rounded-xl border border-border-base bg-surface shadow-[0_4px_20px_rgba(0,0,0,0.03)] focus:ring-2 focus:ring-primary focus:border-primary transition-all font-body-md text-on-surface outline-none min-h-[48px]" 
+                className="w-full pl-11 pr-24 py-3 rounded-xl border border-border bg-card shadow-inner focus:ring-2 focus:ring-primary focus:border-primary transition-all text-xs sm:text-sm text-foreground outline-none min-h-[44px]" 
                 placeholder="Search for courses, skills, or certifications..." 
                 type="text"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
               />
-              <button className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary text-on-primary px-5 py-2.5 rounded-lg font-label-md hover:bg-primary-fixed transition-colors shadow-sm min-h-[38px] flex items-center justify-center font-bold">Search</button>
+              <button className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-primary text-primary-foreground px-4 py-1.5 rounded-lg text-xs font-semibold hover:brightness-110 transition-colors shadow-sm min-h-[32px] flex items-center justify-center">
+                Search
+              </button>
             </div>
             
             <div className="flex flex-wrap justify-center gap-2 mt-6">
-              <span className="text-label-sm font-label-sm text-text-secondary flex items-center mr-1">Trending:</span>
+              <span className="text-xs text-muted-foreground flex items-center mr-1">Trending:</span>
               {['Machine Learning', 'React Native', 'UI/UX Design', 'Data Science'].map(t => (
                 <span 
                   key={t}
                   onClick={() => { setSearch(t); setCategory('All'); }}
-                  className="px-3 py-1 bg-surface-container-low border border-border-base rounded-full font-label-sm text-label-sm text-on-surface hover:bg-surface-container transition-colors cursor-pointer hover:border-outline-variant select-none min-h-[28px] flex items-center"
+                  className="px-3 py-1 bg-muted hover:bg-muted/80 border border-border rounded-full text-xs text-foreground transition-colors cursor-pointer select-none min-h-[28px] flex items-center"
                 >
                   {t}
                 </span>
@@ -103,17 +119,17 @@ export default function CourseCatalogPage() {
         </section>
 
         {/* Mobile Filters and Sort Bar */}
-        <div className="lg:hidden flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center border-b border-border-base pb-4">
+        <div className="lg:hidden flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center border-b border-border pb-4 select-none">
           <div className="flex-grow flex gap-2 overflow-x-auto scrollbar-hide scroll-touch snap-x -mx-4 px-4">
             {CATEGORIES.map(cat => (
               <button
                 key={cat}
                 onClick={() => setCategory(cat)}
                 className={cn(
-                  "snap-center px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all border min-h-[36px]",
+                  "snap-center px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all border min-h-[36px]",
                   category === cat 
-                    ? 'bg-primary text-on-primary border-primary shadow-sm' 
-                    : 'bg-surface border-border-base text-on-surface-variant hover:text-on-surface'
+                    ? 'bg-primary text-primary-foreground border-primary shadow-sm' 
+                    : 'bg-card border-border text-muted-foreground hover:text-foreground'
                 )}
               >
                 {cat}
@@ -121,11 +137,11 @@ export default function CourseCatalogPage() {
             ))}
           </div>
           <div className="shrink-0 flex items-center gap-2">
-            <span className="font-label-sm text-label-sm text-text-secondary font-semibold">Sort:</span>
+            <span className="text-xs text-muted-foreground font-semibold">Sort:</span>
             <select 
               value={sortBy}
               onChange={e => setSortBy(e.target.value)}
-              className="bg-surface text-label-sm font-label-sm text-on-surface px-3 py-2 rounded-lg border border-border-base focus:border-primary outline-none cursor-pointer flex-1 sm:flex-none min-h-[36px]"
+              className="bg-card text-xs font-semibold text-foreground px-3 py-2 rounded-xl border border-border focus:border-primary outline-none cursor-pointer flex-1 sm:flex-none min-h-[36px]"
             >
               {SORT_OPTIONS.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -138,24 +154,37 @@ export default function CourseCatalogPage() {
         <div className="flex flex-col lg:flex-row gap-8">
           
           {/* Filter Sidebar (Desktop only) */}
-          <aside className="w-full lg:w-64 flex-shrink-0 space-y-6 hidden lg:block sticky top-[80px] self-start">
-            <div className="glass-panel border border-border-base rounded-xl p-5 shadow-sm bg-surface">
-              <div className="flex items-center justify-between mb-6 border-b border-border-base pb-4">
-                <h3 className="font-headline-md text-headline-md text-on-surface font-bold">Filters</h3>
-                <button onClick={() => { setCategory('All'); setSortBy('popular'); }} className="text-label-sm font-label-sm text-primary hover:underline">Clear all</button>
+          <aside className="w-full lg:w-64 flex-shrink-0 space-y-6 hidden lg:block sticky top-[80px] self-start select-none">
+            <div className="bg-card border border-border rounded-2xl p-5 shadow-sm">
+              <div className="flex items-center justify-between mb-6 border-b border-border pb-4">
+                <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <SlidersHorizontal size={16} /> Filters
+                </h3>
+                <button 
+                  onClick={() => { setSearch(''); setCategory('All'); setSortBy('popular'); }} 
+                  className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
+                >
+                  <RotateCcw size={12} /> Clear
+                </button>
               </div>
               
               <div className="space-y-6">
                 {/* Category */}
                 <div>
-                  <h4 className="font-label-md text-label-md text-text-secondary mb-3 uppercase tracking-wider font-semibold">Category</h4>
-                  <div className="space-y-3">
+                  <h4 className="text-[10px] text-muted-foreground mb-3 uppercase tracking-wider font-bold">Category</h4>
+                  <div className="space-y-2">
                     {CATEGORIES.map(cat => (
                       <label key={cat} className="flex items-center gap-3 cursor-pointer group">
-                        <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${category === cat ? 'bg-primary border-primary' : 'border-outline group-hover:border-primary'}`}>
-                          {category === cat && <span className="material-symbols-outlined text-[12px] text-on-primary font-bold">check</span>}
+                        <div className={cn(
+                          "w-4 h-4 rounded border flex items-center justify-center transition-colors",
+                          category === cat ? 'bg-primary border-primary' : 'border-border group-hover:border-primary/50'
+                        )}>
+                          {category === cat && <Check className="w-3 h-3 text-primary-foreground" />}
                         </div>
-                        <span className={`font-body-sm text-body-sm transition-colors ${category === cat ? 'text-primary font-medium' : 'text-on-surface group-hover:text-primary'}`}>{cat}</span>
+                        <span className={cn(
+                          "text-xs transition-colors",
+                          category === cat ? 'text-primary font-semibold' : 'text-foreground group-hover:text-primary'
+                        )}>{cat}</span>
                         <input type="radio" className="hidden" checked={category === cat} onChange={() => setCategory(cat)} />
                       </label>
                     ))}
@@ -164,11 +193,11 @@ export default function CourseCatalogPage() {
 
                 {/* Sort By */}
                 <div>
-                  <h4 className="font-label-md text-label-md text-text-secondary mb-3 uppercase tracking-wider font-semibold">Sort By</h4>
+                  <h4 className="text-[10px] text-muted-foreground mb-3 uppercase tracking-wider font-bold">Sort By</h4>
                   <select 
                     value={sortBy}
                     onChange={e => setSortBy(e.target.value)}
-                    className="w-full bg-surface-container text-label-sm font-label-sm text-on-surface px-3 py-2 rounded-lg border border-border-base focus:border-primary outline-none cursor-pointer min-h-[38px]"
+                    className="w-full bg-muted text-xs font-semibold text-foreground px-3 py-2.5 rounded-xl border border-border focus:border-primary outline-none cursor-pointer min-h-[38px]"
                   >
                     {SORT_OPTIONS.map(opt => (
                       <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -182,27 +211,35 @@ export default function CourseCatalogPage() {
           {/* Course Content */}
           <div className="flex-1 space-y-6">
             {/* Results Header */}
-            <div className="flex justify-between items-end mb-4">
+            <div className="flex justify-between items-end mb-4 select-none">
               <div>
-                <h2 className="text-xl sm:text-2xl font-headline font-bold text-on-surface">Courses</h2>
-                <p className="font-body-sm text-body-sm text-text-secondary mt-1">Showing {filtered.length} result{filtered.length !== 1 ? 's' : ''}</p>
+                <h2 className="text-lg font-bold text-foreground">Courses</h2>
+                <p className="text-xs text-muted-foreground mt-1">Showing {filtered.length} result{filtered.length !== 1 ? 's' : ''}</p>
               </div>
             </div>
 
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {[...Array(6)].map((_, i) => (
-                  <div key={i} className="h-[320px] bg-surface border border-border-base rounded-xl shimmer"></div>
+                  <div key={i} className="h-[320px] bg-card border border-border rounded-2xl flex flex-col p-4 space-y-4">
+                    <Loading variant="skeleton" className="h-40 w-full rounded-xl" />
+                    <Loading variant="skeleton" className="h-5 w-3/4" />
+                    <Loading variant="skeleton" className="h-4 w-1/2" />
+                  </div>
                 ))}
               </div>
             ) : filtered.length === 0 ? (
-              <div className="glass-panel text-center py-16 flex flex-col items-center rounded-xl border border-border-base bg-surface">
-                <span className="material-symbols-outlined text-[48px] text-outline-variant mb-4">search_off</span>
-                <h3 className="font-headline-md text-on-surface mb-2 font-bold">No courses found</h3>
-                <p className="text-body-sm text-text-secondary mb-6 max-w-md text-balance">We couldn't find any courses matching your current filters. Try adjusting your search criteria.</p>
+              <div className="bg-card text-center py-16 flex flex-col items-center rounded-2xl border border-border p-6 max-w-md mx-auto">
+                <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center mb-4">
+                  <Search className="w-6 h-6 text-muted-foreground/50" />
+                </div>
+                <h3 className="text-sm font-bold text-foreground mb-1">No courses found</h3>
+                <p className="text-xs text-muted-foreground mb-6 max-w-xs leading-relaxed">
+                  We couldn't find any courses matching your current filters. Try adjusting your search criteria.
+                </p>
                 <button
                   onClick={() => { setSearch(''); setCategory('All'); }}
-                  className="px-6 py-2.5 rounded-full border border-border-base bg-surface text-label-md font-label-md text-on-surface hover:bg-surface-container-low transition-colors shadow-sm min-h-[44px]"
+                  className="px-5 py-2 rounded-xl border border-border bg-card text-xs font-semibold text-foreground hover:bg-muted transition-colors shadow-sm min-h-[38px]"
                 >
                   Clear Filters
                 </button>
@@ -223,18 +260,18 @@ export default function CourseCatalogPage() {
                     'from-[#3A1C71] via-[#D76D77] to-[#FFAF7B]'
                   ];
                   const gradient = gradients[index % gradients.length];
-                  const badgeColor = index % 2 === 0 ? 'text-primary bg-primary/10 border-primary/20' : 'text-tertiary bg-tertiary/10 border-tertiary/20';
+                  const badgeColor = index % 2 === 0 ? 'text-primary bg-primary/10 border-primary/10' : 'text-chart-4 bg-chart-4/10 border-chart-4/10';
 
                   const instructorName = course.instructor || "LearnLoom Group";
                   const instructorInitials = instructorName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
                   return (
-                    <div key={course.id} className="bg-surface border border-border-base rounded-2xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-[0_12px_40px_rgba(var(--primary-rgb,99,102,241),0.15)] transition-all duration-300 hover:-translate-y-1.5 group relative flex flex-col card-lift">
+                    <div key={course.id} className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm hover:border-primary/30 transition-all duration-300 hover:shadow-md group relative flex flex-col card-lift">
                       {/* Top gradient border effect on hover */}
-                      <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-tertiary to-secondary opacity-0 group-hover:opacity-100 transition-opacity z-20"></div>
+                      <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-chart-4 to-secondary opacity-0 group-hover:opacity-100 transition-opacity z-20" />
                       
-                      <div className="h-44 bg-surface-container relative overflow-hidden shrink-0">
-                        <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-90 z-0`}></div>
+                      <div className="h-40 bg-muted relative overflow-hidden shrink-0">
+                        <div className={cn("absolute inset-0 bg-gradient-to-br opacity-90 z-0", gradient)} />
                         {course.thumbnail_url ? (
                           <img 
                             src={course.thumbnail_url} 
@@ -242,53 +279,53 @@ export default function CourseCatalogPage() {
                             className="w-full h-full object-cover mix-blend-overlay group-hover:scale-105 transition-transform duration-500" 
                           />
                         ) : (
-                          <div className="absolute inset-0 flex items-center justify-center mix-blend-overlay opacity-25">
-                            <span className="material-symbols-outlined text-[64px] text-white select-none">code_blocks</span>
+                          <div className="absolute inset-0 flex items-center justify-center mix-blend-overlay opacity-20">
+                            <BookMarked className="w-14 h-14 text-white" />
                           </div>
                         )}
                         
                         {/* Difficulty Badge */}
-                        <div className="absolute top-3.5 left-3.5 z-10 select-none">
-                           <span className={`px-2.5 py-1 rounded-md bg-surface/90 backdrop-blur-md border border-border-base text-[11px] font-bold ${getDifficultyColor(course.difficulty)} shadow-sm`}>
+                        <div className="absolute top-3 left-3 z-10 select-none">
+                          <StatusBadge status={getDifficultyStatus(course.difficulty)} variant="subtle" className="font-bold">
                             {course.difficulty}
-                          </span>
+                          </StatusBadge>
                         </div>
 
                         {/* Completed Status Badge */}
                         {isCompleted && (
-                          <div className="absolute top-3.5 right-3.5 z-10 bg-success text-on-primary px-2.5 py-1 rounded-md text-[11px] font-bold shadow-sm flex items-center gap-1 select-none animate-pulse-glow">
-                             <span className="material-symbols-outlined text-[13px] font-bold">verified</span> Completed
+                          <div className="absolute top-3 right-3 z-10 bg-success text-white px-2.5 py-1 rounded-full text-[10px] font-bold shadow-sm flex items-center gap-1 select-none">
+                            <Check className="w-3 h-3" /> Completed
                           </div>
                         )}
                       </div>
                       
-                      <div className="p-5 sm:p-6 flex flex-col flex-grow relative z-10 bg-surface">
+                      <div className="p-5 flex flex-col flex-grow relative z-10 bg-card">
                         <div className="flex justify-between items-center mb-3.5 select-none">
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${badgeColor}`}>
+                          <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider", badgeColor)}>
                             {course.category}
                           </span>
-                          <span className="text-[12px] text-text-secondary flex items-center gap-1 font-semibold">
-                            <span className="material-symbols-outlined text-[16px] text-text-secondary">schedule</span> 
+                          <span className="text-[11px] text-muted-foreground flex items-center gap-1 font-semibold">
+                            <Clock className="w-3.5 h-3.5" /> 
                             {course.duration_hours ? `${course.duration_hours}h` : `${course.duration_weeks}w`}
                           </span>
                         </div>
                         
-                        <h3 className="text-[18px] sm:text-[20px] font-headline-md text-text-primary line-clamp-2 mb-2 group-hover:text-primary transition-colors font-bold leading-snug">
+                        <h3 className="text-sm font-bold text-foreground line-clamp-2 mb-2 group-hover:text-primary transition-colors leading-snug">
                           {course.title}
                         </h3>
                         
-                        <p className="font-body-sm text-body-sm text-text-secondary line-clamp-2 mb-4 leading-relaxed">
+                        <p className="text-xs text-muted-foreground line-clamp-2 mb-4 leading-relaxed">
                           {course.description ?? 'Accelerate your career with personalized, AI-driven learning paths and projects.'}
                         </p>
 
                         {/* User Enrolled Progress Bar */}
                         {isEnrolled && !isCompleted && (
                           <div className="mb-5 select-none">
-                            <div className="flex justify-between items-center text-[11px] font-bold mb-1">
+                            <div className="flex justify-between items-center text-[10px] font-bold mb-1">
                               <span className="text-primary">Learning Progress</span>
-                              <span className="text-text-secondary">{progressPercent}%</span>
+                              <span className="text-muted-foreground">{progressPercent}%</span>
                             </div>
-                            <div className="w-full bg-surface-container rounded-full h-1.5 overflow-hidden">
+                            <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
                               <div 
                                 className="bg-primary h-full rounded-full transition-all duration-500" 
                                 style={{ width: `${progressPercent}%` }}
@@ -297,27 +334,28 @@ export default function CourseCatalogPage() {
                           </div>
                         )}
                         
-                        <div className="flex items-center justify-between mt-auto pt-4 border-t border-border-base/70 select-none">
+                        <div className="flex items-center justify-between mt-auto pt-4 border-t border-border select-none">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-9 h-9 rounded-full bg-surface-container-high flex items-center justify-center border border-border-base text-primary font-bold text-[12px] shadow-inner shrink-0">
+                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center border border-border text-primary font-bold text-xs shadow-inner shrink-0">
                               {instructorInitials}
                             </div>
                             <div className="min-w-0">
-                              <div className="text-[12px] sm:text-[13px] font-bold text-text-primary leading-tight truncate max-w-[110px]">{instructorName}</div>
-                              <div className="flex items-center text-warning text-xs mt-0.5">
-                                <span className="material-symbols-outlined text-[12px] fill">star</span>
-                                <span className="ml-0.5 font-bold text-text-primary">{course.rating?.toFixed(1) ?? 'New'}</span>
-                                {course.student_count > 0 && <span className="ml-1 text-text-secondary font-medium">({course.student_count})</span>}
+                              <div className="text-xs font-bold text-foreground leading-tight truncate max-w-[100px]">{instructorName}</div>
+                              <div className="flex items-center text-chart-3 text-[10px] mt-0.5">
+                                <Star className="w-3.5 h-3.5 fill-chart-3 text-chart-3" />
+                                <span className="ml-0.5 font-bold text-foreground">{course.rating?.toFixed(1) ?? 'New'}</span>
+                                {course.student_count > 0 && <span className="ml-1 text-muted-foreground font-medium">({course.student_count})</span>}
                               </div>
                             </div>
                           </div>
                           
                           <Link to={`/courses/${course.id}`}>
-                            <button className={`px-5 py-2.5 rounded-lg text-[13px] font-label-md font-bold transition-all min-h-[38px] active:scale-95 flex items-center justify-center cursor-pointer shadow-sm ${
+                            <button className={cn(
+                              "px-4 py-1.5 rounded-lg text-xs font-semibold transition-all min-h-[32px] active:scale-95 flex items-center justify-center cursor-pointer shadow-sm",
                               isEnrolled 
-                                ? 'bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20' 
-                                : 'bg-gradient-to-r from-primary to-[hsl(var(--chart-4))] text-on-primary hover:shadow-md hover:opacity-90'
-                            }`}>
+                                ? 'bg-primary/10 text-primary hover:bg-primary/20 border border-primary/10' 
+                                : 'bg-primary text-primary-foreground hover:brightness-110'
+                            )}>
                               {isEnrolled ? 'Continue' : 'Enroll'}
                             </button>
                           </Link>
@@ -327,7 +365,6 @@ export default function CourseCatalogPage() {
                   );
                 })}
               </div>
-
             )}
           </div>
         </div>

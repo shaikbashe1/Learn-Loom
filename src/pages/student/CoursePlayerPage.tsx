@@ -13,6 +13,33 @@ import { sanitizeHtml } from '@/lib/sanitize';
 import { buildYouTubeEmbedUrl } from '@/lib/youtube';
 import { renderMarkdown } from '@/lib/markdown';
 import { formatDistanceToNow } from 'date-fns';
+import { MarkdownToolbar, insertFormat } from '@/components/shared/MarkdownToolbar';
+import { UserAvatar } from '@/components/shared/UserAvatar';
+import { cn } from '@/lib/utils';
+import { 
+  Play, 
+  CheckCircle2, 
+  Circle, 
+  Lock, 
+  BookOpen, 
+  MessageSquare, 
+  HelpCircle, 
+  Send, 
+  RefreshCw, 
+  Bot, 
+  Check, 
+  AlertTriangle, 
+  BookOpenCheck,
+  Code, 
+  Sparkles, 
+  ArrowLeft,
+  Download,
+  X,
+  Lightbulb,
+  FileQuestion,
+  GraduationCap,
+  FileText
+} from 'lucide-react';
 import type { DBCourse, DBModule, DBModuleProgress, DBQuiz, DBQuizAttempt } from '@/types/types';
 
 type ModuleWithStatus = DBModule & {
@@ -29,81 +56,6 @@ function formatMarkdownContent(val: string | string[] | null | undefined): strin
     return val.map(item => `- ${item}`).join('\n');
   }
   return val;
-}
-
-// ── Selection-aware Markdown formatting injection helper ─────────────────────
-function insertFormat(
-  textareaRef: HTMLTextAreaElement | null,
-  textValue: string,
-  setValue: (v: string) => void,
-  before: string,
-  after: string = ''
-) {
-  if (!textareaRef) {
-    setValue(textValue + before + after);
-    return;
-  }
-  const start = textareaRef.selectionStart;
-  const end = textareaRef.selectionEnd;
-  const selectedText = textValue.substring(start, end);
-  const replacement = before + selectedText + after;
-  setValue(
-    textValue.substring(0, start) + replacement + textValue.substring(end)
-  );
-  
-  setTimeout(() => {
-    textareaRef.focus();
-    textareaRef.setSelectionRange(
-      start + before.length,
-      start + before.length + selectedText.length
-    );
-  }, 0);
-}
-
-// ── Markdown Toolbar Component ────────────────────────────────────────────────
-interface MarkdownToolbarProps {
-  textareaRef: HTMLTextAreaElement | null;
-  textValue: string;
-  setValue: (v: string) => void;
-}
-
-function MarkdownToolbar({ textareaRef, textValue, setValue }: MarkdownToolbarProps) {
-  return (
-    <div className="flex items-center gap-1 bg-surface-container border border-border-base rounded-t-lg p-1 shrink-0 flex-wrap">
-      <button
-        type="button"
-        title="Bold"
-        onClick={() => insertFormat(textareaRef, textValue, setValue, '**', '**')}
-        className="p-1 rounded hover:bg-surface hover:text-primary transition-colors flex items-center justify-center min-h-[28px] min-w-[28px]"
-      >
-        <span className="material-symbols-outlined text-[16px] font-bold">format_bold</span>
-      </button>
-      <button
-        type="button"
-        title="Italic"
-        onClick={() => insertFormat(textareaRef, textValue, setValue, '*', '*')}
-        className="p-1 rounded hover:bg-surface hover:text-primary transition-colors flex items-center justify-center min-h-[28px] min-w-[28px]"
-      >
-        <span className="material-symbols-outlined text-[16px]">format_italic</span>
-      </button>
-      <button
-        type="button"
-        title="Link"
-        onClick={() => insertFormat(textareaRef, textValue, setValue, '[', '](url)')}
-        className="p-1 rounded hover:bg-surface hover:text-primary transition-colors flex items-center justify-center min-h-[28px] min-w-[28px]"
-      >
-        <span className="material-symbols-outlined text-[16px]">link</span>
-      </button>
-      <button
-        type="button"
-        title="Code Block"
-        onClick={() => insertFormat(textareaRef, textValue, setValue, '```javascript\n', '\n```')}
-        className="p-1 rounded hover:bg-surface hover:text-primary transition-colors flex items-center justify-center min-h-[28px] min-w-[28px]"
-      >
-        <span className="material-symbols-outlined text-[16px]">code</span>
-      </button>
-    </div>
-  );
 }
 
 // ── ModuleDiscussionBoard sub-component ───────────────────────────────────────
@@ -424,14 +376,14 @@ ${isReply ? `Previous replies:\n${threadContext}\n\nStudent query: "${userQuery}
 
       {loading ? (
         <div className="flex flex-col gap-3 py-4">
-          <Skeleton className="h-16 w-full rounded-xl bg-surface-container" />
-          <Skeleton className="h-16 w-full rounded-xl bg-surface-container" />
+          <Skeleton className="h-16 w-full rounded-xl bg-muted" />
+          <Skeleton className="h-16 w-full rounded-xl bg-muted" />
         </div>
       ) : posts.length === 0 ? (
-        <div className="text-center py-8 border border-border-base border-dashed rounded-xl bg-surface/50">
-          <span className="material-symbols-outlined text-[36px] text-outline mb-2">forum</span>
-          <p className="font-label-md text-label-md font-bold text-text-primary mb-1">No questions yet</p>
-          <p className="font-body-sm text-[12px] text-text-secondary px-4">Be the first to post a doubt or check back later.</p>
+        <div className="text-center py-8 border border-border border-dashed rounded-xl bg-card">
+          <MessageSquare className="w-8 h-8 text-muted-foreground/45 mx-auto mb-2" />
+          <p className="text-xs font-bold text-foreground mb-1">No questions yet</p>
+          <p className="text-[10px] text-muted-foreground px-4">Be the first to post a doubt or check back later.</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -439,66 +391,66 @@ ${isReply ? `Previous replies:\n${threadContext}\n\nStudent query: "${userQuery}
             const isExpanded = expandedPostId === post.id;
             
             return (
-              <div key={post.id} className="border border-border-base rounded-xl bg-surface p-4 flex flex-col gap-2.5 shadow-sm">
+              <div key={post.id} className="border border-border rounded-xl bg-card p-4 flex flex-col gap-2.5 shadow-sm">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-surface-container border border-border-base flex items-center justify-center font-bold text-text-primary text-xs shadow-sm">
-                    {initials(post.profiles?.full_name)}
-                  </div>
+                  <UserAvatar src={post.profiles?.avatar_url} name={post.profiles?.full_name || ''} size="sm" />
                   <div>
-                    <h5 className="font-label-sm text-[13px] font-bold text-text-primary">{post.profiles?.full_name ?? 'Student'}</h5>
-                    <span className="text-[10px] text-text-secondary">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</span>
+                    <h5 className="text-xs font-bold text-foreground leading-none">{post.profiles?.full_name ?? 'Student'}</h5>
+                    <span className="text-[9px] text-muted-foreground">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</span>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="font-label-md text-label-md font-bold text-text-primary mb-1">{post.title}</h4>
-                  <div className="text-xs text-text-secondary leading-relaxed font-body-sm">
+                  <h4 className="text-xs font-bold text-foreground mb-1">{post.title}</h4>
+                  <div className="text-[11px] text-muted-foreground leading-relaxed">
                     {renderMarkdown(post.content)}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 pt-2 border-t border-border-base/50">
+                <div className="flex items-center gap-4 pt-2 border-t border-border/40">
                   <button
                     onClick={() => handleExpandPost(post.id)}
-                    className="flex items-center gap-1 text-xs text-text-secondary hover:text-primary transition-colors font-bold min-h-[28px]"
+                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors font-semibold min-h-[28px]"
                   >
-                    <span className="material-symbols-outlined text-[16px]">chat_bubble_outline</span>
+                    <MessageSquare size={14} />
                     {post.reply_count} Comments
                   </button>
                 </div>
 
                 {isExpanded && (
-                  <div className="mt-3 border-t border-border-base/50 pt-3 space-y-3">
+                  <div className="mt-3 border-t border-border/40 pt-3 space-y-3">
                     {loadingReplies ? (
-                      <div className="flex items-center gap-2 text-xs text-text-secondary py-2 justify-center">
-                        <span className="material-symbols-outlined animate-spin text-[16px]">autorenew</span> Loading...
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground py-2 justify-center">
+                        <RefreshCw className="animate-spin w-4 h-4" /> Loading...
                       </div>
                     ) : replies.length === 0 ? (
-                      <p className="text-[11px] text-text-secondary italic text-center py-2">No responses yet.</p>
+                      <p className="text-[10px] text-muted-foreground italic text-center py-2">No responses yet.</p>
                     ) : (
-                      <div className="space-y-3 max-h-[200px] overflow-y-auto pr-1">
+                      <div className="space-y-3 max-h-[200px] overflow-y-auto pr-1 scrollbar-hide">
                         {replies.map(reply => (
                           <div key={reply.id} className="flex gap-2 items-start text-xs">
                             {reply.is_ai ? (
-                              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary to-[hsl(var(--chart-4))] flex items-center justify-center text-white shrink-0 shadow-sm">
-                                <span className="material-symbols-outlined text-[12px] animate-pulse">smart_toy</span>
+                              <div className="w-6 h-6 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 shadow-sm border border-primary/20">
+                                <Bot className="w-3.5 h-3.5 animate-pulse" />
                               </div>
                             ) : (
-                              <div className="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center font-bold text-text-primary text-[10px] shrink-0 border border-border-base shadow-sm">
-                                {initials(reply.profiles?.full_name)}
-                              </div>
+                              <UserAvatar src={reply.profiles?.avatar_url} name={reply.profiles?.full_name || ''} size="xs" />
                             )}
 
-                            <div className={`flex-1 rounded-lg px-2.5 py-2 border ${reply.is_ai ? 'bg-primary/5 border-primary/10' : 'bg-surface-container-low border-border-base'}`}>
+                            <div className={`flex-1 rounded-xl px-3 py-2.5 border ${reply.is_ai ? 'bg-primary/5 border-primary/10' : 'bg-muted/30 border-border'}`}>
                               <div className="flex items-center justify-between gap-2 mb-1">
                                 <div className="flex items-center gap-1.5">
-                                  <span className="font-bold text-text-primary">{reply.is_ai ? 'Loomie AI' : reply.profiles?.full_name ?? 'Student'}</span>
+                                  <span className="font-bold text-foreground text-[11px]">{reply.is_ai ? 'Loomie AI' : reply.profiles?.full_name ?? 'Student'}</span>
                                   {reply.is_ai && <span className="bg-primary/20 text-primary text-[8px] font-bold px-1 rounded">BOT</span>}
-                                  {reply.is_accepted && <span className="text-emerald-500 font-bold text-[9px] flex items-center gap-0.5"><span className="material-symbols-outlined text-[11px] font-bold">check</span>Accepted</span>}
+                                  {reply.is_accepted && (
+                                    <span className="text-emerald-500 font-bold text-[9px] flex items-center gap-0.5">
+                                      <Check className="w-3.5 h-3.5" /> Accepted
+                                    </span>
+                                  )}
                                 </div>
-                                <span className="text-[9px] text-text-secondary">{formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}</span>
+                                <span className="text-[9px] text-muted-foreground">{formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}</span>
                               </div>
-                              <div className="text-text-secondary leading-relaxed text-[11px]">
+                              <div className="text-muted-foreground leading-relaxed text-[11px]">
                                 {renderMarkdown(reply.content)}
                               </div>
                             </div>
@@ -507,7 +459,7 @@ ${isReply ? `Previous replies:\n${threadContext}\n\nStudent query: "${userQuery}
                       </div>
                     )}
 
-                    <div className="flex flex-col gap-2 pt-2 border-t border-border-base/50">
+                    <div className="flex flex-col gap-2 pt-2 border-t border-border/40">
                       
                       <MarkdownToolbar 
                         textareaRef={replyComposerRef.current} 
@@ -519,14 +471,14 @@ ${isReply ? `Previous replies:\n${threadContext}\n\nStudent query: "${userQuery}
                         <button
                           type="button"
                           onClick={() => setReplyMode('write')}
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${replyMode === 'write' ? 'bg-primary/10 text-primary' : 'text-text-secondary'}`}
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${replyMode === 'write' ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}
                         >
                           Write
                         </button>
                         <button
                           type="button"
                           onClick={() => setReplyMode('preview')}
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${replyMode === 'preview' ? 'bg-primary/10 text-primary' : 'text-text-secondary'}`}
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${replyMode === 'preview' ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}
                         >
                           Preview
                         </button>
@@ -538,10 +490,10 @@ ${isReply ? `Previous replies:\n${threadContext}\n\nStudent query: "${userQuery}
                           placeholder="Type your reply (markdown supported, use @loomie for AI help)..."
                           value={replyText}
                           onChange={e => setReplyText(e.target.value)}
-                          className="w-full bg-background border border-border-base rounded-b-lg p-2 text-xs text-text-primary focus:outline-none focus:border-primary min-h-[60px] resize-none"
+                          className="w-full bg-background border border-border rounded-b-xl p-2 text-xs text-foreground focus:outline-none focus:border-primary min-h-[60px] resize-none"
                         />
                       ) : (
-                        <div className="w-full bg-background border border-border-base rounded-b-lg p-2 text-xs text-text-secondary min-h-[60px] leading-relaxed shadow-sm">
+                        <div className="w-full bg-background border border-border rounded-b-xl p-2 text-xs text-muted-foreground min-h-[60px] leading-relaxed shadow-sm">
                           {replyText.trim() ? renderMarkdown(replyText) : <span className="italic text-muted-foreground">Nothing to preview.</span>}
                         </div>
                       )}
@@ -550,7 +502,7 @@ ${isReply ? `Previous replies:\n${threadContext}\n\nStudent query: "${userQuery}
                         <button
                           onClick={() => submitReply(post.id)}
                           disabled={!replyText.trim() || replyPosting}
-                          className="bg-primary text-on-primary hover:bg-primary-container px-3 py-1 rounded text-xs font-bold transition-all min-h-[28px]"
+                          className="bg-primary text-primary-foreground hover:opacity-90 px-3 py-1 rounded-lg text-xs font-bold transition-all min-h-[28px]"
                         >
                           {replyPosting ? 'Sending...' : 'Reply'}
                         </button>
@@ -774,11 +726,13 @@ Question / Request: ${promptMap[action]}`;
 
   if (!course || !activeModule) {
     return (
-      <AppLayout title="Course Not Found">
-        <div className="flex flex-col items-center justify-center min-h-[500px] gap-4">
-          <span className="material-symbols-outlined text-[64px] text-outline">error</span>
-          <h2 className="text-2xl font-bold text-text-primary">Course failed to load</h2>
-          <Link to="/courses" className="px-6 py-2.5 bg-primary text-white rounded-full font-bold">Back to Catalog</Link>
+      <AppLayout>
+        <div className="flex flex-col items-center justify-center min-h-[500px] gap-4 select-none">
+          <AlertTriangle className="w-12 h-12 text-destructive" />
+          <h2 className="text-lg font-bold text-foreground">Course failed to load</h2>
+          <Link to="/courses" className="px-5 py-2 bg-primary text-primary-foreground rounded-xl font-semibold text-sm">
+            Back to Catalog
+          </Link>
         </div>
       </AppLayout>
     );
@@ -793,13 +747,13 @@ Question / Request: ${promptMap[action]}`;
   const canMarkComplete = (!hasQuizzes || quizzesAllPassed) && codingPassed;
 
   return (
-    <AppLayout title={course.title}>
+    <AppLayout>
       <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg flex flex-col lg:flex-row gap-gutter">
         
         {/* Mobile curriculum trigger */}
-        <div className="lg:hidden flex items-center justify-between bg-surface border border-border-base p-4 rounded-xl shadow-sm mb-2">
-          <span className="font-label-md text-label-md font-bold text-text-primary flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px]">menu_book</span>
+        <div className="lg:hidden flex items-center justify-between bg-card border border-border p-4 rounded-xl shadow-sm mb-2 select-none">
+          <span className="text-xs font-bold text-foreground flex items-center gap-2">
+            <BookOpen className="w-4.5 h-4.5 text-primary" />
             Curriculum Roadmap
           </span>
           <button 
@@ -811,14 +765,14 @@ Question / Request: ${promptMap[action]}`;
         </div>
 
         {/* Desktop Sidebar: Modules Index */}
-        <aside className="hidden lg:flex w-[320px] flex-col gap-6 shrink-0 sticky top-24 self-start">
-          <div className="glass-panel border border-border-base rounded-2xl p-5 shadow-sm w-full flex flex-col">
-            <h3 className="font-headline-sm text-headline-sm font-bold text-text-primary mb-4 flex items-center gap-2 select-none">
-              <span className="material-symbols-outlined text-primary">menu_book</span>
+        <aside className="hidden lg:flex w-[320px] flex-col gap-6 shrink-0 sticky top-24 self-start select-none">
+          <div className="bg-card border border-border rounded-2xl p-5 shadow-sm w-full flex flex-col">
+            <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+              <BookOpen className="text-primary w-4.5 h-4.5" />
               Curriculum Roadmap
             </h3>
             
-            <div className="flex flex-col gap-3 max-h-[500px] overflow-y-auto pr-1">
+            <div className="flex flex-col gap-3 max-h-[500px] overflow-y-auto pr-1 scrollbar-hide">
               {modules.map((mod, i) => {
                 const isCurrent = mod.id === activeModule.id;
                 const isLocked = mod.status === 'locked';
@@ -829,28 +783,29 @@ Question / Request: ${promptMap[action]}`;
                     key={mod.id}
                     disabled={isLocked}
                     onClick={() => setActiveModule(mod)}
-                    className={`flex items-start gap-3 w-full text-left p-3.5 rounded-xl border transition-all ${
+                    className={cn(
+                      "flex items-start gap-3 w-full text-left p-3.5 rounded-xl border transition-all",
                       isCurrent 
-                        ? 'bg-primary/5 border-primary/30 text-primary shadow-sm' 
+                        ? 'bg-primary/5 border-primary/25 text-primary shadow-sm font-semibold' 
                         : isLocked 
-                          ? 'opacity-40 cursor-not-allowed border-border-base bg-surface-container-low' 
-                          : 'bg-surface hover:bg-surface-container border-border-base text-text-primary hover:border-primary/20'
-                    }`}
+                          ? 'opacity-40 cursor-not-allowed border-border bg-muted/40' 
+                          : 'bg-card hover:bg-muted/40 border-border text-foreground hover:border-primary/20'
+                    )}
                   >
                     <div className="mt-0.5 shrink-0 flex items-center justify-center">
                       {isDone ? (
-                        <span className="material-symbols-outlined text-success font-extrabold text-[20px]">check_circle</span>
+                        <CheckCircle2 className="text-success w-4.5 h-4.5" />
                       ) : isCurrent ? (
-                        <span className="material-symbols-outlined text-primary text-[20px] animate-pulse">play_circle</span>
+                        <Play className="text-primary w-4.5 h-4.5 animate-pulse" />
                       ) : isLocked ? (
-                        <span className="material-symbols-outlined text-outline text-[20px]">lock</span>
+                        <Lock className="text-muted-foreground w-4.5 h-4.5" />
                       ) : (
-                        <span className="material-symbols-outlined text-primary text-[20px]">radio_button_unchecked</span>
+                        <Circle className="text-primary w-4.5 h-4.5" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-label-sm text-[11px] text-text-secondary uppercase tracking-wider font-bold mb-0.5">Module {i + 1}</div>
-                      <div className="font-label-md text-[14px] font-bold leading-snug truncate">{mod.title}</div>
+                      <div className="text-[9px] text-muted-foreground uppercase tracking-wider font-bold mb-0.5">Module {i + 1}</div>
+                      <div className="text-xs font-bold leading-snug truncate">{mod.title}</div>
                     </div>
                   </button>
                 );
@@ -861,14 +816,14 @@ Question / Request: ${promptMap[action]}`;
 
         {/* Mobile Curriculum Sheet */}
         <Sheet open={curriculumOpen} onOpenChange={setCurriculumOpen}>
-          <SheetContent side="left" className="w-[300px] p-6 bg-surface">
+          <SheetContent side="left" className="w-[300px] p-6 bg-card select-none">
             <SheetHeader className="mb-4 text-left">
-              <SheetTitle className="font-headline-sm text-headline-sm font-bold text-text-primary flex items-center gap-2">
-                 <span className="material-symbols-outlined text-primary">menu_book</span>
+              <SheetTitle className="text-sm font-bold text-foreground flex items-center gap-2">
+                 <BookOpen className="text-primary w-4.5 h-4.5" />
                  Curriculum Roadmap
               </SheetTitle>
             </SheetHeader>
-            <div className="flex flex-col gap-3 overflow-y-auto max-h-[85vh] pr-1">
+            <div className="flex flex-col gap-3 overflow-y-auto max-h-[85vh] pr-1 scrollbar-hide">
               {modules.map((mod, i) => {
                 const isCurrent = mod.id === activeModule.id;
                 const isLocked = mod.status === 'locked';
@@ -879,28 +834,29 @@ Question / Request: ${promptMap[action]}`;
                     key={mod.id}
                     disabled={isLocked}
                     onClick={() => { setActiveModule(mod); setCurriculumOpen(false); }}
-                    className={`flex items-start gap-3 w-full text-left p-3.5 rounded-xl border transition-all ${
+                    className={cn(
+                      "flex items-start gap-3 w-full text-left p-3.5 rounded-xl border transition-all",
                       isCurrent 
-                        ? 'bg-primary/5 border-primary/30 text-primary' 
+                        ? 'bg-primary/5 border-primary/25 text-primary font-semibold' 
                         : isLocked 
-                          ? 'opacity-40 cursor-not-allowed border-border-base bg-surface-container-low' 
-                          : 'bg-surface hover:bg-surface-container border-border-base text-text-primary'
-                    }`}
+                          ? 'opacity-40 cursor-not-allowed border-border bg-muted/40' 
+                          : 'bg-card hover:bg-muted/40 border-border text-foreground'
+                    )}
                   >
                     <div className="mt-0.5 shrink-0">
                       {isDone ? (
-                        <span className="material-symbols-outlined text-success font-bold text-[20px]">check_circle</span>
+                        <CheckCircle2 className="text-success w-4.5 h-4.5" />
                       ) : isCurrent ? (
-                        <span className="material-symbols-outlined text-primary text-[20px]">play_circle</span>
+                        <Play className="text-primary w-4.5 h-4.5" />
                       ) : isLocked ? (
-                        <span className="material-symbols-outlined text-outline text-[20px]">lock</span>
+                        <Lock className="text-muted-foreground w-4.5 h-4.5" />
                       ) : (
-                        <span className="material-symbols-outlined text-primary text-[20px]">radio_button_unchecked</span>
+                        <Circle className="text-primary w-4.5 h-4.5" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-label-sm text-[11px] text-text-secondary uppercase tracking-wider font-bold mb-0.5">Module {i + 1}</div>
-                      <div className="font-label-md text-[14px] font-bold leading-snug truncate">{mod.title}</div>
+                      <div className="text-[9px] text-muted-foreground uppercase tracking-wider font-bold mb-0.5">Module {i + 1}</div>
+                      <div className="text-xs font-bold leading-snug truncate">{mod.title}</div>
                     </div>
                   </button>
                 );
@@ -912,11 +868,11 @@ Question / Request: ${promptMap[action]}`;
         {/* Main Content Area */}
         <section className="flex-1 flex flex-col gap-6 min-w-0">
           {/* Module Player View */}
-          <div className="glass-panel border border-border-base rounded-2xl p-5 sm:p-6 md:p-8 shadow-sm flex flex-col gap-6">
+          <div className="bg-card border border-border rounded-2xl p-5 sm:p-6 md:p-8 shadow-sm flex flex-col gap-6">
             
             {/* Video Player */}
             {activeModule.youtube_url ? (
-              <div className="relative aspect-video rounded-xl overflow-hidden shadow-md bg-black border border-border-base">
+              <div className="relative aspect-video rounded-xl overflow-hidden shadow-md bg-black border border-border">
                 <iframe
                   className="absolute inset-0 w-full h-full"
                   src={buildYouTubeEmbedUrl(activeModule.youtube_url ?? '') ?? undefined}
@@ -927,41 +883,41 @@ Question / Request: ${promptMap[action]}`;
               </div>
 
             ) : (
-              <div className="relative aspect-video rounded-xl overflow-hidden shadow-md bg-secondary-container-high border border-border-base flex flex-col items-center justify-center text-center p-6 select-none">
-                <span className="material-symbols-outlined text-[64px] text-primary mb-4 animate-float">smart_toy</span>
-                <h3 className="font-headline-sm text-headline-sm font-bold text-text-primary mb-1">Interactive Lesson Module</h3>
-                <p className="font-body-md text-body-md text-text-secondary max-w-md">No video file. Review module concepts and complete the tasks below.</p>
+              <div className="relative aspect-video rounded-xl overflow-hidden shadow-md bg-muted/30 border border-border flex flex-col items-center justify-center text-center p-6 select-none">
+                <Bot className="w-12 h-12 text-primary mb-4 animate-bounce" />
+                <h3 className="text-sm font-bold text-foreground mb-1">Interactive Lesson Module</h3>
+                <p className="text-xs text-muted-foreground max-w-md">No video file. Review module concepts and complete the tasks below.</p>
               </div>
             )}
 
             {/* Title block */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h1 className="font-headline-lg text-[24px] sm:text-[28px] text-text-primary font-extrabold tracking-tight mb-1 leading-snug">{activeModule.title}</h1>
-                <p className="font-body-md text-body-md text-text-secondary max-w-2xl">{activeModule.description}</p>
+              <div className="space-y-1">
+                <h1 className="text-xl sm:text-2xl text-foreground font-extrabold tracking-tight leading-tight">{activeModule.title}</h1>
+                <p className="text-xs text-muted-foreground max-w-2xl">{activeModule.description}</p>
               </div>
 
               {/* Complete state */}
               {isCompleted ? (
-                <div className="flex items-center gap-2 bg-success/10 border border-success/20 text-success px-5 py-2.5 rounded-full font-label-md font-bold text-sm w-fit select-none">
-                  <span className="material-symbols-outlined font-extrabold text-[20px]">check_circle</span> Verified Complete
+                <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400 px-4 py-2 rounded-full font-bold text-xs w-fit select-none shrink-0">
+                  <CheckCircle2 className="w-4.5 h-4.5" /> Verified Complete
                 </div>
               ) : (
                 <Button
                   onClick={handleComplete}
                   disabled={completing || !canMarkComplete}
-                  className="bg-primary hover:bg-primary-container text-white px-6 py-2.5 rounded-full font-label-md font-bold text-sm shadow-md transition-all shrink-0 min-h-[44px]"
+                  className="bg-primary hover:opacity-90 text-primary-foreground px-5 py-2.5 rounded-full font-bold text-xs shadow-md transition-all shrink-0 min-h-[40px]"
                 >
                   {completing ? 'Saving...' : 'Mark Completed'}
-                  <span className="material-symbols-outlined text-[20px]">check</span>
+                  <Check className="w-4 h-4 ml-1.5" />
                 </Button>
               )}
             </div>
 
             {/* Lesson Module Content Body */}
             {activeModule.content && (
-              <div className="border-t border-border-base/50 pt-6">
-                <div className="text-text-secondary leading-relaxed font-body-md max-w-none">
+              <div className="border-t border-border pt-6">
+                <div className="text-muted-foreground leading-relaxed text-xs sm:text-sm max-w-none">
                   {renderMarkdown(activeModule.content)}
                 </div>
               </div>
@@ -970,39 +926,46 @@ Question / Request: ${promptMap[action]}`;
             {/* Assessment Warning Gate */}
             {!isCompleted && !canMarkComplete && (
               <div className="rounded-xl border border-warning/30 bg-warning/5 p-4 flex gap-3 items-start select-none">
-                <span className="material-symbols-outlined text-warning mt-0.5 text-[20px]">warning</span>
+                <AlertTriangle className="text-warning mt-0.5 w-5 h-5 shrink-0" />
                 <div>
-                  <h4 className="font-label-md text-label-md font-bold text-text-primary mb-1">Locked Actions Remain</h4>
-                  <p className="font-body-sm text-body-sm text-text-secondary">Please complete and pass all required quizzes and coding assessments below to unlock completion progress.</p>
+                  <h4 className="text-xs font-bold text-foreground mb-1">Locked Actions Remain</h4>
+                  <p className="text-[11px] text-muted-foreground">Please complete and pass all required quizzes and coding assessments below to unlock completion progress.</p>
                 </div>
               </div>
             )}
 
             {/* Assessment Cards */}
             {(hasQuizzes || activeModule.codingId) && (
-              <div className="flex flex-col gap-4 border-t border-border-base pt-6 select-none">
-                <h3 className="font-headline-sm text-headline-sm font-bold text-text-primary flex items-center gap-2">
-                   <span className="material-symbols-outlined text-primary">assignment_turned_in</span> Module Tasks
+              <div className="flex flex-col gap-4 border-t border-border pt-6 select-none">
+                <h3 className="text-xs font-bold text-foreground flex items-center gap-2">
+                  <BookOpenCheck className="text-primary w-4.5 h-4.5" /> Module Tasks
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Quizzes */}
                   {activeModule.quizzes?.map((quiz, qidx) => {
                     const isPassed = passedQuizIds.includes(quiz.id);
                     return (
-                      <div key={quiz.id} className="border border-border-base bg-surface rounded-xl p-4 flex items-center justify-between shadow-sm">
+                      <div key={quiz.id} className="border border-border bg-card rounded-xl p-4 flex items-center justify-between shadow-sm">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border ${isPassed ? 'bg-success/10 border-success/20 text-success' : 'bg-surface-container-high border-border-base text-text-secondary'}`}>
-                            <span className="material-symbols-outlined text-[20px]">{isPassed ? 'check_circle' : 'quiz'}</span>
+                          <div className={cn(
+                            "w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border",
+                            isPassed ? 'bg-success/10 border-success/20 text-success' : 'bg-muted border-border text-muted-foreground'
+                          )}>
+                            {isPassed ? <CheckCircle2 size={20} /> : <FileQuestion size={20} />}
                           </div>
                           <div className="min-w-0">
-                            <h4 className="font-label-sm text-[11px] text-text-secondary uppercase tracking-wider font-bold mb-0.5">Quiz {qidx + 1}</h4>
-                            <h4 className="font-label-md text-[14px] font-bold text-text-primary truncate">{quiz.title}</h4>
+                            <h4 className="text-[9px] text-muted-foreground uppercase tracking-wider font-bold mb-0.5">Quiz {qidx + 1}</h4>
+                            <h4 className="text-xs font-bold text-foreground truncate">{quiz.title}</h4>
                           </div>
                         </div>
                         {isPassed ? (
-                          <span className="text-[12px] font-bold text-success flex items-center gap-0.5 shrink-0"><span className="material-symbols-outlined text-[14px]">check</span>Passed</span>
+                          <span className="text-[11px] font-bold text-success flex items-center gap-0.5 shrink-0">
+                            <Check className="w-3.5 h-3.5" /> Passed
+                          </span>
                         ) : (
-                          <Link to={`/quiz/${quiz.id}`} className="px-4 py-1.5 bg-primary text-white hover:bg-primary-container text-xs font-bold rounded-lg shrink-0 min-h-[32px] flex items-center">Start</Link>
+                          <Link to={`/quiz/${quiz.id}`} className="px-4 py-1.5 bg-primary text-primary-foreground hover:opacity-90 text-xs font-bold rounded-lg shrink-0 min-h-[32px] flex items-center">
+                            Start
+                          </Link>
                         )}
                       </div>
                     );
@@ -1010,20 +973,27 @@ Question / Request: ${promptMap[action]}`;
 
                   {/* Coding Assessment */}
                   {activeModule.codingId && (
-                    <div className="border border-border-base bg-surface rounded-xl p-4 flex items-center justify-between shadow-sm">
+                    <div className="border border-border bg-card rounded-xl p-4 flex items-center justify-between shadow-sm">
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border ${activeModule.codingPassed ? 'bg-success/10 border-success/20 text-success' : 'bg-surface-container-high border-border-base text-text-secondary'}`}>
-                          <span className="material-symbols-outlined text-[20px]">{activeModule.codingPassed ? 'check_circle' : 'code'}</span>
+                        <div className={cn(
+                          "w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border",
+                          activeModule.codingPassed ? 'bg-success/10 border-success/20 text-success' : 'bg-muted border-border text-muted-foreground'
+                        )}>
+                          {activeModule.codingPassed ? <CheckCircle2 size={20} /> : <Code size={20} />}
                         </div>
                         <div className="min-w-0">
-                          <h4 className="font-label-sm text-[11px] text-text-secondary uppercase tracking-wider font-bold mb-0.5">Challenge</h4>
-                          <h4 className="font-label-md text-[14px] font-bold text-text-primary truncate">Coding Practice</h4>
+                          <h4 className="text-[9px] text-muted-foreground uppercase tracking-wider font-bold mb-0.5">Challenge</h4>
+                          <h4 className="text-xs font-bold text-foreground truncate">Coding Practice</h4>
                         </div>
                       </div>
                       {activeModule.codingPassed ? (
-                        <span className="text-[12px] font-bold text-success flex items-center gap-0.5 shrink-0"><span className="material-symbols-outlined text-[14px]">check</span>Passed</span>
+                        <span className="text-[11px] font-bold text-success flex items-center gap-0.5 shrink-0">
+                          <Check className="w-3.5 h-3.5" /> Passed
+                        </span>
                       ) : (
-                        <Link to={`/coding?module=${activeModule.id}`} className="px-4 py-1.5 bg-primary text-white hover:bg-primary-container text-xs font-bold rounded-lg shrink-0 min-h-[32px] flex items-center">Code</Link>
+                        <Link to={`/coding?module=${activeModule.id}`} className="px-4 py-1.5 bg-primary text-primary-foreground hover:opacity-90 text-xs font-bold rounded-lg shrink-0 min-h-[32px] flex items-center">
+                          Code
+                        </Link>
                       )}
                     </div>
                   )}
@@ -1033,11 +1003,17 @@ Question / Request: ${promptMap[action]}`;
           </div>
 
           {/* Details & Community Tabs */}
-          <div className="glass-panel border border-border-base rounded-2xl p-5 sm:p-6 md:p-8 shadow-sm flex flex-col gap-6">
-            <div className="flex border-b border-border-base gap-6 overflow-x-auto scrollbar-hide select-none">
-              <button onClick={() => setActiveTab('overview')} className={`pb-4 font-label-md text-label-md font-bold transition-colors ${activeTab === 'overview' ? 'text-primary border-b-2 border-primary' : 'text-text-secondary hover:text-text-primary'}`}>Overview & Notes</button>
-              <button onClick={() => setActiveTab('resources')} className={`pb-4 font-label-md text-label-md transition-colors ${activeTab === 'resources' ? 'text-primary border-b-2 border-primary font-bold' : 'text-text-secondary hover:text-text-primary font-bold'}`}>Resources</button>
-              <button onClick={() => setActiveTab('discussion')} className={`pb-4 font-label-md text-label-md transition-colors ${activeTab === 'discussion' ? 'text-primary border-b-2 border-primary font-bold' : 'text-text-secondary hover:text-text-primary font-bold'}`}>Discussion</button>
+          <div className="bg-card border border-border rounded-2xl p-5 sm:p-6 md:p-8 shadow-sm flex flex-col gap-6">
+            <div className="flex border-b border-border gap-6 overflow-x-auto scrollbar-hide select-none">
+              <button onClick={() => setActiveTab('overview')} className={cn("pb-4 text-xs font-bold transition-colors", activeTab === 'overview' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground')}>
+                Overview & Notes
+              </button>
+              <button onClick={() => setActiveTab('resources')} className={cn("pb-4 text-xs font-bold transition-colors", activeTab === 'resources' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground')}>
+                Resources
+              </button>
+              <button onClick={() => setActiveTab('discussion')} className={cn("pb-4 text-xs font-bold transition-colors", activeTab === 'discussion' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground')}>
+                Discussion
+              </button>
             </div>
 
             <div className="pt-2">
@@ -1046,10 +1022,10 @@ Question / Request: ${promptMap[action]}`;
                   {/* Key Concepts */}
                   {activeModule.key_concepts && (
                     <div className="flex flex-col gap-3">
-                      <h3 className="font-headline-sm text-headline-sm font-bold text-text-primary flex items-center gap-2 select-none">
-                         <span className="material-symbols-outlined text-primary">key_visualizer</span> Key Concepts
+                      <h3 className="text-xs font-bold text-foreground flex items-center gap-2 select-none">
+                        <Sparkles className="text-primary w-4.5 h-4.5" /> Key Concepts
                       </h3>
-                      <div className="font-body-md text-text-secondary leading-relaxed pl-1">
+                      <div className="text-xs sm:text-sm text-muted-foreground leading-relaxed pl-1">
                         {renderMarkdown(formatMarkdownContent(activeModule.key_concepts))}
                       </div>
                     </div>
@@ -1058,10 +1034,10 @@ Question / Request: ${promptMap[action]}`;
                   {/* Real World Use Cases */}
                   {activeModule.real_world_use_cases && (
                     <div className="flex flex-col gap-3">
-                      <h3 className="font-headline-sm text-headline-sm font-bold text-text-primary flex items-center gap-2 select-none">
-                         <span className="material-symbols-outlined text-primary">analytics</span> Real-World Scenarios
+                      <h3 className="text-xs font-bold text-foreground flex items-center gap-2 select-none">
+                        <Sparkles className="text-primary w-4.5 h-4.5" /> Real-World Scenarios
                       </h3>
-                      <div className="font-body-md text-text-secondary leading-relaxed pl-1">
+                      <div className="text-xs sm:text-sm text-muted-foreground leading-relaxed pl-1">
                         {renderMarkdown(formatMarkdownContent(activeModule.real_world_use_cases))}
                       </div>
                     </div>
@@ -1070,10 +1046,10 @@ Question / Request: ${promptMap[action]}`;
                   {/* Examples */}
                   {activeModule.examples && (
                     <div className="flex flex-col gap-3">
-                      <h3 className="font-headline-sm text-headline-sm font-bold text-text-primary flex items-center gap-2 select-none">
-                         <span className="material-symbols-outlined text-primary">terminal</span> Code Walkthroughs
+                      <h3 className="text-xs font-bold text-foreground flex items-center gap-2 select-none">
+                        <Code className="text-primary w-4.5 h-4.5" /> Code Walkthroughs
                       </h3>
-                      <div className="font-body-md text-text-secondary leading-relaxed pl-1">
+                      <div className="text-xs sm:text-sm text-muted-foreground leading-relaxed pl-1">
                         {renderMarkdown(formatMarkdownContent(activeModule.examples))}
                       </div>
                     </div>
@@ -1082,10 +1058,10 @@ Question / Request: ${promptMap[action]}`;
                   {/* Summary */}
                   {activeModule.summary && (
                     <div className="flex flex-col gap-3">
-                      <h3 className="font-headline-sm text-headline-sm font-bold text-text-primary flex items-center gap-2 select-none">
-                         <span className="material-symbols-outlined text-primary">summarize</span> Module Summary
+                      <h3 className="text-xs font-bold text-foreground flex items-center gap-2 select-none">
+                        <BookOpen className="text-primary w-4.5 h-4.5" /> Module Summary
                       </h3>
-                      <div className="font-body-md text-text-secondary leading-relaxed pl-1">
+                      <div className="text-xs sm:text-sm text-muted-foreground leading-relaxed pl-1">
                         {renderMarkdown(activeModule.summary)}
                       </div>
                     </div>
@@ -1093,23 +1069,23 @@ Question / Request: ${promptMap[action]}`;
 
                   {/* Course Completion / Exam unlocked banner */}
                   {courseDone && (
-                    <div className="bg-success/5 border border-success/20 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm mt-4 select-none">
+                    <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm mt-4 select-none animate-fade-in">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center text-success shadow-inner">
-                           <span className="material-symbols-outlined text-[24px]">workspace_premium</span>
+                        <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600 shadow-inner shrink-0">
+                          <GraduationCap className="w-6 h-6" />
                         </div>
                         <div>
-                          <h4 className="font-headline-sm text-headline-sm font-bold text-text-primary mb-1">Course Assessments Completed</h4>
-                          <p className="font-body-sm text-body-sm text-text-secondary">You have completed all lesson modules. Take your final exams to earn your verified certificate!</p>
+                          <h4 className="text-sm font-bold text-foreground mb-1">Course Assessments Completed</h4>
+                          <p className="text-xs text-muted-foreground leading-normal">You have completed all lesson modules. Take your final exams to earn your verified certificate!</p>
                         </div>
                       </div>
-                      <div className="flex flex-col sm:flex-row gap-3">
-                        <Link to={`/courses/${courseId}/assessment`} className="px-6 py-2.5 bg-primary text-on-primary rounded-full font-label-sm font-bold shadow-md hover:shadow-lg shrink-0 transition-all hover:-translate-y-0.5 text-center flex items-center gap-2 justify-center">
-                           <span className="material-symbols-outlined text-[18px]">quiz</span> MCQ Exam
+                      <div className="flex flex-col sm:flex-row gap-3 shrink-0">
+                        <Link to={`/courses/${courseId}/assessment`} className="px-5 py-2 bg-primary text-primary-foreground rounded-xl font-bold text-xs shadow-md hover:shadow-lg transition-all text-center flex items-center gap-2 justify-center">
+                          <FileQuestion className="w-4.5 h-4.5" /> MCQ Exam
                         </Link>
                         {hasCodingQuestions && (
-                          <Link to={`/courses/${courseId}/coding-assessment`} className="px-6 py-2.5 bg-surface text-primary border border-primary rounded-full font-label-sm font-bold shadow-sm hover:bg-primary/5 shrink-0 transition-all hover:-translate-y-0.5 text-center flex items-center gap-2 justify-center">
-                             <span className="material-symbols-outlined text-[18px]">code</span> Coding Exam
+                          <Link to={`/courses/${courseId}/coding-assessment`} className="px-5 py-2 bg-card text-primary border border-primary rounded-xl font-bold text-xs shadow-sm hover:bg-primary/5 transition-all text-center flex items-center gap-2 justify-center">
+                            <Code className="w-4.5 h-4.5" /> Coding Exam
                           </Link>
                         )}
                       </div>
@@ -1120,17 +1096,17 @@ Question / Request: ${promptMap[action]}`;
               
               {activeTab === 'resources' && (
                 <div className="flex flex-col gap-4">
-                  <p className="font-body-md text-text-secondary select-none">Resources and references for this module.</p>
+                  <p className="text-xs text-muted-foreground select-none">Resources and references for this module.</p>
                   {activeModule.notes_url && (
-                    <a href={activeModule.notes_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 p-5 rounded-xl border border-border-base bg-surface hover:shadow-md transition-shadow group cursor-pointer select-none">
-                      <div className="w-12 h-12 rounded-lg bg-surface-container-low flex items-center justify-center text-primary group-hover:bg-primary-container group-hover:text-on-primary transition-colors">
-                        <span className="material-symbols-outlined text-[24px]">description</span>
+                    <a href={activeModule.notes_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 p-5 rounded-xl border border-border bg-card hover:border-primary/25 transition-all group cursor-pointer select-none">
+                      <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors shrink-0">
+                        <FileText className="w-6 h-6" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-label-md text-label-md font-bold text-text-primary group-hover:text-primary transition-colors">Module Notes (PDF)</h4>
-                        <p className="font-label-sm text-label-sm text-text-secondary">Downloadable study material</p>
+                        <h4 className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">Module Notes (PDF)</h4>
+                        <p className="text-[10px] text-muted-foreground">Downloadable study material</p>
                       </div>
-                      <span className="material-symbols-outlined text-text-secondary group-hover:text-primary transition-colors">download</span>
+                      <Download className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
                     </a>
                   )}
                 </div>
@@ -1149,32 +1125,38 @@ Question / Request: ${promptMap[action]}`;
           {/* AI Tutor Widget */}
           {activeModule && (
             <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4 select-none">
-               {aiTutorOpen && (
-                 <div className="bg-surface border border-border-base rounded-2xl shadow-2xl p-6 w-80 max-h-96 overflow-y-auto card-lift animate-in slide-in-from-bottom-3">
-                    <div className="flex justify-between items-center mb-4">
-                       <h4 className="font-bold text-tertiary flex items-center gap-2"><span className="material-symbols-outlined text-[18px]">smart_toy</span> AI Tutor</h4>
-                       <button onClick={() => setAiTutorOpen(false)} className="text-text-secondary hover:text-text-primary"><span className="material-symbols-outlined text-[18px]">close</span></button>
+              {aiTutorOpen && (
+                <div className="bg-card border border-border rounded-2xl shadow-2xl p-6 w-80 max-h-96 overflow-y-auto card-lift animate-in slide-in-from-bottom-3">
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className="font-bold text-xs text-foreground flex items-center gap-2">
+                      <Bot className="w-4 h-4 text-primary" /> AI Tutor
+                    </h4>
+                    <button onClick={() => setAiTutorOpen(false)} className="text-muted-foreground hover:text-foreground">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  {aiTutorLoading ? (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
+                      <RefreshCw className="animate-spin w-4 h-4" /> Thinking...
                     </div>
-                    {aiTutorLoading ? (
-                       <div className="flex items-center gap-2 text-text-secondary">
-                          <span className="material-symbols-outlined animate-spin text-[18px]">autorenew</span> Thinking...
-                       </div>
-                    ) : (
-                       <div className="text-sm text-text-primary leading-relaxed">{renderMarkdown(aiTutorResponse)}</div>
-                    )}
-                 </div>
-               )}
-               
-               {!aiTutorOpen && (
-                 <div className="flex flex-col items-end gap-2">
-                   <button onClick={() => askAiTutor('simplify')} className="bg-surface text-text-primary border border-border-base px-4 py-2 rounded-full text-xs font-bold shadow-md hover:bg-surface-container transition-all flex items-center gap-2">
-                     <span className="material-symbols-outlined text-[14px]">psychology</span> Simplify
-                   </button>
-                   <button onClick={() => askAiTutor('example')} className="bg-surface text-text-primary border border-border-base px-4 py-2 rounded-full text-xs font-bold shadow-md hover:bg-surface-container transition-all flex items-center gap-2">
-                     <span className="material-symbols-outlined text-[14px]">lightbulb</span> Give Example
-                   </button>
-                 </div>
-               )}
+                  ) : (
+                    <div className="text-xs text-muted-foreground leading-relaxed font-normal">
+                      {renderMarkdown(aiTutorResponse)}
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {!aiTutorOpen && (
+                <div className="flex flex-col items-end gap-2">
+                  <button onClick={() => askAiTutor('simplify')} className="bg-card text-foreground border border-border px-4 py-2 rounded-full text-[11px] font-semibold shadow-md hover:bg-muted/40 transition-all flex items-center gap-2">
+                    <Sparkles className="w-3.5 h-3.5 text-primary" /> Simplify
+                  </button>
+                  <button onClick={() => askAiTutor('example')} className="bg-card text-foreground border border-border px-4 py-2 rounded-full text-[11px] font-semibold shadow-md hover:bg-muted/40 transition-all flex items-center gap-2">
+                    <Lightbulb className="w-3.5 h-3.5 text-primary" /> Give Example
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </section>

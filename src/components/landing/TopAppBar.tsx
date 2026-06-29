@@ -44,7 +44,7 @@ export function TopAppBar() {
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
               <button className="text-on-surface-variant p-2 hover:bg-surface-variant/20 rounded-full flex items-center justify-center transition-colors min-w-[44px] min-h-[44px]">
-                <span className="material-symbols-outlined">menu</span>
+                <svg className="w-6 h-6 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
               </button>
             </SheetTrigger>
             <SheetContent side="right" className="w-full max-w-[300px] bg-surface p-6 flex flex-col gap-6">
