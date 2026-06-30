@@ -294,9 +294,14 @@ export function AppLayout({ children, isAdmin: isAdminProp }: AppLayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
-  const { profile, user } = useAuth();
+  const { profile, user, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login', { replace: true });
+  };
 
   const isAdmin = isAdminProp ?? (profile?.role === 'admin' || profile?.role === 'super_admin' || profile?.role === 'org_admin');
   const credits = profile?.credits ?? 0;
@@ -450,7 +455,7 @@ export function AppLayout({ children, isAdmin: isAdminProp }: AppLayoutProps) {
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="bg-border" />
                     <DropdownMenuItem 
-                      onClick={() => void navigate('/login')}
+                      onClick={() => void handleSignOut()}
                       className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer rounded-xl py-2 px-3 text-xs flex items-center gap-2"
                     >
                       <LogOut className="h-4 w-4" />
