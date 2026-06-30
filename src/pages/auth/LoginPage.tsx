@@ -152,6 +152,9 @@ export default function LoginPage() {
         return;
       }
       const profile = userId ? await getProfile(userId) : null;
+      // Save rememberMe preference and session active flag
+      localStorage.setItem('ll_remember_me', rememberMe ? 'true' : 'false');
+      sessionStorage.setItem('ll_session_active', 'true');
       setLoading(false);
       toast.success('Welcome back!', { description: 'Successfully signed in.' });
       navigate(getRedirect(profile?.role), { replace: true });

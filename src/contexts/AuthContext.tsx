@@ -88,18 +88,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Initial session fetch
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const initializeAuth = async () => {
+      const isNewSession = !sessionStorage.getItem('ll_session_active');
+      const rememberMe = localStorage.getItem('ll_remember_me');
+
+      if (isNewSession) {
+        sessionStorage.setItem('ll_session_active', 'true');
+        if (rememberMe === 'false') {
+          localStorage.removeItem('ll_remember_me');
+          await supabase.auth.signOut();
+        }
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user ?? null);
       if (session?.user) {
-        getProfile(session.user.id).then(data => {
-          setProfile(applyRoleOverride(session.user, data));
-          setLoading(false);
-        });
-      } else {
-        setLoading(false);
+        const data = await getProfile(session.user.id);
+        setProfile(applyRoleOverride(session.user, data));
       }
-    });
+      setLoading(false);
+    };
+
+    initializeAuth();
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -222,6 +232,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    localStorage.removeItem('ll_remember_me');
+    sessionStorage.removeItem('ll_session_active');
     await supabase.auth.signOut();
   };
 
