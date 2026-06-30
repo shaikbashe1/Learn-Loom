@@ -18,7 +18,8 @@ import {
   Lock,
   Trophy,
   Activity,
-  Award as AwardIcon
+  Award as AwardIcon,
+  Flag
 } from 'lucide-react';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
