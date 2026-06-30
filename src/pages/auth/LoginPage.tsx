@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth, getProfile } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -15,21 +15,93 @@ import {
 import { Button } from '@/components/ui/button';
 
 export default function LoginPage() {
-  const [showPassword, setShowPassword]   = useState(false);
-  const [email, setEmail]                 = useState('');
-  const [password, setPassword]           = useState('');
-  const [loading, setLoading]             = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  
+  // Validation States
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
+  
+  // Caps Lock State
+  const [capsLockActive, setCapsLockActive] = useState(false);
+
+  const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [unverifiedEmail, setUnverifiedEmail] = useState('');
-  const [resending, setResending]         = useState(false);
+  const [resending, setResending] = useState(false);
+
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
   
   const { signInWithEmail, signInWithGoogle, resendVerificationEmail } = useAuth();
-  const navigate  = useNavigate();
-  const location  = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const from = (location.state as { from?: string })?.from ?? '/dashboard';
 
   const getRedirect = (role?: string) =>
     role === 'admin' ? '/admin' : from === '/login' || from === '/' ? '/dashboard' : from;
+
+  // Handle Caps Lock
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.getModifierState('CapsLock')) {
+      setCapsLockActive(true);
+    } else {
+      setCapsLockActive(false);
+    }
+  };
+
+  // Live Email Validation
+  const validateEmail = (val: string) => {
+    const trimmed = val.trim();
+    if (!trimmed) {
+      return 'Email address is required';
+    }
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(trimmed)) {
+      return 'Please enter a valid email address';
+    }
+    return '';
+  };
+
+  // Live Password Validation
+  const validatePassword = (val: string) => {
+    if (!val) {
+      return 'Password is required';
+    }
+    return '';
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setEmail(val);
+    if (emailTouched) {
+      setEmailError(validateEmail(val));
+    }
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setPassword(val);
+    if (passwordTouched) {
+      setPasswordError(validatePassword(val));
+    }
+  };
+
+  const handleEmailBlur = () => {
+    setEmailTouched(true);
+    setEmailError(validateEmail(email));
+  };
+
+  const handlePasswordBlur = () => {
+    setPasswordTouched(true);
+    setPasswordError(validatePassword(password));
+  };
+
+  const isFormValid = !validateEmail(email) && !validatePassword(password);
 
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
@@ -42,21 +114,51 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setUnverifiedEmail('');
-    setLoading(true);
-    const { error, userId } = await signInWithEmail(email, password);
-    if (error) {
-      setLoading(false);
-      if (error.message.toLowerCase().includes('email not confirmed')) {
-        setUnverifiedEmail(email);
-      } else {
-        toast.error('Sign in failed', { description: 'Invalid email or password. Please try again.' });
+    setEmailTouched(true);
+    setPasswordTouched(true);
+
+    const eErr = validateEmail(email);
+    const pErr = validatePassword(password);
+
+    if (eErr || pErr) {
+      setEmailError(eErr);
+      setPasswordError(pErr);
+      // Focus first invalid field
+      if (eErr && emailRef.current) {
+        emailRef.current.focus();
+      } else if (pErr && passwordRef.current) {
+        passwordRef.current.focus();
       }
       return;
     }
-    const profile = userId ? await getProfile(userId) : null;
-    setLoading(false);
-    navigate(getRedirect(profile?.role), { replace: true });
+
+    setUnverifiedEmail('');
+    setLoading(true);
+
+    // Normalize email: trim and lowercase
+    const normalizedEmail = email.trim().toLowerCase();
+
+    try {
+      const { error, userId } = await signInWithEmail(normalizedEmail, password);
+      if (error) {
+        setLoading(false);
+        if (error.message.toLowerCase().includes('email not confirmed')) {
+          setUnverifiedEmail(normalizedEmail);
+          toast.error('Email not verified', { description: 'Please verify your email to log in.' });
+        } else {
+          // Security: Never reveal if email exists
+          toast.error('Sign in failed', { description: 'Invalid email or password.' });
+        }
+        return;
+      }
+      const profile = userId ? await getProfile(userId) : null;
+      setLoading(false);
+      toast.success('Welcome back!', { description: 'Successfully signed in.' });
+      navigate(getRedirect(profile?.role), { replace: true });
+    } catch (err) {
+      setLoading(false);
+      toast.error('Network failure', { description: 'Please check your connection and try again.' });
+    }
   };
 
   const handleResend = async () => {
@@ -65,7 +167,7 @@ export default function LoginPage() {
     const { error } = await resendVerificationEmail(unverifiedEmail);
     setResending(false);
     if (error) {
-      toast.error('Failed to resend', { description: error.message });
+      toast.error('Failed to resend link', { description: error.message });
     } else {
       toast.success('Verification email sent!', { description: `Check your inbox at ${unverifiedEmail}` });
     }
@@ -73,14 +175,14 @@ export default function LoginPage() {
 
   return (
     <div className="bg-background min-h-screen flex items-center justify-center p-4 sm:p-6 select-none relative overflow-hidden">
-      {/* Premium Background Glow (Linear/Vercel style) */}
+      {/* Premium Background Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-primary/10 blur-[120px] pointer-events-none z-0" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] rounded-full bg-chart-4/5 blur-[80px] pointer-events-none z-0" />
 
       <main className="w-full max-w-[440px] relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {/* Brand Header */}
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-2.5 no-underline group mb-3">
+          <Link to="/" className="inline-flex items-center gap-2.5 no-underline group mb-3" aria-label="Go to Homepage">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-chart-4 flex items-center justify-center shadow-md shadow-primary/20 group-hover:brightness-110 transition-all">
               <img src="/images/logo/logo-icon-light.png" alt="LearnLoom Logo" className="w-5 h-5 object-contain" />
             </div>
@@ -101,7 +203,7 @@ export default function LoginPage() {
           </div>
 
           {unverifiedEmail && (
-            <div className="mb-6 rounded-2xl border border-destructive/20 bg-destructive/5 p-4 flex gap-3 items-start">
+            <div className="mb-6 rounded-2xl border border-destructive/20 bg-destructive/5 p-4 flex gap-3 items-start" role="alert">
               <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="text-xs font-bold text-destructive mb-1">Email not verified</p>
@@ -112,7 +214,7 @@ export default function LoginPage() {
                   type="button" 
                   onClick={() => void handleResend()} 
                   disabled={resending} 
-                  className="text-xs text-destructive hover:underline flex items-center gap-1.5 font-bold"
+                  className="text-xs text-destructive hover:underline flex items-center gap-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-destructive/30 rounded"
                 >
                   {resending ? (
                     <RefreshCw className="h-3.5 w-3.5 animate-spin" />
@@ -129,7 +231,8 @@ export default function LoginPage() {
           <button
             onClick={() => void handleGoogleLogin()}
             disabled={googleLoading || loading}
-            className="w-full flex items-center justify-center py-2.5 px-4 rounded-xl border border-border bg-background hover:bg-muted/50 hover:border-border/80 transition-all duration-200 group disabled:opacity-50 min-h-[44px] mb-5 shadow-sm font-bold text-xs"
+            aria-label="Continue with Google"
+            className="w-full flex items-center justify-center py-2.5 px-4 rounded-xl border border-border bg-background hover:bg-muted/50 hover:border-border/80 transition-all duration-200 group disabled:opacity-50 min-h-[44px] mb-5 shadow-sm font-bold text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
           >
             {googleLoading ? (
               <RefreshCw className="h-4 w-4 animate-spin mr-2.5 text-muted-foreground" />
@@ -153,7 +256,7 @@ export default function LoginPage() {
             <div className="flex-grow border-t border-border" />
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4" autoComplete="off">
+          <form onSubmit={handleLogin} className="space-y-4" autoComplete="off" noValidate>
             {/* Dummy inputs to prevent aggressive autofill */}
             <input type="email" style={{ display: 'none' }} name="fake_email" />
             <input type="password" style={{ display: 'none' }} name="fake_password" />
@@ -167,16 +270,29 @@ export default function LoginPage() {
                   <Mail className="h-4 w-4" />
                 </div>
                 <input 
-                  className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none transition-all duration-200 text-xs text-foreground placeholder:text-muted-foreground/60 min-h-[42px] font-semibold" 
+                  ref={emailRef}
+                  className={`w-full pl-11 pr-4 py-2.5 rounded-xl border bg-background focus:ring-2 focus:outline-none transition-all duration-200 text-xs text-foreground placeholder:text-muted-foreground/60 min-h-[42px] font-semibold ${
+                    emailTouched && emailError 
+                      ? 'border-destructive focus:ring-destructive/20 focus:border-destructive' 
+                      : 'border-border focus:ring-primary/20 focus:border-primary'
+                  }`} 
                   id="email" 
+                  name="email"
+                  type="email" 
                   placeholder="name@company.com" 
                   required 
-                  type="email"
                   value={email}
-                  autoComplete="new-password"
-                  onChange={e => setEmail(e.target.value)}
+                  onChange={handleEmailChange}
+                  onBlur={handleEmailBlur}
+                  aria-invalid={!!emailError}
+                  aria-describedby={emailError ? "email-error" : undefined}
                 />
               </div>
+              {emailTouched && emailError && (
+                <p id="email-error" className="text-destructive text-[11px] font-bold mt-1.5 flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {emailError}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -185,7 +301,7 @@ export default function LoginPage() {
                   Password
                 </label>
                 <Link 
-                  className="text-xs text-primary hover:underline font-bold transition-colors" 
+                  className="text-xs text-primary hover:underline font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 rounded px-1" 
                   to="/forgot-password"
                 >
                   Forgot password?
@@ -196,32 +312,69 @@ export default function LoginPage() {
                   <Lock className="h-4 w-4" />
                 </div>
                 <input 
-                  className="w-full pl-11 pr-11 py-2.5 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none transition-all duration-200 text-xs text-foreground placeholder:text-muted-foreground/60 min-h-[42px] font-semibold" 
+                  ref={passwordRef}
+                  className={`w-full pl-11 pr-11 py-2.5 rounded-xl border bg-background focus:ring-2 focus:outline-none transition-all duration-200 text-xs text-foreground placeholder:text-muted-foreground/60 min-h-[42px] font-semibold ${
+                    passwordTouched && passwordError 
+                      ? 'border-destructive focus:ring-destructive/20 focus:border-destructive' 
+                      : 'border-border focus:ring-primary/20 focus:border-primary'
+                  }`} 
                   id="password" 
+                  name="password"
+                  type={showPassword ? 'text' : 'password'} 
                   placeholder="Enter your password" 
                   required 
-                  type={showPassword ? 'text' : 'password'}
                   value={password}
-                  autoComplete="new-password"
-                  onChange={e => setPassword(e.target.value)}
+                  onChange={handlePasswordChange}
+                  onBlur={handlePasswordBlur}
+                  onKeyDown={handleKeyDown}
+                  onKeyUp={handleKeyDown}
+                  aria-invalid={!!passwordError}
+                  aria-describedby={passwordError ? "password-error" : undefined}
                 />
                 <button 
                   onClick={() => setShowPassword(!showPassword)} 
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-muted-foreground hover:text-foreground transition-colors min-w-[40px] justify-center" 
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-muted-foreground hover:text-foreground transition-colors min-w-[40px] justify-center focus:outline-none focus:ring-2 focus:ring-primary/20 rounded" 
                   type="button"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              {passwordTouched && passwordError && (
+                <p id="password-error" className="text-destructive text-[11px] font-bold mt-1.5 flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {passwordError}
+                </p>
+              )}
+              {capsLockActive && (
+                <p className="text-amber-500 text-[10px] font-bold mt-1">
+                  ⚠️ Caps Lock is ON
+                </p>
+              )}
+            </div>
+
+            {/* Remember Me Checkbox */}
+            <div className="pt-1.5">
+              <label className="flex items-center cursor-pointer select-none">
+                <input 
+                  type="checkbox" 
+                  checked={rememberMe}
+                  onChange={e => setRememberMe(e.target.checked)}
+                  className="form-checkbox h-4.5 w-4.5 text-primary border-border rounded focus:ring-primary/20 transition-colors accent-primary focus:outline-none focus:ring-2"
+                />
+                <span className="ml-2.5 text-xs text-muted-foreground font-semibold">Remember me</span>
+              </label>
             </div>
 
             <Button
               type="submit"
-              disabled={loading}
-              className="w-full h-11 bg-primary text-primary-foreground font-bold hover:brightness-110 active:scale-[0.99] transition-all duration-200 flex items-center justify-center gap-1.5 shadow-md shadow-primary/10 mt-6 rounded-xl text-xs"
+              disabled={loading || !isFormValid}
+              className="w-full h-11 bg-primary text-primary-foreground font-bold hover:brightness-110 active:scale-[0.99] transition-all duration-200 flex items-center justify-center gap-1.5 shadow-md shadow-primary/10 mt-6 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-offset-2"
             >
               {loading ? (
-                <RefreshCw className="h-4 w-4 animate-spin" />
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  <span>Logging in...</span>
+                </>
               ) : (
                 <>
                   <span>Sign In</span>
@@ -239,7 +392,7 @@ export default function LoginPage() {
 
           <p className="mt-6 text-center text-xs text-muted-foreground font-semibold">
             Don't have an account?{' '}
-            <Link className="text-primary hover:underline font-bold" to="/signup">
+            <Link className="text-primary hover:underline font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 rounded px-1" to="/signup">
               Sign up
             </Link>
           </p>

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -16,32 +16,200 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-function getPasswordStrength(pw: string): { label: string; percent: number; color: string; textColor: string } {
-  if (!pw) return { label: '', percent: 0, color: '', textColor: '' };
-  const hasMix = /[a-z]/.test(pw) && /[A-Z]/.test(pw) && /\d/.test(pw);
-  if (pw.length >= 12 && hasMix) return { label: 'Strong Password', percent: 100, color: 'bg-emerald-500', textColor: 'text-emerald-500' };
-  if (pw.length >= 8 && hasMix)  return { label: 'Good Password',   percent: 75,  color: 'bg-blue-500', textColor: 'text-blue-500' };
-  if (pw.length >= 6)            return { label: 'Fair Password',   percent: 50,  color: 'bg-amber-500', textColor: 'text-amber-500' };
-  return                                { label: 'Weak Password',   percent: 25,  color: 'bg-destructive', textColor: 'text-destructive' };
+interface PasswordCriteria {
+  minChar: boolean;
+  hasUpper: boolean;
+  hasLower: boolean;
+  hasDigit: boolean;
+  hasSpecial: boolean;
+}
+
+function checkPasswordCriteria(pw: string): PasswordCriteria {
+  return {
+    minChar: pw.length >= 8,
+    hasUpper: /[A-Z]/.test(pw),
+    hasLower: /[a-z]/.test(pw),
+    hasDigit: /\d/.test(pw),
+    hasSpecial: /[^A-Za-z0-9]/.test(pw),
+  };
+}
+
+function getPasswordStrength(criteria: PasswordCriteria): { label: string; percent: number; color: string; textColor: string } {
+  let score = 0;
+  if (criteria.minChar) score += 1;
+  if (criteria.hasUpper) score += 1;
+  if (criteria.hasLower) score += 1;
+  if (criteria.hasDigit) score += 1;
+  if (criteria.hasSpecial) score += 1;
+
+  if (score === 0) return { label: '', percent: 0, color: '', textColor: '' };
+  if (score <= 2) return { label: 'Weak Password', percent: score * 20, color: 'bg-destructive', textColor: 'text-destructive' };
+  if (score <= 4) return { label: 'Good Password', percent: score * 20, color: 'bg-amber-500', textColor: 'text-amber-500' };
+  return { label: 'Strong Password', percent: 100, color: 'bg-emerald-500', textColor: 'text-emerald-500' };
 }
 
 export default function SignupPage() {
-  const [showPassword, setShowPassword]     = useState(false);
-  const [name, setName]                     = useState('');
-  const [email, setEmail]                   = useState('');
-  const [password, setPassword]             = useState('');
-  const [agreed, setAgreed]                 = useState(false);
-  const [loading, setLoading]               = useState(false);
-  const [googleLoading, setGoogleLoading]   = useState(false);
-  const [resending, setResending]           = useState(false);
-  const [stage, setStage]                   = useState<'form' | 'verify-sent'>('form');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [agreed, setAgreed] = useState(false);
+  
+  const [showPassword, setShowPassword] = useState(false);
+  const [capsLockActive, setCapsLockActive] = useState(false);
+  
+  // Validation States
+  const [firstNameError, setFirstNameError] = useState('');
+  const [lastNameError, setLastNameError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
+  const [agreedError, setAgreedError] = useState(false);
+
+  const [firstNameTouched, setFirstNameTouched] = useState(false);
+  const [lastNameTouched, setLastNameTouched] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
+  const [confirmPasswordTouched, setConfirmPasswordTouched] = useState(false);
+
+  const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [stage, setStage] = useState<'form' | 'verify-sent'>('form');
   const [submittedEmail, setSubmittedEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
+
+  const firstNameRef = useRef<HTMLInputElement>(null);
+  const lastNameRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const confirmPasswordRef = useRef<HTMLInputElement>(null);
 
   const { signUpWithEmail, signInWithGoogle, resendVerificationEmail, verifyEmailCode } = useAuth();
   const navigate = useNavigate();
 
-  const strength = useMemo(() => getPasswordStrength(password), [password]);
+  // Password criteria checklist & strength calculations
+  const criteria = useMemo(() => checkPasswordCriteria(password), [password]);
+  const strength = useMemo(() => getPasswordStrength(criteria), [criteria]);
+
+  // Handle Caps Lock
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.getModifierState('CapsLock')) {
+      setCapsLockActive(true);
+    } else {
+      setCapsLockActive(false);
+    }
+  };
+
+  // Validation functions
+  const validateFirstName = (val: string) => {
+    const trimmed = val.trim();
+    if (!trimmed) return 'First name is required';
+    if (trimmed.length < 2 || trimmed.length > 50) return 'First name must be between 2 and 50 characters';
+    if (!/^[a-zA-Z]+$/.test(trimmed)) return 'First name must contain letters only';
+    return '';
+  };
+
+  const validateLastName = (val: string) => {
+    const trimmed = val.trim();
+    if (!trimmed) return ''; // Optional
+    if (trimmed.length < 2 || trimmed.length > 50) return 'Last name must be between 2 and 50 characters';
+    if (!/^[a-zA-Z]+$/.test(trimmed)) return 'Last name must contain letters only';
+    return '';
+  };
+
+  const validateEmail = (val: string) => {
+    const trimmed = val.trim();
+    if (!trimmed) return 'Email address is required';
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(trimmed)) return 'Please enter a valid email address';
+    return '';
+  };
+
+  const validatePassword = (val: string) => {
+    if (!val) return 'Password is required';
+    const check = checkPasswordCriteria(val);
+    if (!check.minChar || !check.hasUpper || !check.hasLower || !check.hasDigit || !check.hasSpecial) {
+      return 'Password does not meet all security requirements';
+    }
+    return '';
+  };
+
+  const validateConfirmPassword = (val: string, pw: string) => {
+    if (!val) return 'Please confirm your password';
+    if (val !== pw) return 'Passwords do not match';
+    return '';
+  };
+
+  // Change handlers
+  const handleFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setFirstName(val);
+    if (firstNameTouched) setFirstNameError(validateFirstName(val));
+  };
+
+  const handleLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setLastName(val);
+    if (lastNameTouched) setLastNameError(validateLastName(val));
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setEmail(val);
+    if (emailTouched) setEmailError(validateEmail(val));
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setPassword(val);
+    if (passwordTouched) setPasswordError(validatePassword(val));
+    if (confirmPasswordTouched) setConfirmPasswordError(validateConfirmPassword(confirmPassword, val));
+  };
+
+  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setConfirmPassword(val);
+    if (confirmPasswordTouched) setConfirmPasswordError(validateConfirmPassword(val, password));
+  };
+
+  // Blur handlers
+  const handleFirstNameBlur = () => {
+    setFirstNameTouched(true);
+    setFirstNameError(validateFirstName(firstName));
+  };
+
+  const handleLastNameBlur = () => {
+    setLastNameTouched(true);
+    setLastNameError(validateLastName(lastName));
+  };
+
+  const handleEmailBlur = () => {
+    setEmailTouched(true);
+    setEmailError(validateEmail(email));
+  };
+
+  const handlePasswordBlur = () => {
+    setPasswordTouched(true);
+    setPasswordError(validatePassword(password));
+  };
+
+  const handleConfirmPasswordBlur = () => {
+    setConfirmPasswordTouched(true);
+    setConfirmPasswordError(validateConfirmPassword(confirmPassword, password));
+  };
+
+  const isFormValid = useMemo(() => {
+    return (
+      !validateFirstName(firstName) &&
+      !validateLastName(lastName) &&
+      !validateEmail(email) &&
+      !validatePassword(password) &&
+      !validateConfirmPassword(confirmPassword, password) &&
+      agreed
+    );
+  }, [firstName, lastName, email, password, confirmPassword, agreed]);
 
   const handleGoogleSignup = async () => {
     setGoogleLoading(true);
@@ -54,35 +222,65 @@ export default function SignupPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!agreed) { 
-      toast.error('Terms of Service', { description: 'Please agree to the Terms of Service and Privacy Policy to continue.' }); 
-      return; 
-    }
-    if (password.length < 6) { 
-      toast.error('Password too short', { description: 'Password must be at least 6 characters.' }); 
-      return; 
-    }
+    
+    setFirstNameTouched(true);
+    setLastNameTouched(true);
+    setEmailTouched(true);
+    setPasswordTouched(true);
+    setConfirmPasswordTouched(true);
 
-    setLoading(true);
-    const { error, needsVerification } = await signUpWithEmail(email, password, name);
-    setLoading(false);
+    const fnErr = validateFirstName(firstName);
+    const lnErr = validateLastName(lastName);
+    const eErr = validateEmail(email);
+    const pErr = validatePassword(password);
+    const cpErr = validateConfirmPassword(confirmPassword, password);
 
-    if (error) {
-      if (error.message === 'User already exists') {
-        toast.error('Account already exists!', { description: 'Please log in instead.' });
-        setTimeout(() => navigate('/login'), 2000);
-      } else {
-        toast.error('Sign up failed', { description: error.message });
-      }
+    if (fnErr || lnErr || eErr || pErr || cpErr || !agreed) {
+      setFirstNameError(fnErr);
+      setLastNameError(lnErr);
+      setEmailError(eErr);
+      setPasswordError(pErr);
+      setConfirmPasswordError(cpErr);
+      setAgreedError(!agreed);
+
+      // Focus first invalid field
+      if (fnErr && firstNameRef.current) firstNameRef.current.focus();
+      else if (lnErr && lastNameRef.current) lastNameRef.current.focus();
+      else if (eErr && emailRef.current) emailRef.current.focus();
+      else if (pErr && passwordRef.current) passwordRef.current.focus();
+      else if (cpErr && confirmPasswordRef.current) confirmPasswordRef.current.focus();
       return;
     }
 
-    if (needsVerification) {
-      setSubmittedEmail(email);
-      setStage('verify-sent');
-    } else {
-      toast.success('Account created! Welcome to LearnLoom.');
-      navigate('/dashboard', { replace: true });
+    setLoading(true);
+    const normalizedEmail = email.trim().toLowerCase();
+    const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
+
+    try {
+      const { error, needsVerification } = await signUpWithEmail(normalizedEmail, password, fullName);
+      setLoading(false);
+
+      if (error) {
+        if (error.message.includes('User already exists')) {
+          toast.error('Account already exists!', { description: 'Please log in instead.' });
+          setTimeout(() => navigate('/login'), 2000);
+        } else {
+          toast.error('Sign up failed', { description: error.message });
+        }
+        return;
+      }
+
+      if (needsVerification) {
+        setSubmittedEmail(normalizedEmail);
+        setStage('verify-sent');
+        toast.success('Account created!', { description: 'Please verify your email address.' });
+      } else {
+        toast.success('Welcome to LearnLoom!', { description: 'Your account has been created.' });
+        navigate('/dashboard', { replace: true });
+      }
+    } catch (err) {
+      setLoading(false);
+      toast.error('Network failure', { description: 'Please check your connection and try again.' });
     }
   };
 
@@ -94,7 +292,7 @@ export default function SignupPage() {
     if (error) {
       toast.error('Verification failed', { description: error.message });
     } else {
-      toast.success('Account verified!');
+      toast.success('Account verified!', { description: 'Welcome to the platform!' });
       navigate('/dashboard', { replace: true });
     }
   };
@@ -105,9 +303,9 @@ export default function SignupPage() {
     const { error } = await resendVerificationEmail(submittedEmail);
     setResending(false);
     if (error) {
-      toast.error('Failed to resend', { description: error.message });
+      toast.error('Failed to resend code', { description: error.message });
     } else {
-      toast.success('Verification email resent!', { description: `Check ${submittedEmail}` });
+      toast.success('Verification code resent!', { description: `Check your inbox at ${submittedEmail}` });
     }
   };
 
@@ -117,10 +315,10 @@ export default function SignupPage() {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-primary/10 blur-[120px] pointer-events-none z-0" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] rounded-full bg-chart-4/5 blur-[80px] pointer-events-none z-0" />
 
-      <main className="w-full max-w-[440px] relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <main className="w-full max-w-[460px] relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {/* Brand Header */}
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-2.5 no-underline group mb-3">
+          <Link to="/" className="inline-flex items-center gap-2.5 no-underline group mb-3" aria-label="Go to Homepage">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-chart-4 flex items-center justify-center shadow-md shadow-primary/20 group-hover:brightness-110 transition-all">
               <img src="/images/logo/logo-icon-light.png" alt="LearnLoom Logo" className="w-5 h-5 object-contain" />
             </div>
@@ -133,7 +331,7 @@ export default function SignupPage() {
           </p>
         </div>
 
-        {/* Signup Card */}
+        {/* Card */}
         <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
           
           {stage === 'verify-sent' ? (
@@ -148,7 +346,7 @@ export default function SignupPage() {
                 <span className="text-foreground font-bold">{submittedEmail}</span>. Enter the 6-digit code below.
               </p>
 
-              <form onSubmit={handleVerify} className="space-y-4">
+              <form onSubmit={handleVerify} className="space-y-4" noValidate>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -164,7 +362,7 @@ export default function SignupPage() {
                 <Button
                   type="submit"
                   disabled={loading || verificationCode.length < 6}
-                  className="w-full h-11 bg-primary text-primary-foreground font-bold hover:brightness-110 active:scale-[0.99] transition-all duration-200 disabled:opacity-50 flex items-center justify-center rounded-xl text-xs"
+                  className="w-full h-11 bg-primary text-primary-foreground font-bold hover:brightness-110 active:scale-[0.99] transition-all duration-200 disabled:opacity-50 flex items-center justify-center rounded-xl text-xs focus:outline-none focus:ring-2"
                 >
                   {loading ? (
                     <RefreshCw className="h-4 w-4 animate-spin" />
@@ -177,7 +375,7 @@ export default function SignupPage() {
                   type="button"
                   onClick={() => void handleResend()}
                   disabled={resending}
-                  className="w-full font-bold text-xs text-primary hover:underline flex justify-center items-center gap-2 min-h-[44px] transition-all duration-200 mt-2"
+                  className="w-full font-bold text-xs text-primary hover:underline flex justify-center items-center gap-2 min-h-[44px] transition-all duration-200 mt-2 focus:outline-none"
                 >
                   <RefreshCw className={`h-3.5 w-3.5 ${resending && 'animate-spin'}`} />
                   <span>Resend verification code</span>
@@ -195,7 +393,8 @@ export default function SignupPage() {
               <button
                 onClick={() => void handleGoogleSignup()}
                 disabled={googleLoading || loading}
-                className="w-full flex items-center justify-center py-2.5 px-4 rounded-xl border border-border bg-background hover:bg-muted/50 hover:border-border/80 transition-all duration-200 group disabled:opacity-50 min-h-[44px] mb-5 shadow-sm font-bold text-xs"
+                aria-label="Sign up with Google"
+                className="w-full flex items-center justify-center py-2.5 px-4 rounded-xl border border-border bg-background hover:bg-muted/50 hover:border-border/80 transition-all duration-200 group disabled:opacity-50 min-h-[44px] mb-5 shadow-sm font-bold text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 {googleLoading ? (
                   <RefreshCw className="h-4 w-4 animate-spin mr-2.5 text-muted-foreground" />
@@ -219,28 +418,57 @@ export default function SignupPage() {
                 <div className="flex-grow border-t border-border" />
               </div>
 
-              <form onSubmit={handleSignup} className="space-y-4" autoComplete="off">
+              <form onSubmit={handleSignup} className="space-y-4" autoComplete="off" noValidate>
                 {/* Dummy inputs to prevent aggressive autofill */}
                 <input type="email" style={{ display: 'none' }} name="fake_email" />
                 <input type="password" style={{ display: 'none' }} name="fake_password" />
 
-                <div className="space-y-2">
-                  <label className="block text-xs font-bold text-foreground" htmlFor="name">
-                    Full Name
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground">
-                      <User className="h-4 w-4" />
-                    </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="block text-xs font-bold text-foreground" htmlFor="firstName">
+                      First Name
+                    </label>
                     <input 
-                      className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none transition-all duration-200 text-xs text-foreground placeholder:text-muted-foreground/60 min-h-[42px] font-semibold" 
-                      id="name" 
-                      placeholder="John Doe" 
+                      ref={firstNameRef}
+                      className={`w-full px-4 py-2.5 rounded-xl border bg-background focus:ring-2 focus:outline-none transition-all duration-200 text-xs text-foreground placeholder:text-muted-foreground/60 min-h-[42px] font-semibold ${
+                        firstNameTouched && firstNameError 
+                          ? 'border-destructive focus:ring-destructive/20 focus:border-destructive' 
+                          : 'border-border focus:ring-primary/20 focus:border-primary'
+                      }`} 
+                      id="firstName" 
+                      placeholder="Jane" 
                       required 
-                      type="text"
-                      value={name}
-                      onChange={e => setName(e.target.value)}
+                      value={firstName}
+                      onChange={handleFirstNameChange}
+                      onBlur={handleFirstNameBlur}
+                      aria-invalid={!!firstNameError}
                     />
+                    {firstNameTouched && firstNameError && (
+                      <p className="text-destructive text-[10px] font-bold mt-1">{firstNameError}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-xs font-bold text-foreground" htmlFor="lastName">
+                      Last Name
+                    </label>
+                    <input 
+                      ref={lastNameRef}
+                      className={`w-full px-4 py-2.5 rounded-xl border bg-background focus:ring-2 focus:outline-none transition-all duration-200 text-xs text-foreground placeholder:text-muted-foreground/60 min-h-[42px] font-semibold ${
+                        lastNameTouched && lastNameError 
+                          ? 'border-destructive focus:ring-destructive/20 focus:border-destructive' 
+                          : 'border-border focus:ring-primary/20 focus:border-primary'
+                      }`} 
+                      id="lastName" 
+                      placeholder="Doe" 
+                      value={lastName}
+                      onChange={handleLastNameChange}
+                      onBlur={handleLastNameBlur}
+                      aria-invalid={!!lastNameError}
+                    />
+                    {lastNameTouched && lastNameError && (
+                      <p className="text-destructive text-[10px] font-bold mt-1">{lastNameError}</p>
+                    )}
                   </div>
                 </div>
 
@@ -253,15 +481,27 @@ export default function SignupPage() {
                       <Mail className="h-4 w-4" />
                     </div>
                     <input 
-                      className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none transition-all duration-200 text-xs text-foreground placeholder:text-muted-foreground/60 min-h-[42px] font-semibold" 
+                      ref={emailRef}
+                      className={`w-full pl-11 pr-4 py-2.5 rounded-xl border bg-background focus:ring-2 focus:outline-none transition-all duration-200 text-xs text-foreground placeholder:text-muted-foreground/60 min-h-[42px] font-semibold ${
+                        emailTouched && emailError 
+                          ? 'border-destructive focus:ring-destructive/20 focus:border-destructive' 
+                          : 'border-border focus:ring-primary/20 focus:border-primary'
+                      }`} 
                       id="email" 
+                      type="email" 
                       placeholder="name@company.com" 
                       required 
-                      type="email"
                       value={email}
-                      onChange={e => setEmail(e.target.value)}
+                      onChange={handleEmailChange}
+                      onBlur={handleEmailBlur}
+                      aria-invalid={!!emailError}
                     />
                   </div>
+                  {emailTouched && emailError && (
+                    <p className="text-destructive text-[10px] font-bold mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5" /> {emailError}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -273,62 +513,147 @@ export default function SignupPage() {
                       <Lock className="h-4 w-4" />
                     </div>
                     <input 
-                      className="w-full pl-11 pr-11 py-2.5 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none transition-all duration-200 text-xs text-foreground placeholder:text-muted-foreground/60 min-h-[42px] font-semibold" 
+                      ref={passwordRef}
+                      className={`w-full pl-11 pr-11 py-2.5 rounded-xl border bg-background focus:ring-2 focus:outline-none transition-all duration-200 text-xs text-foreground placeholder:text-muted-foreground/60 min-h-[42px] font-semibold ${
+                        passwordTouched && passwordError 
+                          ? 'border-destructive focus:ring-destructive/20 focus:border-destructive' 
+                          : 'border-border focus:ring-primary/20 focus:border-primary'
+                      }`} 
                       id="password" 
-                      placeholder="••••••••" 
+                      type={showPassword ? 'text' : 'password'} 
+                      placeholder="Min. 8 characters" 
                       required 
-                      type={showPassword ? 'text' : 'password'}
                       value={password}
-                      onChange={e => setPassword(e.target.value)}
+                      onChange={handlePasswordChange}
+                      onBlur={handlePasswordBlur}
+                      onKeyDown={handleKeyDown}
+                      onKeyUp={handleKeyDown}
+                      aria-invalid={!!passwordError}
                     />
                     <button 
                       onClick={() => setShowPassword(!showPassword)} 
-                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-muted-foreground hover:text-foreground transition-colors min-w-[40px] justify-center" 
+                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-muted-foreground hover:text-foreground transition-colors min-w-[40px] justify-center focus:outline-none" 
                       type="button"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
+                  {passwordTouched && passwordError && (
+                    <p className="text-destructive text-[10px] font-bold mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5" /> {passwordError}
+                    </p>
+                  )}
+                  {capsLockActive && (
+                    <p className="text-amber-500 text-[9px] font-bold mt-1">⚠️ Caps Lock is ON</p>
+                  )}
 
-                  {/* Password strength indicator */}
+                  {/* Password Strength Meter & Live Checklist */}
                   {password && (
-                    <div className="pt-1.5 space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <div className="pt-2 space-y-2 animate-in fade-in duration-200">
                       <div className="flex justify-between text-[10px] font-bold">
                         <span className="text-muted-foreground">Password Strength</span>
                         <span className={strength.textColor}>{strength.label}</span>
                       </div>
-                      <div className="h-1 w-full bg-muted rounded-full overflow-hidden border border-border/20">
+                      <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
                         <div className={`h-full ${strength.color} transition-all duration-300`} style={{ width: `${strength.percent}%` }} />
+                      </div>
+
+                      {/* Live Checklist */}
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        <div className="flex items-center gap-1.5 text-[10px] font-semibold">
+                          <span className={criteria.minChar ? 'text-emerald-500' : 'text-muted-foreground/50'}>
+                            {criteria.minChar ? '✓' : '✗'} 8+ characters
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[10px] font-semibold">
+                          <span className={criteria.hasUpper ? 'text-emerald-500' : 'text-muted-foreground/50'}>
+                            {criteria.hasUpper ? '✓' : '✗'} Uppercase letter
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[10px] font-semibold">
+                          <span className={criteria.hasLower ? 'text-emerald-500' : 'text-muted-foreground/50'}>
+                            {criteria.hasLower ? '✓' : '✗'} Lowercase letter
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[10px] font-semibold">
+                          <span className={criteria.hasDigit ? 'text-emerald-500' : 'text-muted-foreground/50'}>
+                            {criteria.hasDigit ? '✓' : '✗'} One number
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[10px] font-semibold col-span-2">
+                          <span className={criteria.hasSpecial ? 'text-emerald-500' : 'text-muted-foreground/50'}>
+                            {criteria.hasSpecial ? '✓' : '✗'} One special character (e.g. !@#$)
+                          </span>
+                        </div>
                       </div>
                     </div>
                   )}
                 </div>
 
-                <div className="pt-2">
-                  <label className="flex items-start cursor-pointer">
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-foreground" htmlFor="confirmPassword">
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground">
+                      <Lock className="h-4 w-4" />
+                    </div>
                     <input 
-                      className="form-checkbox h-4.5 w-4.5 text-primary border-border rounded focus:ring-primary/20 transition-colors mt-0.5 accent-primary" 
+                      ref={confirmPasswordRef}
+                      className={`w-full pl-11 pr-4 py-2.5 rounded-xl border bg-background focus:ring-2 focus:outline-none transition-all duration-200 text-xs text-foreground placeholder:text-muted-foreground/60 min-h-[42px] font-semibold ${
+                        confirmPasswordTouched && confirmPasswordError 
+                          ? 'border-destructive focus:ring-destructive/20 focus:border-destructive' 
+                          : 'border-border focus:ring-primary/20 focus:border-primary'
+                      }`} 
+                      id="confirmPassword" 
+                      type={showPassword ? 'text' : 'password'} 
+                      placeholder="Repeat password" 
+                      required 
+                      value={confirmPassword}
+                      onChange={handleConfirmPasswordChange}
+                      onBlur={handleConfirmPasswordBlur}
+                      aria-invalid={!!confirmPasswordError}
+                    />
+                  </div>
+                  {confirmPasswordTouched && confirmPasswordError && (
+                    <p className="text-destructive text-[10px] font-bold mt-1">{confirmPasswordError}</p>
+                  )}
+                </div>
+
+                <div className="pt-2">
+                  <label className="flex items-start cursor-pointer select-none">
+                    <input 
+                      className="form-checkbox h-4.5 w-4.5 text-primary border-border rounded focus:ring-primary/20 transition-colors mt-0.5 accent-primary focus:outline-none" 
                       type="checkbox"
                       checked={agreed}
-                      onChange={e => setAgreed(e.target.checked)}
+                      onChange={e => {
+                        setAgreed(e.target.checked);
+                        if (e.target.checked) setAgreedError(false);
+                      }}
                       required
                     />
                     <span className="ml-2.5 text-[11px] text-muted-foreground leading-normal font-semibold">
                       I agree to the{' '}
-                      <Link className="text-primary hover:underline font-bold" to="/terms">Terms of Service</Link>
+                      <Link className="text-primary hover:underline font-bold focus:outline-none" to="/terms">Terms of Service</Link>
                       {' '}and{' '}
-                      <Link className="text-primary hover:underline font-bold" to="/privacy">Privacy Policy</Link>.
+                      <Link className="text-primary hover:underline font-bold focus:outline-none" to="/privacy">Privacy Policy</Link>.
                     </span>
                   </label>
+                  {agreedError && (
+                    <p className="text-destructive text-[10px] font-bold mt-1">You must agree to the Terms of Service</p>
+                  )}
                 </div>
 
                 <Button
                   type="submit"
-                  disabled={loading}
-                  className="w-full h-11 bg-primary text-primary-foreground font-bold hover:brightness-110 active:scale-[0.99] transition-all duration-200 flex items-center justify-center gap-1.5 shadow-md shadow-primary/10 mt-6 rounded-xl text-xs"
+                  disabled={loading || !isFormValid}
+                  className="w-full h-11 bg-primary text-primary-foreground font-bold hover:brightness-110 active:scale-[0.99] transition-all duration-200 flex items-center justify-center gap-1.5 shadow-md shadow-primary/10 mt-6 rounded-xl text-xs focus:outline-none"
                 >
                   {loading ? (
-                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    <>
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      <span>Creating account...</span>
+                    </>
                   ) : (
                     <>
                       <span>Get Started</span>
@@ -346,7 +671,7 @@ export default function SignupPage() {
 
               <p className="mt-6 text-center text-xs text-muted-foreground font-semibold">
                 Already have an account?{' '}
-                <Link className="text-primary hover:underline font-bold" to="/login">
+                <Link className="text-primary hover:underline font-bold focus:outline-none" to="/login">
                   Sign in
                 </Link>
               </p>
