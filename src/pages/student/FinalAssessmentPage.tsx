@@ -13,7 +13,6 @@ import {
   Flag, 
   Video, 
   VideoOff, 
-  Rule, 
   ArrowRight, 
   AlertTriangle, 
   CheckCircle2, 
@@ -145,16 +144,47 @@ export default function FinalAssessmentPage() {
       });
   }, [stage, questions.length, courseId, navigate]);
 
-  useEffect(() => {
-    if (stage !== 'exam') return;
-    if (timeLeft === 0) {
-      toast.warning('Time is up! Your answers have been submitted automatically.');
-      handleSubmit();
-      return;
+  const handleSubmit = useCallback(async () => {
+    if (submitting) return;
+    setSubmitting(true);
+    streamRef.current?.getTracks().forEach(t => t.stop());
+    streamRef.current = null;
+
+    const finalAnswers = answers;
+    const scoreVal = questions.reduce((acc, q, i) => acc + (finalAnswers[i] === q.correct ? 1 : 0), 0);
+    const passed = questions.length > 0 && scoreVal / questions.length >= 0.6;
+
+    if (user && courseId) {
+      const scorePercentage = Math.round((scoreVal / questions.length) * 100);
+      
+      const metrics = {
+        type: 'mcq',
+        tab_switches: tabSwitchesRef.current,
+        total_questions: questions.length,
+        answers_log: questions.map((q, i) => ({
+          question_id: q.id,
+          selected_idx: finalAnswers[i] ?? -1,
+          correct: finalAnswers[i] === q.correct,
+        }))
+      };
+
+      await supabase.from('assessment_attempts').insert({
+        user_id: user.id,
+        course_id: courseId,
+        score_percentage: scorePercentage,
+        is_passed: passed,
+        metrics: metrics,
+      });
+
+      if (passed) {
+        try { await supabase.rpc('increment_credits', { p_user_id: user.id, p_amount: 100 }); } catch { /* best-effort */ }
+        await checkAndAwardCertificate(user.id, courseId);
+      }
     }
-    const t = setInterval(() => setTimeLeft(prev => Math.max(0, prev - 1)), 1000);
-    return () => clearInterval(t);
-  }, [stage, timeLeft, handleSubmit]);
+
+    setStage('submitted');
+    setSubmitting(false);
+  }, [answers, questions, submitting, user, courseId]);
 
   const handleVisibilityChange = useCallback(() => {
     if (stage !== 'exam') return;
@@ -204,47 +234,16 @@ export default function FinalAssessmentPage() {
     }
   };
 
-  const handleSubmit = useCallback(async () => {
-    if (submitting) return;
-    setSubmitting(true);
-    streamRef.current?.getTracks().forEach(t => t.stop());
-    streamRef.current = null;
-
-    const finalAnswers = answers;
-    const scoreVal = questions.reduce((acc, q, i) => acc + (finalAnswers[i] === q.correct ? 1 : 0), 0);
-    const passed = questions.length > 0 && scoreVal / questions.length >= 0.6;
-
-    if (user && courseId) {
-      const scorePercentage = Math.round((scoreVal / questions.length) * 100);
-      
-      const metrics = {
-        type: 'mcq',
-        tab_switches: tabSwitchesRef.current,
-        total_questions: questions.length,
-        answers_log: questions.map((q, i) => ({
-          question_id: q.id,
-          selected_idx: finalAnswers[i] ?? -1,
-          correct: finalAnswers[i] === q.correct,
-        }))
-      };
-
-      await supabase.from('assessment_attempts').insert({
-        user_id: user.id,
-        course_id: courseId,
-        score_percentage: scorePercentage,
-        is_passed: passed,
-        metrics: metrics,
-      });
-
-      if (passed) {
-        try { await supabase.rpc('increment_credits', { p_user_id: user.id, p_amount: 100 }); } catch { /* best-effort */ }
-        await checkAndAwardCertificate(user.id, courseId);
-      }
+  useEffect(() => {
+    if (stage !== 'exam') return;
+    if (timeLeft === 0) {
+      toast.warning('Time is up! Your answers have been submitted automatically.');
+      handleSubmit();
+      return;
     }
-
-    setStage('submitted');
-    setSubmitting(false);
-  }, [answers, questions, submitting, user, courseId]);
+    const t = setInterval(() => setTimeLeft(prev => Math.max(0, prev - 1)), 1000);
+    return () => clearInterval(t);
+  }, [stage, timeLeft, handleSubmit]);
 
   const formatTime = (s: number) =>
     `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;

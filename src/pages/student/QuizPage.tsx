@@ -22,7 +22,8 @@ import {
   RotateCcw, 
   Award, 
   Frown,
-  AlertCircle
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 
 interface Quiz {

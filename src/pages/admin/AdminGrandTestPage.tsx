@@ -361,7 +361,7 @@ export default function AdminGrandTestPage() {
           </form>
         </DialogContent>
       </Dialog>
-    </div>
+    </AppLayout>
   );
 }
 export { AdminGrandTestPage };
