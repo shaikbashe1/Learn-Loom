@@ -24,7 +24,9 @@ const CodingPracticeLibraryPage = lazy(() => import('./pages/coding/PracticePage
 const CodingProblemPage = lazy(() => import('./pages/coding/ProblemPage'));
 const CodingDailyChallengePage = lazy(() => import('./pages/coding/DailyChallengePage'));
 const CodingRoadmapsPage = lazy(() => import('./pages/coding/RoadmapsPage'));
+const CodingRoadmapDetailPage = lazy(() => import('./pages/coding/RoadmapDetailPage'));
 const CodingContestsPage = lazy(() => import('./pages/coding/ContestsPage'));
+const CodingContestDetailPage = lazy(() => import('./pages/coding/ContestDetailPage'));
 const CodingLeaderboardPage = lazy(() => import('./pages/coding/LeaderboardPage'));
 const CodingAchievementsPage = lazy(() => import('./pages/coding/AchievementsPage'));
 const CodingSubmissionsPage = lazy(() => import('./pages/coding/SubmissionsPage'));
@@ -88,7 +90,9 @@ export const routes: RouteConfig[] = [
   { name: 'Coding Problem',       path: '/coding/problems/:id',     component: CodingProblemPage },
   { name: 'Daily Challenge',      path: '/coding/daily',            component: CodingDailyChallengePage },
   { name: 'Coding Roadmaps',      path: '/coding/roadmaps',         component: CodingRoadmapsPage },
+  { name: 'Roadmap Detail',       path: '/coding/roadmaps/:id',     component: CodingRoadmapDetailPage },
   { name: 'Coding Contests',      path: '/coding/contests',         component: CodingContestsPage },
+  { name: 'Contest Detail',       path: '/coding/contests/:id',     component: CodingContestDetailPage },
   { name: 'Coding Leaderboard',   path: '/coding/leaderboard',      component: CodingLeaderboardPage },
   { name: 'Coding Achievements',  path: '/coding/achievements',     component: CodingAchievementsPage },
   { name: 'Coding Submissions',   path: '/coding/submissions',      component: CodingSubmissionsPage },

@@ -22,6 +22,9 @@ interface Problem {
   test_cases: { input: string; expectedOutput: string }[];
   is_daily: boolean;
   credits: number;
+  hints?: string[];
+  time_limit_ms?: number;
+  memory_limit_kb?: number;
 }
 
 interface TestResult {
@@ -90,6 +93,7 @@ export default function ProblemPage() {
   const [useCustomInput, setUseCustomInput] = useState(false);
   const [customInput, setCustomInput] = useState('');
   const [mobileTab, setMobileTab] = useState<'problem' | 'code' | 'output'>('problem');
+  const [revealedHints, setRevealedHints] = useState<number>(0);
   
   // AI State
   const [aiLoading, setAiLoading] = useState(false);
@@ -446,6 +450,40 @@ export default function ProblemPage() {
                   <ul className="list-disc pl-5 space-y-1">
                     {problem.constraints.map((c, i) => <li key={i}><code className="bg-surface-variant/50 px-1 py-0.5 rounded text-xs">{c}</code></li>)}
                   </ul>
+                </div>
+              )}
+
+              {(problem.expected_time_complexity || problem.expected_space_complexity) && (
+                <div className="mb-4 pt-4 border-t border-outline-variant/30 text-xs">
+                  {problem.expected_time_complexity && <p><strong className="text-on-surface-variant">Time Complexity:</strong> <span className="font-mono text-on-surface">{problem.expected_time_complexity}</span></p>}
+                  {problem.expected_space_complexity && <p className="mt-1"><strong className="text-on-surface-variant">Space Complexity:</strong> <span className="font-mono text-on-surface">{problem.expected_space_complexity}</span></p>}
+                </div>
+              )}
+
+              {problem.hints && problem.hints.length > 0 && (
+                <div className="mb-4 pt-4 border-t border-outline-variant/30">
+                  <h4 className="font-bold text-on-surface mb-3 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px]">lightbulb</span> Hints
+                  </h4>
+                  <div className="space-y-2">
+                    {problem.hints.map((hint, i) => (
+                      <div key={i} className="bg-surface-container-low border border-outline-variant/30 rounded-lg overflow-hidden">
+                        <button 
+                          onClick={() => setRevealedHints(Math.max(revealedHints, i + 1))}
+                          disabled={i < revealedHints}
+                          className={`w-full text-left px-3 py-2 text-xs font-medium flex justify-between items-center ${i < revealedHints ? 'bg-primary/5 text-primary' : 'hover:bg-surface-variant text-on-surface-variant cursor-pointer'}`}
+                        >
+                          <span>Hint {i + 1}</span>
+                          {i >= revealedHints && <span className="material-symbols-outlined text-[14px]">lock</span>}
+                        </button>
+                        {i < revealedHints && (
+                          <div className="p-3 text-sm text-on-surface border-t border-outline-variant/30">
+                            {hint}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

@@ -6,18 +6,21 @@ import { supabase } from '@/db/supabase';
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Clock } from 'lucide-react';
 
 interface Problem {
   id: string;
   title: string;
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
   credits: number;
+  category?: string;
+  estimated_solve_time_min?: number;
 }
 
 const TOPICS = [
-  'Arrays', 'Strings', 'Math', 'Searching', 'Sorting', 'Linked List', 
-  'Stack', 'Queue', 'Trees', 'BST', 'Graphs', 'Heap', 'Greedy', 
-  'Dynamic Programming', 'Backtracking', 'Bit Manipulation', 'SQL'
+  'Fundamentals', 'Strings', 'Arrays', 'Searching', 'Sorting', 'Mathematics', 
+  'Bit Manipulation', 'Stack', 'Queue', 'Linked List', 'Trees', 'Binary Search Trees', 
+  'Heap', 'Graphs', 'Dynamic Programming', 'Greedy', 'Backtracking', 'Hashing', 'Trie', 'SQL', 'Object-Oriented Programming'
 ];
 
 export default function PracticePage() {
@@ -30,7 +33,7 @@ export default function PracticePage() {
   useEffect(() => {
     supabase
       .from('coding_problems')
-      .select('id, title, difficulty, credits')
+      .select('id, title, difficulty, credits, category, estimated_solve_time_min')
       .order('sort_order')
       .then(({ data }) => {
         if (data) setProblems(data as Problem[]);
@@ -41,10 +44,14 @@ export default function PracticePage() {
   const filteredProblems = useMemo(() => {
     return problems.filter(p => {
       const matchSearch = p.title.toLowerCase().includes(search.toLowerCase());
-      const matchDiff = difficultyFilter === 'All' || p.difficulty === difficultyFilter;
-      // Topic filter not fully implemented in schema yet (using problem_tags table), 
-      // so this is just a placeholder logic. We assume title might have topic or we skip.
-      const matchTopic = topicFilter === 'All' || true; 
+      
+      let mappedDiff = p.difficulty as string;
+      if (p.difficulty === 'Beginner') mappedDiff = 'Easy';
+      if (p.difficulty === 'Intermediate') mappedDiff = 'Medium';
+      if (p.difficulty === 'Advanced') mappedDiff = 'Hard';
+
+      const matchDiff = difficultyFilter === 'All' || mappedDiff === difficultyFilter;
+      const matchTopic = topicFilter === 'All' || p.category === topicFilter; 
       
       return matchSearch && matchDiff && matchTopic;
     });
@@ -80,7 +87,7 @@ export default function PracticePage() {
                 <span className="material-symbols-outlined text-[18px]">filter_list</span> Difficulty
               </h3>
               <div className="flex flex-col gap-2">
-                {['All', 'Beginner', 'Intermediate', 'Advanced'].map(diff => (
+                {['All', 'Easy', 'Medium', 'Hard'].map(diff => (
                   <label key={diff} className="flex items-center gap-2 cursor-pointer group">
                     <input 
                       type="radio" 
@@ -98,11 +105,11 @@ export default function PracticePage() {
               </div>
             </div>
 
-            <div className="bg-surface border border-outline-variant/60 rounded-xl p-4 shadow-sm">
-              <h3 className="font-bold text-on-surface mb-3 flex items-center gap-2">
-                <span className="material-symbols-outlined text-[18px]">tag</span> Topics
+            <div className="bg-surface border border-outline-variant/60 rounded-xl p-4 shadow-sm flex flex-col h-[600px]">
+              <h3 className="font-bold text-on-surface mb-3 flex items-center gap-2 shrink-0">
+                <span className="material-symbols-outlined text-[18px]">category</span> Category
               </h3>
-              <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto custom-scrollbar pr-2">
+              <div className="flex flex-wrap gap-2 overflow-y-auto custom-scrollbar pr-2 flex-1 pb-4">
                  <Badge 
                     variant="outline" 
                     className={`cursor-pointer transition-colors ${topicFilter === 'All' ? 'bg-primary/20 text-primary border-primary/50' : 'hover:bg-surface-variant/50 border-outline-variant/60'}`}
@@ -126,7 +133,7 @@ export default function PracticePage() {
           </div>
 
           {/* Problem List */}
-          <div className="flex-1 bg-surface border border-outline-variant/60 rounded-xl overflow-hidden shadow-sm">
+          <div className="flex-1 bg-surface border border-outline-variant/60 rounded-xl overflow-hidden shadow-sm h-fit">
             <div className="grid grid-cols-[1fr_100px_80px_100px] gap-4 p-4 border-b border-outline-variant/60 bg-surface-container-lowest font-bold text-sm text-on-surface-variant">
               <div>Problem</div>
               <div className="text-center">Difficulty</div>
@@ -147,10 +154,18 @@ export default function PracticePage() {
               <div className="divide-y divide-outline-variant/30">
                 {filteredProblems.map(p => (
                   <div key={p.id} className="grid grid-cols-[1fr_100px_80px_100px] gap-4 p-4 items-center hover:bg-surface-variant/10 transition-colors group">
-                    <div>
+                    <div className="flex flex-col gap-1">
                       <Link to={`/coding/problems/${p.id}`} className="font-medium text-on-surface group-hover:text-primary transition-colors flex items-center gap-2">
                         {p.title}
                       </Link>
+                      <div className="flex items-center gap-3 text-xs text-on-surface-variant">
+                        {p.category && <span className="bg-surface-container-highest px-2 py-0.5 rounded text-on-surface">{p.category}</span>}
+                        {p.estimated_solve_time_min && (
+                          <span className="flex items-center gap-1 opacity-70">
+                            <Clock className="h-3 w-3" /> {p.estimated_solve_time_min} mins
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="text-center">
                       <Badge className={`bg-transparent border-0
