@@ -46,7 +46,21 @@ const studentNavItems = [
   { label: 'Courses',         path: '/courses',      icon: BookOpen },
   { label: 'AI Roadmap',      path: '/ai-roadmap',   icon: Compass },
   { label: 'AI Mentor',       path: '/ai-mentor',    icon: Bot },
-  { label: 'Coding Practice', path: '/coding',       icon: Terminal },
+  { 
+    label: 'Coding Practice',          
+    path: '/coding/dashboard', 
+    icon: Terminal,
+    subItems: [
+      { label: 'Dashboard', path: '/coding/dashboard' },
+      { label: 'Practice', path: '/coding/practice' },
+      { label: 'Daily Challenge', path: '/coding/daily' },
+      { label: 'Roadmaps', path: '/coding/roadmaps' },
+      { label: 'Contests', path: '/coding/contests' },
+      { label: 'Leaderboard', path: '/coding/leaderboard' },
+      { label: 'Achievements', path: '/coding/achievements' },
+      { label: 'My Submissions', path: '/coding/submissions' },
+    ]
+  },
   { label: 'Assignments',     path: '/assignments',  icon: FileText },
   { label: 'Community',       path: '/community',    icon: Users },
   { label: 'Messages',        path: '/messages',     icon: MessageSquare },
@@ -67,10 +81,18 @@ const adminNavItems = [
   { label: 'Submissions',     path: '/admin/submissions',   icon: FileText },
   { label: 'Reports',         path: '/admin/reports',       icon: FileText },
   { label: 'Roadmaps',        path: '/admin/roadmaps',      icon: Compass },
+  { label: 'Coding Problems', path: '/admin/coding/problems', icon: Terminal },
 ];
 
+export type NavItem = {
+  label: string;
+  path: string;
+  icon: any;
+  subItems?: { label: string; path: string; }[];
+};
+
 interface SidebarNavProps {
-  items: typeof studentNavItems;
+  items: NavItem[];
   isCollapsed: boolean;
   onClose?: () => void;
 }
@@ -89,34 +111,64 @@ function SidebarNav({ items, isCollapsed, onClose }: SidebarNavProps) {
            location.pathname.startsWith(item.path));
         
         return (
-          <Link
-            key={item.path}
-            to={item.path}
-            onClick={onClose}
-            className={cn(
-              'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative duration-200',
-              isActive
-                ? 'text-primary font-semibold bg-primary/10'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-            )}
-            title={isCollapsed ? item.label : undefined}
-          >
-            <Icon className={cn("h-5 w-5 shrink-0 transition-transform duration-200 group-hover:scale-105", isActive && 'text-primary')} />
-            {!isCollapsed && <span className="text-sm truncate">{item.label}</span>}
-            
-            {isActive && !isCollapsed && (
-              <span className="absolute left-0 top-1/3 bottom-1/3 w-1 rounded-r bg-primary" />
-            )}
+          <div key={item.path} className="flex flex-col">
+            <Link
+              to={item.path}
+              onClick={item.subItems ? undefined : onClose}
+              className={cn(
+                'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative duration-200',
+                isActive
+                  ? 'text-primary font-semibold bg-primary/10'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+              )}
+              title={isCollapsed ? item.label : undefined}
+            >
+              <Icon className={cn("h-5 w-5 shrink-0 transition-transform duration-200 group-hover:scale-105", isActive && 'text-primary')} />
+              {!isCollapsed && <span className="text-sm truncate flex-1">{item.label}</span>}
+              
+              {isActive && !isCollapsed && (
+                <span className="absolute left-0 top-1/3 bottom-1/3 w-1 rounded-r bg-primary" />
+              )}
 
-            {item.path === '/messages' && unreadMessages > 0 && (
-              <span className={cn(
-                "ml-auto bg-primary text-primary-foreground font-bold flex items-center justify-center rounded-full border-0 shrink-0",
-                isCollapsed ? "absolute top-1.5 right-1.5 h-2 w-2 p-0" : "text-[10px] h-5 min-w-[20px] px-1"
-              )}>
-                {!isCollapsed && (unreadMessages > 99 ? '99+' : unreadMessages)}
-              </span>
+              {item.path === '/messages' && unreadMessages > 0 && (
+                <span className={cn(
+                  "ml-auto bg-primary text-primary-foreground font-bold flex items-center justify-center rounded-full border-0 shrink-0",
+                  isCollapsed ? "absolute top-1.5 right-1.5 h-2 w-2 p-0" : "text-[10px] h-5 min-w-[20px] px-1"
+                )}>
+                  {!isCollapsed && (unreadMessages > 99 ? '99+' : unreadMessages)}
+                </span>
+              )}
+              
+              {!isCollapsed && item.subItems && (
+                <span className="material-symbols-outlined text-[18px]">
+                  {location.pathname.startsWith('/coding') ? 'expand_less' : 'expand_more'}
+                </span>
+              )}
+            </Link>
+
+            {!isCollapsed && item.subItems && location.pathname.startsWith('/coding') && (
+              <div className="flex flex-col ml-9 mt-1 gap-1 border-l-2 border-border/50 pl-3">
+                {item.subItems.map((sub) => {
+                  const isSubActive = location.pathname === sub.path;
+                  return (
+                    <Link
+                      key={sub.path}
+                      to={sub.path}
+                      onClick={onClose}
+                      className={cn(
+                        'flex items-center px-2 py-1.5 rounded-md transition-all text-sm duration-200',
+                        isSubActive
+                          ? 'text-primary font-medium bg-primary/5'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                      )}
+                    >
+                      {sub.label}
+                    </Link>
+                  );
+                })}
+              </div>
             )}
-          </Link>
+          </div>
         );
       })}
     </nav>

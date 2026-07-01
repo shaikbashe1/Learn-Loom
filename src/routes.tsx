@@ -19,7 +19,15 @@ const CourseDetailPage    = lazy(() => import('./pages/student/CourseDetailPage'
 const CoursePlayerPage    = lazy(() => import('./pages/student/CoursePlayerPage'));
 const AIRoadmapPage       = lazy(() => import('./pages/student/AIRoadmapPage'));
 const AIMentorPage        = lazy(() => import('./pages/student/AIMentorPage'));
-const CodingPracticePage  = lazy(() => import('./pages/student/CodingPracticePage'));
+const CodingDashboardPage = lazy(() => import('./pages/coding/DashboardPage'));
+const CodingPracticeLibraryPage = lazy(() => import('./pages/coding/PracticePage'));
+const CodingProblemPage = lazy(() => import('./pages/coding/ProblemPage'));
+const CodingDailyChallengePage = lazy(() => import('./pages/coding/DailyChallengePage'));
+const CodingRoadmapsPage = lazy(() => import('./pages/coding/RoadmapsPage'));
+const CodingContestsPage = lazy(() => import('./pages/coding/ContestsPage'));
+const CodingLeaderboardPage = lazy(() => import('./pages/coding/LeaderboardPage'));
+const CodingAchievementsPage = lazy(() => import('./pages/coding/AchievementsPage'));
+const CodingSubmissionsPage = lazy(() => import('./pages/coding/SubmissionsPage'));
 const CodingAssessmentPage = lazy(() => import('./pages/student/CodingAssessmentPage'));
 const QuizPage            = lazy(() => import('./pages/student/QuizPage'));
 const GrandTestPage       = lazy(() => import('./pages/student/GrandTestPage'));
@@ -45,6 +53,7 @@ const AdminCommunityPage  = lazy(() => import('./pages/admin/AdminCommunityPage'
 const AdminSubmissionsPage = lazy(() => import('./pages/admin/AdminSubmissionsPage'));
 const AdminRoadmapsPage   = lazy(() => import('./pages/admin/AdminRoadmapsPage'));
 const AdminDraftCoursesPage = lazy(() => import('./pages/admin/AdminDraftCoursesPage').then(module => ({ default: module.AdminDraftCoursesPage })));
+const AdminCodingProblemsPage = lazy(() => import('./pages/admin/AdminCodingProblemsPage'));
 
 export interface RouteConfig {
   name: string;
@@ -74,7 +83,15 @@ export const routes: RouteConfig[] = [
   { name: 'Course Player',        path: '/courses/:id/learn/:moduleId', component: CoursePlayerPage },
   { name: 'AI Roadmap',           path: '/ai-roadmap',              component: AIRoadmapPage },
   { name: 'AI Mentor',            path: '/ai-mentor',               component: AIMentorPage },
-  { name: 'Coding Practice',      path: '/coding',                  component: CodingPracticePage },
+  { name: 'Coding Dashboard',     path: '/coding/dashboard',        component: CodingDashboardPage },
+  { name: 'Coding Practice',      path: '/coding/practice',         component: CodingPracticeLibraryPage },
+  { name: 'Coding Problem',       path: '/coding/problems/:id',     component: CodingProblemPage },
+  { name: 'Daily Challenge',      path: '/coding/daily',            component: CodingDailyChallengePage },
+  { name: 'Coding Roadmaps',      path: '/coding/roadmaps',         component: CodingRoadmapsPage },
+  { name: 'Coding Contests',      path: '/coding/contests',         component: CodingContestsPage },
+  { name: 'Coding Leaderboard',   path: '/coding/leaderboard',      component: CodingLeaderboardPage },
+  { name: 'Coding Achievements',  path: '/coding/achievements',     component: CodingAchievementsPage },
+  { name: 'Coding Submissions',   path: '/coding/submissions',      component: CodingSubmissionsPage },
   { name: 'Coding Assessment',    path: '/courses/:id/coding-assessment', component: CodingAssessmentPage },
   { name: 'Quiz',                 path: '/quiz/:id',                component: QuizPage },
   { name: 'Grand Test',           path: '/grand-test',              component: GrandTestPage },
@@ -101,4 +118,5 @@ export const routes: RouteConfig[] = [
   { name: 'Admin Submissions',    path: '/admin/submissions',       component: AdminSubmissionsPage },
   { name: 'Admin Roadmaps',       path: '/admin/roadmaps',          component: AdminRoadmapsPage },
   { name: 'Review Drafts',        path: '/admin/courses/drafts',    component: AdminDraftCoursesPage },
+  { name: 'Admin Coding Problems', path: '/admin/coding/problems',  component: AdminCodingProblemsPage },
 ];
