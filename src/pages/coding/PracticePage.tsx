@@ -1,196 +1,230 @@
+import React, { useState, useEffect, useMemo } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/db/supabase';
-import { useState, useEffect, useMemo } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Clock } from 'lucide-react';
-
-interface Problem {
-  id: string;
-  title: string;
-  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
-  credits: number;
-  category?: string;
-  estimated_solve_time_min?: number;
-}
+import { Search, Trophy, CheckCircle2, Circle, Clock, Building2, Terminal } from 'lucide-react';
+import type { DBCodingProblem, DBUserSubmission } from '@/types/types';
 
 const TOPICS = [
-  'Fundamentals', 'Strings', 'Arrays', 'Searching', 'Sorting', 'Mathematics', 
-  'Bit Manipulation', 'Stack', 'Queue', 'Linked List', 'Trees', 'Binary Search Trees', 
-  'Heap', 'Graphs', 'Dynamic Programming', 'Greedy', 'Backtracking', 'Hashing', 'Trie', 'SQL', 'Object-Oriented Programming'
+  'All', 'Arrays', 'Strings', 'Mathematics', 'Two Pointers', 'Binary Search', 
+  'Dynamic Programming', 'Graphs', 'Trees', 'SQL', 'Backtracking', 'Hash Table'
 ];
 
+const DIFFICULTIES = ['All', 'Easy', 'Medium', 'Hard'];
+
 export default function PracticePage() {
-  const [problems, setProblems] = useState<Problem[]>([]);
+  const { user } = useAuth();
+  const [problems, setProblems] = useState<DBCodingProblem[]>([]);
+  const [solvedIds, setSolvedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [difficultyFilter, setDifficultyFilter] = useState<string>('All');
   const [topicFilter, setTopicFilter] = useState<string>('All');
 
   useEffect(() => {
-    supabase
-      .from('coding_problems')
-      .select('id, title, difficulty, credits, category, estimated_solve_time_min')
-      .order('sort_order')
-      .then(({ data }) => {
-        if (data) setProblems(data as Problem[]);
-        setLoading(false);
-      });
-  }, []);
+    const fetchData = async () => {
+      // Fetch problems
+      const { data: probData } = await supabase
+        .from('coding_problems')
+        .select('*')
+        .order('created_at', { ascending: true });
+        
+      if (probData) setProblems(probData as DBCodingProblem[]);
+
+      // Fetch user solved status
+      if (user) {
+        const { data: subData } = await supabase
+          .from('user_submissions')
+          .select('problem_id')
+          .eq('user_id', user.id)
+          .eq('status', 'Accepted');
+          
+        if (subData) {
+          const ids = new Set(subData.map(s => s.problem_id));
+          setSolvedIds(ids);
+        }
+      }
+      setLoading(false);
+    };
+    fetchData();
+  }, [user]);
 
   const filteredProblems = useMemo(() => {
     return problems.filter(p => {
-      const matchSearch = p.title.toLowerCase().includes(search.toLowerCase());
-      
-      let mappedDiff = p.difficulty as string;
-      if (p.difficulty === 'Beginner') mappedDiff = 'Easy';
-      if (p.difficulty === 'Intermediate') mappedDiff = 'Medium';
-      if (p.difficulty === 'Advanced') mappedDiff = 'Hard';
-
-      const matchDiff = difficultyFilter === 'All' || mappedDiff === difficultyFilter;
-      const matchTopic = topicFilter === 'All' || p.category === topicFilter; 
-      
+      const matchSearch = p.title.toLowerCase().includes(search.toLowerCase()) || 
+                         (p.company_tags && p.company_tags.some(tag => tag.toLowerCase().includes(search.toLowerCase())));
+      const matchDiff = difficultyFilter === 'All' || p.difficulty === difficultyFilter;
+      const matchTopic = topicFilter === 'All' || p.topic === topicFilter;
       return matchSearch && matchDiff && matchTopic;
     });
   }, [problems, search, difficultyFilter, topicFilter]);
 
+  // Calculate XP (Easy=20, Medium=50, Hard=100)
+  const totalXP = Array.from(solvedIds).reduce((acc, id) => {
+    const p = problems.find(prob => prob.id === id);
+    if (!p) return acc;
+    if (p.difficulty === 'Easy') return acc + 20;
+    if (p.difficulty === 'Medium') return acc + 50;
+    return acc + 100;
+  }, 0);
+
   return (
     <AppLayout title="Coding Practice">
-      <div className="flex flex-col gap-6 p-4">
+      <div className="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full space-y-8 bg-background">
         
-        {/* Header & Search */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-surface border border-outline-variant rounded-2xl p-6 shadow-sm">
           <div>
-            <h1 className="text-3xl font-bold font-display text-primary-fixed-dim">Practice</h1>
-            <p className="text-on-surface-variant font-label-md">Sharpen your coding skills with our problem library.</p>
+            <h1 className="text-3xl font-heading font-bold text-on-surface flex items-center gap-3">
+              <Terminal className="w-8 h-8 text-primary" />
+              Practice Hub
+            </h1>
+            <p className="text-on-surface-variant mt-2 max-w-2xl">
+              Master algorithms, data structures, and prepare for technical interviews.
+            </p>
           </div>
-          <div className="relative w-full md:w-72">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+          
+          {/* User Progress Stats */}
+          {user && (
+            <div className="flex items-center gap-6 bg-surface-container rounded-xl p-4">
+              <div className="text-center">
+                <p className="text-xs text-on-surface-variant uppercase tracking-wider font-bold mb-1">Solved</p>
+                <p className="text-2xl font-bold text-primary">{solvedIds.size} <span className="text-sm text-on-surface-variant font-normal">/ {problems.length}</span></p>
+              </div>
+              <div className="w-px h-10 bg-outline-variant/50"></div>
+              <div className="text-center">
+                <p className="text-xs text-on-surface-variant uppercase tracking-wider font-bold mb-1">Earned XP</p>
+                <p className="text-2xl font-bold text-tertiary flex items-center gap-1 justify-center">
+                  <Trophy className="w-5 h-5" /> {totalXP}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-col md:flex-row gap-4 bg-surface p-4 rounded-xl border border-outline-variant shadow-sm">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
             <Input 
-              placeholder="Search problems..." 
+              placeholder="Search problems or companies..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 rounded-full bg-surface-container-low border-outline-variant/60 focus:border-primary"
+              className="pl-10 w-full"
             />
           </div>
+          
+          <select 
+            value={difficultyFilter} 
+            onChange={(e) => setDifficultyFilter(e.target.value)}
+            className="h-10 px-3 rounded-md border border-input bg-background text-sm"
+          >
+            {DIFFICULTIES.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+
+          <select 
+            value={topicFilter} 
+            onChange={(e) => setTopicFilter(e.target.value)}
+            className="h-10 px-3 rounded-md border border-input bg-background text-sm max-w-[200px]"
+          >
+            {TOPICS.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Filters Sidebar */}
-          <div className="w-full lg:w-64 shrink-0 space-y-6">
-            
-            <div className="bg-surface border border-outline-variant/60 rounded-xl p-4 shadow-sm">
-              <h3 className="font-bold text-on-surface mb-3 flex items-center gap-2">
-                <span className="material-symbols-outlined text-[18px]">filter_list</span> Difficulty
-              </h3>
-              <div className="flex flex-col gap-2">
-                {['All', 'Easy', 'Medium', 'Hard'].map(diff => (
-                  <label key={diff} className="flex items-center gap-2 cursor-pointer group">
-                    <input 
-                      type="radio" 
-                      name="difficulty" 
-                      value={diff} 
-                      checked={difficultyFilter === diff}
-                      onChange={(e) => setDifficultyFilter(e.target.value)}
-                      className="text-primary focus:ring-primary rounded-full border-outline-variant/60 bg-surface-container-highest"
-                    />
-                    <span className={`text-sm ${difficultyFilter === diff ? 'text-primary font-medium' : 'text-on-surface-variant group-hover:text-on-surface transition-colors'}`}>
-                      {diff}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-surface border border-outline-variant/60 rounded-xl p-4 shadow-sm flex flex-col h-[600px]">
-              <h3 className="font-bold text-on-surface mb-3 flex items-center gap-2 shrink-0">
-                <span className="material-symbols-outlined text-[18px]">category</span> Category
-              </h3>
-              <div className="flex flex-wrap gap-2 overflow-y-auto custom-scrollbar pr-2 flex-1 pb-4">
-                 <Badge 
-                    variant="outline" 
-                    className={`cursor-pointer transition-colors ${topicFilter === 'All' ? 'bg-primary/20 text-primary border-primary/50' : 'hover:bg-surface-variant/50 border-outline-variant/60'}`}
-                    onClick={() => setTopicFilter('All')}
-                  >
-                    All
-                  </Badge>
-                {TOPICS.map(topic => (
-                  <Badge 
-                    key={topic} 
-                    variant="outline" 
-                    className={`cursor-pointer transition-colors ${topicFilter === topic ? 'bg-primary/20 text-primary border-primary/50' : 'hover:bg-surface-variant/50 border-outline-variant/60 text-on-surface-variant'}`}
-                    onClick={() => setTopicFilter(topic)}
-                  >
-                    {topic}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-
-          </div>
-
-          {/* Problem List */}
-          <div className="flex-1 bg-surface border border-outline-variant/60 rounded-xl overflow-hidden shadow-sm h-fit">
-            <div className="grid grid-cols-[1fr_100px_80px_100px] gap-4 p-4 border-b border-outline-variant/60 bg-surface-container-lowest font-bold text-sm text-on-surface-variant">
-              <div>Problem</div>
-              <div className="text-center">Difficulty</div>
-              <div className="text-center">XP</div>
-              <div className="text-right">Action</div>
-            </div>
-            
-            {loading ? (
-              <div className="p-4 space-y-4">
-                {[1,2,3,4,5].map(i => <Skeleton key={i} className="h-16 w-full rounded-lg bg-surface-variant/50" />)}
-              </div>
-            ) : filteredProblems.length === 0 ? (
-              <div className="p-12 text-center text-on-surface-variant flex flex-col items-center">
-                <span className="material-symbols-outlined text-4xl mb-2 opacity-30">search_off</span>
-                <p>No problems found matching your criteria.</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-outline-variant/30">
-                {filteredProblems.map(p => (
-                  <div key={p.id} className="grid grid-cols-[1fr_100px_80px_100px] gap-4 p-4 items-center hover:bg-surface-variant/10 transition-colors group">
-                    <div className="flex flex-col gap-1">
-                      <Link to={`/coding/problems/${p.id}`} className="font-medium text-on-surface group-hover:text-primary transition-colors flex items-center gap-2">
-                        {p.title}
-                      </Link>
-                      <div className="flex items-center gap-3 text-xs text-on-surface-variant">
-                        {p.category && <span className="bg-surface-container-highest px-2 py-0.5 rounded text-on-surface">{p.category}</span>}
-                        {p.estimated_solve_time_min && (
-                          <span className="flex items-center gap-1 opacity-70">
-                            <Clock className="h-3 w-3" /> {p.estimated_solve_time_min} mins
-                          </span>
+        {/* Problem List */}
+        <div className="bg-surface border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-surface-container-low text-on-surface-variant border-b border-outline-variant">
+              <tr>
+                <th className="px-6 py-4 font-semibold">Status</th>
+                <th className="px-6 py-4 font-semibold">Title</th>
+                <th className="px-6 py-4 font-semibold">Difficulty</th>
+                <th className="px-6 py-4 font-semibold">Topic</th>
+                <th className="px-6 py-4 font-semibold hidden md:table-cell">Companies</th>
+                <th className="px-6 py-4 font-semibold text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-outline-variant">
+              {loading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i}>
+                    <td className="px-6 py-4"><Skeleton className="h-5 w-5 rounded-full" /></td>
+                    <td className="px-6 py-4"><Skeleton className="h-5 w-48" /></td>
+                    <td className="px-6 py-4"><Skeleton className="h-5 w-16" /></td>
+                    <td className="px-6 py-4"><Skeleton className="h-5 w-24" /></td>
+                    <td className="px-6 py-4 hidden md:table-cell"><Skeleton className="h-5 w-32" /></td>
+                    <td className="px-6 py-4 text-right"><Skeleton className="h-8 w-20 ml-auto" /></td>
+                  </tr>
+                ))
+              ) : filteredProblems.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-on-surface-variant">
+                    No problems found matching your criteria.
+                  </td>
+                </tr>
+              ) : (
+                filteredProblems.map((problem) => {
+                  const isSolved = solvedIds.has(problem.id);
+                  return (
+                    <tr key={problem.id} className="hover:bg-surface-container-lowest transition-colors group">
+                      <td className="px-6 py-4">
+                        {isSolved ? (
+                          <CheckCircle2 className="w-5 h-5 text-green-500" />
+                        ) : (
+                          <Circle className="w-5 h-5 text-outline-variant" />
                         )}
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <Badge className={`bg-transparent border-0
-                        ${p.difficulty === 'Beginner' ? 'text-[#4ade80]' : p.difficulty === 'Intermediate' ? 'text-tertiary' : 'text-error'}
-                      `}>
-                        {p.difficulty === 'Beginner' ? 'Easy' : p.difficulty === 'Intermediate' ? 'Medium' : 'Hard'}
-                      </Badge>
-                    </div>
-                    <div className="text-center text-sm font-medium text-[#facc15]">
-                      +{p.credits}
-                    </div>
-                    <div className="text-right">
-                      <Link to={`/coding/problems/${p.id}`}>
-                        <Button variant="outline" size="sm" className="border-primary text-primary hover:bg-primary hover:text-on-primary h-8 px-3 rounded-full transition-all">
-                          Solve
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
+                      </td>
+                      <td className="px-6 py-4 font-medium text-on-surface">
+                        <Link to={`/coding/problems/${problem.slug}`} className="hover:text-primary transition-colors">
+                          {problem.title}
+                        </Link>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 py-1 rounded text-xs font-bold ${
+                          problem.difficulty === 'Easy' ? 'bg-green-500/10 text-green-500' :
+                          problem.difficulty === 'Medium' ? 'bg-yellow-500/10 text-yellow-600' :
+                          'bg-red-500/10 text-red-500'
+                        }`}>
+                          {problem.difficulty}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-on-surface-variant">
+                        {problem.topic || 'General'}
+                      </td>
+                      <td className="px-6 py-4 hidden md:table-cell">
+                        <div className="flex gap-1 flex-wrap">
+                          {problem.company_tags?.slice(0, 2).map(tag => (
+                            <span key={tag} className="text-xs bg-surface-container px-2 py-1 rounded flex items-center gap-1">
+                              <Building2 className="w-3 h-3" /> {tag}
+                            </span>
+                          ))}
+                          {(problem.company_tags?.length || 0) > 2 && (
+                            <span className="text-xs bg-surface-container px-2 py-1 rounded">
+                              +{(problem.company_tags?.length || 0) - 2}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <Link to={`/coding/problems/${problem.slug}`}>
+                          <Button variant={isSolved ? "outline" : "default"} size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                            {isSolved ? 'Review' : 'Solve'}
+                          </Button>
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
+        
       </div>
     </AppLayout>
   );

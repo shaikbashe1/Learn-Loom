@@ -77,13 +77,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Strict RBAC Override: Enforce super_admin ONLY for the authorized email
   const applyRoleOverride = (u: User | null, p: Profile | null): Profile | null => {
     if (!p) return null;
-    if (u?.email === 'shaikbashe2222@gmail.com') {
-      return { ...p, role: 'super_admin' };
-    }
-    // Downgrade any unauthorized super_admins to normal users
-    if (p.role === 'super_admin' || p.role === 'admin') {
-      return { ...p, role: 'user' };
-    }
     return p;
   };
 

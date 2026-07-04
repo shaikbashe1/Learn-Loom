@@ -1,107 +1,223 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/db/supabase';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
+import { Play, Square, RefreshCw, Terminal, Activity, Server, AlertCircle } from 'lucide-react';
 
 interface Problem {
   id: string;
   title: string;
   difficulty: string;
-  is_daily: boolean;
-  credits: number;
+  topic: string;
 }
 
 export default function AdminCodingProblemsPage() {
   const [problems, setProblems] = useState<Problem[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Scraper Daemon State
+  const [scraperStatus, setScraperStatus] = useState<'running' | 'stopped'>('stopped');
+  const [scraperLoading, setScraperLoading] = useState(false);
+  const [scraperLogs, setScraperLogs] = useState<string[]>([
+    "System initialized.",
+    "Waiting for scraper daemon commands..."
+  ]);
 
   useEffect(() => {
     fetchProblems();
+    checkScraperStatus();
   }, []);
 
   const fetchProblems = async () => {
-    setLoading(true);
-    const { data, error } = await supabase.from('coding_problems').select('*').order('created_at', { ascending: false });
-    if (error) {
-      toast.error('Failed to load problems');
-    } else {
-      setProblems(data as Problem[]);
-    }
+    const { data } = await supabase
+      .from('coding_problems')
+      .select('id, title, difficulty, topic')
+      .order('created_at', { ascending: false });
+    if (data) setProblems(data as Problem[]);
     setLoading(false);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this problem?')) return;
-    const { error } = await supabase.from('coding_problems').delete().eq('id', id);
-    if (error) {
-      toast.error('Failed to delete problem');
-    } else {
-      toast.success('Problem deleted');
-      fetchProblems();
+  const checkScraperStatus = async () => {
+    try {
+      const res = await fetch('http://localhost:8000/api/v1/problem-scrape/status');
+      if (res.ok) {
+        const data = await res.json();
+        setScraperStatus(data.status);
+      }
+    } catch (e) {
+      // Backend not running locally
     }
   };
 
-  return (
-    <AppLayout title="Manage Coding Problems" isAdmin>
-      <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold font-display text-primary-fixed-dim">Coding Problems</h1>
-            <p className="text-on-surface-variant font-label-md mt-1">Manage the coding problem library, daily challenges, and test cases.</p>
-          </div>
-          <Button className="bg-primary text-on-primary font-bold">
-            <span className="material-symbols-outlined mr-2">add</span> Create Problem
-          </Button>
-        </div>
+  const handleStartScraper = async () => {
+    setScraperLoading(true);
+    addLog("Sending START command to Python Daemon...");
+    try {
+      const res = await fetch('http://localhost:8000/api/v1/problem-scrape/start', { method: 'POST' });
+      if (res.ok) {
+        setScraperStatus('running');
+        toast.success("Problem Scraper Daemon Started");
+        addLog("✅ Scraper daemon running in background. Ingesting problems to Supabase...");
+      } else {
+        throw new Error("API Error");
+      }
+    } catch (e) {
+      toast.error("Failed to start scraper. Is the Python backend running?");
+      addLog("❌ Error: Could not connect to Python FastAPI on port 8000.");
+    } finally {
+      setScraperLoading(false);
+    }
+  };
 
-        <div className="bg-surface border border-outline-variant/60 rounded-xl overflow-hidden shadow-sm">
-          <div className="grid grid-cols-[1fr_120px_100px_100px_120px] gap-4 p-4 border-b border-outline-variant/60 bg-surface-container-lowest font-bold text-xs text-on-surface-variant uppercase tracking-wider">
-            <div>Problem Title</div>
-            <div className="text-center">Difficulty</div>
-            <div className="text-center">Credits</div>
-            <div className="text-center">Daily?</div>
-            <div className="text-right">Actions</div>
+  const handleStopScraper = async () => {
+    setScraperLoading(true);
+    addLog("Sending STOP command to Python Daemon...");
+    try {
+      const res = await fetch('http://localhost:8000/api/v1/problem-scrape/stop', { method: 'POST' });
+      if (res.ok) {
+        setScraperStatus('stopped');
+        toast.success("Problem Scraper Daemon Stopped");
+        addLog("🛑 Scraper daemon terminated safely.");
+      } else {
+        throw new Error("API Error");
+      }
+    } catch (e) {
+      toast.error("Failed to stop scraper.");
+    } finally {
+      setScraperLoading(false);
+    }
+  };
+
+  const addLog = (msg: string) => {
+    setScraperLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev].slice(0, 10));
+  };
+
+  return (
+    <AppLayout title="Coding Problems & Automation">
+      <div className="p-8 max-w-7xl mx-auto space-y-8">
+        
+        {/* Scraper Control Panel */}
+        <div className="bg-surface border border-outline-variant rounded-2xl shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-outline-variant flex justify-between items-center bg-surface-container-lowest">
+            <div>
+              <h2 className="text-xl font-heading font-bold text-on-surface flex items-center gap-2">
+                <Server className="w-5 h-5 text-tertiary" />
+                Problem Scraping Engine
+              </h2>
+              <p className="text-sm text-on-surface-variant mt-1">
+                Control the Python-based autonomous scraper daemon to ingest problems into the database.
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <Badge variant="outline" className={`px-3 py-1 flex items-center gap-2 ${scraperStatus === 'running' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-surface-container'}`}>
+                {scraperStatus === 'running' ? (
+                  <><Activity className="w-3 h-3 animate-pulse" /> Running</>
+                ) : (
+                  <><Square className="w-3 h-3" /> Stopped</>
+                )}
+              </Badge>
+            </div>
           </div>
           
-          <div className="divide-y divide-outline-variant/30">
-            {loading ? (
-              <div className="p-12 text-center text-on-surface-variant">Loading problems...</div>
-            ) : problems.length === 0 ? (
-              <div className="p-12 text-center text-on-surface-variant">No problems found. Create one above.</div>
-            ) : (
-              problems.map(p => (
-                <div key={p.id} className="grid grid-cols-[1fr_120px_100px_100px_120px] gap-4 p-4 items-center hover:bg-surface-variant/20 transition-colors">
-                  <div className="font-medium text-on-surface">
-                    {p.title}
-                  </div>
-                  <div className="text-center">
-                    <Badge variant="outline">{p.difficulty}</Badge>
-                  </div>
-                  <div className="text-center text-sm font-medium text-[#facc15]">
-                    {p.credits}
-                  </div>
-                  <div className="text-center">
-                    {p.is_daily ? (
-                      <span className="material-symbols-outlined text-tertiary">check_circle</span>
-                    ) : (
-                      <span className="material-symbols-outlined text-on-surface-variant opacity-30">cancel</span>
-                    )}
-                  </div>
-                  <div className="text-right flex items-center justify-end gap-2">
-                    <button className="text-primary hover:text-primary-fixed-dim p-1 rounded-full hover:bg-primary/10 transition-colors">
-                      <span className="material-symbols-outlined text-[20px]">edit</span>
-                    </button>
-                    <button onClick={() => handleDelete(p.id)} className="text-error hover:text-error-container p-1 rounded-full hover:bg-error/10 transition-colors">
-                      <span className="material-symbols-outlined text-[20px]">delete</span>
-                    </button>
-                  </div>
+          <div className="p-6 flex flex-col md:flex-row gap-8">
+            <div className="w-full md:w-1/3 space-y-4">
+              <div className="bg-surface-container rounded-xl p-5 border border-outline-variant space-y-3">
+                <h3 className="font-semibold text-sm uppercase tracking-wider text-on-surface-variant">Daemon Controls</h3>
+                {scraperStatus === 'stopped' ? (
+                  <Button 
+                    className="w-full bg-tertiary hover:bg-tertiary/90 text-white" 
+                    onClick={handleStartScraper}
+                    disabled={scraperLoading}
+                  >
+                    {scraperLoading ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Play className="w-4 h-4 mr-2" />}
+                    Start Scraping Engine
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="destructive"
+                    className="w-full" 
+                    onClick={handleStopScraper}
+                    disabled={scraperLoading}
+                  >
+                    {scraperLoading ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Square className="w-4 h-4 mr-2" />}
+                    Stop Engine
+                  </Button>
+                )}
+                <div className="text-xs text-on-surface-variant flex items-start gap-2 mt-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  Ensure the LearnLoom Python API (`uvicorn app.main:app --port 8000`) is running.
                 </div>
-              ))
-            )}
+              </div>
+            </div>
+            
+            <div className="flex-1 bg-[#1e1e1e] rounded-xl border border-outline-variant overflow-hidden flex flex-col">
+              <div className="px-4 py-2 bg-black/40 border-b border-white/10 flex items-center gap-2">
+                <Terminal className="w-4 h-4 text-gray-400" />
+                <span className="text-xs font-mono text-gray-400 font-bold uppercase tracking-wider">Daemon Output Log</span>
+              </div>
+              <div className="p-4 font-mono text-xs text-green-400 h-48 overflow-y-auto space-y-1">
+                {scraperLogs.map((log, i) => (
+                  <div key={i} className={i === 0 ? "opacity-100" : "opacity-60"}>{log}</div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* Existing Problems Table */}
+        <div className="bg-surface border border-outline-variant rounded-2xl shadow-sm">
+          <div className="p-6 border-b border-outline-variant flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-heading font-bold text-on-surface">Imported Problems Database</h2>
+              <p className="text-sm text-on-surface-variant mt-1">View and manage problems synced by the scraper.</p>
+            </div>
+            <Button variant="outline" size="sm" onClick={fetchProblems}>
+              <RefreshCw className="w-4 h-4 mr-2" /> Refresh
+            </Button>
+          </div>
+          
+          <table className="w-full text-left text-sm">
+            <thead className="bg-surface-container-low text-on-surface-variant border-b border-outline-variant">
+              <tr>
+                <th className="px-6 py-4 font-semibold">Title</th>
+                <th className="px-6 py-4 font-semibold">Difficulty</th>
+                <th className="px-6 py-4 font-semibold">Topic</th>
+                <th className="px-6 py-4 font-semibold text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-outline-variant">
+              {loading ? (
+                <tr><td colSpan={4} className="p-8 text-center text-on-surface-variant">Loading...</td></tr>
+              ) : problems.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-12 text-center text-on-surface-variant">
+                    No problems imported yet. Start the scraper engine to populate.
+                  </td>
+                </tr>
+              ) : (
+                problems.map(problem => (
+                  <tr key={problem.id} className="hover:bg-surface-container-lowest transition-colors">
+                    <td className="px-6 py-4 font-medium">{problem.title}</td>
+                    <td className="px-6 py-4">
+                      <Badge variant="secondary" className={
+                        problem.difficulty === 'Easy' ? 'bg-green-500/10 text-green-500' :
+                        problem.difficulty === 'Medium' ? 'bg-yellow-500/10 text-yellow-600' :
+                        'bg-red-500/10 text-red-500'
+                      }>{problem.difficulty}</Badge>
+                    </td>
+                    <td className="px-6 py-4 text-on-surface-variant">{problem.topic || 'Uncategorized'}</td>
+                    <td className="px-6 py-4 text-right">
+                      <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-500/10">Delete</Button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
       </div>
     </AppLayout>
   );

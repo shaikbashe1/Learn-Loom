@@ -53,30 +53,25 @@ class HumanizerBackendUnavailable(Exception):
     pass
 
 
-class OpenAIHumanizerBackend(HumanizerBackend):
+class GeminiHumanizerBackend(HumanizerBackend):
     def humanize(self, facts: ExtractedFacts) -> HumanizedContent:
-        api_key = os.environ.get("OPENAI_API_KEY")
+        api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
             raise HumanizerBackendUnavailable(
-                "OPENAI_API_KEY not set — OpenAIHumanizerBackend cannot run. "
+                "GEMINI_API_KEY not set — GeminiHumanizerBackend cannot run. "
                 "Use TemplateHumanizerBackend for an offline run, or set the key."
             )
-        from openai import OpenAI
-        client = OpenAI(api_key=api_key)
+        import google.generativeai as genai
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-2.5-flash', system_instruction=HUMANIZER_SYSTEM_PROMPT)
+        
         context = (
             f"Concepts: {facts.concepts}\n"
             f"Candidate objectives: {facts.candidate_objectives}\n"
             f"Category: {facts.category_slug}, Difficulty: {facts.difficulty}"
         )
-        resp = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": HUMANIZER_SYSTEM_PROMPT},
-                {"role": "user", "content": context},
-            ],
-            temperature=0.7,
-        )
-        text = resp.choices[0].message.content or ""
+        resp = model.generate_content(context, generation_config=genai.GenerationConfig(temperature=0.7))
+        text = resp.text or ""
         # The LLM returns free text; course_builder only needs a single
         # cohesive block, so we store it directly as the explanation and
         # leave example/exercise/quiz as empty unless the model structured
@@ -187,8 +182,8 @@ def humanize(facts: ExtractedFacts, backend: HumanizerBackend | None = None) -> 
     """
     chosen_backend = backend
     if chosen_backend is None:
-        if os.environ.get("OPENAI_API_KEY"):
-            chosen_backend = OpenAIHumanizerBackend()
+        if os.environ.get("GEMINI_API_KEY"):
+            chosen_backend = GeminiHumanizerBackend()
         else:
             chosen_backend = TemplateHumanizerBackend()
 

@@ -23,14 +23,13 @@ async def import_course_to_supabase(db: AsyncSession, draft: CourseDraft):
                 difficulty = line.split(":", 1)[1].strip()
 
         await db.execute(text("""
-            INSERT INTO public.courses (id, title, description, difficulty, is_published, tags)
-            VALUES (:id, :title, :description, :difficulty, false, :tags)
+            INSERT INTO public.courses (id, title, description, difficulty, is_published)
+            VALUES (:id, :title, :description, :difficulty, false)
         """), {
             "id": course_id,
             "title": title,
             "description": description,
-            "difficulty": difficulty,
-            "tags": ["ai-generated", draft.topic_slug]
+            "difficulty": difficulty
         })
 
         # Create Modules
@@ -46,7 +45,7 @@ async def import_course_to_supabase(db: AsyncSession, draft: CourseDraft):
                     break
 
             await db.execute(text("""
-                INSERT INTO public.course_modules (id, course_id, title, description, "order")
+                INSERT INTO public.course_modules (id, course_id, title, description, order_index)
                 VALUES (:id, :course_id, :title, :description, :order)
             """), {
                 "id": module_id,

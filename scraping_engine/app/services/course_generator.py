@@ -13,6 +13,7 @@ configured, generation fails closed (status=FAILED) rather than silently
 falling back to anything that risks reproducing source wording.
 """
 from dataclasses import dataclass
+import os
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -44,22 +45,21 @@ class CourseAuthor:
         raise NotImplementedError
 
 
-class OpenAIAuthor(CourseAuthor):
+class GeminiAuthor(CourseAuthor):
     async def author_section(self, instruction: str, context: dict) -> str:
-        if not settings.OPENAI_API_KEY:
-            return f"[MOCK CONTENT generated because OPENAI_API_KEY is missing]\nInstruction: {instruction}\nContext summary: {str(context)[:100]}..."
+        api_key = getattr(settings, 'GEMINI_API_KEY', os.environ.get("GEMINI_API_KEY"))
+        if not api_key:
+            return f"[MOCK CONTENT generated because GEMINI_API_KEY is missing]\nInstruction: {instruction}\nContext summary: {str(context)[:100]}..."
             
-        from openai import AsyncOpenAI
-        client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
-        resp = await client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": SYNTHESIS_SYSTEM_PROMPT},
-                {"role": "user", "content": f"{instruction}\n\nConcepts/context: {context}"},
-            ],
-            temperature=0.7,
+        import google.generativeai as genai
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-2.5-flash', system_instruction=SYNTHESIS_SYSTEM_PROMPT)
+        
+        resp = await model.generate_content_async(
+            f"{instruction}\n\nConcepts/context: {context}",
+            generation_config=genai.GenerationConfig(temperature=0.7)
         )
-        return resp.choices[0].message.content or ""
+        return resp.text or ""
 
 
 @dataclass
@@ -75,7 +75,7 @@ class GenerationResult:
 class CourseGenerationOrchestrator:
     def __init__(self, db: AsyncSession, author: CourseAuthor | None = None):
         self.db = db
-        self.author = author or OpenAIAuthor()
+        self.author = author or GeminiAuthor()
         self.extraction = KnowledgeExtractionService(db)
         self.validator = OriginalityValidator(db)
 

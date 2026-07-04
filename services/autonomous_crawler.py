@@ -103,15 +103,14 @@ async def process_topic(db: AsyncSession, topic: str):
     display_title = topic.split(" (")[0].title()
     
     await db.execute(text("""
-        INSERT INTO public.courses (id, title, description, difficulty, status, rating, student_count, quality_score, source_url)
-        VALUES (:id, :title, :description, :difficulty, 'pending_review', 0, 0, :score, :url)
+        INSERT INTO public.courses (id, title, description, difficulty, generation_status, rating, student_count, source_urls)
+        VALUES (:id, :title, :description, :difficulty, 'PENDING', 0, 0, :urls)
     """), {
         "id": course_id,
         "title": f"Mastering {display_title}",
         "description": f"An AI-generated course derived from comprehensive open-source documentation.\nQuality Score: {quality_score}/100",
         "difficulty": "Beginner",
-        "score": quality_score,
-        "url": facts.source_url
+        "urls": [facts.source_url]
     })
 
     for i, mod in enumerate(pkg["modules"]):

@@ -28,8 +28,8 @@ export function RouteGuard({ children }: RouteGuardProps) {
     const isPublic = isPublicPath(location.pathname);
     const isAuthPage = ['/login', '/signup'].includes(location.pathname);
 
-    // Strict RBAC: Only shaikbashe2222@gmail.com has Admin Dashboard access
-    const isAdminUser = user?.email === 'shaikbashe2222@gmail.com' && profile?.role === 'super_admin';
+    // Strict RBAC: use database roles
+    const isAdminUser = profile?.role === 'super_admin' || profile?.role === 'admin';
 
     // First-time onboarding: a logged-in, non-admin user whose profile exists
     // but isn't completed is forced through the wizard before anything else.

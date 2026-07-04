@@ -428,3 +428,63 @@ export interface DBActivityLog {
   created_at: string;
 }
 
+// ----------------------------------------------------------------------
+// Coding Practice & Problem Solving Engine (Schema v4)
+// ----------------------------------------------------------------------
+
+export interface DBCodingProblem {
+  id: string;
+  title: string;
+  slug: string;
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  description: string;
+  topic: string | null;
+  company_tags: string[];
+  hints: string[];
+  starter_code: Record<string, string>;
+  constraints: string[];
+  time_limit_ms: number;
+  memory_limit_mb: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DBProblemTestcase {
+  id: string;
+  problem_id: string;
+  input: string;
+  expected_output: string;
+  is_hidden: boolean;
+  created_at: string;
+}
+
+export interface DBUserSubmission {
+  id: string;
+  user_id: string;
+  problem_id: string;
+  code: string;
+  language: string;
+  status: 'Accepted' | 'Wrong Answer' | 'Time Limit Exceeded' | 'Memory Limit Exceeded' | 'Runtime Error' | 'Compilation Error' | string;
+  execution_time_ms: number | null;
+  memory_mb: number | null;
+  created_at: string;
+  problem?: DBCodingProblem; // For joins
+}
+
+export interface DBDailyChallenge {
+  id: string;
+  challenge_date: string; // YYYY-MM-DD
+  problem_id: string;
+  xp_reward: number;
+  created_at: string;
+  problem?: DBCodingProblem; // For joins
+}
+
+export interface DBUserProblemProgress {
+  id: string;
+  user_id: string;
+  problem_id: string;
+  status: 'Attempted' | 'Solved';
+  solved_at: string | null;
+}
+

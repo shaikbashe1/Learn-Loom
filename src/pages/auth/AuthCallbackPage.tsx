@@ -28,7 +28,7 @@ export default function AuthCallbackPage() {
       if (user) {
         // Direct admin users to the Admin dashboard. Standard users go through
         // first-time onboarding until their profile is completed.
-        const isAdmin = user.email === 'shaikbashe2222@gmail.com';
+        const isAdmin = profile?.role === 'super_admin' || profile?.role === 'admin';
         if (isAdmin) {
           navigate('/admin', { replace: true });
         } else if (profile && !profile.onboarding_completed) {

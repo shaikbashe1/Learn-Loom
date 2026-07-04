@@ -11,13 +11,13 @@ DECLARE
   v_badge_id uuid;
 BEGIN
   -- Only care about 'Accepted' verdicts
-  IF NEW.verdict = 'Accepted' THEN
+  IF NEW.verdict = 'accepted' THEN
     -- Check if this is the user's first time solving this specific problem
     IF NOT EXISTS (
       SELECT 1 FROM submissions 
       WHERE user_id = NEW.user_id 
         AND problem_id = NEW.problem_id 
-        AND verdict = 'Accepted' 
+        AND verdict = 'accepted' 
         AND id != NEW.id
     ) THEN
       
