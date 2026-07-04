@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import svgr from "vite-plugin-svgr";
+import { VitePWA } from "vite-plugin-pwa";
 import path from "path";
 
 // https://vite.dev/config/
@@ -13,6 +14,31 @@ export default defineConfig({
         exportType: "named",
         namedExport: "ReactComponent",
       },
+    }),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['images/logo/logo-icon.png'],
+      manifest: {
+        name: 'LearnLoom',
+        short_name: 'LearnLoom',
+        description: 'Engineer your potential with AI-driven learning.',
+        theme_color: '#0f172a',
+        background_color: '#0f172a',
+        display: 'standalone',
+        icons: [
+          {
+            src: '/images/logo/logo-icon.png',
+            sizes: '192x192',
+            type: 'image/png'
+          },
+          {
+            src: '/images/logo/logo-icon.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable'
+          }
+        ]
+      }
     }),
   ],
   resolve: {

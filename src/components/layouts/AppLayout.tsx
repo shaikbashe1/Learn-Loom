@@ -38,8 +38,10 @@ import {
   ChevronRight,
   Menu,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Download
 } from 'lucide-react';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
 
 const studentNavItems = [
   { label: 'Dashboard',       path: '/dashboard',   icon: LayoutDashboard },
@@ -268,6 +270,7 @@ function SidebarContent({ isAdmin, isCollapsed, onToggleCollapse, onClose }: Sid
   const { signOut, profile } = useAuth();
   const navigate = useNavigate();
   const navItems = isAdmin ? adminNavItems : studentNavItems;
+  const { isInstallable, installApp } = usePWAInstall();
 
   const handleSignOut = async () => {
     await signOut();
@@ -308,6 +311,19 @@ function SidebarContent({ isAdmin, isCollapsed, onToggleCollapse, onClose }: Sid
 
       {/* Footer Settings & Sign Out */}
       <div className="p-3 border-t border-border bg-muted/10 flex flex-col gap-1">
+        {isInstallable && (
+          <button
+            onClick={() => { void installApp(); onClose?.(); }}
+            className={cn(
+              "flex items-center gap-3 px-3 py-2.5 text-primary bg-primary/5 hover:bg-primary/10 rounded-xl transition-all group w-full text-left",
+              isCollapsed && "justify-center"
+            )}
+            title={isCollapsed ? "Install App" : undefined}
+          >
+            <Download className="h-5 w-5 shrink-0 transition-transform group-hover:scale-110" />
+            {!isCollapsed && <span className="text-sm font-semibold">Install App</span>}
+          </button>
+        )}
         <Link
           to="/profile"
           onClick={onClose}
