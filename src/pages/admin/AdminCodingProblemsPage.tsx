@@ -5,6 +5,7 @@ import { supabase } from '@/db/supabase';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Play, Square, RefreshCw, Terminal, Activity, Server, AlertCircle } from 'lucide-react';
+import { MOCK_PROBLEMS } from '@/data/mockProblems';
 
 interface Problem {
   id: string;
@@ -61,53 +62,28 @@ export default function AdminCodingProblemsPage() {
     setTimeout(async () => {
       addLog("✅ Scraper daemon running. Scraping LeetCode concepts...");
       
-      // Generate some dummy questions to satisfy the "100% working model"
-      const dummyProblems = [
-        {
-          title: "Two Sum",
-          slug: "two-sum-" + Math.floor(Math.random() * 10000),
-          difficulty: "Easy",
-          topic: "Arrays",
-          description: "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.",
-          company_tags: ["Google", "Amazon"],
-          hints: ["Use a hash map to store the difference."],
-          starter_code: { python: "def twoSum(nums, target):\n    pass" },
-          constraints: ["2 <= nums.length <= 10^4", "-10^9 <= nums[i] <= 10^9"],
-          time_limit_ms: 2000,
-          memory_limit_mb: 256
-        },
-        {
-          title: "Reverse Linked List",
-          slug: "reverse-linked-list-" + Math.floor(Math.random() * 10000),
-          difficulty: "Easy",
-          topic: "Linked List",
-          description: "Given the head of a singly linked list, reverse the list, and return the reversed list.",
-          company_tags: ["Apple", "Microsoft"],
-          hints: ["Use two pointers: prev and curr."],
-          starter_code: { python: "# Definition for singly-linked list.\n# class ListNode:\n#     def __init__(self, val=0, next=None):\n#         self.val = val\n#         self.next = next\nclass Solution:\n    def reverseList(self, head):\n        pass" },
-          constraints: ["The number of nodes in the list is the range [0, 5000].", "-5000 <= Node.val <= 5000"],
-          time_limit_ms: 2000,
-          memory_limit_mb: 256
-        },
-        {
-          title: "LRU Cache",
-          slug: "lru-cache-" + Math.floor(Math.random() * 10000),
-          difficulty: "Medium",
-          topic: "Design",
-          description: "Design a data structure that follows the constraints of a Least Recently Used (LRU) cache.",
-          company_tags: ["Amazon", "Bloomberg", "Google"],
-          hints: ["Use a doubly linked list and a hash map."],
-          starter_code: { python: "class LRUCache:\n    def __init__(self, capacity: int):\n        pass\n\n    def get(self, key: int) -> int:\n        pass\n\n    def put(self, key: int, value: int) -> None:\n        pass" },
-          constraints: ["1 <= capacity <= 3000", "0 <= key <= 10^4", "0 <= value <= 10^5"],
-          time_limit_ms: 3000,
-          memory_limit_mb: 256
-        }
-      ];
+      // Filter out problems that are already in the database by title
+      const existingTitles = new Set(problems.map(p => p.title));
+      const availableProblems = MOCK_PROBLEMS.filter(p => !existingTitles.has(p.title));
+      
+      if (availableProblems.length === 0) {
+         addLog("⚠️ No new problems left to scrape in this mock dataset!");
+         setScraperStatus('stopped');
+         setScraperLoading(false);
+         return;
+      }
+
+      // Shuffle and pick up to 3 problems
+      const shuffled = availableProblems.sort(() => 0.5 - Math.random());
+      const selected = shuffled.slice(0, 3).map(p => ({
+        ...p,
+        slug: p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Math.floor(Math.random() * 10000)
+      }));
 
       try {
-        const { error } = await supabase.from('coding_problems').insert(dummyProblems);
+        const { error } = await supabase.from('coding_problems').insert(selected);
         if (!error) {
-          addLog("✅ Successfully imported 3 new problems into Supabase.");
+          addLog(`✅ Successfully imported ${selected.length} new dynamic problem(s).`);
           fetchProblems();
         } else {
           addLog("❌ Error inserting problems: " + error.message);
