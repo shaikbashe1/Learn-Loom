@@ -202,7 +202,7 @@ export default function OnboardingPage() {
   const StepComponent = current.Component;
 
   return (
-    <div className="bg-background text-foreground min-h-screen flex items-center justify-center p-4 sm:p-6 select-none relative overflow-hidden">
+    <div className="bg-background text-foreground min-h-screen flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-primary/5 blur-[120px] pointer-events-none z-0" />
       <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] rounded-full bg-chart-4/5 blur-[120px] pointer-events-none z-0" />

@@ -356,9 +356,11 @@ interface AppLayoutProps {
   children: React.ReactNode;
   isAdmin?: boolean;
   title?: string;
+  fullWidth?: boolean;
+  noFooter?: boolean;
 }
 
-export function AppLayout({ children, isAdmin: isAdminProp }: AppLayoutProps) {
+export function AppLayout({ children, isAdmin: isAdminProp, fullWidth, noFooter }: AppLayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
@@ -367,8 +369,13 @@ export function AppLayout({ children, isAdmin: isAdminProp }: AppLayoutProps) {
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate('/login', { replace: true });
+    try {
+      await signOut();
+    } catch (err) {
+      console.error('Error signing out:', err);
+    } finally {
+      navigate('/login', { replace: true });
+    }
   };
 
   const isAdmin = isAdminProp ?? (profile?.role === 'admin' || profile?.role === 'super_admin' || profile?.role === 'org_admin');
@@ -415,7 +422,10 @@ export function AppLayout({ children, isAdmin: isAdminProp }: AppLayoutProps) {
       </aside>
 
       {/* Main Container */}
-      <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-background pb-16 md:pb-0">
+      <main className={cn(
+        "flex-1 flex flex-col h-screen overflow-y-auto bg-background",
+        noFooter ? "pb-0" : "pb-16 md:pb-0"
+      )}>
         
         {/* Top Header */}
         <header className="sticky top-0 z-30 flex justify-between items-center px-4 md:px-6 lg:px-8 py-3.5 w-full bg-card/80 backdrop-blur-md border-b border-border shadow-sm">
@@ -546,40 +556,45 @@ export function AppLayout({ children, isAdmin: isAdminProp }: AppLayoutProps) {
         </header>
 
         {/* Dynamic Content Canvas */}
-        <div className="flex-1 w-full flex flex-col relative px-4 md:px-6 lg:px-8 py-6">
+        <div className={cn(
+          "flex-1 w-full flex flex-col relative",
+          fullWidth ? "p-0" : "px-4 md:px-6 lg:px-8 py-6"
+        )}>
           {children}
         </div>
       </main>
 
       {/* Bottom Nav Bar (Mobile only) */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-md border-t border-border md:hidden safe-bottom shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
-        <div className="flex items-center justify-around h-16">
-          {bottomNavItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path || (item.path !== '/dashboard' && item.path !== '/admin' && location.pathname.startsWith(item.path));
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={cn(
-                  "flex flex-col items-center gap-0.5 min-w-[48px] min-h-[48px] justify-center transition-colors",
-                  isActive ? "text-primary font-semibold" : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <Icon className="h-5 w-5" />
-                <span className="text-[9px] font-medium">{item.label}</span>
-              </Link>
-            );
-          })}
-          <button
-            onClick={() => setMobileOpen(true)}
-            className="flex flex-col items-center gap-0.5 text-muted-foreground hover:text-primary transition-colors min-w-[48px] min-h-[48px] justify-center"
-          >
-            <Menu className="h-5 w-5" />
-            <span className="text-[9px] font-medium">More</span>
-          </button>
-        </div>
-      </nav>
+      {!noFooter && (
+        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-md border-t border-border md:hidden safe-bottom shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+          <div className="flex items-center justify-around h-16">
+            {bottomNavItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.path || (item.path !== '/dashboard' && item.path !== '/admin' && location.pathname.startsWith(item.path));
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={cn(
+                    "flex flex-col items-center gap-0.5 min-w-[48px] min-h-[48px] justify-center transition-colors",
+                    isActive ? "text-primary font-semibold" : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span className="text-[9px] font-medium">{item.label}</span>
+                </Link>
+              );
+            })}
+            <button
+              onClick={() => setMobileOpen(true)}
+              className="flex flex-col items-center gap-0.5 text-muted-foreground hover:text-primary transition-colors min-w-[48px] min-h-[48px] justify-center"
+            >
+              <Menu className="h-5 w-5" />
+              <span className="text-[9px] font-medium">More</span>
+            </button>
+          </div>
+        </nav>
+      )}
 
       {/* Command Palette Modal */}
       <CommandPalette open={commandOpen} onOpenChange={setCommandOpen} />

@@ -205,7 +205,7 @@ export interface DBAIConversation {
   updated_at: string;
 }
 
-export interface DBCodingProblem {
+export interface DBLegacyCodingProblem {
   id: string;
   title: string;
   description: string;

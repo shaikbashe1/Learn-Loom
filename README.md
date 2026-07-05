@@ -114,7 +114,7 @@ To populate your database with 4 production-quality, well-structured courses (Py
    ```
    SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
    ```
-2. **Run Course Seeding**: Runs the curated seeder creating 20 structured modules, quizzes, coding labs, final grand tests, and a practical assignment for every module in Draft mode:
+2. **Run Course Seeding**: Runs the curated seeder creating 20 modules per course containing **original, high-fidelity NetAcad-style markdown textbooks** (with target learning objectives, structured theory paragraphs, ASCII-art architectural workflows, step-by-step code walkthroughs with line-by-line breakdowns, industry use cases, and summaries), quizzes, coding labs, final grand tests, and a practical assignment for every module in Draft mode:
    ```bash
    npm run seed
    ```

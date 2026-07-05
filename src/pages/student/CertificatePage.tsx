@@ -135,7 +135,7 @@ export default function CertificatePage() {
 
   return (
     <AppLayout title="Certificates & Achievements">
-      <div className="max-w-container-max mx-auto px-4 md:px-8 py-8 flex flex-col lg:flex-row gap-6 w-full select-none">
+      <div className="max-w-container-max mx-auto px-4 md:px-8 py-8 flex flex-col lg:flex-row gap-6 w-full">
         
         {/* Left Sidebar */}
         <aside className="w-full lg:w-60 shrink-0">

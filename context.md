@@ -34,24 +34,30 @@ This document outlines the accomplishments, issues faced, solutions implemented,
 *   **Messages Page**: Redesigned `MessagesPage.tsx` featuring a clean inbox view with unread badges, integrated `UserAvatar` profiles, and a high-fidelity active chat window.
 *   **AI Roadmap Page**: Overhauled `AIRoadmapPage.tsx` with a dynamic roadmap wizard, vertical stages timeline, XP rewards, and an integrated AI Mentor slide-out drawer.
 
+### Phase 7: NetAcad LMS Content & General UX Polish
+*   **NetAcad-Style Original Textbooks**: Upgraded the course seeding engine (`seed-courses.mjs`) to replace basic HTML placeholders with rich, original, Cisco NetAcad-inspired markdown textbooks. Modules now contain structured sections (Overview & Objectives, learning targets, ASCII-art architectural workflows, real-world industry use cases, copy-pasteable production-ready code samples with line-by-line breakdowns, and takeaways). Seeded all 4 flagship courses with this textbook content.
+*   **Sign-Out Redirection Guard**: Wrapped the `handleSignOut` handler inside `AppLayout.tsx` in a try-catch-finally block to guarantee immediate client redirection to `/login` even during network/session exceptions.
+*   **UX Selection Blocks Resolved**: Removed text selection blocks (`select-none` utility classes) from the layout containers in `CertificatePage.tsx` and `OnboardingPage.tsx`, enabling users to select and copy certificate verification codes and usernames.
+
 ---
 
 ## 2. Issues Faced & Solutions
 
 ### Issue A: Tailwind Color & Monospace Label Conflicts
 *   **Symptom**: Custom colors had duplicate mappings, and all button/status labels were rendering in monospace.
-*   **Root Cause**: Color tokens in `tailwind.config.js` were mapped to conflicting variables, and label fonts were hardcoded to JetBrains Mono.
 *   **Solution**: Mapped all custom theme colors to `hsl(var(--...))` variables defined in `index.css` and remapped label font families to Inter.
 
 ### Issue B: Duplicate Markdown Toolbars & Hardcoded Formats
 *   **Symptom**: The markdown editor toolbars in the course player and the community pages had duplicate code and relied on the legacy Material Symbols icon library.
-*   **Root Cause**: Independent implementations of selection-aware formatting injection.
 *   **Solution**: Extracted a unified, selection-aware `MarkdownToolbar` component that handles formatting insertion and uses Lucide icons.
 
 ### Issue C: Missing Types and Utility Functions during Redesign
 *   **Symptom**: Redesigned pages encountered compilation errors due to missing type definitions (like `DBCourse`, `DBModule`) or missing utilities (like `cn`).
-*   **Root Cause**: The type definitions from `@/types/types` and utility imports were omitted during clean rewrites.
 *   **Solution**: Added explicit type imports and imported the `cn` utility from `@/lib/utils` across all redesigned pages.
+
+### Issue D: Duplicate CodingProblem Types & Missing Sandbox Dependencies
+*   **Symptom**: Build checks failed because the `DBCodingProblem` interface was declared twice with conflicting property types. Also, Monaco Editor and React Markdown imports caused compilation errors.
+*   **Solution**: Separated the legacy type definitions inside `types.ts`. Installed `@monaco-editor/react` and `react-markdown` in `package.json` to support code playgrounds, and added `fullWidth`/`noFooter` properties to `AppLayout` to support wide-pane layouts.
 
 ---
 
@@ -59,5 +65,5 @@ This document outlines the accomplishments, issues faced, solutions implemented,
 
 1.  **Research & Audit**: Analyzed the existing pages, state management, and Supabase hooks before editing to ensure zero functional regression.
 2.  **Design Primitives First**: Built clean, reusable UI primitives (avatars, badges, loaders, toolbars) to ensure visual consistency across all pages.
-3.  **Incremental Redesign**: Redesigned pages file-by-file, maintaining exact functional parity with the original Supabase tables, queries, and business logic.
-4.  **Continuous Verification**: Ran `npm run lint` at every step to ensure type safety, clean builds, and zero compilation errors.
+3.  **Incremental Redesign & Seeding**: Redesigned pages file-by-file, maintaining exact functional parity. Seeded the database with high-quality original learning material.
+4.  **Continuous Verification**: Ran `npm run lint` and `npm run build` at every step to ensure type safety, clean builds, and zero compilation errors.
