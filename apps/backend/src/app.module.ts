@@ -9,6 +9,7 @@ import { CodingModule } from './modules/coding/coding.module';
 import { AIModule } from './modules/ai/ai.module';
 import { CertificatesModule } from './modules/certificates/certificates.module';
 import { GamificationModule } from './modules/gamification/gamification.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { GamificationModule } from './modules/gamification/gamification.module';
     AIModule,
     CertificatesModule,
     GamificationModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],
