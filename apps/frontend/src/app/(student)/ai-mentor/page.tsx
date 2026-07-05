@@ -13,8 +13,10 @@ import {
   Volume2
 } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export default function AIMentorPage() {
+  const { plan, role } = useAuth();
   const [messages, setMessages] = useState<any[]>([
     {
       sender: 'ai',
@@ -110,6 +112,24 @@ export default function AIMentorPage() {
 
         {/* Right Side: Chat Panel Container */}
         <section className="flex-1 bg-slate-900/40 border border-slate-800/80 rounded-3xl flex flex-col justify-between overflow-hidden relative">
+          
+          {plan === 'BASIC' && role === 'STUDENT' && (
+            <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-md z-30 flex flex-col items-center justify-center text-center p-8 space-y-6">
+              <Bot className="w-16 h-16 text-indigo-500 animate-pulse" />
+              <div className="space-y-2">
+                <h3 className="text-lg font-extrabold text-white">Upgrade to PRO Plan</h3>
+                <p className="text-slate-400 text-xs max-w-xs leading-relaxed">
+                  Gain access to Loomie AI systems learning mentor, custom subnet interactive solvers, and advanced algorithms practice.
+                </p>
+              </div>
+              <button
+                onClick={() => alert("Redirecting to plans configuration page...")}
+                className="px-6 py-2.5 bg-indigo-500 text-white rounded-xl text-xs font-bold hover:brightness-110 active:scale-[0.98] transition shadow-lg shadow-indigo-500/20"
+              >
+                Unlock Pro Membership
+              </button>
+            </div>
+          )}
           
           {/* Header */}
           <div className="p-4 border-b border-slate-850 flex items-center justify-between bg-slate-900/20">

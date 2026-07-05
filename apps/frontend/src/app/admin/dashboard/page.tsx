@@ -17,16 +17,21 @@ import Link from 'next/link';
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<any>(null);
+  const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const loadStats = async () => {
+    const loadData = async () => {
       try {
         setLoading(true);
         setError('');
-        const res = await api.get('/admin/stats');
-        setStats(res.data);
+        const [resStats, resSessions] = await Promise.all([
+          api.get('/admin/stats'),
+          api.get('/admin/sessions')
+        ]);
+        setStats(resStats.data);
+        setSessions(resSessions.data);
       } catch (err: any) {
         setError(err.response?.data?.message || 'Unauthorized admin access.');
       } finally {
@@ -34,7 +39,7 @@ export default function AdminDashboardPage() {
       }
     };
 
-    loadStats();
+    loadData();
   }, []);
 
   if (loading) {
@@ -108,17 +113,44 @@ export default function AdminDashboardPage() {
         {/* Split Section */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
           
-          {/* Quick links list */}
-          <div className="bg-slate-900/40 border border-slate-850 p-6 rounded-3xl flex flex-col gap-4">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider">Management Panels</h3>
-            <div className="space-y-2">
-              <Link 
-                href="/admin/students"
-                className="w-full p-3 bg-slate-950/40 hover:bg-slate-900 border border-slate-850 rounded-xl text-xs text-slate-400 hover:text-white flex items-center justify-between transition"
-              >
-                <span>Students Listing</span>
-                <ChevronRight className="w-4 h-4" />
-              </Link>
+          {/* Quick links list & Logged in users */}
+          <div className="bg-slate-900/40 border border-slate-850 p-6 rounded-3xl flex flex-col gap-6">
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider">Management Panels</h3>
+              <div className="space-y-2">
+                <Link 
+                  href="/admin/students"
+                  className="w-full p-3 bg-slate-950/40 hover:bg-slate-900 border border-slate-850 rounded-xl text-xs text-slate-400 hover:text-white flex items-center justify-between transition"
+                >
+                  <span>Students Listing</span>
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+
+            <div className="space-y-4 border-t border-slate-850/60 pt-4 flex-1">
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Active User Sessions
+              </h3>
+              {sessions.length === 0 ? (
+                <span className="text-[10px] text-slate-600 block">No active sessions logged.</span>
+              ) : (
+                <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                  {sessions.map((sess: any) => (
+                    <div key={sess.id} className="p-2.5 bg-slate-950/45 border border-slate-850 rounded-lg space-y-1">
+                      <div className="flex justify-between items-center text-[10px]">
+                        <span className="font-bold text-slate-300 truncate max-w-[100px]">{sess.fullName}</span>
+                        <span className="px-1.5 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-extrabold text-[8px]">
+                          {sess.plan}
+                        </span>
+                      </div>
+                      <span className="text-[8px] text-slate-600 font-medium block">
+                        Logged in: {new Date(sess.loginTime).toLocaleTimeString()}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

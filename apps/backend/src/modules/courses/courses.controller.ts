@@ -16,13 +16,13 @@ export class CoursesController {
   @Post(':courseId/enroll')
   @HttpCode(HttpStatus.OK)
   async enroll(@Param('courseId') courseId: string, @Request() req: any) {
-    return this.coursesService.enrollInCourse(req.user.id, courseId);
+    return this.coursesService.enrollInCourse(req.user.id, courseId, req.user.plan, req.user.role);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':courseId')
-  async getCourseDetails(@Param('courseId') courseId: string) {
-    return this.coursesService.getCourseDetails(courseId);
+  async getCourseDetails(@Param('courseId') courseId: string, @Request() req: any) {
+    return this.coursesService.getCourseDetails(courseId, req.user.plan, req.user.role);
   }
 
   @UseGuards(JwtAuthGuard)

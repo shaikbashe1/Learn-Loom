@@ -108,6 +108,7 @@ export default function AdminStudentsPage() {
                   <tr className="border-b border-slate-850 text-slate-500 font-bold uppercase tracking-wider text-[9px] bg-slate-950/20">
                     <th className="p-4 pl-6">Full Name</th>
                     <th className="p-4">Email</th>
+                    <th className="p-4">Billing Plan</th>
                     <th className="p-4 text-center">Score Credits</th>
                     <th className="p-4 pr-6 text-right">Actions</th>
                   </tr>
@@ -123,6 +124,26 @@ export default function AdminStudentsPage() {
                         <span className="text-[10px] text-slate-500 font-mono">@{s.username}</span>
                       </td>
                       <td className="p-4 font-semibold text-slate-400">{s.email}</td>
+                      <td className="p-4">
+                        <select
+                          value={s.plan}
+                          onChange={async (e) => {
+                            const newPlan = e.target.value;
+                            try {
+                              await api.post(`/admin/students/${s.id}/plan`, { plan: newPlan });
+                              alert(`Plan updated to ${newPlan} successfully.`);
+                              loadStudents();
+                            } catch (err: any) {
+                              alert(err.response?.data?.message || 'Failed to update plan.');
+                            }
+                          }}
+                          className="bg-slate-900 border border-slate-800 rounded-lg text-[10px] font-bold text-slate-200 px-2 py-1 focus:outline-none focus:border-indigo-500 transition"
+                        >
+                          <option value="BASIC">BASIC</option>
+                          <option value="PRO">PRO</option>
+                          <option value="ENTERPRISE">ENTERPRISE</option>
+                        </select>
+                      </td>
                       <td className="p-4 text-center font-mono font-bold text-indigo-400">{s.credits} XP</td>
                       <td className="p-4 pr-6 text-right">
                         <button

@@ -74,14 +74,24 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       role: user.role,
+      plan: user.plan,
       username: user.profile?.username || '',
     };
 
     const token = await this.jwtService.signAsync(payload);
 
+    // Audit Log Login Session
+    await this.prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        action: 'USER_LOGIN',
+      },
+    });
+
     return {
       accessToken: token,
       role: user.role,
+      plan: user.plan,
       username: user.profile?.username || '',
       fullName: user.profile?.fullName || '',
     };

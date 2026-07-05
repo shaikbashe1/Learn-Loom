@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { Plan } from '@prisma/client';
 
 @Injectable()
 export class AdminService {
@@ -54,7 +55,63 @@ export class AdminService {
       username: s.profile?.username || 'N/A',
       credits: s.profile?.credits || 0,
       streakDays: s.profile?.streakDays || 0,
+      plan: s.plan,
       createdAt: s.createdAt,
+    }));
+  }
+
+  async updateStudentPlan(studentId: string, plan: Plan) {
+    const student = await this.prisma.user.findUnique({
+      where: { id: studentId },
+    });
+
+    if (!student) {
+      throw new NotFoundException('Student user profile not found.');
+    }
+
+    await this.prisma.user.update({
+      where: { id: studentId },
+      data: { plan },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        userId: studentId,
+        action: `USER_PLAN_UPDATED: ${plan}`,
+      },
+    });
+
+    return {
+      success: true,
+      message: `User plan updated to ${plan} successfully.`,
+    };
+  }
+
+  async getActiveSessions() {
+    // Retrieve unique list of users who logged in recently
+    const recentLogins = await this.prisma.auditLog.findMany({
+      where: { action: 'USER_LOGIN' },
+      orderBy: { createdAt: 'desc' },
+      take: 15,
+      include: {
+        user: {
+          select: {
+            email: true,
+            plan: true,
+            profile: {
+              select: { fullName: true },
+            },
+          },
+        },
+      },
+    });
+
+    return recentLogins.map((log) => ({
+      id: log.id,
+      email: log.user.email,
+      fullName: log.user.profile?.fullName || 'N/A',
+      plan: log.user.plan,
+      loginTime: log.createdAt,
     }));
   }
 

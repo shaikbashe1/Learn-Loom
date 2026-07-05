@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CourseQueryDto } from './dto/courses.dto';
+import { Plan } from '@prisma/client';
 
 @Injectable()
 export class CoursesService {
@@ -34,7 +35,7 @@ export class CoursesService {
     });
   }
 
-  async getCourseDetails(courseId: string) {
+  async getCourseDetails(courseId: string, userPlan: Plan, role?: string) {
     const course = await this.prisma.course.findUnique({
       where: { id: courseId },
       include: {
@@ -61,6 +62,11 @@ export class CoursesService {
 
     if (!course) {
       throw new NotFoundException('Course not found.');
+    }
+
+    const bypass = role === 'ORG_ADMIN' || role === 'SUPER_ADMIN' || role === 'INSTRUCTOR';
+    if (!bypass && userPlan === Plan.BASIC && course.difficulty !== 'Beginner') {
+      throw new ForbiddenException('Intermediate and Advanced courses require a PRO subscription.');
     }
 
     return course;
@@ -162,13 +168,18 @@ export class CoursesService {
     };
   }
 
-  async enrollInCourse(userId: string, courseId: string) {
+  async enrollInCourse(userId: string, courseId: string, userPlan: Plan, role?: string) {
     const course = await this.prisma.course.findUnique({
       where: { id: courseId },
     });
 
     if (!course) {
       throw new NotFoundException('Course not found.');
+    }
+
+    const bypass = role === 'ORG_ADMIN' || role === 'SUPER_ADMIN' || role === 'INSTRUCTOR';
+    if (!bypass && userPlan === Plan.BASIC && course.difficulty !== 'Beginner') {
+      throw new ForbiddenException('Intermediate and Advanced courses require a PRO subscription.');
     }
 
     const enrollment = await this.prisma.enrollment.upsert({

@@ -9,11 +9,14 @@ import {
   Compass, 
   Star,
   ChevronRight,
-  TrendingUp
+  TrendingUp,
+  Lock
 } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export default function CourseCatalogPage() {
+  const { plan, role } = useAuth();
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -118,42 +121,52 @@ export default function CourseCatalogPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {courses.map((course) => (
-              <Link 
-                key={course.id}
-                href={`/courses/${course.id}`}
-                className="bg-slate-900/40 border border-slate-850 hover:border-slate-800 p-6 rounded-3xl flex flex-col justify-between gap-6 hover:shadow-xl transition-all duration-300 group"
-              >
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[9px] font-extrabold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-md uppercase tracking-wider">
-                      {course.difficulty}
+            {courses.map((course) => {
+              const isLocked = plan === 'BASIC' && role === 'STUDENT' && course.difficulty !== 'Beginner';
+              return (
+                <Link 
+                  key={course.id}
+                  href={`/courses/${course.id}`}
+                  className="bg-slate-900/40 border border-slate-850 hover:border-slate-800 p-6 rounded-3xl flex flex-col justify-between gap-6 hover:shadow-xl transition-all duration-300 group"
+                >
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[9px] font-extrabold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-md uppercase tracking-wider">
+                        {course.difficulty}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        {isLocked && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-rose-500/10 border border-rose-500/20 text-rose-400 font-extrabold text-[8px] tracking-wide">
+                            <Lock className="w-2.5 h-2.5" /> PRO
+                          </span>
+                        )}
+                        <span className="flex items-center gap-1 text-[10px] text-amber-500 font-bold">
+                          <Star className="w-3.5 h-3.5 fill-amber-500" /> {course.rating.toFixed(1)}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <h3 className="text-base font-extrabold text-white leading-snug group-hover:text-indigo-400 transition-colors">
+                      {course.title}
+                    </h3>
+                    
+                    <p className="text-slate-400 text-xs leading-relaxed line-clamp-2">
+                      {course.description}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between border-t border-slate-850/60 pt-4 mt-2">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider flex items-center gap-1">
+                      <TrendingUp className="w-3.5 h-3.5 text-indigo-400" /> Core Syllabus
                     </span>
-                    <span className="flex items-center gap-1 text-[10px] text-amber-500 font-bold">
-                      <Star className="w-3.5 h-3.5 fill-amber-500" /> {course.rating.toFixed(1)}
+                    
+                    <span className="text-xs font-bold text-indigo-400 flex items-center gap-1 hover:underline">
+                      {isLocked ? 'Unlock outline' : 'View outline'} <ChevronRight className="w-4 h-4" />
                     </span>
                   </div>
-                  
-                  <h3 className="text-base font-extrabold text-white leading-snug group-hover:text-indigo-400 transition-colors">
-                    {course.title}
-                  </h3>
-                  
-                  <p className="text-slate-400 text-xs leading-relaxed line-clamp-2">
-                    {course.description}
-                  </p>
-                </div>
-
-                <div className="flex items-center justify-between border-t border-slate-850/60 pt-4 mt-2">
-                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider flex items-center gap-1">
-                    <TrendingUp className="w-3.5 h-3.5 text-indigo-400" /> Core Syllabus
-                  </span>
-                  
-                  <span className="text-xs font-bold text-indigo-400 flex items-center gap-1 hover:underline">
-                    View outline <ChevronRight className="w-4 h-4" />
-                  </span>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         )}
 
