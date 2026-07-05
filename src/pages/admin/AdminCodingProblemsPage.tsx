@@ -60,36 +60,38 @@ export default function AdminCodingProblemsPage() {
     
     // Simulate scraping delay
     setTimeout(async () => {
-      addLog("✅ Scraper daemon running. Scraping LeetCode concepts...");
+      addLog("✅ Scraper daemon running. Scraping massive LeetCode dataset...");
       
-      // Filter out problems that are already in the database by title
-      const existingTitles = new Set(problems.map(p => p.title));
-      const availableProblems = MOCK_PROBLEMS.filter(p => !existingTitles.has(p.title));
-      
-      if (availableProblems.length === 0) {
-         addLog("⚠️ No new problems left to scrape in this mock dataset!");
-         setScraperStatus('stopped');
-         setScraperLoading(false);
-         return;
-      }
-
-      // Shuffle and pick up to 3 problems
-      const shuffled = availableProblems.sort(() => 0.5 - Math.random());
-      const selected = shuffled.slice(0, 3).map(p => ({
-        ...p,
-        slug: p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Math.floor(Math.random() * 10000)
-      }));
-
       try {
+        // Fetch the 1000 problem dataset
+        const res = await fetch('/data/problems.json');
+        const massiveDataset = await res.json();
+        
+        // Filter out problems that are already in the database by title
+        const existingTitles = new Set(problems.map(p => p.title));
+        const availableProblems = massiveDataset.filter((p: any) => !existingTitles.has(p.title));
+        
+        if (availableProblems.length === 0) {
+           addLog("⚠️ No new problems left to scrape! All 1000 problems are imported.");
+           setScraperStatus('stopped');
+           setScraperLoading(false);
+           return;
+        }
+
+        // Shuffle and pick up to 50 problems per batch to avoid Supabase payload limits
+        const shuffled = availableProblems.sort(() => 0.5 - Math.random());
+        const selected = shuffled.slice(0, 50);
+
         const { error } = await supabase.from('coding_problems').insert(selected);
         if (!error) {
           addLog(`✅ Successfully imported ${selected.length} new dynamic problem(s).`);
+          addLog(`📊 Total Database Size: ${problems.length + selected.length} / 1000`);
           fetchProblems();
         } else {
           addLog("❌ Error inserting problems: " + error.message);
         }
       } catch (err) {
-        addLog("❌ Database connection error.");
+        addLog("❌ Database connection or fetch error.");
       }
 
       setScraperStatus('stopped');
