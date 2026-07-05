@@ -269,5 +269,33 @@ To handle latency in asynchronous database profile creation triggers during OAut
 ### 7. Premium Authentication Pages & Secure RouteGuard
 The login and signup pages have been completely redesigned with a premium, responsive glassmorphism layout, featuring animated mesh gradients, SSL trust badges, and password strength indicators. GitHub login was removed entirely, promoting Google OAuth to a prominent full-width button. The `RouteGuard` loading state was secured by removing debug JSON objects that leaked internal states to users, replacing it with a clean, branded loader.
 
+---
+
+## Next.js & NestJS Clean Architecture Workspace
+
+LearnLoom features a modern enterprise monorepo setup inside the `/apps` directory:
+
+### 1. Structure
+* **Backend (`/apps/backend`)**: NestJS modular application using Prisma ORM. Exports auth guards, course progression APIs, shufflers, auto-graders, Piston execution integrations, Gemini AI tutors, and security audit timelines.
+* **Frontend (`/apps/frontend`)**: Next.js App Router client using Tailwind styling, Monaco coding playgrounds, VLSM bit-shifting subnet calculators, and verification portals.
+
+### 2. Local Setup & Startup
+Ensure database environment variables are configured in `.env`:
+```bash
+# Start backend API (runs on http://localhost:4000)
+cd apps/backend
+npm install
+npx prisma generate
+npm run start:dev
+
+# Start frontend client (runs on http://localhost:3000)
+cd ../frontend
+npm install
+npm run dev
+```
+
+---
+
+
 
 

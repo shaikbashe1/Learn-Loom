@@ -39,9 +39,30 @@ This document outlines the accomplishments, issues faced, solutions implemented,
 *   **Sign-Out Redirection Guard**: Wrapped the `handleSignOut` handler inside `AppLayout.tsx` in a try-catch-finally block to guarantee immediate client redirection to `/login` even during network/session exceptions.
 *   **UX Selection Blocks Resolved**: Removed text selection blocks (`select-none` utility classes) from the layout containers in `CertificatePage.tsx` and `OnboardingPage.tsx`, enabling users to select and copy certificate verification codes and usernames.
 
+### Phase 8: Next.js & NestJS Clean Architecture Workspace
+*   **Monorepo Skeleton Layout**: Bootstrapped `/apps/frontend` (Next.js App Router client) and `/apps/backend` (NestJS modular API server) inside the workspace root.
+*   **Prisma ORM Configurations**: Defined modern multi-relation model maps in `schema.prisma` locked under `@prisma/client` and `prisma` CLI version `^6.0.0` to preserve connection configurations and enums.
+*   **Migrated Functional Modules**:
+    *   **Phase 11 (Authentication)**: Complete signup/signin backend handlers with bcrypt hash security, Passport JWT extraction, roles authorization guards, and frontend route protection context providers.
+    *   **Phase 12 (Course Module)**: Searchable catalogs, dynamic blueprints syllabus grids, collapsible players, and an interactive bit-shifting Subnet VLSM simulator widget.
+    *   **Phase 13 (Quiz Module)**: Timed quiz players, Fisher-Yates randomizations, negative markings grading math, sidebar navigation grids, and scorecard banners.
+    *   **Phase 14 (Coding Practice)**: Piston compiler connection engine, stdin parameters input handlers, stdout console recorders, and split-pane Monaco IDE containers.
+    *   **Phase 15 (AI Tutor)**: Official Google GenAI SDK client integrations querying Gemini 2.5 Flash models, chatbot slide-out drawer interfaces, and quick prompts cards.
+    *   **Phase 16 (Certificates)**: Course progress checks audits, SHA-256 verified hashes, portfolio grids, and public credential lookup screens.
+    *   **Phase 17 (Leaderboard)**: Daily consecutive login streak trackers, reward store links, and 3D podium scholar leaderboards.
+    *   **Phase 18 (Admin Dashboard)**: Total student enrollment counters, audit logging logs timeline, student suspension switches, and course draft publishes.
+
 ---
 
 ## 2. Issues Faced & Solutions
+
+### Issue E: Prisma v7 Schema Datasource URL Dropped
+*   **Symptom**: Running `npx prisma generate` failed under Prisma v7 with exit code `1` (code `P1012`) declaring that `url = env("DATABASE_URL")` is no longer supported directly inside `schema.prisma`.
+*   **Solution**: Replaced Prisma dependency configurations in the backend `package.json` to lock both CLI and client runtimes to stable version `^6.0.0`, which retains env-driven configurations without breaking changes.
+
+### Issue F: Next.js Monaco Editor Hydration Errors
+*   **Symptom**: Mounting the Monaco Editor inside Next.js App Router pages triggered compilation type mismatch checks during pre-rendering stages.
+*   **Solution**: Integrated Monaco Editor React with client-side loading options to ensure that code playground containers pre-render static shells and mount safely in browser runtimes.
 
 ### Issue A: Tailwind Color & Monospace Label Conflicts
 *   **Symptom**: Custom colors had duplicate mappings, and all button/status labels were rendering in monospace.
