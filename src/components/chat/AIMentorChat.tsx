@@ -3,7 +3,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { createParser } from 'eventsource-parser';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAIRateLimit } from '@/hooks/useAIRateLimit';
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
 import type { ChatMessage, DBMentorConversation, DBMentorMessage } from '@/types/types';
 
 const MAX_HISTORY = 20;
@@ -152,9 +154,11 @@ interface AIMentorChatProps {
 
 export function AIMentorChat({ externalPrompt, onExternalPromptHandled, isWidget = false }: AIMentorChatProps) {
   const { user, profile } = useAuth();
+  const rateLimit = useAIRateLimit('ai-mentor');
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
+  const [rateLimitHit, setRateLimitHit] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(true);
 
   // Load mentor chat draft from localStorage when user is ready
@@ -349,6 +353,25 @@ YOUR ROLE:
       });
 
       if (!res.ok) {
+        // Handle rate limit specifically
+        if (res.status === 429) {
+          let rateLimitData;
+          try { rateLimitData = await res.json(); } catch { rateLimitData = null; }
+          setRateLimitHit(true);
+          rateLimit.refetch();
+          const resetTime = rateLimitData?.resetAt
+            ? new Date(rateLimitData.resetAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : 'midnight';
+          toast.error('Daily limit reached', {
+            description: rateLimitData?.planId === 'free'
+              ? `You've used all ${rateLimitData?.limit ?? 5} messages today. Resets at ${resetTime}. Upgrade to Pro for 100 messages/day!`
+              : `Limit reached. Resets at ${resetTime}.`,
+            duration: 8000,
+          });
+          setMessages(prev => prev.filter(m => m.id !== aiMsgId));
+          return;
+        }
+
         let errText = await res.text();
         try {
           const parsedErr = JSON.parse(errText);
@@ -393,6 +416,9 @@ YOUR ROLE:
           content: fullResponseText
         });
       }
+
+      // Update rate limit counter optimistically
+      rateLimit.incrementUsed();
 
     } catch (err: any) {
       if (err.name === 'AbortError') return;
@@ -513,10 +539,32 @@ YOUR ROLE:
 
       <div className={`absolute bottom-0 left-0 right-0 p-4 pb-safe bg-gradient-to-t from-background via-background/90 to-transparent ${isWidget ? 'pt-8' : 'pt-12'} safe-bottom`}>
         <div className={`mx-auto space-y-3 ${isWidget ? 'w-full' : 'max-w-3xl'}`}>
+
+          {/* Rate limit exceeded banner */}
+          {rateLimitHit && rateLimit.remaining <= 0 && (
+            <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-destructive/10 border border-destructive/20 text-sm">
+              <span className="material-symbols-outlined text-destructive text-[18px]">block</span>
+              <div className="flex-1">
+                <p className="text-destructive font-semibold text-xs">Daily message limit reached</p>
+                <p className="text-destructive/70 text-[11px] mt-0.5">
+                  {rateLimit.planId === 'free'
+                    ? 'Upgrade to Pro for 100 messages/day and unlock your full potential.'
+                    : `Resets at ${rateLimit.resetAt ? new Date(rateLimit.resetAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'midnight UTC'}.`
+                  }
+                </p>
+              </div>
+              {rateLimit.planId === 'free' && (
+                <Link to="/pricing" className="shrink-0 px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-[11px] font-bold hover:brightness-110 transition-all shadow-sm">
+                  Upgrade
+                </Link>
+              )}
+            </div>
+          )}
+
           {!isWidget && messages.length <= 2 && (
             <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
               {SUGGESTED_PROMPTS.map(p => (
-                <button key={p} onClick={() => sendMessage(p)} disabled={streaming}
+                <button key={p} onClick={() => sendMessage(p)} disabled={streaming || rateLimit.remaining <= 0}
                   className="whitespace-nowrap px-4 py-1.5 rounded-full border border-outline-variant/60 bg-surface-container/50 text-on-surface-variant font-label-sm text-label-sm hover:border-primary/50 hover:text-primary transition-colors hover:bg-primary/5 disabled:opacity-50 shadow-sm">
                   {p}
                 </button>
@@ -528,23 +576,33 @@ YOUR ROLE:
             <textarea 
               ref={textareaRef}
               className={`w-full bg-transparent border-none resize-none px-4 ${isWidget ? 'py-2 text-sm max-h-24' : 'py-3 font-body-md max-h-32'} text-on-surface placeholder:text-on-surface-variant/50 focus:ring-0 min-h-[52px]`}
-              placeholder="Ask for a customized study plan, project ideas, or code explanations..." 
+              placeholder={rateLimit.remaining <= 0 ? 'Daily message limit reached — upgrade to continue' : 'Ask for a customized study plan, project ideas, or code explanations...'}
               rows={1} 
               style={{ scrollbarWidth: 'thin' }}
               value={input}
               onChange={handleInput}
               onKeyDown={handleKeyDown}
-              disabled={streaming}
+              disabled={streaming || rateLimit.remaining <= 0}
             />
             <div className="flex justify-between items-center px-2 py-2 border-t border-outline-variant/20 bg-surface/30">
-              <div className="flex items-center">
+              <div className="flex items-center gap-2">
                  {isWidget && streaming && (
                   <button onClick={handleStop} className="text-error text-xs ml-2 hover:underline min-h-[44px] px-2 flex items-center">Stop Generating</button>
+                )}
+                {/* Remaining messages counter */}
+                {!rateLimit.loading && (
+                  <span className={`text-[11px] font-semibold ml-2 ${
+                    rateLimit.remaining <= 0 ? 'text-destructive' :
+                    rateLimit.usagePercent >= 80 ? 'text-amber-500' :
+                    'text-muted-foreground'
+                  }`}>
+                    {rateLimit.remaining}/{rateLimit.limit} messages left today
+                  </span>
                 )}
               </div>
               <button 
                 onClick={() => sendMessage(input)} 
-                disabled={!input.trim() || streaming} 
+                disabled={!input.trim() || streaming || rateLimit.remaining <= 0} 
                 className="w-11 h-11 flex items-center justify-center rounded-xl bg-primary text-on-primary hover:brightness-110 transition-all shadow-sm disabled:opacity-50"
                 title="Send message"
               >

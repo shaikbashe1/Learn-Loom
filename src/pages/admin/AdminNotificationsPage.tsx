@@ -33,7 +33,7 @@ export default function AdminNotificationsPage() {
   const [loading, setLoading] = useState(true);
   
   const [sending, setSending] = useState(false);
-  const [form, setForm] = useState({ title: '', message: '', type: 'info', user_id: '' });
+  const [form, setForm] = useState({ title: '', message: '', type: 'info', user_id: '', send_email: false });
 
   const fetchNotifications = async () => {
     setLoading(true);
@@ -67,11 +67,84 @@ export default function AdminNotificationsPage() {
     
     if (error) {
       toast.error('Failed to send notification');
-    } else {
-      toast.success(payload.user_id ? 'Notification sent to user' : 'Broadcast sent to all users');
-      setForm({ title: '', message: '', type: 'info', user_id: '' });
-      fetchNotifications();
+      setSending(false);
+      return;
     }
+
+    toast.success(payload.user_id ? 'Notification sent to user' : 'Broadcast sent to all users');
+
+    // ── Optional Email dispatch via Resend ──
+    if (form.send_email) {
+      try {
+        let recipientEmails: string[] = [];
+
+        if (payload.user_id) {
+          // Direct message email lookup
+          const { data: profile, error: profileErr } = await supabase
+            .from('profiles')
+            .select('email')
+            .eq('id', payload.user_id)
+            .maybeSingle();
+
+          if (profileErr || !profile?.email) {
+            toast.error('Failed to locate recipient email address');
+          } else {
+            recipientEmails = [profile.email];
+          }
+        } else {
+          // Broadcast lookup
+          const { data: profiles, error: profilesErr } = await supabase
+            .from('profiles')
+            .select('email')
+            .not('email', 'is', null);
+
+          if (profilesErr || !profiles) {
+            toast.error('Failed to load user email list');
+          } else {
+            recipientEmails = profiles.map(p => p.email).filter(Boolean) as string[];
+          }
+        }
+
+        if (recipientEmails.length > 0) {
+          const { data: { session } } = await supabase.auth.getSession();
+          const token = session?.access_token;
+
+          const emailRes = await fetch('/api/send-email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              to: recipientEmails,
+              subject: form.title,
+              title: form.title,
+              html: `<p style="white-space: pre-wrap;">${form.message}</p>`,
+              ctaText: 'View Notification',
+              ctaUrl: 'https://learnloom.vercel.app/dashboard',
+            }),
+          });
+
+          if (emailRes.ok) {
+            const emailData = await emailRes.json();
+            if (emailData.mock) {
+              toast.info('Email logged to console (Mock mode).');
+            } else {
+              toast.success(`Email notification sent to ${recipientEmails.length} recipient(s).`);
+            }
+          } else {
+            const errData = await emailRes.json();
+            toast.error('Email dispatch failed', { description: errData.error || 'Check API log' });
+          }
+        }
+      } catch (emailErr) {
+        console.error('Email sending error:', emailErr);
+        toast.error('Network failure trying to dispatch email notifications.');
+      }
+    }
+
+    setForm({ title: '', message: '', type: 'info', user_id: '', send_email: false });
+    fetchNotifications();
     setSending(false);
   };
 
@@ -160,6 +233,20 @@ export default function AdminNotificationsPage() {
                       <ChevronDown className="h-4 w-4" />
                     </div>
                   </div>
+                </div>
+
+                {/* Send Email via Resend Checkbox */}
+                <div className="flex items-center gap-2 pt-2 select-none cursor-pointer">
+                  <input
+                    type="checkbox"
+                    id="send_email"
+                    checked={form.send_email}
+                    onChange={e => setForm({ ...form, send_email: e.target.checked })}
+                    className="w-4 h-4 rounded border-border text-primary focus:ring-primary/20 cursor-pointer accent-primary"
+                  />
+                  <Label htmlFor="send_email" className="text-xs font-semibold text-foreground cursor-pointer">
+                    Also send as Email Notification (via Resend)
+                  </Label>
                 </div>
               </div>
 

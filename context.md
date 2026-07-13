@@ -52,6 +52,12 @@ This document outlines the accomplishments, issues faced, solutions implemented,
     *   **Phase 17 (Leaderboard)**: Daily consecutive login streak trackers, reward store links, and 3D podium scholar leaderboards.
     *   **Phase 18 (Admin Dashboard)**: Total student enrollment counters, audit logging logs timeline, student suspension switches, and course draft publishes.
 
+### Phase 9: AI Rate Limiting & AI Course Consistency (New)
+*   **Daily AI Rate Limiting (Server-Side)**: Integrated atomic, tier-based rate limiting on Edge API endpoints (`api/ai-mentor.ts`, `api/ai-roadmap.ts`, and `api/coding-ai.ts`) using the `check_and_increment_rate_limit` RPC function. Limits are enforced based on plans: Free (5 msgs/day AI Mentor, 3/day Roadmaps, 5/day Coding AI), Pro (100/day Mentor, 20/day Roadmaps, 50/day Coding AI), and Elite (500/day for all).
+*   **AI Roadmap Prompt & Validation**: Enhanced the AI generation prompt to request structured objects containing `key_skills`, `estimated_hours`, and `prerequisite_knowledge`. Lowered temperature to `0.3` for consistency and added post-generation structure validation with fallbacks.
+*   **Frontend Usage Tracking**: Created `useAIRateLimit` hook to query usage state. Integrated usage count limit indicators, error boundary handling for `429` statuses, and a sidebar usage card/progress bar in `AIMentorPage.tsx`.
+*   **Course Seeding Enrichment**: Updated `seed-courses.mjs` to map dynamically generated module content (learning objectives, key takeaways, code walkthrough examples, real-world use cases, key concepts, and summaries) directly to DB columns instead of generic placeholder text, resolving course content inconsistency.
+
 ---
 
 ## 2. Issues Faced & Solutions

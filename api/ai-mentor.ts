@@ -1,4 +1,5 @@
 import { verifyAuth, unauthorizedResponse } from './_shared/auth';
+import { checkRateLimit, rateLimitResponse, rateLimitHeaders } from './_shared/rate-limit';
 
 export const config = {
   runtime: 'edge',
@@ -14,6 +15,7 @@ export default async function handler(req: Request) {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Expose-Headers': 'X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset',
       },
     });
   }
@@ -25,6 +27,10 @@ export default async function handler(req: Request) {
   // Verify Supabase authentication
   const authUser = await verifyAuth(req);
   if (!authUser) return unauthorizedResponse();
+
+  // Enforce tier-based rate limiting
+  const rateLimit = await checkRateLimit(authUser.id, 'ai-mentor');
+  if (!rateLimit.allowed) return rateLimitResponse(rateLimit);
 
   try {
     const apiKey = process.env.INTEGRATIONS_API_KEY || process.env.GEMINI_API_KEY;
@@ -76,6 +82,7 @@ Your role:
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
+        ...rateLimitHeaders(rateLimit),
       },
     });
 

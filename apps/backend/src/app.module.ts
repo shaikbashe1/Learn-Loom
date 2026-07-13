@@ -10,6 +10,7 @@ import { AIModule } from './modules/ai/ai.module';
 import { CertificatesModule } from './modules/certificates/certificates.module';
 import { GamificationModule } from './modules/gamification/gamification.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { MailModule } from './modules/mail/mail.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { AdminModule } from './modules/admin/admin.module';
     CertificatesModule,
     GamificationModule,
     AdminModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

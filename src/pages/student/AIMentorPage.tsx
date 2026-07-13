@@ -6,6 +6,9 @@ import { supabase } from '@/db/supabase';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Target, TrendingUp, AlertTriangle, BookOpen } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Link } from 'react-router-dom';
+import { useAIRateLimit } from '@/hooks/useAIRateLimit';
+import { cn } from '@/lib/utils';
 
 interface MentorAnalytics {
   completedCourses: number;
@@ -16,6 +19,7 @@ interface MentorAnalytics {
 
 export default function AIMentorPage() {
   const { user } = useAuth();
+  const rateLimit = useAIRateLimit('ai-mentor');
   const [analytics, setAnalytics] = useState<MentorAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -103,6 +107,37 @@ export default function AIMentorPage() {
               Your personalized AI Mentor constantly analyzes your learning patterns to accelerate your career.
             </p>
           </div>
+
+          {/* Daily AI Usage */}
+          {!rateLimit.loading && (
+            <Card className="bg-card border-border shadow-sm rounded-2xl p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-foreground uppercase tracking-wider">Daily AI Limit</span>
+                <span className="text-xs font-semibold text-muted-foreground">
+                  {rateLimit.used} / {rateLimit.limit}
+                </span>
+              </div>
+              <div className="relative h-2 w-full bg-primary/10 rounded-full overflow-hidden mb-2">
+                <div 
+                  className={cn(
+                    "h-full rounded-full transition-all duration-300",
+                    rateLimit.usagePercent >= 100 ? "bg-destructive" :
+                    rateLimit.usagePercent >= 80 ? "bg-amber-500" :
+                    "bg-primary"
+                  )}
+                  style={{ width: `${rateLimit.usagePercent}%` }}
+                />
+              </div>
+              <div className="flex justify-between items-center text-[10px] text-muted-foreground font-semibold">
+                <span>{rateLimit.remaining} messages left</span>
+                {rateLimit.planId === 'free' && (
+                  <Link to="/pricing" className="text-primary hover:underline font-bold">
+                    Upgrade to Pro
+                  </Link>
+                )}
+              </div>
+            </Card>
+          )}
 
           {!loading && analytics ? (
             <div className="space-y-6">

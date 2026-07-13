@@ -1,16 +1,49 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { verifyAuth, unauthorizedResponse } from './_shared/auth';
+import { checkRateLimit, rateLimitResponse, rateLimitHeaders } from './_shared/rate-limit';
 
-// Initialize Gemini API
-const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY || '');
-const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+export const config = {
+  runtime: 'edge',
+};
 
-export default async function handler(req: any, res: any) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+const GATEWAY_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+
+export default async function handler(req: Request) {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Expose-Headers': 'X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset',
+      },
+    });
   }
 
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
+  }
+
+  // Verify Supabase authentication
+  const authUser = await verifyAuth(req);
+  if (!authUser) return unauthorizedResponse();
+
+  // Enforce tier-based rate limiting
+  const rateLimit = await checkRateLimit(authUser.id, 'coding-ai');
+  if (!rateLimit.allowed) return rateLimitResponse(rateLimit);
+
   try {
-    const { action, code, language, problemTitle, problemDescription, error } = req.body;
+    const apiKey = process.env.INTEGRATIONS_API_KEY || process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.error('API key not configured in Vercel environment');
+      return new Response(JSON.stringify({ error: 'API key not configured' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      });
+    }
+
+    const body = await req.json();
+    const { action, code, language, problemTitle, problemDescription, error: userError } = body;
 
     let prompt = '';
 
@@ -22,7 +55,7 @@ export default async function handler(req: any, res: any) {
         prompt = `The user is trying to solve "${problemTitle}". Provide a small, conceptual hint to help them progress. DO NOT provide any code. Here is their current code in ${language}:\n\n${code}`;
         break;
       case 'debug':
-        prompt = `The user is trying to solve "${problemTitle}" in ${language}. Their code has an error or is failing. Provide a hint on what might be wrong, but DO NOT provide the exact corrected code.\n\nCurrent Code:\n${code}\n\nError/Context:\n${error}`;
+        prompt = `The user is trying to solve "${problemTitle}" in ${language}. Their code has an error or is failing. Provide a hint on what might be wrong, but DO NOT provide the exact corrected code.\n\nCurrent Code:\n${code}\n\nError/Context:\n${userError}`;
         break;
       case 'complexity':
         prompt = `Analyze the time and space complexity of the following ${language} code for the problem "${problemTitle}". Explain briefly.\n\nCode:\n${code}`;
@@ -31,16 +64,50 @@ export default async function handler(req: any, res: any) {
         prompt = `Provide suggestions on how to optimize the following ${language} code for the problem "${problemTitle}". Do not rewrite the code for them, just explain the conceptual optimization.\n\nCode:\n${code}`;
         break;
       default:
-        return res.status(400).json({ error: 'Invalid action' });
+        return new Response(JSON.stringify({ error: 'Invalid action' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        });
     }
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    const upstream = await fetch(`${GATEWAY_URL}?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.4,
+          maxOutputTokens: 2048,
+        },
+      }),
+    });
 
-    res.status(200).json({ result: text });
-  } catch (error: any) {
-    console.error('Gemini API Error:', error);
-    res.status(500).json({ error: 'Failed to generate AI response' });
+    if (!upstream.ok) {
+      const errText = await upstream.text();
+      console.error('Gemini API Error:', errText);
+      return new Response(JSON.stringify({ error: 'Failed to generate AI response' }), {
+        status: upstream.status,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      });
+    }
+
+    const result = await upstream.json();
+    const text = result?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+
+    return new Response(JSON.stringify({ result: text }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        ...rateLimitHeaders(rateLimit),
+      },
+    });
+
+  } catch (err: any) {
+    console.error('Coding AI API error:', err);
+    return new Response(JSON.stringify({ error: 'Failed to generate AI response' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+    });
   }
 }

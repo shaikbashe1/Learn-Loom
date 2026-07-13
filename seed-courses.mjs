@@ -613,15 +613,13 @@ tool_schema = {
         "Schema parameters enforce input conventions during automated tool execution cycles."
       ];
     }
-  }
-
   // Combine into clean, beautifully formatted Markdown
   let markdownObjectives = objectives.map(obj => `- ${obj}`).join('\n');
   let markdownBreakdown = breakdown.map(line => `- ${line}`).join('\n');
   let markdownUseCases = useCases.map(uc => `- ${uc}`).join('\n');
   let markdownTakeaways = takeaways.map(t => `- ${t}`).join('\n');
 
-  return `### 🎯 Overview & Objectives
+  const contentHtml = `### 🎯 Overview & Objectives
 ${explanation}
 
 #### Learning Objectives
@@ -660,6 +658,16 @@ ${markdownUseCases}
 ${markdownTakeaways}
 
 **Summary:** In this module, we analyzed the mechanics of **${modTitle}**. Ensuring your implementations follow these guidelines is critical to building scalable, robust architectures. In the next module, we will expand this setup with advanced testing architectures.`;
+
+  return {
+    content: contentHtml,
+    learning_objectives: objectives.join('\n'),
+    key_takeaways: takeaways,
+    examples: codeSample ? [codeSample] : [],
+    real_world_use_cases: useCases,
+    key_concepts: breakdown,
+    summary: explanation
+  };
 }
 
 // Helper to generate topic-appropriate realistic coding questions
@@ -861,7 +869,7 @@ async function seedCourses() {
       const order = i;
       const type = (i + 1) % 2 === 0 ? 'coding' : 'reading';
 
-      const contentHtml = generateModuleContent(cData.title, mInfo.title, i);
+      const moduleData = generateModuleContent(cData.title, mInfo.title, i);
 
       const { data: mod, error: mErr } = await authSupabase.from('course_modules').insert({
         course_id: courseId,
@@ -872,13 +880,13 @@ async function seedCourses() {
         type: type,
         is_free_preview: i === 0,
         duration_minutes: 30,
-        learning_objectives: `Understand ${mInfo.title}.\nImplement simple coding routines.\nEvaluate performance parameters.`,
-        content: contentHtml,
-        key_takeaways: ["Modular coding is crucial.", "Optimize thread performance.", "Isolate functions correctly."],
-        examples: [`<p>Example: Simple implementation showing class encapsulation of ${mInfo.title}.</p>`],
-        real_world_use_cases: [`Used in asynchronous task execution loops.`],
-        key_concepts: [`Encapsulation`, `Time Complexity`, `Thread Control`],
-        summary: `This module covers the core concepts of ${mInfo.title} and prepares you for functional scaling.`
+        learning_objectives: moduleData.learning_objectives,
+        content: moduleData.content,
+        key_takeaways: moduleData.key_takeaways,
+        examples: moduleData.examples,
+        real_world_use_cases: moduleData.real_world_use_cases,
+        key_concepts: moduleData.key_concepts,
+        summary: moduleData.summary
       }).select('id').single();
 
       if (mErr) {
