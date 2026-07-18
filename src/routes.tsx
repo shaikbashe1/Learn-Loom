@@ -45,6 +45,11 @@ const PaymentHistoryPage  = lazy(() => import('./pages/student/PaymentHistoryPag
 const SearchPage          = lazy(() => import('./pages/student/SearchPage'));
 const MessagesPage        = lazy(() => import('./pages/student/MessagesPage'));
 
+// Lazy-loaded MLS pages
+const ModularHubPage      = lazy(() => import('./pages/mls/ModularHubPage'));
+const TrackDetailPage     = lazy(() => import('./pages/mls/TrackDetailPage'));
+const ModuleViewerPage    = lazy(() => import('./pages/mls/ModuleViewerPage'));
+
 // Lazy-loaded admin pages
 const AdminDashboard      = lazy(() => import('./pages/admin/AdminDashboard'));
 const AdminCoursesPage    = lazy(() => import('./pages/admin/AdminCoursesPage'));
@@ -56,6 +61,7 @@ const AdminSubmissionsPage = lazy(() => import('./pages/admin/AdminSubmissionsPa
 const AdminRoadmapsPage   = lazy(() => import('./pages/admin/AdminRoadmapsPage'));
 const AdminDraftCoursesPage = lazy(() => import('./pages/admin/AdminDraftCoursesPage').then(module => ({ default: module.AdminDraftCoursesPage })));
 const AdminCodingProblemsPage = lazy(() => import('./pages/admin/AdminCodingProblemsPage'));
+const AdminMLSDashboard   = lazy(() => import('./pages/admin/AdminMLSDashboard'));
 
 export interface RouteConfig {
   name: string;
@@ -111,6 +117,9 @@ export const routes: RouteConfig[] = [
   { name: 'Messages',             path: '/messages',                component: MessagesPage },
   { name: 'Pricing',              path: '/pricing',                 component: PricingPage,       public: true },
   { name: 'Payment History',      path: '/payment-history',         component: PaymentHistoryPage },
+  { name: 'Modular Hub',          path: '/mls',                     component: ModularHubPage },
+  { name: 'Modular Track',        path: '/mls/:trackId',            component: TrackDetailPage },
+  { name: 'Module Viewer',        path: '/mls/:trackId/:moduleId',  component: ModuleViewerPage },
 
   // ── Admin ─────────────────────────────────────────────────────────────
   { name: 'Admin Dashboard',      path: '/admin',                   component: AdminDashboard },
@@ -123,4 +132,5 @@ export const routes: RouteConfig[] = [
   { name: 'Admin Roadmaps',       path: '/admin/roadmaps',          component: AdminRoadmapsPage },
   { name: 'Review Drafts',        path: '/admin/courses/drafts',    component: AdminDraftCoursesPage },
   { name: 'Admin Coding Problems', path: '/admin/coding/problems',  component: AdminCodingProblemsPage },
+  { name: 'Admin MLS Dashboard',  path: '/admin/mls',               component: AdminMLSDashboard },
 ];

@@ -488,3 +488,75 @@ export interface DBUserProblemProgress {
   solved_at: string | null;
 }
 
+
+// ----------------------------------------------------------------------
+// Modular Learning System (MLS)
+// ----------------------------------------------------------------------
+
+export interface DBMLSTrack {
+  id: string;
+  title: string;
+  description: string | null;
+  order_index: number;
+  icon_name: string | null;
+  is_published: boolean;
+  created_at: string;
+}
+
+export interface DBMLSModule {
+  id: string;
+  track_id: string;
+  title: string;
+  description: string | null;
+  difficulty: string | null;
+  estimated_time_mins: number;
+  order_index: number;
+  is_published: boolean;
+  created_at: string;
+}
+
+export interface DBMLSMaterial {
+  id: string;
+  module_id: string;
+  title: string;
+  type: 'video' | 'pdf' | 'notes' | 'link';
+  url: string | null;
+  content: string | null;
+  order_index: number;
+  created_at: string;
+}
+
+export interface DBMLSPractice {
+  id: string;
+  module_id: string;
+  question: string;
+  answer: string;
+  explanation: string | null;
+  order_index: number;
+  created_at: string;
+}
+
+export interface DBMLSQuiz {
+  id: string;
+  module_id: string;
+  title: string;
+  questions: any[];
+  passing_percentage: number;
+  created_at: string;
+}
+
+export interface DBMLSUserProgress {
+  id: string;
+  user_id: string;
+  module_id: string;
+  status: 'started' | 'completed';
+  completed_at: string | null;
+  updated_at: string;
+}
+
+export interface DBMLSBookmark {
+  id: string;
+  user_id: string;
+  module_id: string;
+  created_at: string;
+}

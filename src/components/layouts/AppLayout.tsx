@@ -39,13 +39,15 @@ import {
   Menu,
   CheckCircle2,
   AlertCircle,
-  Download
+  Download,
+  Layers
 } from 'lucide-react';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 
 const studentNavItems = [
   { label: 'Dashboard',       path: '/dashboard',   icon: LayoutDashboard },
   { label: 'Courses',         path: '/courses',      icon: BookOpen },
+  { label: 'Modular Learning', path: '/mls',         icon: Layers },
   { label: 'AI Roadmap',      path: '/ai-roadmap',   icon: Compass },
   { label: 'AI Mentor',       path: '/ai-mentor',    icon: Bot },
   { 
@@ -75,6 +77,7 @@ const studentNavItems = [
 const adminNavItems = [
   { label: 'Admin Dashboard', path: '/admin',               icon: LayoutDashboard },
   { label: 'Review Drafts',   path: '/admin/courses/drafts', icon: FileText },
+  { label: 'Modular Learning', path: '/admin/mls',          icon: Layers },
   { label: 'Manage Courses',  path: '/admin/courses',       icon: BookOpen },
   { label: 'Manage Students', path: '/admin/students',      icon: Users },
   { label: 'Messages',        path: '/messages',            icon: MessageSquare },

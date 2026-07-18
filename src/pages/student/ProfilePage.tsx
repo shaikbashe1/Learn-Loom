@@ -31,8 +31,13 @@ import {
   FileText, 
   LayoutDashboard,
   Camera,
-  Compass
+  Compass,
+  Code2,
+  Terminal,
+  Zap,
+  Activity
 } from 'lucide-react';
+import { format, subDays } from 'date-fns';
 import { toast } from 'sonner';
 import { supabase } from '@/db/supabase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -80,6 +85,29 @@ export default function ProfilePage() {
     github_url: '', linkedin_url: '', portfolio_url: '', resume_url: '',
     country: '', state: '', city: '', pincode: ''
   });
+
+  const [codingProgress, setCodingProgress] = useState<any>(null);
+  const [codingStats, setCodingStats] = useState<any>(null);
+  const [codingStreaks, setCodingStreaks] = useState<any>(null);
+
+  React.useEffect(() => {
+    const fetchCodingData = async () => {
+      if (!user) return;
+      try {
+        const { data: prog } = await supabase.from('coding_progress').select('*').eq('user_id', user.id).single();
+        if (prog) setCodingProgress(prog);
+
+        const { data: stat } = await supabase.from('coding_statistics').select('*').eq('user_id', user.id).single();
+        if (stat) setCodingStats(stat);
+
+        const { data: strk } = await supabase.from('coding_streaks').select('*').eq('user_id', user.id).single();
+        if (strk) setCodingStreaks(strk);
+      } catch (e) {
+        console.error("Error fetching coding stats:", e);
+      }
+    };
+    fetchCodingData();
+  }, [user]);
 
   const calculateCompletion = () => {
     if (!profile) return 0;
@@ -236,6 +264,28 @@ export default function ProfilePage() {
   const completionPercent = calculateCompletion();
   const exts = (profile.extensions as Record<string, string>) || {};
   const isStudent = profile.user_type === 'student';
+
+  // Coding Statistics Computations
+  const totalProblems = 1000;
+  const solvedCount = codingProgress?.problems_solved || 0;
+  const attemptedCount = codingProgress?.problems_attempted || 0;
+  const completionPercentage = Math.round((solvedCount / totalProblems) * 100);
+  
+  const easyCount = codingProgress?.easy_solved || 0;
+  const mediumCount = codingProgress?.medium_solved || 0;
+  const hardCount = codingProgress?.hard_solved || 0;
+  
+  const accRate = codingStats?.acceptance_rate || 0;
+  const totalSubs = codingStats?.total_submissions || 0;
+  const favLang = codingStats?.favorite_language || 'Unknown';
+  
+  const today = new Date();
+  const heatmapDays = Array.from({ length: 60 }).map((_, i) => {
+    const date = subDays(today, 59 - i);
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const isActive = codingStreaks && codingStreaks.current_streak > 0 && i >= (60 - codingStreaks.current_streak);
+    return { date: dateStr, active: isActive };
+  });
 
   return (
     <AppLayout>
@@ -676,15 +726,110 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* Future Expansion Slots */}
-              <div className="border-2 border-dashed border-border rounded-2xl p-8 text-center bg-card/50">
-                <div className="w-10 h-10 bg-muted rounded-xl flex items-center justify-center mx-auto mb-3 text-muted-foreground">
-                  <Compass className="w-5 h-5" />
+              {/* 📊 Coding Statistics Section */}
+              <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
+                <h3 className="font-bold text-lg text-foreground flex items-center gap-2 border-b border-border/40 pb-4">
+                  <Terminal className="w-5 h-5 text-primary" /> Coding Statistics
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  {/* Circular Progress */}
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="relative w-36 h-36 flex items-center justify-center mb-2">
+                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="8" className="text-muted/30" />
+                        <circle 
+                          cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="8" 
+                          className="text-primary transition-all duration-1000 ease-out"
+                          strokeDasharray="283"
+                          strokeDashoffset={283 - (283 * completionPercentage) / 100}
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-3xl font-black font-mono text-foreground">{completionPercentage}%</span>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase">Completed</span>
+                      </div>
+                    </div>
+                    <p className="text-xs font-semibold text-muted-foreground">{solvedCount} / {totalProblems} Solved</p>
+                  </div>
+
+                  {/* Metrics Grid */}
+                  <div className="md:col-span-2 grid grid-cols-2 gap-4">
+                    <div className="bg-muted/30 p-4 rounded-xl border border-border flex flex-col justify-center">
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Attempted</span>
+                      <span className="text-xl font-black text-foreground">{attemptedCount}</span>
+                    </div>
+                    <div className="bg-muted/30 p-4 rounded-xl border border-border flex flex-col justify-center">
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Total Submissions</span>
+                      <span className="text-xl font-black text-foreground">{totalSubs}</span>
+                    </div>
+                    <div className="bg-muted/30 p-4 rounded-xl border border-border flex flex-col justify-center">
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Acceptance Rate</span>
+                      <span className="text-xl font-black text-foreground">{accRate.toFixed(1)}%</span>
+                    </div>
+                    <div className="bg-muted/30 p-4 rounded-xl border border-border flex flex-col justify-center">
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Top Language</span>
+                      <span className="text-xl font-black text-foreground">{favLang}</span>
+                    </div>
+                  </div>
                 </div>
-                <h4 className="text-xs font-bold text-foreground mb-1">More sections coming soon!</h4>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Projects, Badges, GitHub Contributions, and Community Activity will appear here.
-                </p>
+
+                {/* Difficulty Breakdown */}
+                <div className="pt-4 border-t border-border/40 space-y-3">
+                  <div className="flex items-center gap-4">
+                    <span className="w-16 text-xs font-bold text-green-500">Easy</span>
+                    <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                      <div className="h-full bg-green-500 rounded-full" style={{ width: `${Math.min(100, (easyCount / 300) * 100)}%` }} />
+                    </div>
+                    <span className="w-8 text-xs font-mono font-semibold text-right">{easyCount}</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="w-16 text-xs font-bold text-yellow-500">Medium</span>
+                    <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                      <div className="h-full bg-yellow-500 rounded-full" style={{ width: `${Math.min(100, (mediumCount / 500) * 100)}%` }} />
+                    </div>
+                    <span className="w-8 text-xs font-mono font-semibold text-right">{mediumCount}</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="w-16 text-xs font-bold text-red-500">Hard</span>
+                    <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                      <div className="h-full bg-red-500 rounded-full" style={{ width: `${Math.min(100, (hardCount / 200) * 100)}%` }} />
+                    </div>
+                    <span className="w-8 text-xs font-mono font-semibold text-right">{hardCount}</span>
+                  </div>
+                </div>
+
+                {/* Heatmap Calendar */}
+                <div className="pt-6 border-t border-border/40">
+                  <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <Activity className="w-4 h-4" /> Activity Map (Last 60 Days)
+                  </h4>
+                  <div className="flex flex-wrap gap-1.5 justify-start">
+                    {heatmapDays.map((day, idx) => (
+                      <div 
+                        key={idx} 
+                        title={day.date}
+                        className={cn(
+                          "w-4 h-4 rounded-sm transition-colors",
+                          day.active ? "bg-primary hover:bg-primary/80" : "bg-muted/50 hover:bg-muted"
+                        )} 
+                      />
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between mt-3 text-[10px] text-muted-foreground font-semibold">
+                    <span>{format(subDays(today, 59), 'MMM d')}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span>Less</span>
+                      <div className="w-3 h-3 rounded-[2px] bg-muted/50" />
+                      <div className="w-3 h-3 rounded-[2px] bg-primary/40" />
+                      <div className="w-3 h-3 rounded-[2px] bg-primary/70" />
+                      <div className="w-3 h-3 rounded-[2px] bg-primary" />
+                      <span>More</span>
+                    </div>
+                    <span>Today</span>
+                  </div>
+                </div>
               </div>
 
             </div>
