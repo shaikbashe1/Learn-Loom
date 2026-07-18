@@ -31,6 +31,7 @@ export default function ProblemPage() {
   const [problem, setProblem] = useState<DBCodingProblem | null>(null);
   const [testcases, setTestcases] = useState<DBProblemTestcase[]>([]);
   const [loading, setLoading] = useState(true);
+  const [renderError, setRenderError] = useState<string | null>(null);
   
   const [language, setLanguage] = useState<Lang>('python');
   const [code, setCode] = useState('');
@@ -44,45 +45,72 @@ export default function ProblemPage() {
 
   useEffect(() => {
     const fetchProblem = async () => {
-      if (!id) return;
-      const { data: probData, error } = await supabase
-        .from('coding_problems')
-        .select('*')
-        .eq('slug', id)
-        .single();
+      try {
+        if (!id) return;
+        const { data: probData, error } = await supabase
+          .from('coding_problems')
+          .select('*')
+          .eq('slug', id)
+          .single();
+          
+        if (error || !probData) {
+          toast.error('Problem not found');
+          navigate('/coding/practice');
+          return;
+        }
         
-      if (error || !probData) {
-        toast.error('Problem not found');
-        navigate('/coding/practice');
-        return;
-      }
-      
-      setProblem(probData as DBCodingProblem);
-      const draftKey = `draft_code_${user?.id}_${id}_${language}`;
-      const savedDraft = localStorage.getItem(draftKey);
-      
-      if (savedDraft) {
-        setCode(savedDraft);
-      } else if (probData.starter_code && probData.starter_code[language]) {
-        setCode(probData.starter_code[language]);
-      } else {
-        setCode('# Write your code here\n');
-      }
+        // Safely parse JSONB fields if they came back as strings
+        let parsedTags = probData.company_tags;
+        if (typeof parsedTags === 'string') {
+          try { parsedTags = JSON.parse(parsedTags); } catch(e) { parsedTags = []; }
+        }
+        let parsedConstraints = probData.constraints;
+        if (typeof parsedConstraints === 'string') {
+          try { parsedConstraints = JSON.parse(parsedConstraints); } catch(e) { parsedConstraints = []; }
+        }
+        let parsedStarter = probData.starter_code;
+        if (typeof parsedStarter === 'string') {
+          try { parsedStarter = JSON.parse(parsedStarter); } catch(e) { parsedStarter = {}; }
+        }
+        
+        const safeProbData = {
+          ...probData,
+          company_tags: Array.isArray(parsedTags) ? parsedTags : [],
+          constraints: Array.isArray(parsedConstraints) ? parsedConstraints : [],
+          starter_code: typeof parsedStarter === 'object' && parsedStarter !== null ? parsedStarter : {},
+        } as DBCodingProblem;
 
-      // Fetch testcases
-      const { data: tcData } = await supabase
-        .from('problem_testcases')
-        .select('*')
-        .eq('problem_id', probData.id);
+        setProblem(safeProbData);
         
-      if (tcData) {
-        setTestcases(tcData as DBProblemTestcase[]);
+        const draftKey = `draft_code_${user?.id}_${id}_${language}`;
+        const savedDraft = localStorage.getItem(draftKey);
+        
+        if (savedDraft) {
+          setCode(savedDraft);
+        } else if (safeProbData.starter_code && safeProbData.starter_code[language]) {
+          setCode(safeProbData.starter_code[language]);
+        } else {
+          setCode('# Write your code here\n');
+        }
+
+        // Fetch testcases
+        const { data: tcData } = await supabase
+          .from('problem_testcases')
+          .select('*')
+          .eq('problem_id', probData.id);
+          
+        if (tcData) {
+          setTestcases(tcData as DBProblemTestcase[]);
+        }
+      } catch (err: any) {
+        setRenderError(err.message || 'Failed to load problem');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     
     fetchProblem();
-  }, [id, navigate, language]);
+  }, [id, navigate, language, user?.id]);
 
   const handleLanguageChange = (lang: Lang) => {
     setLanguage(lang);
@@ -107,15 +135,12 @@ export default function ProblemPage() {
     setOutput(null);
     
     try {
-      // Mock Judge0 API for Demo - since we don't have a live Judge0 instance guaranteed
-      // In production, this would be a POST to /api/execute or directly to Judge0
+      // Mock Judge0 API for Demo
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Simulate execution against testcases
       let allPassed = true;
       let finalStatus = "Accepted";
       
-      // Artificial error for empty/bad code
       if (code.length < 10) {
         allPassed = false;
         finalStatus = "Compilation Error";
@@ -129,7 +154,6 @@ export default function ProblemPage() {
       });
 
       if (isSubmit && finalStatus === "Accepted" && user) {
-        // Record submission in database
         await supabase.from('coding_submissions').insert({
           user_id: user.id,
           problem_id: problem.id,
@@ -144,7 +168,6 @@ export default function ProblemPage() {
       } else if (isSubmit) {
         toast.error("Submission failed. Check your logic.");
       }
-
     } catch (error) {
       setOutput({ status: "Error", stdout: "Server execution failed." });
       toast.error("Execution failed.");
@@ -158,7 +181,6 @@ export default function ProblemPage() {
     setGeneratingHint(true);
     setActiveTab('hints');
     try {
-      // In a real app, we would hit our Gemini API endpoint with the current code
       await new Promise(resolve => setTimeout(resolve, 2000));
       setAiHint(`Looking at your ${language} code, consider the following:\n1. Your loop boundary might be off by one.\n2. Try using a HashMap to reduce the time complexity from O(n^2) to O(n).`);
     } catch (e) {
@@ -167,6 +189,19 @@ export default function ProblemPage() {
       setGeneratingHint(false);
     }
   };
+
+  if (renderError) {
+    return (
+      <AppLayout title="Error">
+        <div className="flex h-[50vh] flex-col items-center justify-center space-y-4">
+          <XCircle className="w-12 h-12 text-destructive" />
+          <h2 className="text-xl font-bold">Failed to load problem</h2>
+          <p className="text-muted-foreground">{renderError}</p>
+          <Button onClick={() => navigate('/coding/practice')}>Go Back</Button>
+        </div>
+      </AppLayout>
+    );
+  }
 
   if (loading || !problem) {
     return (
@@ -179,25 +214,25 @@ export default function ProblemPage() {
   }
 
   return (
-    <AppLayout title={problem.title} fullWidth noFooter>
+    <AppLayout title={problem?.title || "Problem"} fullWidth noFooter>
       <div className="flex flex-col h-[calc(100vh-64px)] w-full bg-background overflow-hidden">
         
         {/* Top Navbar */}
-        <div className="flex items-center justify-between px-4 py-2 bg-surface border-b border-outline-variant h-14 shrink-0">
+        <div className="flex items-center justify-between px-4 py-2 bg-surface border-b border-outline-variant h-14 shrink-0 shadow-sm z-10">
           <div className="flex items-center gap-4">
             <Link to="/coding/practice" className="text-on-surface-variant hover:text-primary transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <h1 className="font-heading font-semibold text-on-surface flex items-center gap-2">
               <Code2 className="w-5 h-5 text-primary" />
-              {problem.title}
+              {problem?.title || "Untitled Problem"}
             </h1>
             <span className={`px-2 py-0.5 rounded text-xs font-bold ${
-              problem.difficulty === 'Easy' ? 'bg-green-500/10 text-green-500' :
-              problem.difficulty === 'Medium' ? 'bg-yellow-500/10 text-yellow-600' :
+              problem?.difficulty === 'Easy' ? 'bg-green-500/10 text-green-500' :
+              problem?.difficulty === 'Medium' ? 'bg-yellow-500/10 text-yellow-600' :
               'bg-red-500/10 text-red-500'
             }`}>
-              {problem.difficulty}
+              {problem?.difficulty || "Medium"}
             </span>
           </div>
           <div className="flex items-center gap-3">
@@ -226,8 +261,8 @@ export default function ProblemPage() {
         <div className="flex flex-1 overflow-hidden">
           
           {/* Left Pane: Problem Description */}
-          <div className="w-1/2 flex flex-col border-r border-outline-variant bg-surface">
-            <div className="flex border-b border-outline-variant bg-surface-container-lowest">
+          <div className="w-1/2 flex flex-col border-r border-outline-variant bg-surface overflow-hidden">
+            <div className="flex border-b border-outline-variant bg-surface-container-lowest shrink-0">
               <button 
                 onClick={() => setActiveTab('description')}
                 className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
@@ -250,9 +285,9 @@ export default function ProblemPage() {
             <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
               {activeTab === 'description' && (
                 <div className="prose prose-sm dark:prose-invert max-w-none prose-pre:bg-surface-container prose-pre:border prose-pre:border-outline-variant">
-                  <ReactMarkdown>{problem.description || "No description provided."}</ReactMarkdown>
+                  <ReactMarkdown>{problem?.description || "No description provided."}</ReactMarkdown>
                   
-                  {problem.company_tags && problem.company_tags.length > 0 && (
+                  {Array.isArray(problem?.company_tags) && problem.company_tags.length > 0 && (
                     <div className="mt-8 pt-6 border-t border-outline-variant">
                       <h4 className="text-sm font-bold text-on-surface-variant uppercase tracking-wider mb-3">Companies</h4>
                       <div className="flex gap-2 flex-wrap">
@@ -263,7 +298,7 @@ export default function ProblemPage() {
                     </div>
                   )}
                   
-                  {problem.constraints && problem.constraints.length > 0 && (
+                  {Array.isArray(problem?.constraints) && problem.constraints.length > 0 && (
                     <div className="mt-6">
                       <h4 className="text-sm font-bold text-on-surface-variant uppercase tracking-wider mb-3">Constraints</h4>
                       <ul className="space-y-1">
@@ -309,22 +344,22 @@ export default function ProblemPage() {
           </div>
 
           {/* Right Pane: Code Editor & Console */}
-          <div className="w-1/2 flex flex-col bg-[#1e1e1e]">
+          <div className="w-1/2 flex flex-col bg-[#1e1e1e] overflow-hidden">
             {/* Editor Toolbar */}
-            <div className="flex items-center justify-between px-4 py-2 bg-surface-container-lowest border-b border-outline-variant h-12 shrink-0">
+            <div className="flex items-center justify-between px-4 py-2 bg-[#2d2d2d] border-b border-[#3d3d3d] h-12 shrink-0">
               <select
                 value={language}
                 onChange={(e) => handleLanguageChange(e.target.value as Lang)}
-                className="bg-surface text-on-surface border border-outline-variant rounded px-2 py-1 text-sm font-mono"
+                className="bg-[#1e1e1e] text-white border border-[#3d3d3d] rounded px-2 py-1 text-sm font-mono outline-none focus:ring-1 focus:ring-primary"
               >
                 {Object.entries(LANG_MAP).map(([key, val]) => (
                   <option key={key} value={key}>{val.name}</option>
                 ))}
               </select>
               
-              <div className="flex items-center gap-3 text-xs text-on-surface-variant font-mono">
-                <span><Clock className="w-3 h-3 inline mr-1" /> {problem.time_limit_ms}ms</span>
-                <span>{problem.memory_limit_mb}MB</span>
+              <div className="flex items-center gap-3 text-xs text-gray-400 font-mono">
+                <span><Clock className="w-3 h-3 inline mr-1" /> {problem?.time_limit_ms || 1000}ms</span>
+                <span>{problem?.memory_limit_mb || 256}MB</span>
               </div>
             </div>
 
@@ -354,7 +389,7 @@ export default function ProblemPage() {
             </div>
 
             {/* Output Console */}
-            <div className={`border-t border-outline-variant bg-[#1e1e1e] transition-all duration-300 flex flex-col ${output ? 'h-64' : 'h-12'}`}>
+            <div className={`border-t border-[#3d3d3d] bg-[#1e1e1e] transition-all duration-300 flex flex-col ${output ? 'h-64' : 'h-12'}`}>
               <div 
                 className="px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-white/5"
                 onClick={() => !output && setOutput({ status: 'Idle', stdout: 'Ready to run code.' })}
