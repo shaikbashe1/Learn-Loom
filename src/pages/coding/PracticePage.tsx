@@ -21,8 +21,10 @@ export default function PracticePage() {
   const { user } = useAuth();
   const [problems, setProblems] = useState<DBCodingProblem[]>([]);
   const [solvedIds, setSolvedIds] = useState<Set<string>>(new Set());
+  const [attemptedIds, setAttemptedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('All');
   const [difficultyFilter, setDifficultyFilter] = useState<string>('All');
   const [topicFilter, setTopicFilter] = useState<string>('All');
 
@@ -39,14 +41,24 @@ export default function PracticePage() {
       // Fetch user solved status
       if (user) {
         const { data: subData } = await supabase
-          .from('user_submissions')
-          .select('problem_id')
-          .eq('user_id', user.id)
-          .eq('status', 'Accepted');
+          .from('coding_submissions')
+          .select('problem_id, verdict')
+          .eq('user_id', user.id);
           
         if (subData) {
-          const ids = new Set(subData.map(s => s.problem_id));
-          setSolvedIds(ids);
+          const solved = new Set<string>();
+          const attempted = new Set<string>();
+          
+          subData.forEach(sub => {
+            if (sub.verdict === 'Accepted') {
+              solved.add(sub.problem_id);
+            } else {
+              attempted.add(sub.problem_id);
+            }
+          });
+          
+          setSolvedIds(solved);
+          setAttemptedIds(attempted);
         }
       }
       setLoading(false);
@@ -60,9 +72,18 @@ export default function PracticePage() {
                          (p.company_tags && p.company_tags.some(tag => tag.toLowerCase().includes(search.toLowerCase())));
       const matchDiff = difficultyFilter === 'All' || p.difficulty === difficultyFilter;
       const matchTopic = topicFilter === 'All' || p.topic === topicFilter;
-      return matchSearch && matchDiff && matchTopic;
+      
+      const isSolved = solvedIds.has(p.id);
+      const isAttempted = attemptedIds.has(p.id) && !isSolved;
+      
+      let matchStatus = true;
+      if (statusFilter === 'Solved') matchStatus = isSolved;
+      if (statusFilter === 'Attempted') matchStatus = isAttempted;
+      if (statusFilter === 'Not Started') matchStatus = !isSolved && !isAttempted;
+      
+      return matchSearch && matchDiff && matchTopic && matchStatus;
     });
-  }, [problems, search, difficultyFilter, topicFilter]);
+  }, [problems, search, difficultyFilter, topicFilter, statusFilter, solvedIds, attemptedIds]);
 
   // Calculate XP (Easy=20, Medium=50, Hard=100)
   const totalXP = Array.from(solvedIds).reduce((acc, id) => {
@@ -120,6 +141,14 @@ export default function PracticePage() {
           </div>
           
           <select 
+            value={statusFilter} 
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="h-10 px-3 rounded-md border border-input bg-background text-sm"
+          >
+            {['All', 'Solved', 'Attempted', 'Not Started'].map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+          
+          <select 
             value={difficultyFilter} 
             onChange={(e) => setDifficultyFilter(e.target.value)}
             className="h-10 px-3 rounded-md border border-input bg-background text-sm"
@@ -170,13 +199,16 @@ export default function PracticePage() {
               ) : (
                 filteredProblems.map((problem) => {
                   const isSolved = solvedIds.has(problem.id);
+                  const isAttempted = attemptedIds.has(problem.id) && !isSolved;
                   return (
                     <tr key={problem.id} className="hover:bg-surface-container-lowest transition-colors group">
                       <td className="px-6 py-4">
                         {isSolved ? (
-                          <CheckCircle2 className="w-5 h-5 text-green-500" />
+                          <CheckCircle2 className="w-5 h-5 text-green-500" title="Solved" />
+                        ) : isAttempted ? (
+                          <Circle className="w-5 h-5 text-yellow-500 fill-yellow-500/20" title="Attempted" />
                         ) : (
-                          <Circle className="w-5 h-5 text-outline-variant" />
+                          <Circle className="w-5 h-5 text-outline-variant" title="Not Started" />
                         )}
                       </td>
                       <td className="px-6 py-4 font-medium text-on-surface">

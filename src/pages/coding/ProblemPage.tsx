@@ -58,7 +58,12 @@ export default function ProblemPage() {
       }
       
       setProblem(probData as DBCodingProblem);
-      if (probData.starter_code && probData.starter_code[language]) {
+      const draftKey = `draft_code_${user?.id}_${id}_${language}`;
+      const savedDraft = localStorage.getItem(draftKey);
+      
+      if (savedDraft) {
+        setCode(savedDraft);
+      } else if (probData.starter_code && probData.starter_code[language]) {
         setCode(probData.starter_code[language]);
       } else {
         setCode('# Write your code here\n');
@@ -81,8 +86,15 @@ export default function ProblemPage() {
 
   const handleLanguageChange = (lang: Lang) => {
     setLanguage(lang);
-    if (problem?.starter_code && problem.starter_code[lang]) {
+    const draftKey = `draft_code_${user?.id}_${id}_${lang}`;
+    const savedDraft = localStorage.getItem(draftKey);
+    
+    if (savedDraft) {
+      setCode(savedDraft);
+    } else if (problem?.starter_code && problem.starter_code[lang]) {
       setCode(problem.starter_code[lang]);
+    } else {
+      setCode('# Write your code here\n');
     }
   };
 
@@ -118,16 +130,17 @@ export default function ProblemPage() {
 
       if (isSubmit && finalStatus === "Accepted" && user) {
         // Record submission in database
-        await supabase.from('user_submissions').insert({
+        await supabase.from('coding_submissions').insert({
           user_id: user.id,
           problem_id: problem.id,
-          code: code,
+          source_code: code,
           language: language,
-          status: finalStatus,
-          execution_time_ms: 45,
-          memory_mb: 12.4
+          verdict: finalStatus,
+          time_ms: 45,
+          memory_kb: 12400,
+          credits_awarded: problem.credits || 10
         });
-        toast.success("Solution Accepted! XP awarded.");
+        toast.success("Solution Accepted! XP & Progress Updated.");
       } else if (isSubmit) {
         toast.error("Submission failed. Check your logic.");
       }
@@ -322,7 +335,12 @@ export default function ProblemPage() {
                 language={language}
                 theme="vs-dark"
                 value={code}
-                onChange={(val) => setCode(val || '')}
+                onChange={(val) => {
+                  setCode(val || '');
+                  if (user && id) {
+                    localStorage.setItem(`draft_code_${user.id}_${id}_${language}`, val || '');
+                  }
+                }}
                 options={{
                   minimap: { enabled: false },
                   fontSize: 14,

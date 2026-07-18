@@ -7,201 +7,207 @@ import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/db/supabase';
 import { Skeleton } from '@/components/ui/skeleton';
-// Replace Recharts with simple visual elements or we could install it.
-// Assuming simple CSS bars for charts if Recharts isn't available, or I can just use placeholder divs.
+import { Trophy, Flame, Target, Star, Zap, Clock, Code2, AlertCircle } from 'lucide-react';
+import { format, subDays } from 'date-fns';
 
 export default function DashboardPage() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    solved: 0,
-    streak: 0,
-    rating: 1500,
-    accuracy: 0,
-    xp: 0
-  });
+  
+  const [progress, setProgress] = useState<any>(null);
+  const [statistics, setStatistics] = useState<any>(null);
+  const [streaks, setStreaks] = useState<any>(null);
+  const [badges, setBadges] = useState<any[]>([]);
+  const [allBadges, setAllBadges] = useState<any[]>([]);
 
   useEffect(() => {
-    // In a real implementation we would fetch from coding_progress
-    const fetchStats = async () => {
+    const fetchDashboardData = async () => {
+      if (!user) return;
       setLoading(true);
       try {
-        if (!profile?.id) return;
-        const { data, error } = await supabase
-          .from('coding_progress')
-          .select('*')
-          .eq('user_id', profile.id)
-          .single();
+        // Fetch progress
+        const { data: prog } = await supabase.from('coding_progress').select('*').eq('user_id', user.id).single();
+        if (prog) setProgress(prog);
+
+        // Fetch statistics
+        const { data: stat } = await supabase.from('coding_statistics').select('*').eq('user_id', user.id).single();
+        if (stat) setStatistics(stat);
+
+        // Fetch streaks
+        const { data: strk } = await supabase.from('coding_streaks').select('*').eq('user_id', user.id).single();
+        if (strk) setStreaks(strk);
+
+        // Fetch user badges
+        const { data: userBadges } = await supabase.from('coding_user_badges').select('*, coding_badges(*)').eq('user_id', user.id);
+        if (userBadges) setBadges(userBadges.map(b => b.coding_badges));
         
-        if (data) {
-          setStats({
-            solved: data.problems_solved,
-            streak: profile.streak_days || 0,
-            rating: 1500, // Fetch from leaderboards ideally
-            accuracy: data.accuracy_rate || 0,
-            xp: data.total_xp
-          });
-        }
+        // Fetch all badges for reference
+        const { data: allB } = await supabase.from('coding_badges').select('*');
+        if (allB) setAllBadges(allB);
+
       } catch (e) {
-        console.error("Error fetching stats:", e);
+        console.error("Error fetching dashboard data:", e);
       } finally {
         setLoading(false);
       }
     };
-    fetchStats();
-  }, [profile]);
+    fetchDashboardData();
+  }, [user]);
+
+  const totalProblems = 1000; // From our 1000 dataset
+  const solvedCount = progress?.problems_solved || 0;
+  const completionPercentage = Math.round((solvedCount / totalProblems) * 100);
+
+  // Generate heatmap data (mocked from current streak logic)
+  const today = new Date();
+  const heatmapDays = Array.from({ length: 60 }).map((_, i) => {
+    const date = subDays(today, 59 - i);
+    const dateStr = format(date, 'yyyy-MM-dd');
+    // Assuming streaks.activity_heatmap has { '2026-07-18': 3 } (problems solved count)
+    // We'll mock it if not present, but using actual if we had it.
+    // For now, let's just make it visually active based on current_streak
+    const isActive = streaks && streaks.current_streak > 0 && i >= (60 - streaks.current_streak);
+    return { date: dateStr, active: isActive };
+  });
 
   return (
-    <AppLayout title="Coding Dashboard">
-      <div className="flex flex-col gap-6 p-4">
+    <AppLayout title="Coding Progress Dashboard">
+      <div className="flex flex-col gap-6 p-4 max-w-7xl mx-auto w-full">
         
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between bg-surface p-6 rounded-2xl border border-outline-variant shadow-sm">
           <div>
-            <h1 className="text-3xl font-bold font-display text-primary-fixed-dim">Coding Dashboard</h1>
-            <p className="text-on-surface-variant font-label-md">Welcome back, {profile?.full_name || 'Coder'}! Keep up the great work.</p>
+            <h1 className="text-3xl font-bold font-display text-primary-fixed-dim">Coding Progress Dashboard</h1>
+            <p className="text-on-surface-variant font-label-md mt-1">Track your algorithm mastery and interview preparation.</p>
           </div>
           <Link to="/coding/practice">
-            <Button className="bg-primary text-on-primary">
-              <span className="material-symbols-outlined mr-2 text-[18px]">terminal</span>
+            <Button className="bg-primary text-on-primary rounded-xl px-6">
+              <Code2 className="mr-2 w-5 h-5" />
               Practice Now
             </Button>
           </Link>
         </div>
 
-        {/* Top Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <StatCard title="Problems Solved" value={stats.solved.toString()} icon="task_alt" color="text-[#4ade80]" loading={loading} />
-          <StatCard title="Current Streak" value={`${stats.streak} Days`} icon="local_fire_department" color="text-tertiary" loading={loading} />
-          <StatCard title="Contest Rating" value={stats.rating.toString()} icon="military_tech" color="text-primary" loading={loading} />
-          <StatCard title="Accuracy" value={`${stats.accuracy}%`} icon="track_changes" color="text-[#a78bfa]" loading={loading} />
-          <StatCard title="XP Earned" value={stats.xp.toString()} icon="stars" color="text-[#facc15]" loading={loading} />
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content Area */}
-          <div className="lg:col-span-2 space-y-6">
-            
-            {/* Activity Chart Placeholder */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          
+          {/* Left Column: Circular Progress & Difficulties */}
+          <div className="lg:col-span-1 space-y-6">
             <Card className="glass-panel border-outline-variant/60 shadow-sm">
-              <CardHeader>
-                <CardTitle className="font-display text-lg">Weekly Progress</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64 flex items-end justify-between gap-2 border-b border-l border-outline-variant/30 pb-2 pl-2">
-                  {[4, 7, 2, 9, 12, 5, 8].map((val, i) => (
-                    <div key={i} className="w-full bg-primary/20 hover:bg-primary/40 rounded-t-sm relative group cursor-pointer transition-colors" style={{ height: `${(val / 15) * 100}%` }}>
-                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-surface px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity border border-outline-variant/30 shadow-md">
-                        {val}
-                      </div>
-                    </div>
-                  ))}
+              <CardContent className="p-6 flex flex-col items-center">
+                <div className="relative w-40 h-40 flex items-center justify-center mb-4">
+                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="8" className="text-surface-variant" />
+                    <circle 
+                      cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="8" 
+                      className="text-primary transition-all duration-1000 ease-in-out" 
+                      strokeDasharray="283" 
+                      strokeDashoffset={283 - (283 * completionPercentage) / 100}
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-3xl font-bold text-on-surface">{solvedCount}</span>
+                    <span className="text-xs text-on-surface-variant">/ {totalProblems}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between mt-2 text-xs text-on-surface-variant font-label-sm">
-                  <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                <h3 className="font-bold text-on-surface text-lg mb-1">Total Solved</h3>
+                <p className="text-sm text-on-surface-variant mb-6 text-center">You have solved {completionPercentage}% of all problems.</p>
+                
+                <div className="w-full space-y-4">
+                  <DifficultyBar label="Easy" solved={progress?.easy_solved || 0} total={330} color="bg-green-500" />
+                  <DifficultyBar label="Medium" solved={progress?.medium_solved || 0} total={340} color="bg-yellow-500" />
+                  <DifficultyBar label="Hard" solved={progress?.hard_solved || 0} total={330} color="bg-red-500" />
                 </div>
               </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               {/* Today's Challenge */}
-              <Card className="glass-panel border-outline-variant/60 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-tertiary/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-tertiary">today</span>
-                    <CardTitle className="font-display text-lg">Daily Challenge</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <h3 className="font-bold text-on-surface mb-2">Two Sum - O(n) Solution</h3>
-                  <div className="flex items-center gap-2 mb-4">
-                    <Badge className="bg-primary/10 text-primary border-0">Easy</Badge>
-                    <span className="text-xs text-on-surface-variant">+20 XP</span>
-                  </div>
-                  <Link to="/coding/daily">
-                    <Button variant="outline" className="w-full text-primary border-primary hover:bg-primary/10">Start Challenge</Button>
-                  </Link>
-                </CardContent>
-              </Card>
-
-              {/* AI Recommendation */}
-              <Card className="glass-panel border-outline-variant/60 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary">smart_toy</span>
-                    <CardTitle className="font-display text-lg">AI Recommended</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <h3 className="font-bold text-on-surface mb-2">Binary Search Trees</h3>
-                  <p className="text-xs text-on-surface-variant mb-4">Based on your recent struggles with Graph traversal, try this foundational topic.</p>
-                  <Link to="/coding/practice?q=trees">
-                    <Button variant="outline" className="w-full text-on-surface hover:bg-surface-variant/50">View Problems</Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            </div>
-            
+            {/* Badges Preview */}
+            <Card className="glass-panel border-outline-variant/60 shadow-sm">
+              <CardHeader className="pb-3 border-b border-outline-variant/50">
+                <CardTitle className="font-display text-lg flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-tertiary" />
+                  Achievements
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                <div className="flex flex-wrap gap-2">
+                  {allBadges.map((badge, idx) => {
+                    const isEarned = badges.some(b => b?.slug === badge.slug);
+                    return (
+                      <div 
+                        key={idx} 
+                        className={`w-12 h-12 rounded-full flex items-center justify-center border-2 ${isEarned ? 'bg-tertiary/20 border-tertiary text-tertiary' : 'bg-surface-variant border-transparent text-on-surface-variant opacity-50'}`}
+                        title={badge.name}
+                      >
+                        {badge.icon_name === 'Target' && <Target className="w-6 h-6" />}
+                        {badge.icon_name === 'Flame' && <Flame className="w-6 h-6" />}
+                        {badge.icon_name === 'Star' && <Star className="w-6 h-6" />}
+                        {badge.icon_name === 'Trophy' && <Trophy className="w-6 h-6" />}
+                        {badge.icon_name === 'Zap' && <Zap className="w-6 h-6" />}
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Right Sidebar */}
-          <div className="space-y-6">
+          {/* Right Column: Heatmap, Stats, Topics */}
+          <div className="lg:col-span-3 space-y-6">
             
-            {/* Difficulty Breakdown */}
-            <Card className="glass-panel border-outline-variant/60 shadow-sm">
-              <CardHeader>
-                <CardTitle className="font-display text-lg">Difficulty</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <DifficultyBar label="Easy" solved={stats.solved > 0 ? Math.floor(stats.solved * 0.5) : 0} total={150} color="bg-[#4ade80]" />
-                <DifficultyBar label="Medium" solved={stats.solved > 0 ? Math.floor(stats.solved * 0.3) : 0} total={250} color="bg-tertiary" />
-                <DifficultyBar label="Hard" solved={stats.solved > 0 ? Math.floor(stats.solved * 0.2) : 0} total={100} color="bg-error" />
-              </CardContent>
-            </Card>
+            {/* Top Stats Row */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <StatBox title="Current Streak" value={streaks?.current_streak || 0} suffix="Days" icon={<Flame className="text-orange-500" />} />
+              <StatBox title="Max Streak" value={streaks?.max_streak || 0} suffix="Days" icon={<Trophy className="text-yellow-500" />} />
+              <StatBox title="Total Submissions" value={statistics?.total_submissions || 0} icon={<Code2 className="text-primary" />} />
+              <StatBox title="Acceptance Rate" value={statistics?.acceptance_rate ? parseFloat(statistics.acceptance_rate).toFixed(1) : 0} suffix="%" icon={<Target className="text-green-500" />} />
+            </div>
 
-            {/* Upcoming Contest */}
-            <Card className="bg-primary/5 border border-primary/20 shadow-sm">
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary">emoji_events</span>
-                  <CardTitle className="font-display text-lg text-primary-fixed-dim">Upcoming Contest</CardTitle>
-                </div>
+            {/* Heatmap Activity */}
+            <Card className="glass-panel border-outline-variant/60 shadow-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="font-display text-lg flex items-center justify-between">
+                  <span>Activity Heatmap</span>
+                  <span className="text-sm font-normal text-on-surface-variant">{solvedCount} submissions in the past 60 days</span>
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <h3 className="font-bold text-on-surface mb-1">Weekly Coder Challenge #42</h3>
-                <p className="text-xs text-on-surface-variant mb-4 flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">schedule</span> Starts in 2d 14h</p>
-                <Link to="/coding/contests">
-                  <Button className="w-full bg-primary text-on-primary">Register Now</Button>
-                </Link>
-              </CardContent>
-            </Card>
-
-            {/* Recent Activity */}
-            <Card className="glass-panel border-outline-variant/60 shadow-sm">
-              <CardHeader>
-                <CardTitle className="font-display text-lg">Recent Activity</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {[
-                    { title: 'Solved "Reverse Linked List"', time: '2 hours ago', icon: 'check_circle', color: 'text-[#4ade80]' },
-                    { title: 'Attempted "Merge K Sorted Lists"', time: '5 hours ago', icon: 'cancel', color: 'text-error' },
-                    { title: 'Earned "7 Day Streak" Badge', time: '1 day ago', icon: 'workspace_premium', color: 'text-[#facc15]' },
-                  ].map((activity, i) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <span className={`material-symbols-outlined text-[18px] mt-0.5 ${activity.color}`}>{activity.icon}</span>
-                      <div>
-                        <p className="text-sm text-on-surface font-medium">{activity.title}</p>
-                        <p className="text-xs text-on-surface-variant">{activity.time}</p>
-                      </div>
-                    </div>
+                <div className="flex flex-wrap gap-[3px] p-2 bg-surface-container rounded-lg">
+                  {heatmapDays.map((day, idx) => (
+                    <div 
+                      key={idx} 
+                      className={`w-[14px] h-[14px] rounded-[2px] ${day.active ? 'bg-green-500' : 'bg-surface-variant hover:bg-outline-variant'} transition-colors cursor-pointer`}
+                      title={day.date}
+                    ></div>
                   ))}
                 </div>
               </CardContent>
             </Card>
 
+            {/* Topic Progress */}
+            <Card className="glass-panel border-outline-variant/60 shadow-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="font-display text-lg">Topic Proficiency</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {['Arrays', 'Strings', 'Dynamic Programming', 'Trees', 'Graphs', 'Two Pointers'].map((topic, i) => {
+                    const topicSolved = progress?.topic_progress?.[topic] || 0;
+                    return (
+                      <div key={i}>
+                        <div className="flex justify-between text-sm mb-2">
+                          <span className="font-medium text-on-surface">{topic}</span>
+                          <span className="text-on-surface-variant text-xs">{topicSolved} / 50</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-surface-variant rounded-full overflow-hidden">
+                          <div className="h-full bg-primary rounded-full transition-all duration-1000" style={{ width: `${Math.min(100, (topicSolved / 50) * 100)}%` }}></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+            
           </div>
         </div>
       </div>
@@ -209,23 +215,20 @@ export default function DashboardPage() {
   );
 }
 
-function StatCard({ title, value, icon, color, loading }: { title: string, value: string, icon: string, color: string, loading: boolean }) {
+function StatBox({ title, value, suffix = "", icon }: { title: string, value: string | number, suffix?: string, icon: React.ReactNode }) {
   return (
-    <Card className="glass-panel border-outline-variant/60 shadow-sm">
-      <CardContent className="p-4 flex items-center gap-4">
-        <div className={`p-3 rounded-full bg-surface-variant/50 ${color}`}>
-          <span className="material-symbols-outlined text-2xl">{icon}</span>
-        </div>
-        <div>
-          <p className="text-xs text-on-surface-variant font-label-sm uppercase tracking-wider">{title}</p>
-          {loading ? (
-             <Skeleton className="h-6 w-16 mt-1" />
-          ) : (
-            <h4 className="text-2xl font-bold font-display text-on-surface">{value}</h4>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+    <div className="bg-surface p-4 rounded-xl border border-outline-variant shadow-sm flex items-center gap-4">
+      <div className="p-3 bg-surface-variant rounded-lg shrink-0">
+        {icon}
+      </div>
+      <div>
+        <p className="text-xs text-on-surface-variant uppercase tracking-wider font-bold">{title}</p>
+        <p className="text-2xl font-bold font-display text-on-surface">
+          {value}
+          <span className="text-sm font-normal text-on-surface-variant ml-1">{suffix}</span>
+        </p>
+      </div>
+    </div>
   );
 }
 
@@ -235,7 +238,7 @@ function DifficultyBar({ label, solved, total, color }: { label: string, solved:
     <div>
       <div className="flex justify-between text-xs mb-1">
         <span className="text-on-surface font-medium">{label}</span>
-        <span className="text-on-surface-variant">{solved} / {total}</span>
+        <span className="text-on-surface-variant">{solved} <span className="text-on-surface-variant/50">/ {total}</span></span>
       </div>
       <div className="h-2 w-full bg-surface-variant rounded-full overflow-hidden">
         <div className={`h-full rounded-full ${color}`} style={{ width: `${percent}%` }}></div>

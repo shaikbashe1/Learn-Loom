@@ -1,0 +1,14 @@
+import asyncio
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parent))
+from app.database.base import AsyncSessionLocal
+from sqlalchemy import text
+
+async def f():
+    async with AsyncSessionLocal() as db:
+        res = await db.execute(text("SELECT email, role FROM public.profiles LIMIT 5;"))
+        print(res.fetchall())
+
+if __name__ == "__main__":
+    asyncio.run(f())
