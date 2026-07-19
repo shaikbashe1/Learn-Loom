@@ -113,7 +113,7 @@ export default function SignupPage() {
         </div>
 
         <div className="text-xs text-slate-500">
-          © 2026 LearnLoom. All rights reserved. Secure SSL 256-bit encryption.
+          © 2026 Quovexi. All rights reserved. Secure SSL 256-bit encryption.
         </div>
       </div>
 
@@ -160,7 +160,7 @@ export default function SignupPage() {
                 <input
                   type="email"
                   required
-                  placeholder="student@learnloom.app"
+                  placeholder="student@quovexi.app"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-11 pr-4 py-3 bg-slate-950/60 border border-slate-800 rounded-2xl text-xs text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all font-medium"

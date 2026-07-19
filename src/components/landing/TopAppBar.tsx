@@ -26,9 +26,9 @@ export function TopAppBar() {
       {/* Left branding */}
       <div className="flex items-center gap-2.5 cursor-pointer group" onClick={() => navigate('/')}>
         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-chart-4 flex items-center justify-center shadow-md shadow-primary/10 group-hover:scale-105 transition-transform">
-          <img src="/images/logo/logo-icon-light.png" alt="LearnLoom Logo" className="w-5 h-5 object-contain" />
+          <img src="/images/logo/logo-icon-light.png" alt="Quovexi Logo" className="w-5 h-5 object-contain" />
         </div>
-        <span className="font-display text-lg font-bold text-foreground tracking-tight">LearnLoom</span>
+        <span className="font-display text-lg font-bold text-foreground tracking-tight">Quovexi</span>
       </div>
 
       {/* Center Nav links (Desktop) */}
@@ -61,9 +61,9 @@ export function TopAppBar() {
               
               <div className="flex items-center gap-2.5 mb-4">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-chart-4 flex items-center justify-center">
-                  <img src="/images/logo/logo-icon-light.png" alt="LearnLoom Logo" className="w-5 h-5 object-contain" />
+                  <img src="/images/logo/logo-icon-light.png" alt="Quovexi Logo" className="w-5 h-5 object-contain" />
                 </div>
-                <span className="font-display text-lg font-bold text-foreground tracking-tight">LearnLoom</span>
+                <span className="font-display text-lg font-bold text-foreground tracking-tight">Quovexi</span>
               </div>
               
               <div className="flex flex-col gap-2">

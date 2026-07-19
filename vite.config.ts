@@ -20,8 +20,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['images/logo/logo-icon.png'],
       manifest: {
-        name: 'LearnLoom',
-        short_name: 'LearnLoom',
+        name: 'Quovexi',
+        short_name: 'Quovexi',
         description: 'Engineer your potential with AI-driven learning.',
         theme_color: '#0f172a',
         background_color: '#0f172a',

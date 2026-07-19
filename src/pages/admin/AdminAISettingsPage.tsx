@@ -72,7 +72,7 @@ export default function AdminAISettingsPage() {
           <div>
             <h1 className="font-display text-2xl font-bold text-foreground">AI Mentor Configuration</h1>
             <p className="text-xs text-muted-foreground mt-1 font-semibold">
-              Configure the behavior, limitations, and underlying models for the LearnLoom AI Mentor across the entire platform.
+              Configure the behavior, limitations, and underlying models for the Quovexi AI Mentor across the entire platform.
             </p>
           </div>
         </section>

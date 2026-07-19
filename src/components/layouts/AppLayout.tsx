@@ -289,10 +289,10 @@ function SidebarContent({ isAdmin, isCollapsed, onToggleCollapse, onClose }: Sid
         isCollapsed ? "justify-center" : "justify-between"
       )}>
         <Link to="/" className="flex items-center gap-3 overflow-hidden">
-          <img src="/images/logo/logo-icon.png" alt="LearnLoom Logo" className="w-8 h-8 object-contain shrink-0" />
+          <img src="/images/logo/logo-icon.png" alt="Quovexi Logo" className="w-8 h-8 object-contain shrink-0" />
           {!isCollapsed && (
             <div className="flex flex-col">
-              <span className="font-bold text-foreground tracking-tight text-sm">LearnLoom</span>
+              <span className="font-bold text-foreground tracking-tight text-sm">Quovexi</span>
               <span className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider leading-none">
                 {isAdmin ? 'Admin' : 'Student'}
               </span>
@@ -451,7 +451,7 @@ export function AppLayout({ children, isAdmin: isAdminProp, fullWidth, noFooter 
             {/* Breadcrumbs / Page Title */}
             <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground select-none">
               <Link to={isAdmin ? "/admin" : "/dashboard"} className="hover:text-foreground transition-colors font-medium">
-                LearnLoom
+                Quovexi
               </Link>
               {getBreadcrumbs().map((crumb, index) => (
                 <React.Fragment key={crumb.url}>
@@ -467,8 +467,8 @@ export function AppLayout({ children, isAdmin: isAdminProp, fullWidth, noFooter 
               ))}
             </div>
             <div className="md:hidden flex items-center gap-2">
-              <img src="/images/logo/logo-icon.png" alt="LearnLoom Logo" className="w-6 h-6 object-contain" />
-              <span className="font-bold text-sm text-foreground">LearnLoom</span>
+              <img src="/images/logo/logo-icon.png" alt="Quovexi Logo" className="w-6 h-6 object-contain" />
+              <span className="font-bold text-sm text-foreground">Quovexi</span>
             </div>
           </div>
 

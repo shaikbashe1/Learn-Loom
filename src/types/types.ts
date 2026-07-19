@@ -1,4 +1,4 @@
-// LearnLoom Platform Type Definitions
+// Quovexi Platform Type Definitions
 
 export type UserRole = 'student' | 'instructor' | 'admin' | 'user' | 'super_admin' | 'org_admin';
 

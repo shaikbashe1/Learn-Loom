@@ -1,4 +1,4 @@
-# LearnLoom — Remaining Issues Report
+# Quovexi — Remaining Issues Report
 **Date:** 2026-06-07
 
 This document covers items that cannot be resolved by code changes and require operator action, plus known limitations that are non-blocking for production.

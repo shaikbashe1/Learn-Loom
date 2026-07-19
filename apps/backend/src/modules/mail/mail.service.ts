@@ -15,7 +15,7 @@ export class MailService {
     }
   }
 
-  // Beautiful HTML email matching the LearnLoom premium aesthetic
+  // Beautiful HTML email matching the Quovexi premium aesthetic
   private getBrandedEmailHtml(title: string, contentHtml: string, ctaText?: string, ctaUrl?: string): string {
     return `<!DOCTYPE html>
 <html>
@@ -117,7 +117,7 @@ export class MailService {
   <div class="wrapper">
     <div class="container">
       <div class="banner">
-        <h2 class="logo-text">LearnLoom</h2>
+        <h2 class="logo-text">Quovexi</h2>
       </div>
       <div class="content">
         <h1>${title}</h1>
@@ -129,8 +129,8 @@ export class MailService {
         ` : ''}
       </div>
       <div class="footer">
-        <p class="footer-text">You are receiving this because you are registered on LearnLoom.</p>
-        <p class="footer-tagline">LearnLoom — Engineer your potential with AI-driven learning.</p>
+        <p class="footer-text">You are receiving this because you are registered on Quovexi.</p>
+        <p class="footer-tagline">Quovexi — Engineer your potential with AI-driven learning.</p>
       </div>
     </div>
   </div>
@@ -145,7 +145,7 @@ export class MailService {
     htmlContent: string,
     ctaText?: string,
     ctaUrl?: string,
-    from = 'LearnLoom <onboarding@resend.dev>',
+    from = 'Quovexi <onboarding@resend.dev>',
   ) {
     const formattedHtml = this.getBrandedEmailHtml(title, htmlContent, ctaText, ctaUrl);
     const recipientList = Array.isArray(to) ? to : [to];

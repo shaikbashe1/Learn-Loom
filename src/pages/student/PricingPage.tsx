@@ -98,7 +98,7 @@ export default function PricingPage() {
         key: key_id,
         amount,
         currency,
-        name: 'LearnLoom',
+        name: 'Quovexi',
         description: `${plan_name} Subscription — 30 days`,
         order_id,
         prefill: {
@@ -158,7 +158,7 @@ export default function PricingPage() {
             Invest in your <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-chart-4">intellectual velocity.</span>
           </h1>
           <p className="text-xs md:text-sm text-muted-foreground max-w-xl mx-auto mb-8 leading-relaxed">
-            Choose the plan that fits your learning journey. From foundational concepts to AI-accelerated mastery, LearnLoom adapts to your pace.
+            Choose the plan that fits your learning journey. From foundational concepts to AI-accelerated mastery, Quovexi adapts to your pace.
           </p>
 
           {activeSub && activeSub.plan_id !== 'free' && (

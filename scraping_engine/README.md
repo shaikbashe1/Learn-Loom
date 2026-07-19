@@ -1,6 +1,6 @@
-# LearnLoom — Educational Content Scraping Engine
+# Quovexi — Educational Content Scraping Engine
 
-A production-ready scraping engine that collects free educational resources from multiple public websites and automatically categorizes them for the LearnLoom AI learning platform.
+A production-ready scraping engine that collects free educational resources from multiple public websites and automatically categorizes them for the Quovexi AI learning platform.
 
 ---
 
@@ -384,16 +384,16 @@ docker compose up -d --scale api=3
 ### Nginx example config
 
 ```nginx
-upstream learnloom_api {
+upstream quovexi_api {
     server api:8000;
 }
 
 server {
     listen 80;
-    server_name api.learnloom.io;
+    server_name api.quovexi.io;
 
     location / {
-        proxy_pass http://learnloom_api;
+        proxy_pass http://quovexi_api;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -413,7 +413,7 @@ Key variables:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `POSTGRES_HOST` | localhost | PostgreSQL host |
-| `POSTGRES_PASSWORD` | learnloom_secret | **Change in prod!** |
+| `POSTGRES_PASSWORD` | quovexi_secret | **Change in prod!** |
 | `REDIS_HOST` | localhost | Redis host |
 | `SECRET_KEY` | auto-generated | JWT signing key — **set in prod!** |
 | `SCRAPE_CONCURRENT_REQUESTS` | 16 | Max parallel Scrapy requests |

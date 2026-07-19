@@ -215,7 +215,7 @@ export async function checkAndAwardCertificate(userId: string, courseId: string)
         const { data: courseData } = await supabase.from('courses').select('title').eq('id', courseId).single();
         if (courseData) {
           const title = `🏆 Just earned my certificate in ${courseData.title}!`;
-          const content = `I'm thrilled to announce that I've successfully completed the **${courseData.title}** course on LearnLoom and earned my certificate with a score of ${avgScore}%! 🚀\n\nThis was an incredible journey. Onwards to the next challenge!`;
+          const content = `I'm thrilled to announce that I've successfully completed the **${courseData.title}** course on Quovexi and earned my certificate with a score of ${avgScore}%! 🚀\n\nThis was an incredible journey. Onwards to the next challenge!`;
           
           await supabase.from('forum_posts').insert({
             course_id: courseId,

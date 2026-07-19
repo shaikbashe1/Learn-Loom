@@ -54,7 +54,7 @@ export default function ProfileSetupPage() {
       <main className="relative z-10 w-full max-w-xl px-margin-mobile md:px-0 py-2xl">
         {/* Brand Header */}
         <div className="text-center mb-xl">
-          <h1 className="font-display text-display text-primary tracking-tight mb-sm">LearnLoom</h1>
+          <h1 className="font-display text-display text-primary tracking-tight mb-sm">Quovexi</h1>
           <p className="font-body-lg text-body-lg text-on-surface-variant">Engineer your potential.</p>
         </div>
 

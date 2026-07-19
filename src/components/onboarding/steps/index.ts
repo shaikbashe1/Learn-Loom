@@ -20,7 +20,7 @@ import ReviewStep from './ReviewStep';
 export const STEPS: StepDef[] = [
   {
     id: 'welcome',
-    title: 'Welcome to LearnLoom 🎓',
+    title: 'Welcome to Quovexi 🎓',
     subtitle: "Let's personalize your learning experience in less than 2 minutes.",
     Component: WelcomeStep,
     isValid: () => true,

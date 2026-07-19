@@ -5,7 +5,7 @@ export const config = {
   runtime: 'edge',
 };
 
-// Generates a beautiful HTML email matching the LearnLoom premium aesthetic
+// Generates a beautiful HTML email matching the Quovexi premium aesthetic
 export function getBrandedEmailHtml(title: string, contentHtml: string, ctaText?: string, ctaUrl?: string): string {
   return `<!DOCTYPE html>
 <html>
@@ -107,7 +107,7 @@ export function getBrandedEmailHtml(title: string, contentHtml: string, ctaText?
   <div class="wrapper">
     <div class="container">
       <div class="banner">
-        <h2 class="logo-text">LearnLoom</h2>
+        <h2 class="logo-text">Quovexi</h2>
       </div>
       <div class="content">
         <h1>${title}</h1>
@@ -119,8 +119,8 @@ export function getBrandedEmailHtml(title: string, contentHtml: string, ctaText?
         ` : ''}
       </div>
       <div class="footer">
-        <p class="footer-text">You are receiving this because you are registered on LearnLoom.</p>
-        <p class="footer-tagline">LearnLoom — Engineer your potential with AI-driven learning.</p>
+        <p class="footer-text">You are receiving this because you are registered on Quovexi.</p>
+        <p class="footer-tagline">Quovexi — Engineer your potential with AI-driven learning.</p>
       </div>
     </div>
   </div>
@@ -198,7 +198,7 @@ export default async function handler(req: Request) {
       }
     }
 
-    // Format the email using the premium LearnLoom template
+    // Format the email using the premium Quovexi template
     const formattedHtml = getBrandedEmailHtml(
       title || subject,
       html || `<p>${subject}</p>`,
@@ -231,7 +231,7 @@ export default async function handler(req: Request) {
         'Authorization': `Bearer ${resendApiKey}`,
       },
       body: JSON.stringify({
-        from: 'LearnLoom <onboarding@resend.dev>',
+        from: 'Quovexi <onboarding@resend.dev>',
         to: recipientList,
         subject: subject,
         html: formattedHtml,

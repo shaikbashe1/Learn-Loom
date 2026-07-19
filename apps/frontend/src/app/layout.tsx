@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LearnLoom Technical Platform",
+  title: "Quovexi Technical Platform",
   description: "Enterprise technical learning platform",
 };
 

@@ -185,9 +185,9 @@ export default function ResetPasswordPage() {
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2.5 no-underline justify-center mb-2" aria-label="Go to Homepage">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-chart-4 flex items-center justify-center">
-              <img src="/images/logo/logo-icon-light.png" alt="LearnLoom Logo" className="w-5 h-5 object-contain" />
+              <img src="/images/logo/logo-icon-light.png" alt="Quovexi Logo" className="w-5 h-5 object-contain" />
             </div>
-            <span className="font-display text-xl font-bold text-foreground tracking-tight">LearnLoom</span>
+            <span className="font-display text-xl font-bold text-foreground tracking-tight">Quovexi</span>
           </Link>
           <p className="text-xs text-muted-foreground font-semibold">Engineer your potential.</p>
         </div>

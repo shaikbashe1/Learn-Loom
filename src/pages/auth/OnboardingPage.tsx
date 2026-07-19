@@ -193,7 +193,7 @@ export default function OnboardingPage() {
     if (!ok) return;
     localStorage.removeItem(STEP_KEY);
     await refreshProfile();
-    toast.success('Welcome to LearnLoom! 🎉', { description: 'Your personalized profile is ready.' });
+    toast.success('Welcome to Quovexi! 🎉', { description: 'Your personalized profile is ready.' });
     navigate('/dashboard', { replace: true });
   };
 
@@ -213,9 +213,9 @@ export default function OnboardingPage() {
           <div className="flex items-center justify-between mb-4">
             <Link to="/" className="flex items-center gap-2.5 no-underline justify-center">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-chart-4 flex items-center justify-center">
-                <img src="/images/logo/logo-icon-light.png" alt="LearnLoom Logo" className="w-5 h-5 object-contain" />
+                <img src="/images/logo/logo-icon-light.png" alt="Quovexi Logo" className="w-5 h-5 object-contain" />
               </div>
-              <span className="font-display text-xl font-bold text-foreground tracking-tight">LearnLoom</span>
+              <span className="font-display text-xl font-bold text-foreground tracking-tight">Quovexi</span>
             </Link>
             <span className="text-xs font-semibold text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full border border-border">
               Step {step + 1} of {TOTAL_STEPS}

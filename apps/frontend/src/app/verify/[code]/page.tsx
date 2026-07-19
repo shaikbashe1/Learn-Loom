@@ -65,7 +65,7 @@ export default function CertVerifyPage() {
             </div>
             <h2 className="text-xl font-extrabold text-white">Invalid Certificate</h2>
             <p className="text-slate-400 text-xs leading-relaxed max-w-sm mx-auto">
-              {error}. Check the URL parameter string or submit a ticket to the LearnLoom support team.
+              {error}. Check the URL parameter string or submit a ticket to the Quovexi support team.
             </p>
           </div>
         ) : (
@@ -120,7 +120,7 @@ export default function CertVerifyPage() {
 
         <div className="border-t border-slate-850 pt-6">
           <Link href="/" className="inline-flex items-center gap-2 text-xs font-bold text-indigo-400 hover:underline">
-            Go to LearnLoom Platform
+            Go to Quovexi Platform
           </Link>
         </div>
       </div>

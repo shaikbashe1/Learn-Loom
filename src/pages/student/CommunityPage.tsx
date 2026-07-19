@@ -532,7 +532,7 @@ export default function CommunityPage() {
         ? flatReplies.slice(-5).map(r => `${r.profiles?.full_name ?? 'User'}: ${r.content}`).join('\n')
         : '';
         
-      const systemPrompt = `You are Loomie AI, the friendly and knowledgeable AI mentor on the LearnLoom educational platform. A student has posted a question in the community discussions. Provide a clean, helpful, and structured response using Markdown.
+      const systemPrompt = `You are Loomie AI, the friendly and knowledgeable AI mentor on the Quovexi educational platform. A student has posted a question in the community discussions. Provide a clean, helpful, and structured response using Markdown.
       
 Community Context:
 Post Title: "${title}"

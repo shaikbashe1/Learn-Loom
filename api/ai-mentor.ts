@@ -51,7 +51,7 @@ export default async function handler(req: Request) {
 
     const systemInstruction = {
       role: 'user',
-      parts: [{ text: `You are LearnLoom AI Mentor – an expert computer science and programming tutor.
+      parts: [{ text: `You are Quovexi AI Mentor – an expert computer science and programming tutor.
 Your role:
 - Answer coding, DSA, web dev, data science, and interview-prep questions clearly
 - Provide step-by-step explanations with working code examples

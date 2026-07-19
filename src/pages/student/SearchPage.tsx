@@ -51,7 +51,7 @@ export default function SearchPage() {
             id: p.id,
             type: 'user',
             title: p.full_name || 'Community Member',
-            subtitle: p.bio || 'Student @ LearnLoom',
+            subtitle: p.bio || 'Student @ Quovexi',
             url: `/profile/${p.id}`,
             imageUrl: p.avatar_url
           });

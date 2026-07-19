@@ -1,4 +1,4 @@
-# LearnLoom — Production Audit Report
+# Quovexi — Production Audit Report
 **Date:** 2026-06-07  
 **Auditor:** Automated engineering audit  
 **Commits applied:** 7 (cb2abe4 → 0b63552)

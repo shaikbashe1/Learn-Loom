@@ -701,7 +701,7 @@ export default function CourseDetailPage() {
                   <div className="space-y-2">
                     <div>
                       <h3 className="text-sm sm:text-base text-foreground font-extrabold">{course.instructor}</h3>
-                      <p className="text-xs text-primary font-bold uppercase tracking-wider">LearnLoom Educator</p>
+                      <p className="text-xs text-primary font-bold uppercase tracking-wider">Quovexi Educator</p>
                     </div>
                     <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                       A dedicated professional with extensive experience in the industry, passionate about sharing knowledge and empowering the next generation of engineers through comprehensive, practical coursework.

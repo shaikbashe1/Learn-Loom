@@ -262,7 +262,7 @@ export default function CourseCatalogPage() {
                   const gradient = gradients[index % gradients.length];
                   const badgeColor = index % 2 === 0 ? 'text-primary bg-primary/10 border-primary/10' : 'text-chart-4 bg-chart-4/10 border-chart-4/10';
 
-                  const instructorName = course.instructor || "LearnLoom Group";
+                  const instructorName = course.instructor || "Quovexi Group";
                   const instructorInitials = instructorName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
                   return (

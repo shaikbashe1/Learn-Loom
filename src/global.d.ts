@@ -1,1 +1,1 @@
-// LearnLoom global type declarations
+// Quovexi global type declarations

@@ -37,7 +37,7 @@ export default function NotFound() {
       </div>
       
       <p className="absolute bottom-6 left-1/2 -translate-x-1/2 text-xs text-muted-foreground/70">
-        © {new Date().getFullYear()} LearnLoom. All rights reserved.
+        © {new Date().getFullYear()} Quovexi. All rights reserved.
       </p>
     </div>
   );

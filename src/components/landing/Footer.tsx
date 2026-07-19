@@ -6,9 +6,9 @@ export function Footer() {
       {/* Logo Branding */}
       <div className="flex items-center gap-2.5 font-display text-sm font-bold">
         <div className="w-6 h-6 rounded-md bg-gradient-to-br from-primary to-chart-4 flex items-center justify-center">
-          <img src="/images/logo/logo-icon-light.png" alt="LearnLoom Logo" className="w-4 h-4 object-contain" />
+          <img src="/images/logo/logo-icon-light.png" alt="Quovexi Logo" className="w-4 h-4 object-contain" />
         </div>
-        <span>LearnLoom</span>
+        <span>Quovexi</span>
       </div>
       
       {/* Links */}
@@ -21,7 +21,7 @@ export function Footer() {
       
       {/* Copyright */}
       <div className="text-xs text-muted-foreground text-center md:text-right">
-        © {new Date().getFullYear()} LearnLoom AI. Empowering the future of education.
+        © {new Date().getFullYear()} Quovexi AI. Empowering the future of education.
       </div>
     </footer>
   );

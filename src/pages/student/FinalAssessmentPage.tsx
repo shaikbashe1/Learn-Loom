@@ -502,7 +502,7 @@ export default function FinalAssessmentPage() {
       {/* Top Navigation (Exam Header) */}
       <header className="bg-card border-b border-border shadow-sm flex justify-between items-center w-full px-6 h-16 shrink-0 z-40 relative">
         <div className="flex items-center gap-3">
-          <span className="font-display text-lg font-bold text-foreground">LearnLoom</span>
+          <span className="font-display text-lg font-bold text-foreground">Quovexi</span>
           <div className="h-6 w-px bg-border mx-2 hidden md:block" />
           <div className="hidden md:block">
             <h1 className="text-sm font-bold text-foreground">Final Assessment</h1>

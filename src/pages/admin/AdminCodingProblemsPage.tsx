@@ -168,7 +168,7 @@ export default function AdminCodingProblemsPage() {
                 )}
                 <div className="text-xs text-on-surface-variant flex items-start gap-2 mt-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
-                  Ensure the LearnLoom Python API (`uvicorn app.main:app --port 8000`) is running.
+                  Ensure the Quovexi Python API (`uvicorn app.main:app --port 8000`) is running.
                 </div>
               </div>
             </div>

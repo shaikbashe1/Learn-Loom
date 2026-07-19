@@ -187,10 +187,10 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2.5 no-underline group mb-3" aria-label="Go to Homepage">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-chart-4 flex items-center justify-center shadow-md shadow-primary/20 group-hover:brightness-110 transition-all">
-              <img src="/images/logo/logo-icon-light.png" alt="LearnLoom Logo" className="w-5 h-5 object-contain" />
+              <img src="/images/logo/logo-icon-light.png" alt="Quovexi Logo" className="w-5 h-5 object-contain" />
             </div>
             <span className="font-display text-xl font-extrabold text-foreground tracking-tight">
-              LearnLoom
+              Quovexi
             </span>
           </Link>
           <p className="text-xs text-muted-foreground font-semibold">

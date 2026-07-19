@@ -1,4 +1,4 @@
-# LearnLoom Educational Platform
+# Quovexi Educational Platform
 
 [![React](https://img.shields.io/badge/React-18.x-blue.svg?style=flat-square&logo=react)](https://reactjs.org/)
 [![Vite](https://img.shields.io/badge/Vite-5.x-64748f.svg?style=flat-square&logo=vite)](https://vitejs.dev/)
@@ -7,7 +7,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.x-38B2AC.svg?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
 [![Security](https://img.shields.io/badge/Security-Hardened-success.svg?style=flat-square)](https://github.com/shaikbashe1/Learn-Loom)
 
-LearnLoom is a production-ready, self-hostable EdTech SaaS platform designed to unite structured courses, an AI mentor, a customized learning roadmap generator, interactive coding challenges, leaderboard competition, and verification systems under a single unified dashboard.
+Quovexi is a production-ready, self-hostable EdTech SaaS platform designed to unite structured courses, an AI mentor, a customized learning roadmap generator, interactive coding challenges, leaderboard competition, and verification systems under a single unified dashboard.
 
 Built using **Vite, React 18, TypeScript, and Supabase**.
 
@@ -34,7 +34,7 @@ Ensure you have Node.js and npm installed:
 ### 2. Clone the Repository & Install Dependencies
 ```bash
 # Clone the repository and navigate into the directory
-cd LearnLoom-source
+cd Quovexi-source
 
 # Install package dependencies
 npm install
@@ -54,7 +54,7 @@ Open `.env` and fill in your Supabase connection parameters:
 
 ## Database Setup & Supabase Configuration
 
-LearnLoom is designed to be fully self-hostable using your own Supabase project.
+Quovexi is designed to be fully self-hostable using your own Supabase project.
 
 ### 1. Database Migrations
 To set up your Database tables, views, RLS policies, triggers, and RPC functions:
@@ -173,7 +173,7 @@ Runs a local web server serving the static files compiled in `dist/` to preview 
 
 ## Deployment Guidelines
 
-LearnLoom is a static React application, making it extremely easy and inexpensive to host on any modern static deployment provider.
+Quovexi is a static React application, making it extremely easy and inexpensive to host on any modern static deployment provider.
 
 ### Vercel Deployment
 1. Connect your GitHub/GitLab repository to Vercel.
@@ -198,13 +198,13 @@ LearnLoom is a static React application, making it extremely easy and inexpensiv
 ### Self-Hosted Linux Servers (Nginx / Docker)
 To serve the static client using Nginx:
 1. Run `npm run build` to output the static build.
-2. Copy the files inside the `dist` folder to your server's public html directory (e.g. `/var/www/learnloom`).
+2. Copy the files inside the `dist` folder to your server's public html directory (e.g. `/var/www/quovexi`).
 3. Set up your Nginx configuration block (`nginx.conf`):
    ```nginx
    server {
        listen 80;
        server_name yourdomain.com;
-       root /var/www/learnloom;
+       root /var/www/quovexi;
        index index.html;
 
        location / {
@@ -218,7 +218,7 @@ To serve the static client using Nginx:
 
 ## Course Progression & Certification Validation
 
-LearnLoom utilizes a strict progression and validation architecture to ensure student learning is thoroughly validated before certificates are issued:
+Quovexi utilizes a strict progression and validation architecture to ensure student learning is thoroughly validated before certificates are issued:
 
 ### 1. Progression & Formatting
 - **Rich Module Formatting**: When modules are scraped or AI-generated, rich fields such as `examples`, `real_world_use_cases`, `key_concepts`, and `summary` are structured in `course_modules` (in JSONB/TEXT format) and displayed in the frontend via interactive panels.
@@ -241,7 +241,7 @@ LearnLoom utilizes a strict progression and validation architecture to ensure st
 
 ## Security Architecture
 
-LearnLoom is engineered with enterprise-grade security standards to defend against web application vulnerabilities, prevent resource abuse, and safeguard sensitive keys:
+Quovexi is engineered with enterprise-grade security standards to defend against web application vulnerabilities, prevent resource abuse, and safeguard sensitive keys:
 
 ### 1. API Route Authorization
 All Vercel Edge API routes under `api/` (such as `api/ai-mentor.ts`, `api/ai-roadmap.ts`, etc.) are secured behind a middleware-style JWT validation layer. 
@@ -273,7 +273,7 @@ The login and signup pages have been completely redesigned with a premium, respo
 
 ## Next.js & NestJS Clean Architecture Workspace
 
-LearnLoom features a modern enterprise monorepo setup inside the `/apps` directory:
+Quovexi features a modern enterprise monorepo setup inside the `/apps` directory:
 
 ### 1. Structure
 * **Backend (`/apps/backend`)**: NestJS modular application using Prisma ORM. Exports auth guards, course progression APIs, shufflers, auto-graders, Piston execution integrations, Gemini AI tutors, and security audit timelines.

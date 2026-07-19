@@ -48,7 +48,7 @@ function generateCertificatePDF(cert: Certificate, userName: string) {
   <rect width="800" height="560" fill="url(#bg)" rx="12"/>
   <rect x="20" y="20" width="760" height="520" fill="none" stroke="url(#accent)" stroke-width="2" rx="8"/>
   <rect x="0" y="0" width="800" height="6" fill="url(#accent)"/>
-  <text x="400" y="80" font-family="Hanken Grotesk, Georgia" font-size="28" font-weight="bold" fill="url(#accent)" text-anchor="middle">LearnLoom</text>
+  <text x="400" y="80" font-family="Hanken Grotesk, Georgia" font-size="28" font-weight="bold" fill="url(#accent)" text-anchor="middle">Quovexi</text>
   <text x="400" y="108" font-family="Inter, Arial" font-size="12" fill="#64748b" text-anchor="middle" letter-spacing="4">CERTIFICATE OF COMPLETION</text>
   <rect x="150" y="122" width="500" height="1" fill="#cbd5e1"/>
   <text x="400" y="160" font-family="Inter, Arial" font-size="13" fill="#64748b" text-anchor="middle">This certifies that</text>
@@ -62,14 +62,14 @@ function generateCertificatePDF(cert: Certificate, userName: string) {
   <text x="550" y="340" font-family="Inter, Arial" font-size="11" fill="#64748b" text-anchor="middle">CERTIFICATE ID</text>
   <text x="550" y="360" font-family="JetBrains Mono, monospace" font-size="11" fill="#0f172a" text-anchor="middle">${cert.verification_code}</text>
   <rect x="150" y="395" width="500" height="1" fill="#cbd5e1"/>
-  <text x="400" y="430" font-family="Inter, Arial" font-size="11" fill="#64748b" text-anchor="middle">This certificate can be verified at learnloom.app/verify/${cert.verification_code}</text>
+  <text x="400" y="430" font-family="Inter, Arial" font-size="11" fill="#64748b" text-anchor="middle">This certificate can be verified at quovexi.app/verify/${cert.verification_code}</text>
 </svg>`;
 
   const blob = new Blob([svgContent], { type: 'image/svg+xml' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `LearnLoom-Certificate-${cert.verification_code}.svg`;
+  a.download = `Quovexi-Certificate-${cert.verification_code}.svg`;
   a.click();
   URL.revokeObjectURL(url);
   toast.success('Certificate downloaded!');
@@ -122,7 +122,7 @@ export default function CertificatePage() {
   const handleShare = (cert: Certificate) => {
     const url = `${window.location.origin}/verify/${cert.verification_code}`;
     if (navigator.share) {
-      navigator.share({ title: 'My LearnLoom Certificate', text: `I completed ${cert.courses?.title}!`, url });
+      navigator.share({ title: 'My Quovexi Certificate', text: `I completed ${cert.courses?.title}!`, url });
     } else {
       navigator.clipboard.writeText(url);
       toast.success('Certificate link copied to clipboard!');
@@ -180,7 +180,7 @@ export default function CertificatePage() {
                   <p className="text-xs font-mono font-bold text-muted-foreground bg-muted/60 px-3.5 py-1.5 rounded-xl border border-border">
                     {qrCert.verification_code}
                   </p>
-                  <p className="text-xs text-muted-foreground">Scan to verify this certificate on LearnLoom</p>
+                  <p className="text-xs text-muted-foreground">Scan to verify this certificate on Quovexi</p>
                 </div>
               )}
             </DialogContent>
@@ -330,7 +330,7 @@ export default function CertificatePage() {
              </h3>
              
              <p className="text-xs text-muted-foreground mb-6 leading-relaxed">
-               Enter a certificate ID below to verify its authenticity on the LearnLoom network.
+               Enter a certificate ID below to verify its authenticity on the Quovexi network.
              </p>
              
              <form onSubmit={handleVerify} className="flex flex-col sm:flex-row gap-3 relative z-10">
@@ -427,7 +427,7 @@ export default function CertificatePage() {
               </div>
               <div className="relative">
                 <div className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-chart-4 ring-4 ring-card" />
-                <p className="text-xs font-bold text-foreground">Joined LearnLoom</p>
+                <p className="text-xs font-bold text-foreground">Joined Quovexi</p>
                 <p className="text-[11px] text-muted-foreground mt-0.5">Started the journey.</p>
                 <p className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-wider mt-1">Last Month</p>
               </div>

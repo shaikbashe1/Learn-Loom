@@ -110,9 +110,9 @@ export default function CertVerifyPage() {
       <header className="border-b border-border bg-card/60 backdrop-blur-md px-6 py-4 flex items-center justify-between z-10 shrink-0">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-chart-4 flex items-center justify-center">
-            <img src="/images/logo/logo-icon-light.png" alt="LearnLoom Logo" className="w-4 h-4 object-contain" />
+            <img src="/images/logo/logo-icon-light.png" alt="Quovexi Logo" className="w-4 h-4 object-contain" />
           </div>
-          <span className="font-display text-sm font-bold text-foreground">LearnLoom</span>
+          <span className="font-display text-sm font-bold text-foreground">Quovexi</span>
         </div>
         <span className="text-xs font-bold text-muted-foreground bg-muted px-2.5 py-1 rounded-full border border-border">
           Certificate Verification
@@ -217,7 +217,7 @@ export default function CertVerifyPage() {
                     <ShieldCheck className="w-4 h-4 text-muted-foreground/60 shrink-0 mt-0.5" />
                     <div>
                       <p className="text-[10px] text-muted-foreground font-semibold">Issued By</p>
-                      <p className="font-bold text-foreground mt-0.5">LearnLoom</p>
+                      <p className="font-bold text-foreground mt-0.5">Quovexi</p>
                     </div>
                   </div>
                 </div>

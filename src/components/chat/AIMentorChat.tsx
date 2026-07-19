@@ -274,7 +274,7 @@ export function AIMentorChat({ externalPrompt, onExternalPromptHandled, isWidget
       ? enrolledCourses.map(c => `  • ${c.title} (${c.category}) — ${c.progress_percent}% complete`).join('\n')
       : '  (No courses enrolled yet)';
 
-    return `You are Loomie, the AI Learning Mentor on the LearnLoom platform.
+    return `You are Loomie, the AI Learning Mentor on the Quovexi platform.
 STUDENT PROFILE:
 - Name: ${userName}
 - Currently enrolled courses:
@@ -287,7 +287,7 @@ YOUR ROLE:
 - Create personalized study plans to tackle weak areas.
 - Help with interview preparation and coding doubts.
 - Format responses with markdown: **bold** for key terms, bullet points, numbered lists, and fenced code blocks.
-- Keep responses focused, encouraging, and highly contextual to their LearnLoom progress.`;
+- Keep responses focused, encouraging, and highly contextual to their Quovexi progress.`;
   }, [profile, enrolledCourses]);
 
   const sendMessage = async (text: string) => {

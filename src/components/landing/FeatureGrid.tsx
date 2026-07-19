@@ -16,7 +16,7 @@ export function FeatureGrid() {
             An ecosystem built for mastery
           </h2>
           <p className="font-body-md text-muted-foreground leading-relaxed">
-            Ditch the passive video lectures. LearnLoom combines active coding environments with AI guidance to ensure concept retention.
+            Ditch the passive video lectures. Quovexi combines active coding environments with AI guidance to ensure concept retention.
           </p>
         </div>
         

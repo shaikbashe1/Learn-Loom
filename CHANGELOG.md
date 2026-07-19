@@ -1,4 +1,4 @@
-# Changelog - LearnLoom Platform
+# Changelog - Quovexi Platform
 
 All notable changes, fixes, and improvements applied to the codebase are documented here.
 
@@ -135,7 +135,7 @@ All notable changes, fixes, and improvements applied to the codebase are documen
 
 2. **Removed MeDo Branding**
    - **Fix**: Removed all Miaoda/MeDo branding, text references, and gateway URLs across root configurations, static assets, and Edge Functions code. 
-   - **Impact**: The application represents clean, unified "LearnLoom" branding.
+   - **Impact**: The application represents clean, unified "Quovexi" branding.
 
 3. **Created Self-Hosting & Setup Setup**
    - **Fix**: Created a detailed `README.md` containing local setup steps, database schema migrations, and hosting deployment instructions (Vercel, Render, Nginx).
@@ -180,16 +180,16 @@ All notable changes, fixes, and improvements applied to the codebase are documen
 
 ### Files Modified
 
-- [x] [types.ts](file:///c:/Users/dell/Downloads/LearnLoom-source/src/types/types.ts) — Verified definitions
-- [x] [progress.ts](file:///c:/Users/dell/Downloads/LearnLoom-source/src/lib/progress.ts) — Fixed column enrichment types
-- [x] [AdminCoursesPage.tsx](file:///c:/Users/dell/Downloads/LearnLoom-source/src/pages/admin/AdminCoursesPage.tsx) — Fixed module mapping logic
-- [x] [AIRoadmapPage.tsx](file:///c:/Users/dell/Downloads/LearnLoom-source/src/pages/student/AIRoadmapPage.tsx) — Restructured roadmap request/response & added interactive practice quiz
-- [x] [SamplePage.tsx](file:///c:/Users/dell/Downloads/LearnLoom-source/src/pages/SamplePage.tsx) — Deleted unused file
-- [x] [ai-mentor/index.ts](file:///c:/Users/dell/Downloads/LearnLoom-source/supabase/functions/ai-mentor/index.ts) — Switched to direct Google Gemini API calls
-- [x] [ai-roadmap/index.ts](file:///c:/Users/dell/Downloads/LearnLoom-source/supabase/functions/ai-roadmap/index.ts) — Switched to direct Google Gemini API calls
-- [x] [large-language-model/index.ts](file:///c:/Users/dell/Downloads/LearnLoom-source/supabase/functions/large-language-model/index.ts) — Switched to direct Google Gemini API calls
-- [x] [README.md](file:///c:/Users/dell/Downloads/LearnLoom-source/README.md) — Updated to document self-hosting and setup
-- [x] [.env.example](file:///c:/Users/dell/Downloads/LearnLoom-source/.env.example) — Created template configuration file
+- [x] [types.ts](file:///c:/Users/dell/Downloads/Quovexi-source/src/types/types.ts) — Verified definitions
+- [x] [progress.ts](file:///c:/Users/dell/Downloads/Quovexi-source/src/lib/progress.ts) — Fixed column enrichment types
+- [x] [AdminCoursesPage.tsx](file:///c:/Users/dell/Downloads/Quovexi-source/src/pages/admin/AdminCoursesPage.tsx) — Fixed module mapping logic
+- [x] [AIRoadmapPage.tsx](file:///c:/Users/dell/Downloads/Quovexi-source/src/pages/student/AIRoadmapPage.tsx) — Restructured roadmap request/response & added interactive practice quiz
+- [x] [SamplePage.tsx](file:///c:/Users/dell/Downloads/Quovexi-source/src/pages/SamplePage.tsx) — Deleted unused file
+- [x] [ai-mentor/index.ts](file:///c:/Users/dell/Downloads/Quovexi-source/supabase/functions/ai-mentor/index.ts) — Switched to direct Google Gemini API calls
+- [x] [ai-roadmap/index.ts](file:///c:/Users/dell/Downloads/Quovexi-source/supabase/functions/ai-roadmap/index.ts) — Switched to direct Google Gemini API calls
+- [x] [large-language-model/index.ts](file:///c:/Users/dell/Downloads/Quovexi-source/supabase/functions/large-language-model/index.ts) — Switched to direct Google Gemini API calls
+- [x] [README.md](file:///c:/Users/dell/Downloads/Quovexi-source/README.md) — Updated to document self-hosting and setup
+- [x] [.env.example](file:///c:/Users/dell/Downloads/Quovexi-source/.env.example) — Created template configuration file
 
 ---
 

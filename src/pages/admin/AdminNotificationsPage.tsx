@@ -121,7 +121,7 @@ export default function AdminNotificationsPage() {
               title: form.title,
               html: `<p style="white-space: pre-wrap;">${form.message}</p>`,
               ctaText: 'View Notification',
-              ctaUrl: 'https://learnloom.vercel.app/dashboard',
+              ctaUrl: 'https://quovexi.vercel.app/dashboard',
             }),
           });
 

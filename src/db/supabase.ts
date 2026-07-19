@@ -5,13 +5,13 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undef
 
 if (!supabaseUrl) {
   throw new Error(
-    '[LearnLoom] VITE_SUPABASE_URL is not defined. ' +
+    '[Quovexi] VITE_SUPABASE_URL is not defined. ' +
     'Add it to your .env file: VITE_SUPABASE_URL=https://<project>.supabase.co'
   );
 }
 if (!supabaseAnonKey) {
   throw new Error(
-    '[LearnLoom] VITE_SUPABASE_ANON_KEY is not defined. ' +
+    '[Quovexi] VITE_SUPABASE_ANON_KEY is not defined. ' +
     'Add it to your .env file: VITE_SUPABASE_ANON_KEY=<your-anon-key>'
   );
 }

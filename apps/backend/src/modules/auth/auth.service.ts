@@ -54,16 +54,16 @@ export class AuthService {
     try {
       await this.mailService.sendMail(
         user.email,
-        'Welcome to LearnLoom!',
-        'Welcome to LearnLoom!',
+        'Welcome to Quovexi!',
+        'Welcome to Quovexi!',
         `
         <p>Hi ${dto.fullName.trim()},</p>
-        <p>We are absolutely thrilled to welcome you to <strong>LearnLoom</strong>!</p>
+        <p>We are absolutely thrilled to welcome you to <strong>Quovexi</strong>!</p>
         <p>Your account has been created successfully, and you now have access to our AI-driven learning tools, interactive programming courses, and community forums.</p>
         <p>Ready to start? Click the button below to jump into your student dashboard:</p>
         `,
         'Go to Dashboard',
-        'https://learnloom.vercel.app/dashboard'
+        'https://quovexi.vercel.app/dashboard'
       );
     } catch (mailErr) {
       console.error('Welcome email dispatch failed:', mailErr);
