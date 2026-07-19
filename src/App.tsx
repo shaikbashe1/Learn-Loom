@@ -13,8 +13,11 @@ import { routes } from './routes';
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 const App: React.FC = () => {
+  // Dynamically set basename to support both custom domain (/) and github pages (/Learn-Loom)
+  const basename = window.location.pathname.startsWith('/Learn-Loom') ? '/Learn-Loom' : '/';
+
   return (
-    <Router>
+    <Router basename={basename}>
       <AuthProvider>
         <NotificationProvider>
           <MessagingProvider>
