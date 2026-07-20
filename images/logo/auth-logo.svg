@@ -1,0 +1,29 @@
+<svg width="231" height="48" viewBox="0 0 231 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Icon Group (Scaled to 48x48) -->
+  <g transform="translate(0, 0) scale(0.48)">
+    <!-- Outer cover frames -->
+    <path d="M18 24V80H46" stroke="#465FFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M82 24V80H54" stroke="#465FFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Left Page Outer -->
+    <path d="M28 17V73L50 82" stroke="#465FFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Left Page Inner -->
+    <path d="M37 24V63L50 69" stroke="#465FFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Right Page Outer -->
+    <path d="M72 17V73L50 82" stroke="#465FFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Right Page Inner -->
+    <path d="M63 24V63L50 69" stroke="#465FFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Slanted top lines of pages -->
+    <path d="M28 17L50 26" stroke="#465FFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M72 17L50 26" stroke="#465FFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Weaving loops at bottom -->
+    <path d="M28 73C36 82, 64 82, 72 73" stroke="#465FFF" stroke-width="7" stroke-linecap="round"/>
+    <path d="M37 63C43 69, 57 69, 63 63" stroke="#465FFF" stroke-width="7" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Text Group -->
+  <text x="58" y="34" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-weight="bold" font-size="30" letter-spacing="-0.02em">learnloom</text>
+</svg>

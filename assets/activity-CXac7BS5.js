@@ -1,0 +1,1 @@
+import{n as e,s as t,v as n}from"./firebase-uiS5kNpl.js";async function r(r,i,a){try{let o={user_id:r,action_type:i};a!==void 0&&(o.description=a),await t(n(e,`user_activity_logs`),o)}catch(e){console.error(`Activity logging exception:`,e)}}export{r as t};

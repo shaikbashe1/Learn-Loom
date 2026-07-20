@@ -1,0 +1,64 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+output
+*.local
+
+# Environment variables — never commit secrets
+.env
+.env.local
+.env.*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.sync
+history/*.json
+.vite_cache
+.skills
+tasks
+
+# Env and zip
+.env
+.env.*
+!.env.example
+learnloom-production-ready.zip
+
+# MCP Config
+mcp.json
+.vercel
+
+piston-deploy/
+ 
+backend/venv/
+backend/.env
+
+scraping_engine/venv/
+scraping_engine/node_modules/
+scraping_engine/.env
+
+# Local AI Stitching Folder
+stitch_learnloom_ai_edtech_landing/
+
+# Debug and temp files
+debug_output*.txt
+temp_*.json
+temp_*.js
+historical_context.txt
+build_full.log
