@@ -19,7 +19,8 @@ import {
   UserX,
   Calendar
 } from 'lucide-react';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, doc, getDocs, updateDoc, query, orderBy, limit, where } from 'firebase/firestore';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -42,23 +43,44 @@ export default function AdminStudentsPage() {
 
   const fetchStudents = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id, full_name, email, credits, streak_days, last_activity_date, created_at, is_suspended')
-      .order('credits', { ascending: false })
-      .limit(100);
-    if (error) { toast.error('Failed to load students'); setLoading(false); return; }
+    try {
+      const q = query(
+        collection(db, 'profiles'),
+        orderBy('credits', 'desc'),
+        limit(100)
+      );
+      const snapshot = await getDocs(q);
+      const profilesData = snapshot.docs.map(d => ({
+        id: d.id,
+        ...d.data()
+      })) as Student[];
 
-    const ids = (data ?? []).map(s => s.id);
-    const { data: enrollData } = await supabase
-      .from('user_course_enrollments')
-      .select('user_id')
-      .in('user_id', ids);
+      const ids = profilesData.map(s => s.id);
+      let enrollData: { user_id: string }[] = [];
+      
+      const chunkSize = 10;
+      for (let i = 0; i < ids.length; i += chunkSize) {
+        const chunk = ids.slice(i, i + chunkSize);
+        if (chunk.length > 0) {
+          const enrollQuery = query(
+            collection(db, 'user_course_enrollments'),
+            where('user_id', 'in', chunk)
+          );
+          const enrollSnap = await getDocs(enrollQuery);
+          enrollSnap.forEach(d => {
+            enrollData.push({ user_id: d.data().user_id });
+          });
+        }
+      }
 
-    const countMap: Record<string, number> = {};
-    (enrollData ?? []).forEach(e => { countMap[e.user_id] = (countMap[e.user_id] ?? 0) + 1; });
+      const countMap: Record<string, number> = {};
+      enrollData.forEach(e => { countMap[e.user_id] = (countMap[e.user_id] ?? 0) + 1; });
 
-    setStudents((data ?? []).map(s => ({ ...s, enrollments_count: countMap[s.id] ?? 0 })));
+      setStudents(profilesData.map(s => ({ ...s, enrollments_count: countMap[s.id] ?? 0 })));
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to load students');
+    }
     setLoading(false);
   };
 
@@ -69,12 +91,13 @@ export default function AdminStudentsPage() {
 
   const toggleSuspend = async (student: Student) => {
     const newStatus = !student.is_suspended;
-    const { error } = await supabase.from('profiles').update({ is_suspended: newStatus }).eq('id', student.id);
-    if (error) {
-      toast.error('Failed to update suspension status');
-    } else {
+    try {
+      await updateDoc(doc(db, 'profiles', student.id), { is_suspended: newStatus });
       toast.success(`Student ${newStatus ? 'suspended' : 'unsuspended'} successfully`);
       fetchStudents();
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to update suspension status');
     }
   };
 

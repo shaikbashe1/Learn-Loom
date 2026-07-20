@@ -5,7 +5,9 @@ import { UserAvatar } from '@/components/shared/UserAvatar';
 import { MarkdownToolbar } from '@/components/shared/MarkdownToolbar';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { supabase } from '@/db/supabase';
+import { db, storage } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { renderMarkdown } from '@/lib/markdown';
@@ -260,24 +262,24 @@ export default function CommunityPage() {
   const fetchPosts = useCallback(async () => {
     setLoading(true);
     try {
-      let query = supabase
-        .from('forum_posts')
-        .select('*');
+      const querySnapshot = await getDocs(collection(db, 'forum_posts'));
+      let postList: ForumPost[] = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() } as ForumPost));
 
       if (categoryFilter !== 'all') {
-        query = query.eq('category', categoryFilter);
+        postList = postList.filter(p => p.category === categoryFilter);
       }
 
       if (sortBy === 'latest') {
-        query = query.order('is_pinned', { ascending: false }).order('created_at', { ascending: false });
+        postList.sort((a, b) => {
+          if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1;
+          return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+        });
       } else {
-        query = query.order('is_pinned', { ascending: false }).order('upvotes', { ascending: false });
+        postList.sort((a, b) => {
+          if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1;
+          return (b.upvotes || 0) - (a.upvotes || 0);
+        });
       }
-
-      const { data, error } = await query;
-      if (error) throw error;
-
-      let postList: ForumPost[] = data ?? [];
 
       if (search.trim()) {
         const s = search.toLowerCase();
@@ -291,8 +293,13 @@ export default function CommunityPage() {
       // Load Author Profiles & Votes
       if (postList.length > 0) {
         const uids = Array.from(new Set(postList.map(p => p.user_id)));
-        const { data: profs } = await supabase.from('profiles').select('id, full_name, avatar_url, bio').in('id', uids);
-        const pMap = new Map(profs?.map(p => [p.id, p]) ?? []);
+        const profilesSnap = await getDocs(collection(db, 'profiles'));
+        const pMap = new Map();
+        profilesSnap.docs.forEach(d => {
+          if (uids.includes(d.id)) {
+            pMap.set(d.id, { id: d.id, ...d.data() });
+          }
+        });
 
         // Load votes if logged in
         let votedPostIds = new Set<string>();
@@ -300,14 +307,15 @@ export default function CommunityPage() {
         let followedAuthors = new Set<string>();
 
         if (user) {
-          const { data: votes } = await supabase.from('forum_post_votes').select('post_id, reaction_type').eq('user_id', user.id);
-          votes?.forEach(v => {
-            votedPostIds.add(v.post_id);
-            if (v.reaction_type) reactionMap.set(v.post_id, v.reaction_type);
+          const votesSnap = await getDocs(query(collection(db, 'forum_post_votes'), where('user_id', '==', user.id)));
+          votesSnap.forEach(d => {
+            const data = d.data();
+            votedPostIds.add(data.post_id);
+            if (data.reaction_type) reactionMap.set(data.post_id, data.reaction_type);
           });
 
-          const { data: follows } = await supabase.from('user_followers').select('following_id').eq('follower_id', user.id);
-          follows?.forEach(f => followedAuthors.add(f.following_id));
+          const followsSnap = await getDocs(query(collection(db, 'user_followers'), where('follower_id', '==', user.id)));
+          followsSnap.forEach(d => followedAuthors.add(d.data().following_id));
         }
 
         postList = postList.map(p => ({
@@ -336,25 +344,24 @@ export default function CommunityPage() {
     setLoadingReplies(true);
     setAiSummary(null);
     try {
-      const { data, error } = await supabase
-        .from('forum_replies')
-        .select('*')
-        .eq('post_id', postId)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-
-      let replyList: ForumReply[] = data ?? [];
+      const rSnap = await getDocs(query(collection(db, 'forum_replies'), where('post_id', '==', postId)));
+      let replyList: ForumReply[] = rSnap.docs.map(d => ({ id: d.id, ...d.data() } as ForumReply));
+      replyList.sort((a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime());
 
       if (replyList.length > 0) {
         const uids = Array.from(new Set(replyList.map(r => r.user_id)));
-        const { data: profs } = await supabase.from('profiles').select('id, full_name, avatar_url, bio').in('id', uids);
-        const pMap = new Map(profs?.map(p => [p.id, p]) ?? []);
+        const profilesSnap = await getDocs(collection(db, 'profiles'));
+        const pMap = new Map();
+        profilesSnap.docs.forEach(d => {
+          if (uids.includes(d.id)) {
+            pMap.set(d.id, { id: d.id, ...d.data() });
+          }
+        });
 
         let votedReplyIds = new Set<string>();
         if (user) {
-          const { data: rVotes } = await supabase.from('forum_reply_votes').select('reply_id').eq('user_id', user.id);
-          rVotes?.forEach(v => votedReplyIds.add(v.reply_id));
+          const rVotesSnap = await getDocs(query(collection(db, 'forum_reply_votes'), where('user_id', '==', user.id)));
+          rVotesSnap.forEach(v => votedReplyIds.add(v.data().reply_id));
         }
 
         replyList = replyList.map(r => ({
@@ -406,10 +413,13 @@ export default function CommunityPage() {
 
     try {
       if (isFollowing) {
-        await supabase.from('user_followers').delete().eq('follower_id', user.id).eq('following_id', post.user_id);
+        const fSnap = await getDocs(query(collection(db, 'user_followers'), where('follower_id', '==', user.id), where('following_id', '==', post.user_id)));
+        for (const d of fSnap.docs) {
+          await deleteDoc(d.ref);
+        }
         toast.success(`Unfollowed ${post.profiles?.full_name}`);
       } else {
-        await supabase.from('user_followers').insert({ follower_id: user.id, following_id: post.user_id });
+        await addDoc(collection(db, 'user_followers'), { follower_id: user.id, following_id: post.user_id });
         toast.success(`Following ${post.profiles?.full_name}`);
       }
       setPosts(prev => prev.map(p => p.user_id === post.user_id ? { ...p, author_is_followed: !isFollowing } : p));
@@ -431,18 +441,25 @@ export default function CommunityPage() {
     try {
       if (hasVoted && sameReaction) {
         // Remove Vote
-        await supabase.from('forum_post_votes').delete().eq('post_id', post.id).eq('user_id', user.id);
+        const vSnap = await getDocs(query(collection(db, 'forum_post_votes'), where('post_id', '==', post.id), where('user_id', '==', user.id)));
+        for (const docSnap of vSnap.docs) {
+          await deleteDoc(docSnap.ref);
+        }
         setPosts(prev => prev.map(p => p.id === post.id ? { ...p, upvotes: p.upvotes - 1, user_voted: false, user_reaction: null } : p));
         if (selectedPost?.id === post.id) {
           setSelectedPost(prev => prev ? { ...prev, upvotes: prev.upvotes - 1, user_voted: false, user_reaction: null } : null);
         }
       } else {
         // Upsert Vote
-        await supabase.from('forum_post_votes').upsert({
+        const vSnap = await getDocs(query(collection(db, 'forum_post_votes'), where('post_id', '==', post.id), where('user_id', '==', user.id)));
+        for (const docSnap of vSnap.docs) {
+          await deleteDoc(docSnap.ref);
+        }
+        await addDoc(collection(db, 'forum_post_votes'), {
           post_id: post.id,
           user_id: user.id,
           reaction_type: reactionType
-        }, { onConflict: 'post_id,user_id' });
+        });
 
         const diff = hasVoted ? 0 : 1;
         setPosts(prev => prev.map(p => p.id === post.id ? { ...p, upvotes: p.upvotes + diff, user_voted: true, user_reaction: reactionType } : p));
@@ -462,10 +479,13 @@ export default function CommunityPage() {
 
     try {
       if (hasVoted) {
-        await supabase.from('forum_reply_votes').delete().eq('reply_id', reply.id).eq('user_id', user.id);
+        const vSnap = await getDocs(query(collection(db, 'forum_reply_votes'), where('reply_id', '==', reply.id), where('user_id', '==', user.id)));
+        for (const docSnap of vSnap.docs) {
+          await deleteDoc(docSnap.ref);
+        }
         toast.success('Vote removed');
       } else {
-        await supabase.from('forum_reply_votes').insert({ reply_id: reply.id, user_id: user.id });
+        await addDoc(collection(db, 'forum_reply_votes'), { reply_id: reply.id, user_id: user.id });
         toast.success('Vote recorded');
       }
       
@@ -494,12 +514,7 @@ export default function CommunityPage() {
     const nextState = !reply.is_accepted;
 
     try {
-      const { error } = await supabase
-        .from('forum_replies')
-        .update({ is_accepted: nextState })
-        .eq('id', reply.id);
-
-      if (error) throw error;
+      await updateDoc(doc(db, 'forum_replies', reply.id), { is_accepted: nextState });
 
       toast.success(nextState ? 'Answer marked as accepted!' : 'Answer unaccepted');
       
@@ -541,8 +556,7 @@ ${isReply ? `Previous replies:\n${threadContext}\n\nStudent query: "${userQuery}
 
       const contents = [{ role: 'user', parts: [{ text: systemPrompt }] }];
 
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token ?? '';
+      const token = '';
 
       const res = await fetch('/api/ai-mentor', {
         method: 'POST',
@@ -612,13 +626,15 @@ ${isReply ? `Previous replies:\n${threadContext}\n\nStudent query: "${userQuery}
       }
 
       // Save AI reply to DB
-      const { data: savedAI } = await supabase.from('forum_replies').insert({
+      const docRef = await addDoc(collection(db, 'forum_replies'), {
         post_id: postId,
         parent_id: replyingTo?.id || null,
         user_id: '00000000-0000-0000-0000-000000000000', // AI system user ID
         content: aiText,
         is_ai: true,
-      }).select().maybeSingle();
+        created_at: new Date().toISOString()
+      });
+      const savedAI = { id: docRef.id, created_at: new Date().toISOString() };
 
       if (savedAI) {
         const replaceTempInTree = (list: ForumReply[]): ForumReply[] => {
@@ -644,15 +660,15 @@ ${isReply ? `Previous replies:\n${threadContext}\n\nStudent query: "${userQuery}
     const contentToSend = replyText.trim();
 
     try {
-      const { data, error } = await supabase.from('forum_replies').insert({
+      const docRef = await addDoc(collection(db, 'forum_replies'), {
         post_id: selectedPost.id,
         parent_id: replyingTo?.id || null,
         user_id: user.id,
         content: contentToSend,
-        is_ai: false
-      }).select();
-
-      if (error) throw error;
+        is_ai: false,
+        created_at: new Date().toISOString()
+      });
+      const data = [{ id: docRef.id, post_id: selectedPost.id, parent_id: replyingTo?.id || null, user_id: user.id, content: contentToSend, is_ai: false, created_at: new Date().toISOString() }];
 
       toast.success('Comment posted successfully');
       setReplyText('');
@@ -706,23 +722,24 @@ ${isReply ? `Previous replies:\n${threadContext}\n\nStudent query: "${userQuery}
       for (const file of newMediaFiles) {
         const ext = file.name.split('.').pop() || 'jpg';
         const path = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
-        const { error: uploadError } = await supabase.storage.from('forum_attachments').upload(path, file);
-        if (uploadError) throw uploadError;
-
-        const { data: urlData } = supabase.storage.from('forum_attachments').getPublicUrl(path);
-        mediaList.push({ file_url: urlData.publicUrl, file_type: file.type.startsWith('image/') ? 'image' : 'document' });
+        const storageRef = ref(storage, `forum_attachments/${path}`);
+        await uploadBytes(storageRef, file);
+        const file_url = await getDownloadURL(storageRef);
+        mediaList.push({ file_url, file_type: file.type.startsWith('image/') ? 'image' : 'document' });
       }
 
-      const { data, error } = await supabase.from('forum_posts').insert({
+      const postDocRef = await addDoc(collection(db, 'forum_posts'), {
         title: newTitle.trim(),
         content: newContent.trim(),
         category: newCategory,
         tags: tagList,
         user_id: user.id,
-        media: mediaList
-      }).select();
-
-      if (error) throw error;
+        media: mediaList,
+        created_at: new Date().toISOString(),
+        upvotes: 0,
+        reply_count: 0
+      });
+      const data = [{ id: postDocRef.id, title: newTitle.trim(), content: newContent.trim() }];
 
       toast.success('Post created successfully!');
       setNewTitle('');
@@ -769,8 +786,7 @@ ${threadContext}`;
 
       const contents = [{ role: 'user', parts: [{ text: systemPrompt }] }];
 
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token ?? '';
+      const token = '';
 
       const res = await fetch('/api/ai-mentor', {
         method: 'POST',
@@ -1173,7 +1189,7 @@ ${threadContext}`;
               <Flame className="w-4 h-4 text-chart-3" /> Trending Topics
             </h4>
             <div className="flex flex-wrap gap-2">
-              {['react', 'typescript', 'supabase', 'nextjs', 'tailwind', 'ai-agents', 'graphql'].map(t => (
+              {['react', 'typescript', 'firebase', 'nextjs', 'tailwind', 'ai-agents', 'graphql'].map(t => (
                 <button 
                   key={t}
                   onClick={() => { setSearch(t); setSelectedPost(null); }}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, doc, getDocs, setDoc, query, orderBy } from 'firebase/firestore';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -27,11 +28,13 @@ export default function AdminRewardsPage() {
 
   const fetchConfigs = async () => {
     setLoading(true);
-    const { data, error } = await supabase.from('reward_configurations').select('*').order('action_type', { ascending: true });
-    if (error) {
-      toast.error('Failed to load reward configurations');
-    } else {
+    try {
+      const q = query(collection(db, 'reward_configurations'), orderBy('action_type', 'asc'));
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setConfigs(data as RewardConfig[]);
+    } catch (error) {
+      toast.error('Failed to load reward configurations');
     }
     setLoading(false);
   };
@@ -44,17 +47,18 @@ export default function AdminRewardsPage() {
     e.preventDefault();
     setSaving(true);
     
-    const updates = configs.map(c => ({
-      id: c.id,
-      action_type: c.action_type,
-      points: c.points,
-      updated_at: new Date().toISOString()
-    }));
-
-    const { error } = await supabase.from('reward_configurations').upsert(updates);
-    
-    if (error) toast.error('Failed to update reward configurations');
-    else toast.success('Reward configurations updated successfully');
+    try {
+      await Promise.all(configs.map(c => 
+        setDoc(doc(db, 'reward_configurations', c.id), {
+          action_type: c.action_type,
+          points: c.points,
+          updated_at: new Date().toISOString()
+        }, { merge: true })
+      ));
+      toast.success('Reward configurations updated successfully');
+    } catch (error) {
+      toast.error('Failed to update reward configurations');
+    }
     
     setSaving(false);
   };

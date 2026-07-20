@@ -16,7 +16,9 @@ import {
   ArrowLeft,
   AlertTriangle
 } from 'lucide-react';
-import { supabase } from '@/db/supabase';
+import { db, storage } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import QRCodeDataUrl from '@/components/ui/qrcodedataurl';
 
 interface VerifyResult {
@@ -40,57 +42,62 @@ export default function CertVerifyPage() {
   useEffect(() => {
     if (!code) { setLoading(false); return; }
     const lookup = async () => {
-      const { data, error } = await supabase
-        .from('certificates')
-        .select(`
-          user_id, verification_code, is_valid, revoked, issued_at,
-          courses!certificates_course_id_fkey(title, instructor_name, instructor)
-        `)
-        .eq('verification_code', code)
-        .maybeSingle();
+      try {
+        const certsRef = collection(db, 'certificates');
+        const q = query(certsRef, where('verification_code', '==', code));
+        const snapshot = await getDocs(q);
 
-      if (error || !data) {
+        if (snapshot.empty) {
+          throw new Error('Not found');
+        }
+
+        const certDoc = snapshot.docs[0];
+        const certData = certDoc.data() as {
+          user_id: string;
+          verification_code: string;
+          is_valid: boolean;
+          revoked: boolean;
+          issued_at: string;
+          course_id: string;
+        };
+
+        // Get profile
+        let profileData = null;
+        if (certData.user_id) {
+          const profileDoc = await getDoc(doc(db, 'profiles', certData.user_id));
+          if (profileDoc.exists()) {
+            profileData = profileDoc.data();
+          }
+        }
+
+        // Get course
+        let courseData = null;
+        if (certData.course_id) {
+          const courseDoc = await getDoc(doc(db, 'courses', certData.course_id));
+          if (courseDoc.exists()) {
+            courseData = courseDoc.data();
+          }
+        }
+
+        setResult({
+          found: true,
+          valid: certData.is_valid && !certData.revoked,
+          revoked: certData.revoked,
+          student_name: profileData?.full_name ?? null,
+          course_title: courseData?.title ?? null,
+          instructor_name: courseData?.instructor_name || courseData?.instructor || null,
+          issued_at: certData.issued_at,
+          verification_code: certData.verification_code,
+        });
+        setLoading(false);
+      } catch (err) {
         setResult({
           found: false, valid: false, revoked: false,
           student_name: null, course_title: null, instructor_name: null,
           issued_at: null, verification_code: code,
         });
         setLoading(false);
-        return;
       }
-
-      const d = data as {
-        user_id: string;
-        verification_code: string;
-        is_valid: boolean;
-        revoked: boolean;
-        issued_at: string;
-        courses: unknown;
-      };
-
-      const { data: profileDataResponse } = await supabase
-        .from('profiles')
-        .select('full_name')
-        .eq('id', d.user_id)
-        .maybeSingle();
-
-      const profileData = profileDataResponse as { full_name: string | null } | null;
-
-      const courseData = Array.isArray(d.courses)
-        ? (d.courses[0] as { title: string; instructor_name: string; instructor: string } | undefined)
-        : (d.courses as { title: string; instructor_name: string; instructor: string } | null);
-
-      setResult({
-        found: true,
-        valid: d.is_valid && !d.revoked,
-        revoked: d.revoked,
-        student_name: profileData?.full_name ?? null,
-        course_title: courseData?.title ?? null,
-        instructor_name: courseData?.instructor_name || courseData?.instructor || null,
-        issued_at: d.issued_at,
-        verification_code: d.verification_code,
-      });
-      setLoading(false);
     };
     void lookup();
   }, [code]);

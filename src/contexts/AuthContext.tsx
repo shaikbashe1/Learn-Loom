@@ -1,9 +1,18 @@
 import { createContext, useContext, useEffect, useState, useRef, type ReactNode } from 'react';
-import { supabase } from '@/db/supabase';
-import type { User } from '@supabase/supabase-js';
+import { auth, db } from '@/db/firebase';
+import { 
+  onAuthStateChanged, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  sendEmailVerification, 
+  signOut as firebaseSignOut, 
+  User 
+} from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import type { Profile } from '@/types/types';
 import { toast } from 'sonner';
-import { logUserActivity } from '@/lib/activity';
 
 export async function getProfile(userId?: string): Promise<Profile | null> {
   if (!userId) return null;
@@ -13,16 +22,15 @@ export async function getProfile(userId?: string): Promise<Profile | null> {
   const delayMs = 500;
   
   while (attempts < maxAttempts) {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle();
+    try {
+      const docRef = doc(db, 'profiles', userId);
+      const docSnap = await getDoc(docRef);
       
-    if (error) {
+      if (docSnap.exists()) {
+        return docSnap.data() as Profile;
+      }
+    } catch (error) {
       console.error(`Failed to fetch profile (attempt ${attempts + 1}):`, error);
-    } else if (data) {
-      return data;
     }
     
     attempts++;
@@ -48,7 +56,6 @@ interface AuthContextType {
   signUpWithEmail: (email: string, password: string, fullName?: string) => Promise<SignInResult>;
   verifyEmailCode: (email: string, code: string) => Promise<SignInResult>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
-
   resendVerificationEmail: (email: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -62,7 +69,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Keep refs up-to-date to avoid stale closures inside supabase auth state listener
   const userRef = useRef<User | null>(null);
   const profileRef = useRef<Profile | null>(null);
 
@@ -74,49 +80,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     profileRef.current = profile;
   }, [profile]);
 
-  // Strict RBAC Override: Enforce super_admin ONLY for the authorized email
   const applyRoleOverride = (u: User | null, p: Profile | null): Profile | null => {
     if (!p) return null;
     return p;
   };
 
   useEffect(() => {
-    const initializeAuth = async () => {
-      const isNewSession = !sessionStorage.getItem('ll_session_active');
-      const rememberMe = localStorage.getItem('ll_remember_me');
+    const isNewSession = !sessionStorage.getItem('ll_session_active');
+    const rememberMe = localStorage.getItem('ll_remember_me');
 
-      if (isNewSession) {
-        sessionStorage.setItem('ll_session_active', 'true');
-        if (rememberMe === 'false') {
-          localStorage.removeItem('ll_remember_me');
-          await supabase.auth.signOut();
-        }
+    if (isNewSession) {
+      sessionStorage.setItem('ll_session_active', 'true');
+      if (rememberMe === 'false') {
+        localStorage.removeItem('ll_remember_me');
+        firebaseSignOut(auth).catch(console.error);
       }
+    }
 
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        const data = await getProfile(session.user.id);
-        setProfile(applyRoleOverride(session.user, data));
-      }
-      setLoading(false);
-    };
-
-    initializeAuth();
-
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       const currentUser = userRef.current;
       const currentProfile = profileRef.current;
 
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        if (event === 'SIGNED_IN') {
-          void logUserActivity(session.user.id, 'login');
-        }
+      // Polyfill user.id for compatibility with 150+ components expecting Supabase's user.id
+      if (firebaseUser) {
+        (firebaseUser as any).id = firebaseUser.uid;
+      }
 
-        // Only block UI and trigger loading if user ID changed or profile isn't loaded
-        const isSameUser = currentUser && currentUser.id === session.user.id;
+      setUser(firebaseUser);
+      
+      if (firebaseUser) {
+        const isSameUser = currentUser && currentUser.uid === firebaseUser.uid;
         const hasProfile = !!currentProfile;
         const shouldShowLoading = !isSameUser || !hasProfile;
 
@@ -124,101 +117,100 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setLoading(true);
         }
 
-        getProfile(session.user.id).then(data => {
-          setProfile(applyRoleOverride(session.user, data));
-          if (shouldShowLoading) {
-            setLoading(false);
-          }
-        });
+        const data = await getProfile(firebaseUser.uid);
+        setProfile(applyRoleOverride(firebaseUser, data));
+        
+        if (shouldShowLoading) {
+          setLoading(false);
+        }
       } else {
         setProfile(null);
         setLoading(false);
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => unsubscribe();
   }, []);
-
 
   const refreshProfile = async () => {
     if (!user) { setProfile(null); return; }
-    const profileData = await getProfile(user.id);
+    const profileData = await getProfile(user.uid);
     setProfile(applyRoleOverride(user, profileData));
   };
 
   const signInWithGoogle = async (): Promise<{ error: Error | null }> => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-      return { error };
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      
+      // Ensure profile exists for new Google users
+      const profileData = await getProfile(result.user.uid);
+      if (!profileData) {
+        await setDoc(doc(db, 'profiles', result.user.uid), {
+          id: result.user.uid,
+          email: result.user.email,
+          full_name: result.user.displayName,
+          avatar_url: result.user.photoURL,
+          role: 'student',
+          created_at: new Date().toISOString()
+        });
+      }
+      
+      return { error: null };
     } catch (err) {
       return { error: err as Error };
     }
   };
 
-
-
   const signInWithEmail = async (email: string, password: string): Promise<SignInResult> => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
       
-      if (error) {
-        if (error.message.toLowerCase().includes('email not confirmed')) {
-          return { error: new Error('Email not confirmed'), needsVerification: true };
-        }
-        return { error: new Error('Invalid email or password.') };
+      if (!userCredential.user.emailVerified) {
+        return { error: new Error('Email not confirmed'), needsVerification: true };
       }
       
-      return { error: null, userId: data.user?.id };
+      return { error: null, userId: userCredential.user.uid };
     } catch (err: any) {
-      return { error: err as Error };
+      return { error: new Error('Invalid email or password.') };
     }
   };
 
   const signUpWithEmail = async (email: string, password: string, fullName?: string): Promise<SignInResult> => {
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
-        },
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      
+      // Create profile in Firestore
+      await setDoc(doc(db, 'profiles', userCredential.user.uid), {
+        id: userCredential.user.uid,
+        email: email,
+        full_name: fullName,
+        role: 'student',
+        created_at: new Date().toISOString()
       });
+
+      await sendEmailVerification(userCredential.user);
       
-      if (error) return { error };
-      
-      return { error: null, userId: data.user?.id, needsVerification: true };
+      return { error: null, userId: userCredential.user.uid, needsVerification: true };
     } catch (err: any) {
       return { error: err as Error };
     }
   };
 
   const verifyEmailCode = async (email: string, code: string): Promise<SignInResult> => {
-    try {
-      const { data, error } = await supabase.auth.verifyOtp({ email, token: code, type: 'signup' });
-      if (error) return { error };
-      return { error: null, userId: data.user?.id };
-    } catch (err: any) {
-      return { error: err as Error };
-    }
+    // Firebase Auth handles email verification via a standard link, not a 6-digit code usually.
+    // If we need code verification, we'll need to mock it or handle it via a custom Firebase Function.
+    // For now, we will return an error instructing them to click the link.
+    return { error: new Error('Please click the verification link sent to your email.') };
   };
 
   const resendVerificationEmail = async (email: string): Promise<{ error: Error | null }> => {
     try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email,
-      });
-      return { error };
+      if (auth.currentUser) {
+        await sendEmailVerification(auth.currentUser);
+        return { error: null };
+      }
+      return { error: new Error('User not logged in') };
     } catch (err) {
       return { error: err as Error };
     }
@@ -227,7 +219,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     localStorage.removeItem('ll_remember_me');
     sessionStorage.removeItem('ll_session_active');
-    await supabase.auth.signOut();
+    await firebaseSignOut(auth);
   };
 
   return (
@@ -236,7 +228,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signInWithEmail, signUpWithEmail, verifyEmailCode,
       signInWithGoogle, resendVerificationEmail,
       signOut, refreshProfile,
-      debug: { loadingProfile: loading, hasUser: !!user, userId: user?.id }
+      debug: { loadingProfile: loading, hasUser: !!user, userId: user?.uid }
     }}>
       {children}
     </AuthContext.Provider>

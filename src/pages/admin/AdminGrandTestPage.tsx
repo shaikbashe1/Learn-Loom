@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy } from 'firebase/firestore';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
@@ -36,16 +37,18 @@ export default function AdminGrandTestPage() {
 
   const fetchQuestions = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('grand_test_questions')
-      .select('*')
-      .is('course_id', null)
-      .order('sort_order', { ascending: true });
-
-    if (error) {
+    try {
+      const q = query(
+        collection(db, 'grand_test_questions'),
+        where('course_id', '==', null),
+        orderBy('sort_order', 'asc')
+      );
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as DBGrandTestQuestion[];
+      setQuestions(data);
+    } catch (error) {
+      console.error(error);
       toast.error('Failed to load grand test questions');
-    } else {
-      setQuestions(data as DBGrandTestQuestion[]);
     }
     setLoading(false);
   };
@@ -95,23 +98,35 @@ export default function AdminGrandTestPage() {
       sort_order: form.sort_order
     };
 
-    if (editingId) {
-      const { error } = await supabase.from('grand_test_questions').update(payload).eq('id', editingId);
-      if (error) toast.error('Update failed');
-      else { toast.success('Question updated'); setDialogOpen(false); fetchQuestions(); }
-    } else {
-      const { error } = await supabase.from('grand_test_questions').insert(payload);
-      if (error) toast.error('Creation failed');
-      else { toast.success('Question added'); setDialogOpen(false); fetchQuestions(); }
+    try {
+      if (editingId) {
+        await updateDoc(doc(db, 'grand_test_questions', editingId), payload);
+        toast.success('Question updated');
+        setDialogOpen(false);
+        fetchQuestions();
+      } else {
+        await addDoc(collection(db, 'grand_test_questions'), payload);
+        toast.success('Question added');
+        setDialogOpen(false);
+        fetchQuestions();
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error(editingId ? 'Update failed' : 'Creation failed');
     }
     setSaving(false);
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this question?')) return;
-    const { error } = await supabase.from('grand_test_questions').delete().eq('id', id);
-    if (error) toast.error('Failed to delete question');
-    else { toast.success('Question deleted'); fetchQuestions(); }
+    try {
+      await deleteDoc(doc(db, 'grand_test_questions', id));
+      toast.success('Question deleted');
+      fetchQuestions();
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to delete question');
+    }
   };
 
   return (

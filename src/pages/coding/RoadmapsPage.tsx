@@ -2,7 +2,8 @@ import { AppLayout } from '@/components/layouts/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, getDocs } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -20,10 +21,9 @@ export default function RoadmapsPage() {
   useEffect(() => {
     async function loadRoadmaps() {
       try {
-        const { data, error } = await supabase.from('roadmaps').select('*');
-        if (!error && data) {
-          setRoadmaps(data);
-        }
+        const querySnapshot = await getDocs(collection(db, 'roadmaps'));
+        const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Roadmap[];
+        setRoadmaps(data);
       } catch (err) {
         console.error(err);
       } finally {

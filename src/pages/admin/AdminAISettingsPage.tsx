@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, doc, getDocs, updateDoc, limit, query } from 'firebase/firestore';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
@@ -31,13 +32,18 @@ export default function AdminAISettingsPage() {
 
   const fetchSettings = async () => {
     setLoading(true);
-    const { data, error } = await supabase.from('ai_mentor_settings').select('*').limit(1).single();
-    if (error) {
-      if (error.code !== 'PGRST116') {
-        toast.error('Failed to load AI settings');
+    try {
+      const q = query(collection(db, 'ai_mentor_settings'), limit(1));
+      const snapshot = await getDocs(q);
+      
+      if (!snapshot.empty) {
+        const docSnap = snapshot.docs[0];
+        setSettings({ id: docSnap.id, ...docSnap.data() } as AISettings);
+      } else {
+        setSettings(null);
       }
-    } else {
-      setSettings(data as AISettings);
+    } catch (error) {
+      toast.error('Failed to load AI settings');
     }
     setLoading(false);
   };
@@ -50,16 +56,19 @@ export default function AdminAISettingsPage() {
     e.preventDefault();
     if (!settings) return;
     setSaving(true);
-    const { error } = await supabase.from('ai_mentor_settings').update({
-      system_prompt: settings.system_prompt,
-      max_tokens: settings.max_tokens,
-      model_name: settings.model_name,
-      temperature: settings.temperature,
-      updated_at: new Date().toISOString()
-    }).eq('id', settings.id);
-
-    if (error) toast.error('Failed to update AI settings');
-    else toast.success('AI settings updated successfully');
+    try {
+      const docRef = doc(db, 'ai_mentor_settings', settings.id);
+      await updateDoc(docRef, {
+        system_prompt: settings.system_prompt,
+        max_tokens: settings.max_tokens,
+        model_name: settings.model_name,
+        temperature: settings.temperature,
+        updated_at: new Date().toISOString()
+      });
+      toast.success('AI settings updated successfully');
+    } catch (error) {
+      toast.error('Failed to update AI settings');
+    }
     setSaving(false);
   };
 

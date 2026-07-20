@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { supabase } from '@/db/supabase';
+import { db, storage } from '@/db/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useUsernameAvailability } from '@/hooks/useUsernameAvailability';
@@ -102,13 +104,11 @@ export default function OnboardingPage() {
     setUploading(true);
     try {
       const ext = file.name.split('.').pop()?.toLowerCase() || 'png';
-      const path = `${user.id}/avatar_${Date.now()}.${ext}`;
-      const { error } = await supabase.storage
-          .from('avatars')
-          .upload(path, file, { upsert: true, contentType: file.type });
-      if (error) throw error;
-      const { data } = supabase.storage.from('avatars').getPublicUrl(path);
-      set('avatar_url', data.publicUrl);
+      const path = `avatars/${user.uid}/avatar_${Date.now()}.${ext}`;
+      const storageRef = ref(storage, path);
+      await uploadBytes(storageRef, file, { contentType: file.type });
+      const publicUrl = await getDownloadURL(storageRef);
+      set('avatar_url', publicUrl);
       toast.success('Photo updated');
     } catch (e) {
       toast.error('Upload failed', { description: (e as Error).message });
@@ -156,8 +156,10 @@ export default function OnboardingPage() {
       updated_at: new Date().toISOString(),
       ...extra,
     };
-    const { error } = await supabase.from('profiles').update(payload).eq('id', user.id);
-    if (error) {
+    try {
+      const userDocRef = doc(db, 'profiles', user.uid);
+      await updateDoc(userDocRef, payload);
+    } catch (error: any) {
       const msg = /duplicate|unique/i.test(error.message)
           ? 'That username was just taken. Please pick another.'
           : error.message;

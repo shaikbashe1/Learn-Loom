@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, doc, getDocs, updateDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -31,15 +32,13 @@ export default function AdminDraftCoursesPage() {
 
   const fetchDrafts = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('courses')
-      .select('id, title, description, difficulty, status, quality_score, source_url, created_at')
-      .order('created_at', { ascending: false });
-      
-    if (error) {
+    try {
+      const q = query(collection(db, 'courses'), orderBy('created_at', 'desc'));
+      const querySnapshot = await getDocs(q);
+      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setDrafts(data);
+    } catch (error: any) {
       toast.error('Failed to load drafts', { description: error.message });
-    } else {
-      setDrafts(data || []);
     }
     setLoading(false);
   };
@@ -47,16 +46,13 @@ export default function AdminDraftCoursesPage() {
   const handleReview = async (courseId: string, action: 'approve' | 'reject' | 'delete') => {
     try {
       if (action === 'approve') {
-        const { error } = await supabase.from('courses').update({ status: 'published', is_published: true }).eq('id', courseId);
-        if (error) throw error;
+        await updateDoc(doc(db, 'courses', courseId), { status: 'published', is_published: true });
         toast.success(`Course approved and published successfully!`);
       } else if (action === 'reject') {
-        const { error } = await supabase.from('courses').update({ status: 'rejected', is_published: false }).eq('id', courseId);
-        if (error) throw error;
+        await updateDoc(doc(db, 'courses', courseId), { status: 'rejected', is_published: false });
         toast.success(`Course rejected. Requires manual fix.`);
       } else if (action === 'delete') {
-        const { error } = await supabase.from('courses').delete().eq('id', courseId);
-        if (error) throw error;
+        await deleteDoc(doc(db, 'courses', courseId));
         toast.success(`Draft course permanently deleted.`);
       }
       fetchDrafts();

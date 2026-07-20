@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { createParser } from 'eventsource-parser';
-import { supabase } from '@/db/supabase';
+import { db, auth } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, addDoc, query, where, orderBy, limit } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAIRateLimit } from '@/hooks/useAIRateLimit';
 import { toast } from 'sonner';
@@ -198,42 +199,67 @@ export function AIMentorChat({ externalPrompt, onExternalPromptHandled, isWidget
       setLoadingHistory(true);
       try {
         // 1. Fetch user analytics/context
-        const { data: courses } = await supabase
-          .from('user_course_enrollments')
-          .select('course_id, progress_percent, courses!user_course_enrollments_course_id_fkey(id, title, category)')
-          .eq('user_id', user.id)
-          .order('enrolled_at', { ascending: false });
+        const enrollmentsRef = collection(db, 'user_course_enrollments');
+        const enrollmentsQuery = query(
+          enrollmentsRef,
+          where('user_id', '==', user.id),
+          orderBy('enrolled_at', 'desc')
+        );
+        const enrollmentsSnap = await getDocs(enrollmentsQuery);
+        
+        const coursesData = await Promise.all(
+          enrollmentsSnap.docs.map(async (docSnap) => {
+            const data = docSnap.data();
+            const courseRef = doc(db, 'courses', data.course_id);
+            const courseSnap = await getDoc(courseRef);
+            if (courseSnap.exists()) {
+              return {
+                course_id: data.course_id,
+                progress_percent: data.progress_percent,
+                courses: { id: courseSnap.id, ...courseSnap.data() }
+              };
+            }
+            return null;
+          })
+        );
+        const courses = coursesData.filter(Boolean);
           
-        if (courses) {
+        if (courses.length > 0) {
           setEnrolledCourses(
-            courses.filter(r => r.courses).map(r => {
-              const c = (Array.isArray(r.courses) ? r.courses[0] : r.courses) as { id: string; title: string; category: string } | null;
-              return c ? { id: c.id, title: c.title, category: c.category, progress_percent: r.progress_percent } : null;
+            courses.map(r => {
+              const c = r?.courses as { id: string; title: string; category: string } | null;
+              return c ? { id: c.id, title: c.title, category: c.category, progress_percent: r!.progress_percent } : null;
             }).filter(Boolean) as { id: string; title: string; category: string; progress_percent: number }[]
           );
         }
 
         // 2. Fetch or create latest active conversation
-        const { data: existingConvos, error: convoErr } = await supabase
-          .from('mentor_conversations')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(1);
+        const convosRef = collection(db, 'mentor_conversations');
+        const convosQuery = query(
+          convosRef,
+          where('user_id', '==', user.id),
+          orderBy('created_at', 'desc'),
+          limit(1)
+        );
+        const existingConvosSnap = await getDocs(convosQuery);
+        const existingConvos = existingConvosSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
         let convoId = '';
-        if (existingConvos && existingConvos.length > 0) {
+        if (existingConvos.length > 0) {
           convoId = existingConvos[0].id;
           setActiveConversationId(convoId);
           
           // 3. Load historical messages for this session
-          const { data: historicalMsgs } = await supabase
-            .from('mentor_messages')
-            .select('*')
-            .eq('conversation_id', convoId)
-            .order('created_at', { ascending: true });
+          const messagesRef = collection(db, 'mentor_messages');
+          const messagesQuery = query(
+            messagesRef,
+            where('conversation_id', '==', convoId),
+            orderBy('created_at', 'asc')
+          );
+          const messagesSnap = await getDocs(messagesQuery);
+          const historicalMsgs = messagesSnap.docs.map(d => ({ id: d.id, ...d.data() as any }));
 
-          if (historicalMsgs && historicalMsgs.length > 0) {
+          if (historicalMsgs.length > 0) {
             const parsedHistory: ChatMessage[] = historicalMsgs.map(m => ({
               id: m.id,
               role: m.role as 'user' | 'assistant',
@@ -244,19 +270,14 @@ export function AIMentorChat({ externalPrompt, onExternalPromptHandled, isWidget
           }
         } else {
           // Create new conversation
-          const { data: newConvo, error: insertErr } = await supabase
-            .from('mentor_conversations')
-            .insert({
-              user_id: user.id,
-              title: 'Learning Session',
-              context_snapshot: { timestamp: new Date().toISOString() }
-            })
-            .select()
-            .single();
+          const newConvoRef = await addDoc(collection(db, 'mentor_conversations'), {
+            user_id: user.id,
+            title: 'Learning Session',
+            context_snapshot: { timestamp: new Date().toISOString() },
+            created_at: new Date().toISOString()
+          });
             
-          if (newConvo) {
-            setActiveConversationId(newConvo.id);
-          }
+          setActiveConversationId(newConvoRef.id);
         }
       } catch (err) {
         console.error("Failed to bootstrap AI Mentor:", err);
@@ -315,11 +336,12 @@ YOUR ROLE:
     }
     setStreaming(true);
 
-    // Persist user message to Supabase
-    await supabase.from('mentor_messages').insert({
+    // Persist user message to Firebase
+    await addDoc(collection(db, 'mentor_messages'), {
       conversation_id: activeConversationId,
       role: 'user',
-      content: userMsg.content
+      content: userMsg.content,
+      created_at: new Date().toISOString()
     });
 
     const historyBase = [...messages.filter(m => m.id !== 'welcome'), userMsg];
@@ -338,8 +360,8 @@ YOUR ROLE:
     let fullResponseText = '';
 
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token ?? '';
+      const currentUser = auth.currentUser;
+      const token = currentUser ? await currentUser.getIdToken() : '';
 
       // Route all AI requests through the authenticated backend
       const res = await fetch('/api/ai-mentor', {
@@ -408,12 +430,13 @@ YOUR ROLE:
         for (const line of lines) parser.feed(line + '\n');
       }
 
-      // Final persistence step: save the generated AI response to Supabase
+      // Final persistence step: save the generated AI response to Firebase
       if (fullResponseText.trim().length > 0) {
-        await supabase.from('mentor_messages').insert({
+        await addDoc(collection(db, 'mentor_messages'), {
           conversation_id: activeConversationId,
           role: 'assistant',
-          content: fullResponseText
+          content: fullResponseText,
+          created_at: new Date().toISOString()
         });
       }
 
@@ -443,20 +466,15 @@ YOUR ROLE:
     }
     
     // Create new fresh conversation branch
-    const { data: newConvo } = await supabase
-      .from('mentor_conversations')
-      .insert({
-        user_id: user.id,
-        title: 'New Learning Session',
-        context_snapshot: { timestamp: new Date().toISOString() }
-      })
-      .select()
-      .single();
+    const newConvoRef = await addDoc(collection(db, 'mentor_conversations'), {
+      user_id: user.id,
+      title: 'New Learning Session',
+      context_snapshot: { timestamp: new Date().toISOString() },
+      created_at: new Date().toISOString()
+    });
       
-    if (newConvo) {
-      setActiveConversationId(newConvo.id);
-      toast.success("Started a new session!");
-    }
+    setActiveConversationId(newConvoRef.id);
+    toast.success("Started a new session!");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

@@ -3,7 +3,8 @@ import { AppLayout } from '@/components/layouts/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Loading } from '@/components/ui/loading';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, doc, getDocs, updateDoc, deleteDoc, query, where, orderBy, limit } from 'firebase/firestore';
 import { generateAndSaveRoadmap } from '@/lib/roadmapGenerator';
 import { toast } from 'sonner';
 import { 
@@ -60,25 +61,37 @@ export default function AIRoadmapPage() {
     if (!user) return;
     setLoading(true);
     try {
-      const { data: roadmaps } = await supabase
-        .from('user_roadmaps')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1);
+      const q = query(
+        collection(db, 'user_roadmaps'),
+        where('user_id', '==', user.id),
+        orderBy('created_at', 'desc'),
+        limit(1)
+      );
+      const snapshot = await getDocs(q);
+      const roadmaps = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as DBUserRoadmap[];
 
-      if (roadmaps && roadmaps.length > 0) {
+      if (roadmaps.length > 0) {
         const rm = roadmaps[0];
         setActiveRoadmap(rm);
         
-        const { data: stgData } = await supabase
-          .from('roadmap_stages')
-          .select('*, roadmap_items(*)')
-          .eq('roadmap_id', rm.id)
-          .order('order_index', { ascending: true });
+        const stagesQ = query(
+          collection(db, 'roadmap_stages'),
+          where('roadmap_id', '==', rm.id),
+          orderBy('order_index', 'asc')
+        );
+        const stagesSnap = await getDocs(stagesQ);
+        const stgData = stagesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as DBRoadmapStage[];
 
-        if (stgData) {
-          setStages(stgData.map(s => ({ ...s, items: s.roadmap_items || [] })));
+        if (stgData.length > 0) {
+          const finalStages = await Promise.all(
+            stgData.map(async (s) => {
+              const itemsQ = query(collection(db, 'roadmap_items'), where('stage_id', '==', s.id));
+              const itemsSnap = await getDocs(itemsQ);
+              const items = itemsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as DBRoadmapItem[];
+              return { ...s, items };
+            })
+          );
+          setStages(finalStages);
         }
       }
     } catch (err) {
@@ -116,7 +129,7 @@ export default function AIRoadmapPage() {
     if (!window.confirm('Are you sure? This will permanently delete your current roadmap and progress.')) return;
     
     try {
-      await supabase.from('user_roadmaps').delete().eq('id', activeRoadmap.id);
+      await deleteDoc(doc(db, 'user_roadmaps', activeRoadmap.id));
       setActiveRoadmap(null);
       setStages([]);
       toast.success('Roadmap deleted. You can generate a new one.');
@@ -128,7 +141,7 @@ export default function AIRoadmapPage() {
   const markItemComplete = async (itemId: string, stageId: string) => {
     if (!user) return;
     try {
-      await supabase.from('roadmap_items').update({ status: 'completed' }).eq('id', itemId);
+      await updateDoc(doc(db, 'roadmap_items', itemId), { status: 'completed' });
       
       let allItemsInStageComplete = true;
       const newStages = stages.map(s => {
@@ -144,13 +157,13 @@ export default function AIRoadmapPage() {
       });
 
       if (allItemsInStageComplete) {
-        await supabase.from('roadmap_stages').update({ status: 'completed' }).eq('id', stageId);
+        await updateDoc(doc(db, 'roadmap_stages', stageId), { status: 'completed' });
         toast.success(`Stage Completed! Earned XP!`);
         
         const currentStageIdx = newStages.findIndex(s => s.id === stageId);
         if (currentStageIdx < newStages.length - 1) {
           const nextStageId = newStages[currentStageIdx + 1].id;
-          await supabase.from('roadmap_stages').update({ status: 'in_progress' }).eq('id', nextStageId);
+          await updateDoc(doc(db, 'roadmap_stages', nextStageId), { status: 'in_progress' });
           newStages[currentStageIdx].status = 'completed';
           newStages[currentStageIdx + 1].status = 'in_progress';
           toast.success(`Next stage unlocked!`);

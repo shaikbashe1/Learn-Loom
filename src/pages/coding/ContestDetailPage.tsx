@@ -1,7 +1,8 @@
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, addDoc, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -56,22 +57,32 @@ export default function ContestDetailPage() {
     async function loadContest() {
       if (!id) return;
       try {
-        const { data: cData, error: cError } = await supabase.from('contests').select('*').eq('id', id).single();
-        if (cError) throw cError;
-        setContest(cData);
+        const contestDoc = await getDoc(doc(db, 'contests', id));
+        if (!contestDoc.exists()) throw new Error('Contest not found');
+        setContest({ id: contestDoc.id, ...contestDoc.data() } as Contest);
 
         if (user) {
-          const { data: pData } = await supabase.from('contest_participants').select('*').eq('contest_id', id).eq('user_id', user.id).single();
-          if (pData) setIsRegistered(true);
+          const pQuery = query(collection(db, 'contest_participants'), where('contest_id', '==', id), where('user_id', '==', user.id));
+          const pSnap = await getDocs(pQuery);
+          if (!pSnap.empty) setIsRegistered(true);
         }
 
-        const { data: probData } = await supabase
-          .from('contest_problems')
-          .select('*, coding_problems(id, title, difficulty)')
-          .eq('contest_id', id)
-          .order('order_index', { ascending: true });
+        const probQuery = query(collection(db, 'contest_problems'), where('contest_id', '==', id), orderBy('order_index', 'asc'));
+        const probSnap = await getDocs(probQuery);
         
-        if (probData) setProblems(probData as any);
+        const problemsList = await Promise.all(probSnap.docs.map(async (pDoc) => {
+          const pData = pDoc.data();
+          let coding_problems = null;
+          if (pData.problem_id) {
+            const problemDoc = await getDoc(doc(db, 'coding_problems', pData.problem_id));
+            if (problemDoc.exists()) {
+              coding_problems = { id: problemDoc.id, ...problemDoc.data() };
+            }
+          }
+          return { id: pDoc.id, ...pData, coding_problems } as ContestProblem;
+        }));
+        
+        setProblems(problemsList);
         
         loadLeaderboard();
 
@@ -86,26 +97,41 @@ export default function ContestDetailPage() {
 
   const loadLeaderboard = async () => {
     if (!id) return;
-    const { data } = await supabase
-      .from('contest_participants')
-      .select('*, profiles(full_name, avatar_url)')
-      .eq('contest_id', id)
-      .order('score', { ascending: false })
-      .order('finish_time_ms', { ascending: true })
-      .limit(100);
+    try {
+      const q = query(
+        collection(db, 'contest_participants'),
+        where('contest_id', '==', id),
+        orderBy('score', 'desc'),
+        orderBy('finish_time_ms', 'asc'),
+        limit(100)
+      );
+      const snap = await getDocs(q);
       
-    if (data) setLeaderboard(data as any);
+      const leaderboardList = await Promise.all(snap.docs.map(async (docSnap) => {
+        const data = docSnap.data();
+        let profiles = null;
+        if (data.user_id) {
+          const profileDoc = await getDoc(doc(db, 'profiles', data.user_id));
+          if (profileDoc.exists()) {
+            profiles = profileDoc.data();
+          }
+        }
+        return { user_id: data.user_id, score: data.score || 0, finish_time_ms: data.finish_time_ms || 0, profiles, ...data } as LeaderboardEntry;
+      }));
+      setLeaderboard(leaderboardList);
+    } catch (error) {
+      console.error('Error loading leaderboard:', error);
+    }
   };
 
   useEffect(() => {
     if (!id) return;
-    const channel = supabase.channel(`contest_${id}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'contest_participants', filter: `contest_id=eq.${id}` }, () => {
-        loadLeaderboard();
-      })
-      .subscribe();
+    const q = query(collection(db, 'contest_participants'), where('contest_id', '==', id));
+    const unsubscribe = onSnapshot(q, () => {
+      loadLeaderboard();
+    });
       
-    return () => { supabase.removeChannel(channel); };
+    return () => unsubscribe();
   }, [id]);
 
   const handleRegister = async () => {
@@ -114,11 +140,14 @@ export default function ContestDetailPage() {
       return;
     }
     try {
-      const { error } = await supabase
-        .from('contest_participants')
-        .insert({ contest_id: id, user_id: user.id });
+      await addDoc(collection(db, 'contest_participants'), {
+        contest_id: id,
+        user_id: user.id,
+        score: 0,
+        finish_time_ms: 0,
+        registered_at: new Date().toISOString()
+      });
       
-      if (error) throw error;
       setIsRegistered(true);
       toast.success('Successfully registered!');
       loadLeaderboard();

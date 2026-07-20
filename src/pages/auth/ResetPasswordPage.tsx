@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { supabase } from '@/db/supabase';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { auth } from '@/db/firebase';
+import { confirmPasswordReset, verifyPasswordResetCode } from 'firebase/auth';
 import { toast } from 'sonner';
 import { 
   CheckCircle2, 
@@ -64,6 +65,8 @@ export default function ResetPasswordPage() {
   const passwordRef = useRef<HTMLInputElement>(null);
   const confirmPasswordRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const oobCode = searchParams.get('oobCode');
 
   // Password criteria checklist & strength calculations
   const criteria = useMemo(() => checkPasswordCriteria(password), [password]);
@@ -119,27 +122,20 @@ export default function ResetPasswordPage() {
 
   const isFormValid = !validatePassword(password) && !validateConfirmPassword(confirmPassword, password);
 
-  // Supabase sends a PKCE recovery token via hash fragment — listen for recovery event
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        toast.info('Enter your new password below.');
-      }
+    if (!oobCode) {
+      setTokenExpired(true);
+      toast.error('Invalid Link', { description: 'Missing password reset code in URL.' });
+      return;
+    }
+
+    verifyPasswordResetCode(auth, oobCode).then((email) => {
+      toast.info(`Resetting password for ${email}`);
+    }).catch(() => {
+      setTokenExpired(true);
+      toast.error('Invalid or Expired Link', { description: 'Please request a new password reset link.' });
     });
-
-    // Check if recovery session exists
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) {
-        // No recovery session -> either expired, invalid, or accessed directly without token
-        setTokenExpired(true);
-        toast.error('Invalid or Expired Token', { description: 'Please request a new password reset link.' });
-      }
-    };
-    checkSession();
-
-    return () => subscription.unsubscribe();
-  }, []);
+  }, [oobCode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,18 +155,15 @@ export default function ResetPasswordPage() {
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password });
+      if (!oobCode) throw new Error('Missing token');
+      await confirmPasswordReset(auth, oobCode, password);
       setLoading(false);
-      if (error) {
-        toast.error('Failed to reset password', { description: error.message });
-      } else {
-        setDone(true);
-        toast.success('Password updated successfully!');
-        setTimeout(() => navigate('/login', { replace: true }), 2000);
-      }
-    } catch (err) {
+      setDone(true);
+      toast.success('Password updated successfully!');
+      setTimeout(() => navigate('/login', { replace: true }), 2000);
+    } catch (err: any) {
       setLoading(false);
-      toast.error('Network failure', { description: 'Please check your connection and try again.' });
+      toast.error('Failed to reset password', { description: err.message });
     }
   };
 

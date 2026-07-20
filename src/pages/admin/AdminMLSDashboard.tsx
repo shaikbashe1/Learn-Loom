@@ -3,7 +3,8 @@ import { AppLayout } from '@/components/layouts/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, doc, getDocs, addDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
 import { Plus, Edit, Trash2, Layers, Video, FileText, LayoutDashboard, ChevronDown, ChevronRight } from 'lucide-react';
 import type { DBMLSTrack, DBMLSModule } from '@/types/types';
 import { toast } from 'sonner';
@@ -21,24 +22,25 @@ export default function AdminMLSDashboard() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const { data: tData } = await supabase.from('mls_tracks').select('*').order('order_index');
-      if (tData) {
-        setTracks(tData);
-        if (tData.length > 0) setExpandedTrack(tData[0].id);
-        
-        const { data: mData } = await supabase.from('mls_modules').select('*').order('order_index');
-        
-        if (mData) {
-          const mGroup: Record<string, DBMLSModule[]> = {};
-          tData.forEach(t => mGroup[t.id] = []);
-          mData.forEach(m => {
-            if (mGroup[m.track_id]) {
-              mGroup[m.track_id].push(m);
-            }
-          });
-          setModules(mGroup);
+      const qTracks = query(collection(db, 'mls_tracks'), orderBy('order_index'));
+      const tracksSnap = await getDocs(qTracks);
+      const tData = tracksSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as DBMLSTrack));
+      
+      setTracks(tData);
+      if (tData.length > 0) setExpandedTrack(tData[0].id);
+      
+      const qModules = query(collection(db, 'mls_modules'), orderBy('order_index'));
+      const modulesSnap = await getDocs(qModules);
+      const mData = modulesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as DBMLSModule));
+      
+      const mGroup: Record<string, DBMLSModule[]> = {};
+      tData.forEach(t => mGroup[t.id] = []);
+      mData.forEach(m => {
+        if (mGroup[m.track_id]) {
+          mGroup[m.track_id].push(m);
         }
-      }
+      });
+      setModules(mGroup);
     } catch (err) {
       toast.error("Failed to load MLS data");
     } finally {
@@ -50,38 +52,44 @@ export default function AdminMLSDashboard() {
     const title = window.prompt("Enter new module title:");
     if (!title) return;
     
-    const { data, error } = await supabase.from('mls_modules').insert({
-      track_id: trackId,
-      title,
-      description: 'New module description',
-      difficulty: 'Beginner',
-      estimated_time_mins: 30,
-      is_published: true
-    }).select().single();
-    
-    if (error) {
-      toast.error("Failed to create module");
-    } else if (data) {
+    try {
+      const newModData = {
+        track_id: trackId,
+        title,
+        description: 'New module description',
+        difficulty: 'Beginner',
+        estimated_time_mins: 30,
+        is_published: true
+      };
+      const docRef = await addDoc(collection(db, 'mls_modules'), newModData);
+      
+      const newModule = {
+        id: docRef.id,
+        ...newModData
+      } as DBMLSModule;
+      
       toast.success("Module created!");
       setModules(prev => ({
         ...prev,
-        [trackId]: [...(prev[trackId] || []), data]
+        [trackId]: [...(prev[trackId] || []), newModule]
       }));
+    } catch (error) {
+      toast.error("Failed to create module");
     }
   };
 
   const deleteModule = async (trackId: string, moduleId: string) => {
     if (!window.confirm("Are you sure you want to delete this module?")) return;
     
-    const { error } = await supabase.from('mls_modules').delete().eq('id', moduleId);
-    if (error) {
-      toast.error("Failed to delete module");
-    } else {
+    try {
+      await deleteDoc(doc(db, 'mls_modules', moduleId));
       toast.success("Module deleted!");
       setModules(prev => ({
         ...prev,
         [trackId]: prev[trackId].filter(m => m.id !== moduleId)
       }));
+    } catch (error) {
+      toast.error("Failed to delete module");
     }
   };
 

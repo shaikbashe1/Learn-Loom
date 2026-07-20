@@ -1,0 +1,34 @@
+rules_version = '2';
+
+// Craft rules based on the exact path and metadata of requests
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Profiles Bucket: Users can only upload and modify their own avatar
+    match /avatars/{userId}/{allPaths=**} {
+      allow read: if true; // Publicly visible
+      allow write: if request.auth.uid == userId;
+    }
+
+    // Resumes Bucket: Users can only upload and view their own resume
+    match /resumes/{userId}/{allPaths=**} {
+      allow read, write: if request.auth.uid == userId;
+    }
+
+    // Course Resources: Admin writable, read by enrolled users
+    match /courses/{courseId}/{allPaths=**} {
+      allow read: if true; // Assuming public viewing of resources, or restrict to enrolled
+      allow write: if isAuthenticated(); // Restrict to admin in actual deployment based on custom claims
+    }
+
+    // Default deny for anything not explicitly matched above
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

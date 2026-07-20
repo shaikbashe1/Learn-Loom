@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, getDocs, query, orderBy, where, addDoc } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
@@ -27,23 +28,19 @@ export default function ContestsPage() {
   useEffect(() => {
     async function loadContests() {
       try {
-        const { data, error } = await supabase
-          .from('contests')
-          .select('*')
-          .order('start_time', { ascending: false });
+        const contestsRef = collection(db, 'contests');
+        const q = query(contestsRef, orderBy('start_time', 'desc'));
+        const snap = await getDocs(q);
         
-        if (error) throw error;
-        setContests(data as Contest[]);
+        const fetchedContests = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Contest));
+        setContests(fetchedContests);
 
         if (user) {
-          const { data: participants, error: pError } = await supabase
-            .from('contest_participants')
-            .select('contest_id')
-            .eq('user_id', user.id);
+          const pRef = collection(db, 'contest_participants');
+          const pQuery = query(pRef, where('user_id', '==', user.uid));
+          const pSnap = await getDocs(pQuery);
             
-          if (!pError && participants) {
-            setRegisteredContestIds(new Set(participants.map(p => p.contest_id)));
-          }
+          setRegisteredContestIds(new Set(pSnap.docs.map(doc => doc.data().contest_id)));
         }
       } catch (err: any) {
         toast.error('Failed to load contests');
@@ -60,11 +57,7 @@ export default function ContestsPage() {
       return;
     }
     try {
-      const { error } = await supabase
-        .from('contest_participants')
-        .insert({ contest_id: contestId, user_id: user.id });
-      
-      if (error) throw error;
+      await addDoc(collection(db, 'contest_participants'), { contest_id: contestId, user_id: user.uid });
       
       setRegisteredContestIds(prev => new Set(prev).add(contestId));
       toast.success('Successfully registered!');

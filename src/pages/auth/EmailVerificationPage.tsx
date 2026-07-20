@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { supabase } from '@/db/supabase';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { 
   MailCheck, 
@@ -16,6 +16,7 @@ export default function EmailVerificationPage() {
   const emailFromQuery = searchParams.get('email') ?? '';
   const [resending, setResending] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const { resendVerificationEmail } = useAuth();
 
   // Countdown timer for resending
   useEffect(() => {
@@ -38,7 +39,7 @@ export default function EmailVerificationPage() {
 
     setResending(true);
     try {
-      const { error } = await supabase.auth.resend({ type: 'signup', email: emailFromQuery });
+      const { error } = await resendVerificationEmail(emailFromQuery);
       setResending(false);
       if (error) {
         toast.error('Failed to resend link', { description: error.message });

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { supabase } from '@/db/supabase';
+import { db, storage } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
@@ -31,15 +33,16 @@ export default function AdminOrganizationsPage() {
 
   const fetchOrgs = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('organizations')
-      .select('*')
-      .order('created_at', { ascending: false });
-      
-    if (error) {
+    try {
+      const q = query(
+        collection(db, 'organizations'),
+        orderBy('created_at', 'desc')
+      );
+      const querySnapshot = await getDocs(q);
+      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Organization[];
+      setOrganizations(data);
+    } catch (error) {
       toast.error('Failed to load organizations');
-    } else {
-      setOrganizations(data as Organization[]);
     }
     setLoading(false);
   };
@@ -49,12 +52,12 @@ export default function AdminOrganizationsPage() {
   }, []);
 
   const updateStatus = async (id: string, status: string) => {
-    const { error } = await supabase.from('organizations').update({ status }).eq('id', id);
-    if (error) {
-      toast.error(`Failed to update status to ${status}`);
-    } else {
+    try {
+      await updateDoc(doc(db, 'organizations', id), { status });
       toast.success(`Organization ${status}`);
       fetchOrgs();
+    } catch (error) {
+      toast.error(`Failed to update status to ${status}`);
     }
   };
 

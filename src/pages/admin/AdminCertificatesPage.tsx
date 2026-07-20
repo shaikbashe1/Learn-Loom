@@ -14,7 +14,8 @@ import {
   CheckCircle2,
   XCircle
 } from 'lucide-react';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, updateDoc, query, orderBy, limit } from 'firebase/firestore';
 import { toast } from 'sonner';
 
 interface CertRow {
@@ -23,6 +24,8 @@ interface CertRow {
   score: number;
   issued_at: string;
   is_valid: boolean;
+  user_id?: string;
+  course_id?: string;
   profiles?: { full_name: string | null; email: string | null };
   courses?: { title: string };
 }
@@ -34,13 +37,65 @@ export default function AdminCertificatesPage() {
 
   const fetchCerts = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('certificates')
-      .select('*, profiles!certificates_user_id_fkey(full_name, email), courses!certificates_course_id_fkey(title)')
-      .order('issued_at', { ascending: false })
-      .limit(100);
-    if (error) { toast.error('Failed to load certificates'); }
-    setCerts(data ?? []);
+    try {
+      const q = query(collection(db, 'certificates'), orderBy('issued_at', 'desc'), limit(100));
+      const snap = await getDocs(q);
+      const certData = snap.docs.map(d => ({ id: d.id, ...d.data() })) as any[];
+
+      const profileCache = new Map();
+      const courseCache = new Map();
+
+      const enriched = await Promise.all(
+        certData.map(async (c) => {
+          let profiles = null;
+          let courses = null;
+          
+          if (c.user_id) {
+            if (!profileCache.has(c.user_id)) {
+              const pSnap = await getDoc(doc(db, 'profiles', c.user_id));
+              if (pSnap.exists()) {
+                profileCache.set(c.user_id, {
+                  full_name: pSnap.data().full_name,
+                  email: pSnap.data().email
+                });
+              } else {
+                profileCache.set(c.user_id, null);
+              }
+            }
+            profiles = profileCache.get(c.user_id);
+          }
+          
+          if (c.course_id) {
+             if (!courseCache.has(c.course_id)) {
+               const cSnap = await getDoc(doc(db, 'courses', c.course_id));
+               if (cSnap.exists()) {
+                 courseCache.set(c.course_id, {
+                   title: cSnap.data().title
+                 });
+               } else {
+                 courseCache.set(c.course_id, null);
+               }
+             }
+             courses = courseCache.get(c.course_id);
+          }
+
+          let issued_at = c.issued_at;
+          if (issued_at && typeof issued_at === 'object' && 'toDate' in issued_at) {
+            issued_at = issued_at.toDate().toISOString();
+          }
+
+          return {
+            ...c,
+            issued_at,
+            profiles,
+            courses
+          };
+        })
+      );
+      setCerts(enriched);
+    } catch (error) {
+      toast.error('Failed to load certificates');
+    }
     setLoading(false);
   };
 
@@ -55,10 +110,13 @@ export default function AdminCertificatesPage() {
   });
 
   const handleRevoke = async (id: string) => {
-    const { error } = await supabase.from('certificates').update({ is_valid: false }).eq('id', id);
-    if (error) { toast.error('Failed to revoke'); return; }
-    toast.success('Certificate revoked');
-    setCerts(prev => prev.map(c => c.id === id ? { ...c, is_valid: false } : c));
+    try {
+      await updateDoc(doc(db, 'certificates', id), { is_valid: false });
+      toast.success('Certificate revoked');
+      setCerts(prev => prev.map(c => c.id === id ? { ...c, is_valid: false } : c));
+    } catch (error) {
+      toast.error('Failed to revoke');
+    }
   };
 
   const verificationRate = certs.length > 0 ? Math.round((certs.filter(c => c.is_valid).length / certs.length) * 100) : 0;

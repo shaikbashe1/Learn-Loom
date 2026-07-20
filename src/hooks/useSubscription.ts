@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/db/supabase';
+import { db, storage } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '@/contexts/AuthContext';
 
 export interface SubscriptionPlan {
@@ -26,28 +28,36 @@ export function useSubscription() {
   const [loading, setLoading]       = useState(true);
 
   useEffect(() => {
-    supabase
-      .from('subscription_plans')
-      .select('*')
-      .eq('is_active', true)
-      .order('price_inr')
-      .then(({ data }) => setPlans((data as SubscriptionPlan[]) ?? []));
+    getDocs(query(
+      collection(db, 'subscription_plans'),
+      where('is_active', '==', true),
+      orderBy('price_inr')
+    )).then((snapshot) => {
+      setPlans(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SubscriptionPlan)));
+    }).catch(console.error);
   }, []);
 
   useEffect(() => {
     if (!user) { setActiveSub(null); setLoading(false); return; }
-    supabase
-      .from('user_subscriptions')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .order('started_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => {
-        setActiveSub(data ?? null);
-        setLoading(false);
-      });
+    getDocs(query(
+      collection(db, 'user_subscriptions'),
+      where('user_id', '==', user.id),
+      where('status', '==', 'active'),
+      orderBy('started_at', 'desc'),
+      limit(1)
+    )).then((snapshot) => {
+      if (!snapshot.empty) {
+        const docSnap = snapshot.docs[0];
+        setActiveSub({ id: docSnap.id, ...docSnap.data() } as UserSubscription);
+      } else {
+        setActiveSub(null);
+      }
+      setLoading(false);
+    }).catch((err) => {
+      console.error(err);
+      setActiveSub(null);
+      setLoading(false);
+    });
   }, [user]);
 
   const isPro   = activeSub?.plan_id === 'pro'   || activeSub?.plan_id === 'elite';

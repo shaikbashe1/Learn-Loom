@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Skeleton } from '@/components/ui/skeleton';
-import { supabase } from '@/db/supabase';
+import { db, storage } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import type { AdminStats, DailyTrendData } from '@/types/types';
 import { 
   Users, 
@@ -36,35 +38,62 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     (async () => {
-      const [statsRes, coursesRes, enrollRes, postRes, trendRes] = await Promise.all([
-        supabase.rpc('get_admin_stats').single(),
-        supabase.from('courses')
-          .select('id,title,category,student_count,is_published,thumbnail_url')
-          .order('student_count', { ascending: false }).limit(4),
-        supabase.from('user_course_enrollments')
-          .select('created_at, courses!user_course_enrollments_course_id_fkey(title)')
-          .order('created_at', { ascending: false }).limit(5),
-        supabase.from('forum_posts')
-          .select('created_at, title')
-          .order('created_at', { ascending: false }).limit(3),
-        supabase.rpc('get_admin_enrollment_trends', { days_ago: 14 })
+      // Fetch all required data in parallel
+      const [coursesSnap, enrollSnap, postSnap, allCoursesSnap, allUsersSnap, allEnrollmentsSnap] = await Promise.all([
+        getDocs(query(collection(db, 'courses'), orderBy('student_count', 'desc'), limit(4))),
+        getDocs(query(collection(db, 'user_course_enrollments'), orderBy('created_at', 'desc'), limit(5))),
+        getDocs(query(collection(db, 'forum_posts'), orderBy('created_at', 'desc'), limit(3))),
+        getDocs(collection(db, 'courses')),
+        getDocs(collection(db, 'users')),
+        getDocs(collection(db, 'user_course_enrollments'))
       ]);
 
-      if (statsRes.data) setStats(statsRes.data as AdminStats);
-      if (coursesRes.data) setCourses(coursesRes.data as CourseRow[]);
-      if (trendRes.data) setTrendData(trendRes.data as DailyTrendData[]);
+      const total_students = allUsersSnap.size;
+      const published_courses = allCoursesSnap.docs.filter(d => d.data().is_published).length;
+      const total_enrollments = allEnrollmentsSnap.size;
+      setStats({ total_students, published_courses, total_enrollments } as AdminStats);
+
+      const coursesData = coursesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as CourseRow));
+      setCourses(coursesData);
+
+      const today = new Date();
+      const newTrendData: DailyTrendData[] = [];
+      for (let i = 13; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        newTrendData.push({ trend_date: d.toISOString().split('T')[0], signups: 0 });
+      }
+      
+      allEnrollmentsSnap.docs.forEach(doc => {
+        const data = doc.data();
+        if (data.created_at) {
+          const dateStr = new Date(data.created_at).toISOString().split('T')[0];
+          const trend = newTrendData.find(t => t.trend_date === dateStr);
+          if (trend) trend.signups += 1;
+        }
+      });
+      setTrendData(newTrendData);
 
       const acts: RecentActivity[] = [];
-      (enrollRes.data ?? []).forEach((e: { created_at: string; courses: unknown }) => {
-        const c = e.courses;
-        const courseTitle = Array.isArray(c)
-          ? (c[0] as { title: string } | undefined)?.title ?? 'a course'
-          : (c as { title: string } | null)?.title ?? 'a course';
-        acts.push({ icon: GraduationCap, iconColor: 'text-primary bg-primary/10 border-primary/20', text: `New enrollment in "${courseTitle}"`, time: new Date(e.created_at).toLocaleString() });
+      const enrollData = await Promise.all(enrollSnap.docs.map(async (d) => {
+        const data = d.data();
+        let courseTitle = 'a course';
+        if (data.course_id) {
+          const courseDoc = await getDoc(doc(db, 'courses', data.course_id));
+          if (courseDoc.exists()) courseTitle = courseDoc.data().title || courseTitle;
+        }
+        return { created_at: data.created_at, courseTitle };
+      }));
+      
+      enrollData.forEach(e => {
+        acts.push({ icon: GraduationCap, iconColor: 'text-primary bg-primary/10 border-primary/20', text: `New enrollment in "${e.courseTitle}"`, time: new Date(e.created_at).toLocaleString() });
       });
-      (postRes.data ?? []).forEach((p: { created_at: string; title: string }) => {
+
+      postSnap.docs.forEach(d => {
+        const p = d.data();
         acts.push({ icon: Activity, iconColor: 'text-amber-500 bg-amber-500/10 border-amber-500/20', text: `New forum post: ${p.title}`, time: new Date(p.created_at).toLocaleString() });
       });
+
       acts.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
       setActivity(acts.slice(0, 8));
 

@@ -1,10 +1,11 @@
-import { supabase } from '@/db/supabase';
+import { storage } from '@/db/firebase';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 
 const BUCKET = 'course-assets';
 const MAX_SIZE_MB = 50;
 
 /**
- * Uploads a file to the course-assets Supabase Storage bucket.
+ * Uploads a file to the course-assets Firebase Storage bucket.
  * Returns the public URL of the uploaded file.
  */
 export async function uploadFile(file: File, folder: string): Promise<string> {
@@ -14,28 +15,20 @@ export async function uploadFile(file: File, folder: string): Promise<string> {
 
   const ext = file.name.split('.').pop() ?? 'bin';
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-  const path = `${folder}/${Date.now()}_${safeName}`;
+  const path = `${BUCKET}/${folder}/${Date.now()}_${safeName}`;
 
-  const { error } = await supabase.storage
-    .from(BUCKET)
-    .upload(path, file, { upsert: false, contentType: file.type });
+  const storageRef = ref(storage, path);
+  await uploadBytes(storageRef, file, { contentType: file.type });
 
-  if (error) throw new Error(error.message);
-
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return data.publicUrl;
+  const url = await getDownloadURL(storageRef);
+  return url;
 }
 
 /** Deletes a file from the bucket given its public URL. */
 export async function deleteFile(publicUrl: string): Promise<void> {
   try {
-    const url = new URL(publicUrl);
-    // path after /object/public/course-assets/
-    const marker = `/object/public/${BUCKET}/`;
-    const idx = url.pathname.indexOf(marker);
-    if (idx === -1) return;
-    const filePath = decodeURIComponent(url.pathname.slice(idx + marker.length));
-    await supabase.storage.from(BUCKET).remove([filePath]);
+    const fileRef = ref(storage, publicUrl);
+    await deleteObject(fileRef);
   } catch {
     // best-effort
   }

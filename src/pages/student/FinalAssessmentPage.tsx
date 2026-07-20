@@ -3,7 +3,8 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, getDocs, addDoc, query, where, orderBy, limit } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { checkAndAwardCertificate } from '@/lib/progress';
 import { 
@@ -66,19 +67,18 @@ export default function FinalAssessmentPage() {
     const checkCooldown = async () => {
       setCheckingCooldown(true);
       try {
-        const { data, error } = await supabase
-          .from('assessment_attempts')
-          .select('created_at')
-          .eq('user_id', user.id)
-          .eq('course_id', courseId)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
+        const q = query(
+          collection(db, 'assessment_attempts'),
+          where('user_id', '==', user.id),
+          where('course_id', '==', courseId),
+          orderBy('created_at', 'desc'),
+          limit(1)
+        );
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs.length > 0 ? snapshot.docs[0].data() : null;
 
-        if (error) {
-          console.error('Error checking cooldown:', error);
-        } else if (data && active) {
-          const lastAttemptTime = new Date(data.created_at).getTime();
+        if (data && active && data.created_at) {
+          const lastAttemptTime = data.created_at?.toDate?.()?.getTime() || new Date(data.created_at).getTime();
           const elapsedSec = (Date.now() - lastAttemptTime) / 1000;
           const remainingSec = Math.ceil(3600 - elapsedSec);
           if (remainingSec > 0) {
@@ -86,7 +86,7 @@ export default function FinalAssessmentPage() {
           }
         }
       } catch (err) {
-        console.error(err);
+        console.error('Error checking cooldown:', err);
       } finally {
         if (active) setCheckingCooldown(false);
       }
@@ -116,14 +116,15 @@ export default function FinalAssessmentPage() {
     if (stage !== 'exam') return;
     if (questions.length > 0) return;
     setLoadingQ(true);
-    supabase
-      .from('grand_test_questions')
-      .select('id, question, options, correct_idx, explanation')
-      .eq('course_id', courseId)
-      .order('sort_order', { ascending: true })
-      .limit(30)
-      .then(({ data, error }) => {
-        if (error || !data || data.length === 0) {
+    const q = query(
+      collection(db, 'grand_test_questions'),
+      where('course_id', '==', courseId),
+      orderBy('sort_order', 'asc'),
+      limit(30)
+    );
+    getDocs(q).then((snapshot) => {
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
+        if (!data || data.length === 0) {
           toast.error('No assessment questions found for this course.');
           navigate(`/courses/${courseId}`);
           return;
@@ -141,6 +142,11 @@ export default function FinalAssessmentPage() {
         setQuestions(selected);
         setAnswers(Array(selected.length).fill(null));
         setLoadingQ(false);
+      })
+      .catch((err) => {
+        console.error('Error loading questions:', err);
+        toast.error('Error loading assessment questions.');
+        navigate(`/courses/${courseId}`);
       });
   }, [stage, questions.length, courseId, navigate]);
 
@@ -168,16 +174,16 @@ export default function FinalAssessmentPage() {
         }))
       };
 
-      await supabase.from('assessment_attempts').insert({
+      await addDoc(collection(db, 'assessment_attempts'), {
         user_id: user.id,
         course_id: courseId,
         score_percentage: scorePercentage,
         is_passed: passed,
         metrics: metrics,
+        created_at: new Date().toISOString()
       });
 
       if (passed) {
-        try { await supabase.rpc('increment_credits', { p_user_id: user.id, p_amount: 100 }); } catch { /* best-effort */ }
         await checkAndAwardCertificate(user.id, courseId);
       }
     }

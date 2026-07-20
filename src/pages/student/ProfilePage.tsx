@@ -39,7 +39,9 @@ import {
 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { toast } from 'sonner';
-import { supabase } from '@/db/supabase';
+import { db, storage } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface ProfileFormData {
@@ -94,14 +96,14 @@ export default function ProfilePage() {
     const fetchCodingData = async () => {
       if (!user) return;
       try {
-        const { data: prog } = await supabase.from('coding_progress').select('*').eq('user_id', user.id).single();
-        if (prog) setCodingProgress(prog);
+        const progSnap = await getDocs(query(collection(db, 'coding_progress'), where('user_id', '==', user.id)));
+        if (!progSnap.empty) setCodingProgress({ id: progSnap.docs[0].id, ...progSnap.docs[0].data() });
 
-        const { data: stat } = await supabase.from('coding_statistics').select('*').eq('user_id', user.id).single();
-        if (stat) setCodingStats(stat);
+        const statSnap = await getDocs(query(collection(db, 'coding_statistics'), where('user_id', '==', user.id)));
+        if (!statSnap.empty) setCodingStats({ id: statSnap.docs[0].id, ...statSnap.docs[0].data() });
 
-        const { data: strk } = await supabase.from('coding_streaks').select('*').eq('user_id', user.id).single();
-        if (strk) setCodingStreaks(strk);
+        const strkSnap = await getDocs(query(collection(db, 'coding_streaks'), where('user_id', '==', user.id)));
+        if (!strkSnap.empty) setCodingStreaks({ id: strkSnap.docs[0].id, ...strkSnap.docs[0].data() });
       } catch (e) {
         console.error("Error fetching coding stats:", e);
       }
@@ -169,9 +171,8 @@ export default function ProfilePage() {
       designation: form.designation.trim()
     };
 
-    const { error } = await supabase
-      .from('profiles')
-      .update({
+    try {
+      await updateDoc(doc(db, 'profiles', user.id), {
         full_name: trimmedName,
         username: form.username.trim() || null,
         bio: form.bio.trim() || null,
@@ -196,15 +197,12 @@ export default function ProfilePage() {
         city: form.city.trim() || null,
         pincode: form.pincode.trim() || null,
         extensions
-      })
-      .eq('id', user.id);
-
-    if (error) {
-      toast.error('Save failed: ' + error.message);
-    } else {
+      });
       await refreshProfile();
       toast.success('Profile updated successfully');
       setEditing(false);
+    } catch (error: any) {
+      toast.error('Save failed: ' + error.message);
     }
     setSaving(false);
   };
@@ -220,34 +218,23 @@ export default function ProfilePage() {
 
     setUploadingAvatar(true);
     const ext = file.name.split('.').pop() ?? 'jpg';
-    const path = `${user.id}/avatar.${ext}`;
+    const path = `avatars/${user.id}/avatar.${ext}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from('avatars')
-      .upload(path, file, { upsert: true, contentType: file.type });
+    try {
+      const storageRef = ref(storage, path);
+      await uploadBytes(storageRef, file);
+      const publicUrl = await getDownloadURL(storageRef);
 
-    if (uploadError) {
-      toast.error('Upload failed: ' + uploadError.message);
-      setUploadingAvatar(false);
-      return;
-    }
+      await updateDoc(doc(db, 'profiles', user.id), { avatar_url: publicUrl });
 
-    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
-    const publicUrl = urlData.publicUrl + `?t=${Date.now()}`;
-
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ avatar_url: publicUrl })
-      .eq('id', user.id);
-
-    if (updateError) {
-      toast.error('Failed to update avatar');
-    } else {
       await refreshProfile();
       toast.success('Avatar updated');
+    } catch (error: any) {
+      toast.error('Upload failed: ' + error.message);
+    } finally {
+      setUploadingAvatar(false);
+      e.target.value = '';
     }
-    setUploadingAvatar(false);
-    e.target.value = '';
   };
 
   if (!profile) {

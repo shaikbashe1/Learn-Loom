@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { Loading } from '@/components/ui/loading';
@@ -36,22 +37,31 @@ export default function CourseCatalogPage() {
 
   useEffect(() => {
     const load = async () => {
-      const { data: coursesData } = await supabase
-        .from('courses')
-        .select('*')
-        .eq('is_published', true)
-        .order('created_at', { ascending: false });
-      setCourses(coursesData ?? []);
+      try {
+        const coursesQuery = query(
+          collection(db, 'courses'),
+          where('is_published', '==', true),
+          orderBy('created_at', 'desc')
+        );
+        const coursesSnap = await getDocs(coursesQuery);
+        const coursesData = coursesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as DBCourse));
+        setCourses(coursesData);
 
-      if (user) {
-        const { data: enrollData } = await supabase
-          .from('user_course_enrollments')
-          .select('*')
-          .eq('user_id', user.id);
-        const map = new Map((enrollData ?? []).map((e: DBEnrollment) => [e.course_id, e]));
-        setEnrollments(map);
+        if (user) {
+          const enrollQuery = query(
+            collection(db, 'user_course_enrollments'),
+            where('user_id', '==', user.id)
+          );
+          const enrollSnap = await getDocs(enrollQuery);
+          const enrollData = enrollSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as DBEnrollment));
+          const map = new Map(enrollData.map((e: DBEnrollment) => [e.course_id, e]));
+          setEnrollments(map);
+        }
+      } catch (error) {
+        console.error("Error loading courses:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     void load();
   }, [user]);

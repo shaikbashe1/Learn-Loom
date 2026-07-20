@@ -3,7 +3,9 @@ import { AppLayout } from '@/components/layouts/AppLayout';
 import { Badge } from '@/components/ui/badge';
 import { Loading } from '@/components/ui/loading';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/db/supabase';
+import { db, storage } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '@/contexts/AuthContext';
 import { logUserActivity } from '@/lib/activity';
 import { toast } from 'sonner';
@@ -105,14 +107,19 @@ export default function CodingPracticePage() {
 
   // Load problems from DB
   useEffect(() => {
-    supabase
-      .from('coding_problems')
-      .select('*')
-      .order('sort_order')
-      .then(({ data }) => {
-        setProblems((data as Problem[]) ?? []);
+    const fetchProblems = async () => {
+      try {
+        const q = query(collection(db, 'coding_problems'), orderBy('sort_order'));
+        const querySnapshot = await getDocs(q);
+        const fetchedProblems = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Problem));
+        setProblems(fetchedProblems);
+      } catch (err) {
+        console.error("Error fetching coding problems:", err);
+      } finally {
         setLoadingP(false);
-      });
+      }
+    };
+    fetchProblems();
   }, []);
 
   const problem = problems[idx];

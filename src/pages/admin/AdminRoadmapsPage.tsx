@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, query, orderBy, where, serverTimestamp } from 'firebase/firestore';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -51,16 +52,29 @@ export default function AdminRoadmapsPage() {
 
   const fetchTemplates = async () => {
     setLoading(true);
-    const { data, error } = await supabase.from('roadmap_templates').select('*').order('created_at', { ascending: false });
-    if (error) toast.error('Failed to load roadmaps');
-    else setTemplates(data as RoadmapTemplate[]);
+    try {
+      const q = query(collection(db, 'roadmap_templates'), orderBy('created_at', 'desc'));
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setTemplates(data as RoadmapTemplate[]);
+    } catch (error) {
+      toast.error('Failed to load roadmaps');
+    }
     setLoading(false);
   };
 
   const fetchNodes = async (templateId: string) => {
-    const { data, error } = await supabase.from('roadmap_template_nodes').select('*').eq('template_id', templateId).order('week', { ascending: true });
-    if (!error && data) {
+    try {
+      const q = query(
+        collection(db, 'roadmap_template_nodes'),
+        where('template_id', '==', templateId),
+        orderBy('week', 'asc')
+      );
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setNodes(prev => ({ ...prev, [templateId]: data as RoadmapNode[] }));
+    } catch (error) {
+      console.error('Failed to fetch nodes', error);
     }
   };
 
@@ -82,23 +96,33 @@ export default function AdminRoadmapsPage() {
     if (!form.title || !form.domain) return;
     setSaving(true);
     
-    if (editingId) {
-      const { error } = await supabase.from('roadmap_templates').update(form).eq('id', editingId);
-      if (error) toast.error('Failed to update roadmap');
-      else { toast.success('Roadmap updated'); setDialogOpen(false); fetchTemplates(); }
-    } else {
-      const { error } = await supabase.from('roadmap_templates').insert(form);
-      if (error) toast.error('Failed to create roadmap');
-      else { toast.success('Roadmap created'); setDialogOpen(false); fetchTemplates(); }
+    try {
+      if (editingId) {
+        await updateDoc(doc(db, 'roadmap_templates', editingId), form);
+        toast.success('Roadmap updated');
+        setDialogOpen(false);
+        fetchTemplates();
+      } else {
+        await addDoc(collection(db, 'roadmap_templates'), { ...form, created_at: serverTimestamp() });
+        toast.success('Roadmap created');
+        setDialogOpen(false);
+        fetchTemplates();
+      }
+    } catch (error) {
+      toast.error(editingId ? 'Failed to update roadmap' : 'Failed to create roadmap');
     }
     setSaving(false);
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this roadmap?')) return;
-    const { error } = await supabase.from('roadmap_templates').delete().eq('id', id);
-    if (error) toast.error('Failed to delete roadmap');
-    else { toast.success('Roadmap deleted'); fetchTemplates(); }
+    try {
+      await deleteDoc(doc(db, 'roadmap_templates', id));
+      toast.success('Roadmap deleted');
+      fetchTemplates();
+    } catch (error) {
+      toast.error('Failed to delete roadmap');
+    }
   };
 
   return (

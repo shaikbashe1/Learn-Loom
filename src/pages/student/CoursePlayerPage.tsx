@@ -4,7 +4,9 @@ import { AppLayout } from '@/components/layouts/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { supabase } from '@/db/supabase';
+import { auth, db, storage } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '@/contexts/AuthContext';
 import { getCourseModuleProgress, completeModule, getEnrollment } from '@/lib/progress';
 import { logUserActivity } from '@/lib/activity';
@@ -90,16 +92,21 @@ function ModuleDiscussionBoard({ courseId, moduleId, currentUserId }: ModuleDisc
   const fetchPosts = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await supabase
-        .from('forum_posts')
-        .select('*')
-        .eq('course_id', courseId)
-        .eq('module_id', moduleId)
-        .order('created_at', { ascending: false });
+      const qPosts = query(
+        collection(db, 'forum_posts'),
+        where('course_id', '==', courseId),
+        where('module_id', '==', moduleId),
+        orderBy('created_at', 'desc')
+      );
+      const snapshot = await getDocs(qPosts);
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
       if (data && data.length > 0) {
-        const uids = Array.from(new Set(data.map(d => d.user_id)));
-        const { data: profs } = await supabase.from('profiles').select('id, full_name, avatar_url').in('id', uids);
+        const uids = Array.from(new Set(data.map((d: any) => d.user_id)));
+        const profs = await Promise.all(uids.map(async (uid: any) => {
+          const d = await getDoc(doc(db, 'profiles', uid));
+          return { id: d.id, ...d.data() };
+        }));
         const pMap = new Map(profs?.map(p => [p.id, p]) ?? []);
         setPosts(data.map(p => ({ ...p, profiles: pMap.get(p.user_id) })));
       } else {
@@ -120,17 +127,22 @@ function ModuleDiscussionBoard({ courseId, moduleId, currentUserId }: ModuleDisc
   const loadReplies = async (postId: string) => {
     setLoadingReplies(true);
     try {
-      const { data } = await supabase
-        .from('forum_replies')
-        .select('*')
-        .eq('post_id', postId)
-        .is('parent_id', null)
-        .order('is_accepted', { ascending: false })
-        .order('created_at', { ascending: true });
+      const qReplies = query(
+        collection(db, 'forum_replies'),
+        where('post_id', '==', postId),
+        where('parent_id', '==', null),
+        orderBy('is_accepted', 'desc'),
+        orderBy('created_at', 'asc')
+      );
+      const snapshot = await getDocs(qReplies);
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
       if (data && data.length > 0) {
-        const uids = Array.from(new Set(data.map(r => r.user_id)));
-        const { data: profs } = await supabase.from('profiles').select('id, full_name, avatar_url').in('id', uids);
+        const uids = Array.from(new Set(data.map((r: any) => r.user_id)));
+        const profs = await Promise.all(uids.map(async (uid: any) => {
+          const d = await getDoc(doc(db, 'profiles', uid));
+          return { id: d.id, ...d.data() };
+        }));
         const pMap = new Map(profs?.map(p => [p.id, p]) ?? []);
         setReplies(data.map(r => ({ ...r, profiles: pMap.get(r.user_id) })));
       } else {
@@ -170,8 +182,7 @@ ${isReply ? `Previous replies:\n${threadContext}\n\nStudent query: "${userQuery}
 
       const contents = [{ role: 'user', parts: [{ text: systemPrompt }] }];
 
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token ?? '';
+      const token = await auth.currentUser?.getIdToken() ?? '';
 
       const res = await fetch('/api/ai-mentor', {
         method: 'POST',
@@ -207,12 +218,13 @@ ${isReply ? `Previous replies:\n${threadContext}\n\nStudent query: "${userQuery}
       }
 
       if (aiText.trim()) {
-        await supabase.from('forum_replies').insert({
+        await addDoc(collection(db, 'forum_replies'), {
           post_id: postId,
           parent_id: null,
           user_id: currentUserId,
           content: aiText.trim(),
           is_ai: true,
+          created_at: new Date().toISOString()
         });
         if (expandedPostId === postId) {
           loadReplies(postId);
@@ -232,14 +244,23 @@ ${isReply ? `Previous replies:\n${threadContext}\n\nStudent query: "${userQuery}
     const postTitle = newTitle.trim();
     const postContent = newContent.trim();
 
-    const { data, error } = await supabase.from('forum_posts').insert({
-      user_id: currentUserId,
-      course_id: courseId,
-      module_id: moduleId,
-      title: postTitle,
-      content: postContent,
-      category: 'doubt',
-    }).select();
+    let data: any;
+    let error: any;
+    try {
+      const docRef = await addDoc(collection(db, 'forum_posts'), {
+        user_id: currentUserId,
+        course_id: courseId,
+        module_id: moduleId,
+        title: postTitle,
+        content: postContent,
+        category: 'doubt',
+        reply_count: 0,
+        created_at: new Date().toISOString()
+      });
+      data = [{ id: docRef.id }];
+    } catch (e: any) {
+      error = e.message;
+    }
 
     setPosting(false);
     if (error) { toast.error('Failed to ask question'); return; }
@@ -266,13 +287,22 @@ ${isReply ? `Previous replies:\n${threadContext}\n\nStudent query: "${userQuery}
     setReplyPosting(true);
     const textToSend = replyText.trim();
 
-    const { data, error } = await supabase.from('forum_replies').insert({
-      post_id: postId,
-      parent_id: null,
-      user_id: currentUserId,
-      content: textToSend,
-      is_ai: false,
-    }).select();
+    let data: any;
+    let error: any;
+    try {
+      const docRef = await addDoc(collection(db, 'forum_replies'), {
+        post_id: postId,
+        parent_id: null,
+        user_id: currentUserId,
+        content: textToSend,
+        is_ai: false,
+        is_accepted: false,
+        created_at: new Date().toISOString()
+      });
+      data = [{ id: docRef.id }];
+    } catch (e: any) {
+      error = e.message;
+    }
 
     setReplyPosting(false);
     if (error) { toast.error('Failed to post reply'); return; }
@@ -545,12 +575,13 @@ export default function CoursePlayerPage() {
   const loadData = useCallback(async () => {
     if (!courseId || !user) return;
 
-    const { data: courseData } = await supabase.from('courses').select('*').eq('id', courseId).maybeSingle();
+    const courseDoc = await getDoc(doc(db, 'courses', courseId));
+    const courseData = courseDoc.exists() ? { id: courseDoc.id, ...courseDoc.data() } as DBCourse : null;
     if (!courseData) { navigate('/courses'); return; }
     setCourse(courseData);
 
-    const { data: mods } = await supabase.from('course_modules').select('*').eq('course_id', courseId).order('order_index', { ascending: true });
-    const moduleList: DBModule[] = mods ?? [];
+    const modsSnap = await getDocs(query(collection(db, 'course_modules'), where('course_id', '==', courseId), orderBy('order_index', 'asc')));
+    const moduleList: DBModule[] = modsSnap.docs.map(d => ({ id: d.id, ...d.data() })) as DBModule[];
 
     const enrollment = await getEnrollment(user.id, courseId);
     if (!enrollment) { navigate(`/courses/${courseId}`); return; }
@@ -558,11 +589,8 @@ export default function CoursePlayerPage() {
     setProgressPercent(enrollment.progress_percent);
     if (enrollment.completed_at) setCourseDone(true);
 
-    const { count: codingCount } = await supabase
-      .from('coding_questions')
-      .select('id', { count: 'exact', head: true })
-      .eq('course_id', courseId);
-    setHasCodingQuestions((codingCount ?? 0) > 0);
+    const codingSnap = await getDocs(query(collection(db, 'coding_questions'), where('course_id', '==', courseId), limit(1)));
+    setHasCodingQuestions(!codingSnap.empty);
 
     const progRows: DBModuleProgress[] = await getCourseModuleProgress(user.id, courseId);
     const statusMap = new Map(progRows.map(p => [p.module_id, p.status]));
@@ -580,10 +608,12 @@ export default function CoursePlayerPage() {
 
     if (currentActive) {
       // Load all quizzes for this module
-      const { data: qData } = await supabase.from('quizzes').select('*').eq('module_id', currentActive.id).order('quiz_type');
+      const qSnap = await getDocs(query(collection(db, 'quizzes'), where('module_id', '==', currentActive.id), orderBy('quiz_type')));
+      const qData = qSnap.docs.map(d => ({ id: d.id, ...d.data() }));
       
       // Load coding assessment for this module
-      const { data: cData } = await supabase.from('coding_questions').select('id').eq('module_id', currentActive.id).maybeSingle();
+      const cSnap = await getDocs(query(collection(db, 'coding_questions'), where('module_id', '==', currentActive.id), limit(1)));
+      const cData = cSnap.empty ? null : { id: cSnap.docs[0].id };
       
       currentActive.quizzes = qData || [];
       currentActive.codingId = cData?.id || null;
@@ -591,16 +621,17 @@ export default function CoursePlayerPage() {
       // Check which are passed
       const qIds = currentActive.quizzes.map((q: DBQuiz) => q.id);
       if (qIds.length > 0) {
-        const { data: attempts } = await supabase.from('quiz_attempts').select('quiz_id, passed').in('quiz_id', qIds).eq('user_id', user.id).eq('passed', true);
-        currentActive.passedQuizzes = (attempts || []).map((a: { quiz_id: string; passed: boolean }) => a.quiz_id);
+        const attemptsSnap = await getDocs(query(collection(db, 'quiz_attempts'), where('user_id', '==', user.id), where('passed', '==', true)));
+        const attempts = attemptsSnap.docs.map(d => d.data()).filter(a => qIds.includes(a.quiz_id));
+        currentActive.passedQuizzes = attempts.map((a: any) => a.quiz_id);
       } else {
         currentActive.passedQuizzes = [];
       }
 
       // Check if coding is passed
       if (currentActive.codingId) {
-         const { data: cAtt } = await supabase.from('assessment_attempts').select('is_passed').eq('user_id', user.id).eq('module_id', currentActive.id).eq('is_passed', true).maybeSingle();
-         currentActive.codingPassed = !!cAtt?.is_passed;
+         const cAttSnap = await getDocs(query(collection(db, 'assessment_attempts'), where('user_id', '==', user.id), where('module_id', '==', currentActive.id), where('is_passed', '==', true), limit(1)));
+         currentActive.codingPassed = !cAttSnap.empty;
       }
     }
 
@@ -662,8 +693,7 @@ Question / Request: ${promptMap[action]}`;
 
       const contents = [{ role: 'user', parts: [{ text: systemPrompt }] }];
 
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token ?? '';
+      const token = await auth.currentUser?.getIdToken() ?? '';
 
       const res = await fetch('/api/ai-mentor', {
         method: 'POST',

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -23,15 +24,13 @@ export default function ProfileSetupPage() {
     if (!user) { navigate('/login'); return; }
 
     setSaving(true);
-    const { error } = await supabase
-      .from('profiles')
-      .update({
+    try {
+      const userDocRef = doc(db, 'profiles', user.uid);
+      await updateDoc(userDocRef, {
         full_name: name.trim() || null,
         bio: bio.trim() || null,
-      })
-      .eq('id', user.id);
-
-    if (error) {
+      });
+    } catch (error: any) {
       toast.error('Failed to save profile', { description: error.message });
       setSaving(false);
       return;

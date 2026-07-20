@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { supabase } from '@/db/supabase';
+import { db, auth } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, addDoc, query, orderBy, limit } from 'firebase/firestore';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -37,13 +38,18 @@ export default function AdminNotificationsPage() {
 
   const fetchNotifications = async () => {
     setLoading(true);
-    const { data, error } = await supabase.from('notifications')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(20);
-      
-    if (error) toast.error('Failed to load notifications');
-    else setNotifications(data as NotificationRow[]);
+    try {
+      const q = query(
+        collection(db, 'notifications'),
+        orderBy('created_at', 'desc'),
+        limit(20)
+      );
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as NotificationRow[];
+      setNotifications(data);
+    } catch (error) {
+      toast.error('Failed to load notifications');
+    }
     setLoading(false);
   };
 
@@ -61,11 +67,12 @@ export default function AdminNotificationsPage() {
       message: form.message,
       type: form.type,
       user_id: form.user_id.trim() === '' ? null : form.user_id.trim(),
+      created_at: new Date().toISOString()
     };
 
-    const { error } = await supabase.from('notifications').insert(payload);
-    
-    if (error) {
+    try {
+      await addDoc(collection(db, 'notifications'), payload);
+    } catch (error) {
       toast.error('Failed to send notification');
       setSending(false);
       return;
@@ -80,25 +87,17 @@ export default function AdminNotificationsPage() {
 
         if (payload.user_id) {
           // Direct message email lookup
-          const { data: profile, error: profileErr } = await supabase
-            .from('profiles')
-            .select('email')
-            .eq('id', payload.user_id)
-            .maybeSingle();
-
-          if (profileErr || !profile?.email) {
+          const profileSnap = await getDoc(doc(db, 'profiles', payload.user_id));
+          if (!profileSnap.exists() || !profileSnap.data()?.email) {
             toast.error('Failed to locate recipient email address');
           } else {
-            recipientEmails = [profile.email];
+            recipientEmails = [profileSnap.data().email];
           }
         } else {
           // Broadcast lookup
-          const { data: profiles, error: profilesErr } = await supabase
-            .from('profiles')
-            .select('email')
-            .not('email', 'is', null);
-
-          if (profilesErr || !profiles) {
+          const profilesSnap = await getDocs(collection(db, 'profiles'));
+          const profiles = profilesSnap.docs.map(d => d.data());
+          if (!profiles) {
             toast.error('Failed to load user email list');
           } else {
             recipientEmails = profiles.map(p => p.email).filter(Boolean) as string[];
@@ -106,8 +105,8 @@ export default function AdminNotificationsPage() {
         }
 
         if (recipientEmails.length > 0) {
-          const { data: { session } } = await supabase.auth.getSession();
-          const token = session?.access_token;
+          const user = auth.currentUser;
+          const token = await user?.getIdToken();
 
           const emailRes = await fetch('/api/send-email', {
             method: 'POST',

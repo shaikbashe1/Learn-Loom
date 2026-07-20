@@ -1,21 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { type FileError, type FileRejection, useDropzone } from 'react-dropzone'
-import {type SupabaseClient} from '@supabase/supabase-js'
+import { ref, uploadBytes } from 'firebase/storage'
+import { storage } from '@/db/firebase'
 
 interface FileWithPreview extends File {
   preview?: string
   errors: readonly FileError[]
 }
 
-type UseSupabaseUploadOptions = {
+type UseFirebaseUploadOptions = {
   /**
-   * Name of bucket to upload files to in your Supabase project
-   */
-  bucketName: string
-  /**
-   * Folder to upload files to in the specified bucket within your Supabase project.
+   * Folder to upload files to in your Firebase Storage
    *
-   * Defaults to uploading files to the root of the bucket
+   * Defaults to uploading files to the root
    *
    * e.g If specified path is `test`, your file will be uploaded as `test/file_name`
    */
@@ -35,7 +32,7 @@ type UseSupabaseUploadOptions = {
    */
   maxFiles?: number
   /**
-   * The number of seconds the asset is cached in the browser and in the Supabase CDN.
+   * The number of seconds the asset is cached in the browser and in the CDN.
    *
    * This is set in the Cache-Control: max-age=<seconds> header. Defaults to 3600 seconds.
    */
@@ -46,25 +43,18 @@ type UseSupabaseUploadOptions = {
    * When set to false, an error is thrown if the object already exists. Defaults to `false`
    */
   upsert?: boolean
-
-  /**
-   * initialized Supabase client instance
-   */
-  supabase: SupabaseClient
 }
 
-type UseSupabaseUploadReturn = ReturnType<typeof useSupabaseUpload>
+type UseFirebaseUploadReturn = ReturnType<typeof useFirebaseUpload>
 
-const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
+const useFirebaseUpload = (options: UseFirebaseUploadOptions) => {
   const {
-    bucketName,
-    path,
+    path = '',
     allowedMimeTypes = [],
     maxFileSize = Number.POSITIVE_INFINITY,
     maxFiles = 1,
     cacheControl = 3600,
     upsert = false,
-    supabase
   } = options
 
   const [files, setFiles] = useState<FileWithPreview[]>([])
@@ -117,7 +107,7 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
   const onUpload = useCallback(async () => {
     setLoading(true)
 
-    // [Joshen] This is to support handling partial successes
+    // This is to support handling partial successes
     // If any files didn't upload for any reason, hitting "Upload" again will only upload the files that had errors
     const filesWithErrors = errors.map((x) => x.name)
     const filesToUpload =
@@ -130,21 +120,22 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 
     const responses = await Promise.all(
       filesToUpload.map(async (file) => {
-        const { error } = await supabase.storage
-          .from(bucketName)
-          .upload(!!path ? `${path}/${file.name}` : file.name, file, {
+        try {
+          const filePath = path ? `${path}/${file.name}` : file.name
+          const storageRef = ref(storage, filePath)
+          
+          await uploadBytes(storageRef, file, {
             cacheControl: cacheControl.toString(),
-            upsert,
           })
-        if (error) {
-          return { name: file.name, message: error.message }
-        } else {
+          
           return { name: file.name, message: undefined }
+        } catch (error: any) {
+          return { name: file.name, message: error.message || 'Upload failed' }
         }
       })
     )
 
-    const responseErrors = responses.filter((x) => x.message !== undefined)
+    const responseErrors = responses.filter((x) => x.message !== undefined) as { name: string; message: string }[]
     // if there were errors previously, this function tried to upload the files again so we should clear/overwrite the existing errors.
     setErrors(responseErrors)
 
@@ -155,7 +146,7 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
     setSuccesses(newSuccesses)
 
     setLoading(false)
-  }, [files, path, bucketName, errors, successes])
+  }, [files, path, errors, successes, cacheControl])
 
   useEffect(() => {
     if (files.length === 0) {
@@ -194,4 +185,4 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
   }
 }
 
-export { useSupabaseUpload, type UseSupabaseUploadOptions, type UseSupabaseUploadReturn }
+export { useFirebaseUpload, type UseFirebaseUploadOptions, type UseFirebaseUploadReturn }

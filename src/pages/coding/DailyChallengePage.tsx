@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, getDocs, query, orderBy, limit, where, documentId } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 
@@ -22,26 +23,27 @@ export default function DailyChallengePage() {
   useEffect(() => {
     async function loadDailyChallenge() {
       try {
-        const { data: dailyData, error: rpcError } = await supabase.rpc('get_today_daily_challenge');
+        const dailyQuery = query(collection(db, 'daily_challenges'), orderBy('date', 'desc'), limit(1));
+        const dailySnap = await getDocs(dailyQuery);
         
-        if (rpcError) {
-          throw rpcError;
-        }
-
-        if (dailyData) {
+        if (!dailySnap.empty) {
+          const dailyData = dailySnap.docs[0].data();
           const problemIds = [dailyData.easy_problem_id, dailyData.medium_problem_id, dailyData.hard_problem_id].filter(Boolean);
           
           if (problemIds.length > 0) {
-            const { data: problemsData, error: probError } = await supabase
-              .from('coding_problems')
-              .select('id, title, difficulty, credits')
-              .in('id', problemIds);
-              
-            if (probError) throw probError;
+            const problemsQuery = query(
+              collection(db, 'coding_problems'),
+              where(documentId(), 'in', problemIds)
+            );
+            const problemsSnap = await getDocs(problemsQuery);
+            const problemsData = problemsSnap.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data()
+            })) as ChallengeProblem[];
 
             // Sort them Easy, Medium, Hard
             const diffOrder: Record<string, number> = { Beginner: 1, Intermediate: 2, Advanced: 3 };
-            const sorted = (problemsData as ChallengeProblem[]).sort((a, b) => diffOrder[a.difficulty] - diffOrder[b.difficulty]);
+            const sorted = problemsData.sort((a, b) => diffOrder[a.difficulty] - diffOrder[b.difficulty]);
             setChallenges(sorted);
           }
         }

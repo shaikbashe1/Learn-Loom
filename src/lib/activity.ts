@@ -1,4 +1,6 @@
-import { supabase } from '@/db/supabase';
+import { db, storage } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import type { DBActivityLog } from '@/types/types';
 
 export async function logUserActivity(
@@ -7,15 +9,15 @@ export async function logUserActivity(
   description?: string
 ) {
   try {
-    const { error } = await supabase.from('user_activity_logs').insert({
+    const logData: any = {
       user_id: userId,
       action_type: actionType,
-      description
-    });
-    
-    if (error) {
-      console.error('Failed to log activity:', error);
+    };
+    if (description !== undefined) {
+      logData.description = description;
     }
+    
+    await addDoc(collection(db, 'user_activity_logs'), logData);
   } catch (err) {
     console.error('Activity logging exception:', err);
   }

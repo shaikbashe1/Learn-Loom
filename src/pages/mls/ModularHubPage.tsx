@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 import { Briefcase, Calculator, GraduationCap, ChevronRight, Layers, Target, Trophy } from 'lucide-react';
 import type { DBMLSTrack, DBMLSUserProgress } from '@/types/types';
@@ -26,11 +27,13 @@ export default function ModularHubPage() {
       setLoading(true);
       try {
         // Fetch all published tracks
-        const { data: tracksData } = await supabase
-          .from('mls_tracks')
-          .select('*')
-          .eq('is_published', true)
-          .order('order_index', { ascending: true });
+        const tracksQuery = query(
+          collection(db, 'mls_tracks'),
+          where('is_published', '==', true),
+          orderBy('order_index', 'asc')
+        );
+        const tracksSnapshot = await getDocs(tracksQuery);
+        const tracksData = tracksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as DBMLSTrack[];
         
         if (tracksData) {
           setTracks(tracksData);
@@ -38,18 +41,21 @@ export default function ModularHubPage() {
           // If we have a user, fetch progress per track
           if (user) {
             // First fetch all modules to count totals per track
-            const { data: modulesData } = await supabase.from('mls_modules').select('id, track_id');
+            const modulesSnapshot = await getDocs(collection(db, 'mls_modules'));
+            const modulesData = modulesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             // Then fetch user progress
-            const { data: userProg } = await supabase.from('mls_user_progress').select('module_id, status').eq('user_id', user.id);
+            const userProgQuery = query(collection(db, 'mls_user_progress'), where('user_id', '==', user.id));
+            const userProgSnapshot = await getDocs(userProgQuery);
+            const userProg = userProgSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             
             const pData: any = {};
             tracksData.forEach(t => pData[t.id] = { completed: 0, total: 0 });
             
             if (modulesData) {
-              modulesData.forEach(mod => {
+              modulesData.forEach((mod: any) => {
                 if (pData[mod.track_id]) {
                   pData[mod.track_id].total++;
-                  const userM = userProg?.find(up => up.module_id === mod.id);
+                  const userM = userProg?.find((up: any) => up.module_id === mod.id);
                   if (userM?.status === 'completed') {
                     pData[mod.track_id].completed++;
                   }

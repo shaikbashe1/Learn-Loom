@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Skeleton } from '@/components/ui/skeleton';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, query, where, orderBy, getDocs, addDoc } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { logUserActivity } from '@/lib/activity';
 import { checkAndAwardCertificate } from '@/lib/progress';
@@ -107,20 +108,30 @@ export default function CodingAssessmentPage() {
 
   useEffect(() => {
     if (!courseId) return;
-    supabase
-      .from('coding_questions')
-      .select('*, coding_test_cases(input, expected_output, is_hidden)')
-      .eq('course_id', courseId)
-      .order('sort_order')
-      .then(({ data }) => {
+    const fetchProblems = async () => {
+      try {
+        const q = query(
+          collection(db, 'coding_questions'),
+          where('course_id', '==', courseId),
+          orderBy('sort_order')
+        );
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as unknown as Problem));
+        
         if (!data || data.length === 0) {
            toast.error("No coding questions found for this assessment.");
            navigate(`/courses/${courseId}`);
            return;
         }
-        setProblems((data as unknown as Problem[]) ?? []);
+        setProblems(data);
         setLoadingP(false);
-      });
+      } catch (err) {
+        toast.error("Error fetching coding questions.");
+        console.error(err);
+        navigate(`/courses/${courseId}`);
+      }
+    };
+    fetchProblems();
   }, [courseId, navigate]);
 
   const problem = problems[idx];
@@ -291,13 +302,14 @@ export default function CodingAssessmentPage() {
         toast.success(`All ${testResults.length} test cases passed!`);
         void logUserActivity(user.id, 'code_run', `Successfully completed coding assessment: ${problem?.title}`);
         
-        await supabase.from('assessment_attempts').insert({
+        await addDoc(collection(db, 'assessment_attempts'), {
           user_id: user.id,
           course_id: courseId!,
           score_percentage: 100,
           is_passed: true,
           attempt_number: attempts + 1,
-          metrics: { type: 'coding', problem: problem.title }
+          metrics: { type: 'coding', problem: problem.title },
+          created_at: new Date().toISOString()
         });
         
         await checkAndAwardCertificate(user.id, courseId!);
@@ -310,13 +322,14 @@ export default function CodingAssessmentPage() {
       
       if (attempts + 1 >= MAX_ATTEMPTS && overallVerdict !== 'accepted') {
          toast.error("Maximum attempts reached. Assessment failed.");
-         await supabase.from('assessment_attempts').insert({
+         await addDoc(collection(db, 'assessment_attempts'), {
             user_id: user.id,
             course_id: courseId!,
             score_percentage: Math.round((passedCount / testResults.length) * 100),
             is_passed: false,
             attempt_number: attempts + 1,
-            metrics: { type: 'coding', problem: problem.title }
+            metrics: { type: 'coding', problem: problem.title },
+            created_at: new Date().toISOString()
          });
       }
     } catch (err: any) {

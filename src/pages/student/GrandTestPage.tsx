@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Skeleton } from '@/components/ui/skeleton';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, doc, getDocs, getDoc, setDoc, query, where, addDoc } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -72,21 +73,39 @@ export default function GrandTestPage() {
     if (!user) return;
     (async () => {
       setLoading(true);
-      const { data: enrollments } = await supabase
-        .from('user_course_enrollments')
-        .select('course_id')
-        .eq('user_id', user.id);
-      const courseIds = (enrollments ?? []).map(e => e.course_id);
-      if (courseIds.length === 0) { setLoading(false); return; }
+      try {
+        const enrollmentsQ = query(collection(db, 'user_course_enrollments'), where('user_id', '==', user.id));
+        const enrollmentsSnap = await getDocs(enrollmentsQ);
+        const courseIds = enrollmentsSnap.docs.map(d => d.data().course_id);
+        if (courseIds.length === 0) { setLoading(false); return; }
 
-      const { data } = await supabase
-        .from('quizzes')
-        .select('*, courses!quizzes_course_id_fkey(title)')
-        .in('course_id', courseIds)
-        .eq('is_grand_test', true)
-        .order('created_at', { ascending: true });
-      setQuizzes(data ?? []);
-      if (data && data.length > 0) setSelectedQuiz(data[0]);
+        const qzQuery = query(collection(db, 'quizzes'), where('is_grand_test', '==', true));
+        const qzSnap = await getDocs(qzQuery);
+        
+        let fetchedQuizzes = qzSnap.docs
+          .map(d => ({ id: d.id, ...d.data() } as Quiz))
+          .filter(q => courseIds.includes(q.course_id));
+          
+        fetchedQuizzes.sort((a, b) => {
+           const d1 = (a as any).created_at ? new Date((a as any).created_at).getTime() : 0;
+           const d2 = (b as any).created_at ? new Date((b as any).created_at).getTime() : 0;
+           return d1 - d2;
+        });
+
+        const coursesSnap = await getDocs(collection(db, 'courses'));
+        const courseMap = new Map<string, string>();
+        coursesSnap.docs.forEach(doc => courseMap.set(doc.id, doc.data().title));
+
+        fetchedQuizzes = fetchedQuizzes.map(qz => ({
+          ...qz,
+          courses: { title: courseMap.get(qz.course_id) || 'Unknown Course' }
+        }));
+
+        setQuizzes(fetchedQuizzes);
+        if (fetchedQuizzes.length > 0) setSelectedQuiz(fetchedQuizzes[0]);
+      } catch (err) {
+        console.error("Error fetching tests:", err);
+      }
       setLoading(false);
     })();
   }, [user]);
@@ -94,12 +113,23 @@ export default function GrandTestPage() {
   const loadQuizData = useCallback(async (quiz: Quiz) => {
     if (!user) return;
     setLoadingQuestions(true);
-    const [qRes, aRes] = await Promise.all([
-      supabase.from('quiz_questions').select('*').eq('quiz_id', quiz.id).order('sort_order', { ascending: true }),
-      supabase.from('quiz_attempts').select('score,total,passed,completed_at').eq('user_id', user.id).eq('quiz_id', quiz.id).order('completed_at', { ascending: false }).limit(1).maybeSingle(),
-    ]);
-    setQuestions(qRes.data ?? []);
-    setPastAttempt(aRes.data ?? null);
+    try {
+      const questionsQ = query(collection(db, 'quiz_questions'), where('quiz_id', '==', quiz.id));
+      const attemptRef = doc(db, 'quiz_attempts', `${user.id}_${quiz.id}`);
+
+      const [qSnap, aSnap] = await Promise.all([
+        getDocs(questionsQ),
+        getDoc(attemptRef)
+      ]);
+
+      const qs = qSnap.docs.map(d => ({ id: d.id, ...d.data() } as Question));
+      qs.sort((a, b) => ((a as any).sort_order || 0) - ((b as any).sort_order || 0));
+
+      setQuestions(qs);
+      setPastAttempt(aSnap.exists() ? (aSnap.data() as Attempt) : null);
+    } catch (err) {
+      console.error("Error loading quiz data:", err);
+    }
     setLoadingQuestions(false);
   }, [user]);
 
@@ -131,19 +161,33 @@ export default function GrandTestPage() {
     const passed = score >= selectedQuiz.passing_score;
     setFinalScore(score);
 
-    const { error } = await supabase.from('quiz_attempts').upsert(
-      { user_id: user.id, quiz_id: selectedQuiz.id, answers: finalAnswers, score: correct, total, passed },
-      { onConflict: 'user_id,quiz_id' }
-    );
-    if (error) toast.error('Failed to save result', { description: error.message });
-    else {
+    try {
+      const attemptRef = doc(db, 'quiz_attempts', `${user.id}_${selectedQuiz.id}`);
+      await setDoc(attemptRef, {
+        user_id: user.id,
+        quiz_id: selectedQuiz.id,
+        answers: finalAnswers,
+        score: correct,
+        total,
+        passed,
+        completed_at: new Date().toISOString()
+      }, { merge: true });
+
       setPastAttempt({ score: correct, total, passed, completed_at: new Date().toISOString() });
       toast[passed ? 'success' : 'info'](passed ? `Passed! Score: ${score}%` : `Score: ${score}% — Keep practising!`);
-      void supabase.rpc('log_activity', { p_user_id: user.id, p_type: 'quiz', p_value: 1 }).then(() => {});
+      
+      addDoc(collection(db, 'activity_logs'), {
+        user_id: user.id,
+        type: 'quiz',
+        value: 1,
+        created_at: new Date().toISOString()
+      }).catch(console.error);
 
       if (passed && selectedQuiz.module_id) {
         void completeModule(user.id, selectedQuiz.course_id, selectedQuiz.module_id);
       }
+    } catch (err: any) {
+      toast.error('Failed to save result', { description: err.message });
     }
     setSubmitting(false);
     setShowResult(true);

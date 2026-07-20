@@ -16,7 +16,10 @@ import {
   IndianRupee,
   ArrowRight
 } from 'lucide-react';
-import { supabase } from '@/db/supabase';
+import { auth, db, storage } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { toast } from 'sonner';
@@ -80,19 +83,18 @@ export default function PricingPage() {
     }
 
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token ?? '';
+      const token = await auth.currentUser?.getIdToken() ?? '';
+      const functions = getFunctions();
+      const createOrder = httpsCallable(functions, 'create-razorpay-order');
 
-      const res = await supabase.functions.invoke('create-razorpay-order', {
-        body: { plan_id: planId },
-      });
+      const res = await createOrder({ plan_id: planId });
+      const data = res.data as any;
 
-      if (res.error) {
-        const msg = await res.error?.context?.text?.();
-        throw new Error(msg || 'Failed to create order');
+      if (!data) {
+        throw new Error('Failed to create order');
       }
 
-      const { order_id, amount, currency, key_id, plan_name } = res.data;
+      const { order_id, amount, currency, key_id, plan_name } = data;
 
       const rzp = new window.Razorpay({
         key: key_id,
@@ -107,23 +109,29 @@ export default function PricingPage() {
         },
         theme: { color: 'hsl(var(--primary))' },
         handler: async (response) => {
-          const verifyRes = await supabase.functions.invoke('verify-razorpay-payment', {
-            body: {
+          try {
+            const verifyPayment = httpsCallable(functions, 'verify-razorpay-payment');
+            const verifyRes = await verifyPayment({
               razorpay_order_id:   response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature:  response.razorpay_signature,
-            },
-          });
+            });
+            const verifyData = verifyRes.data as any;
 
-          if (verifyRes.error || !verifyRes.data?.success) {
+            if (!verifyData?.success) {
+              toast.error('Payment verification failed. Contact support with your payment ID.', {
+                description: `Payment ID: ${response.razorpay_payment_id}`,
+              });
+            } else {
+              toast.success(`Welcome to ${plan_name}!`, {
+                description: 'Your subscription is now active. Credits have been added to your account.',
+              });
+              setTimeout(() => window.location.reload(), 1500);
+            }
+          } catch (error) {
             toast.error('Payment verification failed. Contact support with your payment ID.', {
               description: `Payment ID: ${response.razorpay_payment_id}`,
             });
-          } else {
-            toast.success(`Welcome to ${plan_name}!`, {
-              description: 'Your subscription is now active. Credits have been added to your account.',
-            });
-            setTimeout(() => window.location.reload(), 1500);
           }
           setPurchasing(null);
         },

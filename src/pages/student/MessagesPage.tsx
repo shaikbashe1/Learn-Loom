@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Loading } from '@/components/ui/loading';
 import { UserAvatar } from '@/components/shared/UserAvatar';
 import { NewMessageModal } from '@/components/messaging/NewMessageModal';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, doc, getDocs, addDoc, query, where, orderBy, onSnapshot } from 'firebase/firestore';
 import { formatDistanceToNow, format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { 
@@ -57,13 +58,18 @@ export default function MessagesPage() {
 
     const fetchMessages = async () => {
       setMessagesLoading(true);
-      const { data } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('conversation_id', activeConvId)
-        .order('created_at', { ascending: true });
-        
-      if (data) setMessages(data);
+      try {
+        const q = query(
+          collection(db, 'messages'),
+          where('conversation_id', '==', activeConvId),
+          orderBy('created_at', 'asc')
+        );
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
+        setMessages(data);
+      } catch (err) {
+        console.error('Fetch messages error:', err);
+      }
       setMessagesLoading(false);
       setTimeout(() => scrollToBottom(), 100);
       
@@ -80,35 +86,34 @@ export default function MessagesPage() {
   useEffect(() => {
     if (!activeConvId) return;
     
-    const channel = supabase
-      .channel(`active-conv-${activeConvId}`)
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${activeConvId}` },
-        (payload) => {
+    const q = query(
+      collection(db, 'messages'),
+      where('conversation_id', '==', activeConvId)
+    );
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        const messageData = { id: change.doc.id, ...change.doc.data() } as Message;
+        if (change.type === 'added') {
           setMessages(prev => {
             // avoid duplicates
-            if (prev.find(m => m.id === payload.new.id)) return prev;
+            if (prev.find(m => m.id === messageData.id)) return prev;
             setTimeout(() => scrollToBottom(), 100);
-            return [...prev, payload.new as Message];
+            return [...prev, messageData].sort((a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime());
           });
           // If the message is from someone else, mark it as read immediately since we are viewing it
-          if (payload.new.sender_id !== user?.id) {
+          if (messageData.sender_id !== user?.id) {
             void markConversationAsRead(activeConvId);
           }
         }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'messages', filter: `conversation_id=eq.${activeConvId}` },
-        (payload) => {
-          setMessages(prev => prev.map(m => m.id === payload.new.id ? (payload.new as Message) : m));
+        if (change.type === 'modified') {
+          setMessages(prev => prev.map(m => m.id === messageData.id ? messageData : m));
         }
-      )
-      .subscribe();
+      });
+    });
       
     return () => {
-      void supabase.removeChannel(channel);
+      unsubscribe();
     };
   }, [activeConvId, user]);
 
@@ -124,15 +129,13 @@ export default function MessagesPage() {
     setNewMessage('');
     
     try {
-      const { error } = await supabase
-        .from('messages')
-        .insert({
-          conversation_id: activeConvId,
-          sender_id: user.id,
-          content
-        });
+      await addDoc(collection(db, 'messages'), {
+        conversation_id: activeConvId,
+        sender_id: user.id,
+        content,
+        created_at: new Date().toISOString()
+      });
         
-      if (error) throw error;
       await refreshConversations(); // Update the sidebar last message preview
     } catch (err: any) {
       console.error('Send message error:', err);
@@ -157,27 +160,24 @@ export default function MessagesPage() {
     // Create a new conversation
     try {
       // 1. Create conversation
-      const { data: convData, error: convErr } = await supabase
-        .from('conversations')
-        .insert({})
-        .select()
-        .single();
-      if (convErr) throw convErr;
+      const convRef = await addDoc(collection(db, 'conversations'), {
+        created_at: new Date().toISOString()
+      });
 
       // 2. Add participants
-      const { error: partErr } = await supabase
-        .from('conversation_participants')
-        .insert([
-          { conversation_id: convData.id, user_id: user.id },
-          { conversation_id: convData.id, user_id: recipientId }
-        ]);
-        
-      if (partErr) {
-        throw partErr;
-      }
+      await addDoc(collection(db, 'conversation_participants'), {
+        conversation_id: convRef.id,
+        user_id: user.id,
+        created_at: new Date().toISOString()
+      });
+      await addDoc(collection(db, 'conversation_participants'), {
+        conversation_id: convRef.id,
+        user_id: recipientId,
+        created_at: new Date().toISOString()
+      });
 
       await refreshConversations();
-      setActiveConvId(convData.id);
+      setActiveConvId(convRef.id);
       toast.success('Conversation started');
     } catch (err: any) {
       console.error(err);

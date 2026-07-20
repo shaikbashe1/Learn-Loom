@@ -1,7 +1,8 @@
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
@@ -22,17 +23,19 @@ export default function AchievementsPage() {
   useEffect(() => {
     async function fetchBadges() {
       try {
-        const { data: allBadges, error: bError } = await supabase.from('badges').select('*');
-        if (bError) throw bError;
+        const allBadgesSnap = await getDocs(collection(db, 'badges'));
+        const allBadges = allBadgesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
         let userBadgeIds = new Set<string>();
         if (user) {
-          const { data: userBadges, error: uError } = await supabase
-            .from('user_badges')
-            .select('badge_id')
-            .eq('user_id', user.id);
-          if (!uError && userBadges) {
-            userBadgeIds = new Set(userBadges.map(ub => ub.badge_id));
+          try {
+            const q = query(collection(db, 'user_badges'), where('user_id', '==', user.id));
+            const userBadgesSnap = await getDocs(q);
+            userBadgesSnap.docs.forEach(doc => {
+              userBadgeIds.add(doc.data().badge_id);
+            });
+          } catch (uError) {
+            console.error('Failed to load user badges', uError);
           }
         }
 

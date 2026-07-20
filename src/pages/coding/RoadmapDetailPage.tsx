@@ -1,7 +1,8 @@
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { useParams, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,37 +31,41 @@ export default function RoadmapDetailPage() {
     async function loadData() {
       if (!id) return;
       try {
-        const { data: rData, error: rError } = await supabase.from('roadmaps').select('*').eq('id', id).single();
-        if (rError) throw rError;
+        const roadmapDoc = await getDoc(doc(db, 'roadmaps', id));
+        if (!roadmapDoc.exists()) throw new Error('Roadmap not found');
+        const rData = { id: roadmapDoc.id, ...roadmapDoc.data() };
         setRoadmap(rData);
 
-        const { data: tData, error: tError } = await supabase
-          .from('roadmap_topics')
-          .select('*')
-          .eq('roadmap_id', id)
-          .order('order_index', { ascending: true });
-        
-        if (tError) throw tError;
+        const topicsQuery = query(
+          collection(db, 'roadmap_topics'),
+          where('roadmap_id', '==', id),
+          orderBy('order_index', 'asc')
+        );
+        const tSnap = await getDocs(topicsQuery);
+        const tData = tSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setTopics(tData as RoadmapTopic[]);
 
         // Fetch actual problem names for all problem_ids in these topics
         const allProblemIds = (tData as RoadmapTopic[]).flatMap(t => t.problem_ids || []);
         if (allProblemIds.length > 0) {
-          const { data: pData } = await supabase.from('coding_problems').select('id, title, difficulty').in('id', allProblemIds);
-          if (pData) {
-            const pMap: Record<string, any> = {};
-            pData.forEach(p => pMap[p.id] = p);
-            setProblemsCache(pMap);
-          }
+          const pMap: Record<string, any> = {};
+          await Promise.all(allProblemIds.map(async pid => {
+            const pDoc = await getDoc(doc(db, 'coding_problems', pid));
+            if (pDoc.exists()) {
+              pMap[pid] = { id: pDoc.id, ...pDoc.data() };
+            }
+          }));
+          setProblemsCache(pMap);
         }
 
         if (user) {
-          const { data: sData } = await supabase
-            .from('submissions')
-            .select('problem_id')
-            .eq('user_id', user.id)
-            .eq('verdict', 'Accepted');
-          
+          const subQ = query(
+            collection(db, 'submissions'),
+            where('user_id', '==', user.id),
+            where('verdict', '==', 'Accepted')
+          );
+          const sSnap = await getDocs(subQ);
+          const sData = sSnap.docs.map(d => d.data());
           if (sData) {
             setSolvedIds(new Set(sData.map(s => s.problem_id)));
           }

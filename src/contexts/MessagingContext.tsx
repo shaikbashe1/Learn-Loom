@@ -6,7 +6,8 @@ import {
   useCallback,
   type ReactNode,
 } from 'react';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, updateDoc, query, where, onSnapshot, documentId } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 
 export interface Conversation {
@@ -56,68 +57,98 @@ export function MessagingProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [conversations, setConversations] = useState<ConversationDetail[]>([]);
   const [loading, setLoading] = useState(true);
+  const [convIds, setConvIds] = useState<string[]>([]);
 
   const fetchConversations = useCallback(async () => {
     if (!user) {
       setConversations([]);
       setLoading(false);
+      setConvIds([]);
       return;
     }
     
     setLoading(true);
     try {
       // Fetch all conversations this user is part of
-      const { data: myParticipants, error: cpError } = await supabase
-        .from('conversation_participants')
-        .select('conversation_id')
-        .eq('user_id', user.id);
-        
-      if (cpError) throw cpError;
+      const cpQuery = query(collection(db, 'conversation_participants'), where('user_id', '==', user.id));
+      const cpSnap = await getDocs(cpQuery);
       
-      const convIds = myParticipants?.map(p => p.conversation_id) || [];
+      const myIds = cpSnap.docs.map(d => d.data().conversation_id as string);
+      setConvIds(prev => JSON.stringify(prev) === JSON.stringify(myIds) ? prev : myIds);
       
-      if (convIds.length === 0) {
+      if (myIds.length === 0) {
         setConversations([]);
         setLoading(false);
         return;
       }
       
-      // Fetch conversations
-      const { data: convsData } = await supabase
-        .from('conversations')
-        .select('*')
-        .in('id', convIds)
-        .order('last_message_at', { ascending: false });
-        
-      // Fetch other participants
-      const { data: othersData } = await supabase
-        .from('conversation_participants')
-        .select('conversation_id, user_id, created_at, profiles(full_name, avatar_url, role)')
-        .in('conversation_id', convIds)
-        .neq('user_id', user.id);
-        
-      // Fetch last messages and unread counts
-      // Since Supabase doesn't support complex aggregations easily over JS without RPC, 
-      // we'll fetch all unread messages for this user in these convs, and the very last message for each.
+      const chunkArray = (arr: string[], size: number) => 
+        Array.from({ length: Math.ceil(arr.length / size) }, (v, i) => arr.slice(i * size, i * size + size));
+
+      const myIdChunks = chunkArray(myIds, 30);
       
-      const { data: messagesData } = await supabase
-        .from('messages')
-        .select('*')
-        .in('conversation_id', convIds)
-        .order('created_at', { ascending: false });
+      // Fetch conversations
+      const convsData: any[] = [];
+      for (const chunk of myIdChunks) {
+        await Promise.all(chunk.map(async (id) => {
+           const d = await getDoc(doc(db, 'conversations', id));
+           if (d.exists()) convsData.push({ id: d.id, ...d.data() });
+        }));
+      }
+      
+      convsData.sort((a, b) => {
+         const tA = a.last_message_at ? new Date(a.last_message_at).getTime() : 0;
+         const tB = b.last_message_at ? new Date(b.last_message_at).getTime() : 0;
+         return tB - tA;
+      });
+
+      // Fetch other participants
+      const othersData: any[] = [];
+      for (const chunk of myIdChunks) {
+        const q = query(collection(db, 'conversation_participants'), where('conversation_id', 'in', chunk));
+        const snap = await getDocs(q);
+        snap.docs.forEach(d => {
+           const data = d.data();
+           if (data.user_id !== user.id) othersData.push(data);
+        });
+      }
+
+      // Fetch profiles for other participants
+      const otherUserIds = [...new Set(othersData.map(p => p.user_id))];
+      const profilesData: Record<string, any> = {};
+      
+      await Promise.all(otherUserIds.map(async (uid) => {
+         const docSnap = await getDoc(doc(db, 'profiles', uid));
+         if (docSnap.exists()) {
+            profilesData[uid] = docSnap.data();
+         }
+      }));
+      
+      othersData.forEach(p => {
+         p.profiles = profilesData[p.user_id] || { full_name: 'Unknown User', avatar_url: null, role: 'user' };
+      });
+
+      // Fetch last messages and unread counts
+      const messagesData: any[] = [];
+      for (const chunk of myIdChunks) {
+        const q = query(collection(db, 'messages'), where('conversation_id', 'in', chunk));
+        const snap = await getDocs(q);
+        snap.docs.forEach(d => messagesData.push({ id: d.id, ...d.data() }));
+      }
+      messagesData.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
       const builtConvs: ConversationDetail[] = [];
       
-      for (const conv of convsData || []) {
-        const otherParticipant = othersData?.find(p => p.conversation_id === conv.id) || null;
-        const convMessages = messagesData?.filter(m => m.conversation_id === conv.id) || [];
+      for (const conv of convsData) {
+        const otherParticipant = othersData.find(p => p.conversation_id === conv.id) || null;
+        const convMessages = messagesData.filter(m => m.conversation_id === conv.id) || [];
         const lastMessage = convMessages[0] || null;
         
         // Unread: message sender is NOT me, and read_at is null
         const unreadCount = convMessages.filter(m => m.sender_id !== user.id && !m.read_at).length;
         
         builtConvs.push({
-          conversation: conv,
+          conversation: conv as Conversation,
           otherParticipant: otherParticipant as any,
           lastMessage,
           unreadCount
@@ -140,45 +171,73 @@ export function MessagingProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!user) return;
     
-    // Subscribe to new messages where we are a recipient or sender
-    // We can just listen to 'messages' because RLS ensures we only receive events for our conversations
-    const messageChannel = supabase
-      .channel('messages-global')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'messages' },
-        (payload) => {
-          // When any message changes, simplest is to refetch all, 
-          // or we can optimistically update. Let's just refetch for simplicity and accuracy.
-          fetchConversations();
+    // Listen to our participants to detect new conversations
+    const qCp = query(collection(db, 'conversation_participants'), where('user_id', '==', user.id));
+    let initialCp = true;
+    const unsubCp = onSnapshot(qCp, () => {
+        if (initialCp) {
+            initialCp = false;
+        } else {
+            fetchConversations();
         }
-      )
-      .subscribe();
-      
-    const convChannel = supabase
-      .channel('conversations-global')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'conversations' },
-        () => fetchConversations()
-      )
-      .subscribe();
+    });
+
+    return () => unsubCp();
+  }, [user, fetchConversations]);
+
+  useEffect(() => {
+    if (!user || convIds.length === 0) return;
+
+    const chunkArray = (arr: string[], size: number) => 
+        Array.from({ length: Math.ceil(arr.length / size) }, (v, i) => arr.slice(i * size, i * size + size));
+
+    const unsubs: (() => void)[] = [];
+    const myIdChunks = chunkArray(convIds, 30);
+    
+    myIdChunks.forEach(chunk => {
+       const qMsg = query(collection(db, 'messages'), where('conversation_id', 'in', chunk));
+       let initialMsg = true;
+       const unsubMsg = onSnapshot(qMsg, () => {
+         if (initialMsg) {
+             initialMsg = false;
+         } else {
+             fetchConversations();
+         }
+       });
+       unsubs.push(unsubMsg);
+       
+       const qConv = query(collection(db, 'conversations'), where(documentId(), 'in', chunk));
+       let initialConv = true;
+       const unsubConv = onSnapshot(qConv, () => {
+         if (initialConv) {
+             initialConv = false;
+         } else {
+             fetchConversations();
+         }
+       });
+       unsubs.push(unsubConv);
+    });
 
     return () => {
-      void supabase.removeChannel(messageChannel);
-      void supabase.removeChannel(convChannel);
+       unsubs.forEach(u => u());
     };
-  }, [user, fetchConversations]);
+  }, [user, convIds, fetchConversations]);
 
   const markConversationAsRead = async (conversationId: string) => {
     if (!user) return;
     try {
-      await supabase
-        .from('messages')
-        .update({ read_at: new Date().toISOString() })
-        .eq('conversation_id', conversationId)
-        .neq('sender_id', user.id)
-        .is('read_at', null);
+      const q = query(
+         collection(db, 'messages'),
+         where('conversation_id', '==', conversationId),
+         where('sender_id', '!=', user.id)
+      );
+      const snap = await getDocs(q);
+      
+      const updatePromises = snap.docs
+         .filter(d => !d.data().read_at)
+         .map(d => updateDoc(doc(db, 'messages', d.id), { read_at: new Date().toISOString() }));
+         
+      await Promise.all(updatePromises);
         
       // Optimistic update
       setConversations(prev => prev.map(c => {

@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Trophy, Flame, Target, Star, Zap, Clock, Code2, AlertCircle } from 'lucide-react';
 import { format, subDays } from 'date-fns';
@@ -23,27 +24,36 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       if (!user) return;
+      const userId = user.id || (user as any).uid;
       setLoading(true);
       try {
         // Fetch progress
-        const { data: prog } = await supabase.from('coding_progress').select('*').eq('user_id', user.id).single();
-        if (prog) setProgress(prog);
+        const progQuery = query(collection(db, 'coding_progress'), where('user_id', '==', userId));
+        const progSnap = await getDocs(progQuery);
+        if (!progSnap.empty) setProgress({ id: progSnap.docs[0].id, ...progSnap.docs[0].data() });
 
         // Fetch statistics
-        const { data: stat } = await supabase.from('coding_statistics').select('*').eq('user_id', user.id).single();
-        if (stat) setStatistics(stat);
+        const statQuery = query(collection(db, 'coding_statistics'), where('user_id', '==', userId));
+        const statSnap = await getDocs(statQuery);
+        if (!statSnap.empty) setStatistics({ id: statSnap.docs[0].id, ...statSnap.docs[0].data() });
 
         // Fetch streaks
-        const { data: strk } = await supabase.from('coding_streaks').select('*').eq('user_id', user.id).single();
-        if (strk) setStreaks(strk);
+        const strkQuery = query(collection(db, 'coding_streaks'), where('user_id', '==', userId));
+        const strkSnap = await getDocs(strkQuery);
+        if (!strkSnap.empty) setStreaks({ id: strkSnap.docs[0].id, ...strkSnap.docs[0].data() });
+
+        // Fetch all badges for reference
+        const allBSnap = await getDocs(collection(db, 'coding_badges'));
+        const allB = allBSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setAllBadges(allB);
 
         // Fetch user badges
-        const { data: userBadges } = await supabase.from('coding_user_badges').select('*, coding_badges(*)').eq('user_id', user.id);
-        if (userBadges) setBadges(userBadges.map(b => b.coding_badges));
+        const userBadgesQuery = query(collection(db, 'coding_user_badges'), where('user_id', '==', userId));
+        const userBadgesSnap = await getDocs(userBadgesQuery);
+        const userBadges = userBadgesSnap.docs.map(doc => doc.data());
         
-        // Fetch all badges for reference
-        const { data: allB } = await supabase.from('coding_badges').select('*');
-        if (allB) setAllBadges(allB);
+        const earnedBadges = userBadges.map((ub: any) => allB.find(b => b.id === ub.badge_id)).filter(Boolean);
+        setBadges(earnedBadges);
 
       } catch (e) {
         console.error("Error fetching dashboard data:", e);

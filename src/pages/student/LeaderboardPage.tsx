@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Loading } from '@/components/ui/loading';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, getDocs, limit, query } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserAvatar } from '@/components/shared/UserAvatar';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -39,14 +40,19 @@ export default function LeaderboardPage() {
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const { data } = await supabase
-        .from('leaderboard_view')
-        .select('*')
-        .limit(50);
-      setEntries(Array.isArray(data) ? data : []);
-      if (user && data) {
-        const me = (data as LeaderboardEntry[]).find(e => e.user_id === user.id);
-        setMyEntry(me ?? null);
+      try {
+        const q = query(collection(db, 'leaderboard_view'), limit(50));
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as unknown as LeaderboardEntry[];
+        
+        setEntries(Array.isArray(data) ? data : []);
+        if (user && data) {
+          const me = data.find(e => e.user_id === user.id);
+          setMyEntry(me ?? null);
+        }
+      } catch (error) {
+        console.error('Error fetching leaderboard:', error);
+        setEntries([]);
       }
       setLoading(false);
     })();

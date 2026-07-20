@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, doc, getDocs, updateDoc, query, limit } from 'firebase/firestore';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
@@ -30,11 +31,15 @@ export default function AdminCompilerPage() {
 
   const fetchConfig = async () => {
     setLoading(true);
-    const { data, error } = await supabase.from('piston_config').select('*').limit(1).single();
-    if (error && error.code !== 'PGRST116') {
+    try {
+      const q = query(collection(db, 'piston_config'), limit(1));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        const docSnap = querySnapshot.docs[0];
+        setConfig({ id: docSnap.id, ...docSnap.data() } as PistonConfig);
+      }
+    } catch (error) {
       toast.error('Failed to load compiler configuration');
-    } else if (data) {
-      setConfig(data as PistonConfig);
     }
     setLoading(false);
   };
@@ -46,17 +51,16 @@ export default function AdminCompilerPage() {
   const handleSave = async () => {
     if (!config) return;
     setSaving(true);
-    const { error } = await supabase.from('piston_config').update({
-      proxy_url: config.proxy_url,
-      max_execution_time_ms: config.max_execution_time_ms,
-      allowed_runtimes: config.allowed_runtimes,
-      is_active: config.is_active,
-    }).eq('id', config.id);
-
-    if (error) {
-      toast.error('Failed to save configuration');
-    } else {
+    try {
+      await updateDoc(doc(db, 'piston_config', config.id), {
+        proxy_url: config.proxy_url,
+        max_execution_time_ms: config.max_execution_time_ms,
+        allowed_runtimes: config.allowed_runtimes,
+        is_active: config.is_active,
+      });
       toast.success('Configuration saved successfully');
+    } catch (error) {
+      toast.error('Failed to save configuration');
     }
     setSaving(false);
   };

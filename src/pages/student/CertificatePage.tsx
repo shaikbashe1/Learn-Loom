@@ -21,7 +21,9 @@ import {
   Award as AwardIcon,
   Flag
 } from 'lucide-react';
-import { supabase } from '@/db/supabase';
+import { db, storage } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import QRCodeDataUrl from '@/components/ui/qrcodedataurl';
@@ -88,14 +90,20 @@ export default function CertificatePage() {
     if (!user) return;
     (async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('certificates')
-        .select('*, courses!certificates_course_id_fkey(title, instructor_name, instructor)')
-        .eq('user_id', user.id)
-        .eq('is_valid', true)
-        .order('issued_at', { ascending: false });
-      if (error) { console.error(error); toast.error('Failed to load certificates'); }
-      setCerts(data ?? []);
+      try {
+        const q = query(
+          collection(db, 'certificates'),
+          where('user_id', '==', user.id),
+          where('is_valid', '==', true),
+          orderBy('issued_at', 'desc')
+        );
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Certificate[];
+        setCerts(data);
+      } catch (error) {
+        console.error(error); 
+        toast.error('Failed to load certificates'); 
+      }
       setLoading(false);
     })();
   }, [user]);
@@ -105,16 +113,24 @@ export default function CertificatePage() {
     if (!verifyId.trim()) return;
     setVerifying(true);
     setVerifyResult(null);
-    const { data } = await supabase
-      .from('certificates')
-      .select('*, courses!certificates_course_id_fkey(title)')
-      .eq('verification_code', verifyId.trim())
-      .eq('is_valid', true)
-      .maybeSingle();
-    setVerifying(false);
-    if (data) {
-      setVerifyResult({ valid: true, course: data.courses?.title, issued: data.issued_at, score: data.score });
-    } else {
+    try {
+      const q = query(
+        collection(db, 'certificates'),
+        where('verification_code', '==', verifyId.trim()),
+        where('is_valid', '==', true),
+        limit(1)
+      );
+      const snapshot = await getDocs(q);
+      const data = snapshot.empty ? null : ({ id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as Certificate);
+      setVerifying(false);
+      if (data) {
+        setVerifyResult({ valid: true, course: data.courses?.title, issued: data.issued_at, score: data.score });
+      } else {
+        setVerifyResult({ valid: false });
+      }
+    } catch (error) {
+      console.error(error);
+      setVerifying(false);
       setVerifyResult({ valid: false });
     }
   };

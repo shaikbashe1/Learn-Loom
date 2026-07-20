@@ -3,7 +3,9 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/db/supabase';
+import { db, storage } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import Editor from '@monaco-editor/react';
@@ -47,17 +49,17 @@ export default function ProblemPage() {
     const fetchProblem = async () => {
       try {
         if (!id) return;
-        const { data: probData, error } = await supabase
-          .from('coding_problems')
-          .select('*')
-          .eq('slug', id)
-          .single();
+        const q = query(collection(db, 'coding_problems'), where('slug', '==', id));
+        const querySnapshot = await getDocs(q);
           
-        if (error || !probData) {
+        if (querySnapshot.empty) {
           toast.error('Problem not found');
           navigate('/coding/practice');
           return;
         }
+        
+        const probDoc = querySnapshot.docs[0];
+        const probData = { id: probDoc.id, ...probDoc.data() } as any;
         
         // Safely parse JSONB fields if they came back as strings
         let parsedTags = probData.company_tags;
@@ -94,12 +96,11 @@ export default function ProblemPage() {
         }
 
         // Fetch testcases
-        const { data: tcData } = await supabase
-          .from('problem_testcases')
-          .select('*')
-          .eq('problem_id', probData.id);
+        const tcQuery = query(collection(db, 'problem_testcases'), where('problem_id', '==', probData.id));
+        const tcSnapshot = await getDocs(tcQuery);
           
-        if (tcData) {
+        if (!tcSnapshot.empty) {
+          const tcData = tcSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           setTestcases(tcData as DBProblemTestcase[]);
         }
       } catch (err: any) {
@@ -154,7 +155,7 @@ export default function ProblemPage() {
       });
 
       if (isSubmit && finalStatus === "Accepted" && user) {
-        await supabase.from('coding_submissions').insert({
+        await addDoc(collection(db, 'coding_submissions'), {
           user_id: user.id,
           problem_id: problem.id,
           source_code: code,
@@ -162,7 +163,8 @@ export default function ProblemPage() {
           verdict: finalStatus,
           time_ms: 45,
           memory_kb: 12400,
-          credits_awarded: problem.credits || 10
+          credits_awarded: problem.credits || 10,
+          created_at: new Date().toISOString()
         });
         toast.success("Solution Accepted! XP & Progress Updated.");
       } else if (isSubmit) {

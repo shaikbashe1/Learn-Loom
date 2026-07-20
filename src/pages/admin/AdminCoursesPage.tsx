@@ -29,7 +29,8 @@ import {
   FileText
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/db/supabase';
+import { db, storage } from '@/db/firebase';
+import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit } from 'firebase/firestore';
 import { uploadFile } from '@/lib/uploadFile';
 import { useAuth } from '@/contexts/AuthContext';
 import type { DBCourse, DBModule, DifficultyLevel } from '@/types/types';
@@ -159,12 +160,13 @@ export default function AdminCoursesPage() {
 
   const fetchCourses = async () => {
     setLoadingList(true);
-    const { data, error } = await supabase
-      .from('courses')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (error) toast.error('Failed to load courses');
-    else setCourses(data as DBCourse[]);
+    try {
+      const snapshot = await getDocs(query(collection(db, 'courses'), orderBy('created_at', 'desc')));
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setCourses(data as DBCourse[]);
+    } catch (error) {
+      toast.error('Failed to load courses');
+    }
     setLoadingList(false);
   };
 
@@ -192,29 +194,35 @@ export default function AdminCoursesPage() {
       notes_url: course.notes_url ?? '',
     });
     
-    const { data: mods } = await supabase
-      .from('course_modules').select('*')
-      .eq('course_id', course.id).order('order_index');
-    setModules((mods ?? []).map(m => ({
-      title: m.title,
-      description: m.description ?? '',
-      content_url: m.content_url ?? m.youtube_url ?? '',
-      order_index: m.order_index ?? 0,
-      duration_minutes: m.duration_minutes ?? 60,
-      type: (m.type ?? 'video') as 'video' | 'reading' | 'coding',
-      is_free_preview: m.is_free_preview ?? false,
-    })));
-    
-    const { data: asgs } = await supabase.from('assignments').select('*').eq('course_id', course.id).limit(1);
-    setAssignment(asgs?.[0] ? { title: asgs[0].title, instructions: asgs[0].instructions ?? '', due_days: asgs[0].due_days ?? 7 } : blankAssignment());
-    
-    const { data: qzs } = await supabase.from('quizzes').select('*').eq('course_id', course.id).limit(1);
-    if (qzs?.[0]) {
-      setQuiz({ title: qzs[0].title });
-      const { data: qs } = await supabase.from('quiz_questions').select('*').eq('quiz_id', qzs[0].id).order('sort_order');
-      setQuestions((qs ?? []).map(q => ({ question: q.question, options: q.options as string[], answer_index: q.answer_index })));
-    } else {
-      setQuiz(blankQuiz()); setQuestions([blankQuestion()]);
+    try {
+      const modsSnap = await getDocs(query(collection(db, 'course_modules'), where('course_id', '==', course.id), orderBy('order_index')));
+      const mods = modsSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+      setModules((mods ?? []).map(m => ({
+        title: m.title,
+        description: m.description ?? '',
+        content_url: m.content_url ?? m.youtube_url ?? '',
+        order_index: m.order_index ?? 0,
+        duration_minutes: m.duration_minutes ?? 60,
+        type: (m.type ?? 'video') as 'video' | 'reading' | 'coding',
+        is_free_preview: m.is_free_preview ?? false,
+      })));
+      
+      const asgsSnap = await getDocs(query(collection(db, 'assignments'), where('course_id', '==', course.id), limit(1)));
+      const asgs = asgsSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+      setAssignment(asgs?.[0] ? { title: asgs[0].title, instructions: asgs[0].instructions ?? '', due_days: asgs[0].due_days ?? 7 } : blankAssignment());
+      
+      const qzsSnap = await getDocs(query(collection(db, 'quizzes'), where('course_id', '==', course.id), limit(1)));
+      const qzs = qzsSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+      if (qzs?.[0]) {
+        setQuiz({ title: qzs[0].title });
+        const qsSnap = await getDocs(query(collection(db, 'quiz_questions'), where('quiz_id', '==', qzs[0].id), orderBy('sort_order')));
+        const qs = qsSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+        setQuestions((qs ?? []).map(q => ({ question: q.question, options: q.options as string[], answer_index: q.answer_index })));
+      } else {
+        setQuiz(blankQuiz()); setQuestions([blankQuestion()]);
+      }
+    } catch(err) {
+      console.error(err);
     }
     setDialogOpen(true);
   };
@@ -226,60 +234,61 @@ export default function AdminCoursesPage() {
       let courseId: string;
 
       if (editingCourse) {
-        const { error } = await supabase.from('courses').update({
+        await updateDoc(doc(db, 'courses', editingCourse.id), {
           title: form.title, description: form.description || null,
           difficulty: form.difficulty,
           youtube_url: form.youtube_url || null, notes_url: form.notes_url || null,
-        }).eq('id', editingCourse.id);
-        if (error) throw error;
+        });
         courseId = editingCourse.id;
         
-        await supabase.from('course_modules').delete().eq('course_id', courseId);
-        await supabase.from('assignments').delete().eq('course_id', courseId);
-        const { data: oldQuizzes } = await supabase.from('quizzes').select('id').eq('course_id', courseId);
-        if (oldQuizzes?.length) {
-          await supabase.from('quiz_questions').delete().in('quiz_id', oldQuizzes.map(q => q.id));
-          await supabase.from('quizzes').delete().eq('course_id', courseId);
+        const oldModsSnap = await getDocs(query(collection(db, 'course_modules'), where('course_id', '==', courseId)));
+        await Promise.all(oldModsSnap.docs.map(d => deleteDoc(doc(db, 'course_modules', d.id))));
+        
+        const oldAsgsSnap = await getDocs(query(collection(db, 'assignments'), where('course_id', '==', courseId)));
+        await Promise.all(oldAsgsSnap.docs.map(d => deleteDoc(doc(db, 'assignments', d.id))));
+        
+        const oldQuizzesSnap = await getDocs(query(collection(db, 'quizzes'), where('course_id', '==', courseId)));
+        if (!oldQuizzesSnap.empty) {
+          for (const qDoc of oldQuizzesSnap.docs) {
+            const oldQsSnap = await getDocs(query(collection(db, 'quiz_questions'), where('quiz_id', '==', qDoc.id)));
+            await Promise.all(oldQsSnap.docs.map(d => deleteDoc(doc(db, 'quiz_questions', d.id))));
+          }
+          await Promise.all(oldQuizzesSnap.docs.map(d => deleteDoc(doc(db, 'quizzes', d.id))));
         }
       } else {
-        const { data, error } = await supabase.from('courses').insert({
+        const newCourseRef = await addDoc(collection(db, 'courses'), {
           title: form.title, description: form.description || null,
           difficulty: form.difficulty,
           youtube_url: form.youtube_url || null, notes_url: form.notes_url || null,
-          created_by: user?.id ?? null,
-        }).select('id').single();
-        if (error) throw error;
-        courseId = data.id;
+          created_by: user?.uid ?? (user as any)?.id ?? null,
+          created_at: new Date().toISOString(),
+        });
+        courseId = newCourseRef.id;
       }
 
       if (modules.length > 0) {
-        await supabase.from('course_modules').insert(
-          modules.map((m, i) => ({
-            course_id: courseId, title: m.title, description: m.description || '',
-            content_url: m.content_url || null, notes_url: m.notes_url || null,
-            order_index: i, duration_minutes: m.duration_minutes ?? 60, type: m.type ?? 'video',
-            is_free_preview: m.is_free_preview ?? false,
-          }))
-        );
+        await Promise.all(modules.map((m, i) => addDoc(collection(db, 'course_modules'), {
+          course_id: courseId, title: m.title, description: m.description || '',
+          content_url: m.content_url || null, notes_url: m.notes_url || null,
+          order_index: i, duration_minutes: m.duration_minutes ?? 60, type: m.type ?? 'video',
+          is_free_preview: m.is_free_preview ?? false,
+        })));
       }
       
       if (assignment.title.trim()) {
-        await supabase.from('assignments').insert({
+        await addDoc(collection(db, 'assignments'), {
           course_id: courseId, title: assignment.title,
           instructions: assignment.instructions || null, due_days: assignment.due_days,
         });
       }
       
       if (quiz.title.trim() && questions.some(q => q.question.trim())) {
-        const { data: qData } = await supabase.from('quizzes')
-          .insert({ course_id: courseId, title: quiz.title }).select('id').single();
-        if (qData) {
-          await supabase.from('quiz_questions').insert(
-            questions.filter(q => q.question.trim()).map((q, i) => ({
-              quiz_id: qData.id, question: q.question, options: q.options, answer_index: q.answer_index, sort_order: i,
-            }))
-          );
-        }
+        const newQuizRef = await addDoc(collection(db, 'quizzes'), { course_id: courseId, title: quiz.title });
+        await Promise.all(
+          questions.filter(q => q.question.trim()).map((q, i) => addDoc(collection(db, 'quiz_questions'), {
+            quiz_id: newQuizRef.id, question: q.question, options: q.options, answer_index: q.answer_index, sort_order: i,
+          }))
+        );
       }
 
       toast.success(editingCourse ? 'Course updated!' : 'Course created as draft!');
@@ -299,11 +308,12 @@ export default function AdminCoursesPage() {
     setAiProgress({ step: 'Initializing AI model...', progress: 5 });
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-course-ai`, {
+      const token = typeof (user as any)?.getIdToken === 'function' ? await (user as any).getIdToken() : '';
+      const response = await fetch(`${import.meta.env.VITE_FIREBASE_FUNCTIONS_URL || 'https://api.example.com'}/generateCourseAi`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ prompt: aiPrompt, files: aiFiles })
       });
@@ -487,8 +497,12 @@ export default function AdminCoursesPage() {
                    <button 
                      onClick={async (e) => {
                        e.stopPropagation();
-                       const { error } = await supabase.from('courses').update({ is_published: !course.is_published }).eq('id', course.id);
-                       if(!error) fetchCourses();
+                       try {
+                         await updateDoc(doc(db, 'courses', course.id), { is_published: !course.is_published });
+                         fetchCourses();
+                       } catch (error) {
+                         toast.error('Failed to update status');
+                       }
                      }} 
                      className={`w-11 h-11 rounded-xl bg-background shadow-lg flex items-center justify-center hover:scale-105 transition-all border border-border ${
                        course.is_published ? 'text-amber-500' : 'text-emerald-500'

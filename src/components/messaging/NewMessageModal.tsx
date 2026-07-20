@@ -3,7 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Loader2 } from 'lucide-react';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -19,6 +20,10 @@ export function NewMessageModal({ open, onOpenChange, onUserSelect }: NewMessage
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [allowedIds, setAllowedIds] = useState<Set<string> | null>(null);
+
+  // Helper for chunking arrays for Firestore 'in' queries
+  const chunkArray = (arr: any[], size: number) =>
+    Array.from({ length: Math.ceil(arr.length / size) }, (v, i) => arr.slice(i * size, i * size + size));
 
   // Fetch allowed users once when modal opens
   useEffect(() => {
@@ -37,36 +42,43 @@ export function NewMessageModal({ open, onOpenChange, onUserSelect }: NewMessage
           const ids = new Set<string>();
 
           // Get admins (students can message admins)
-          const { data: admins } = await supabase.from('public_profiles').select('id').in('role', ['admin', 'super_admin', 'org_admin']);
-          if (admins) admins.forEach(a => ids.add(a.id));
+          const adminsSnap = await getDocs(
+            query(collection(db, 'public_profiles'), where('role', 'in', ['admin', 'super_admin', 'org_admin']))
+          );
+          adminsSnap.forEach(docSnap => ids.add(docSnap.id));
 
           // If student: get instructors of enrolled courses
-          const { data: enrollments } = await supabase
-            .from('user_course_enrollments')
-            .select('courses(created_by)')
-            .eq('user_id', user.id);
-            
-          if (enrollments) {
-            enrollments.forEach((e: any) => {
-              if (e.courses?.created_by) ids.add(e.courses.created_by);
+          const enrollmentsSnap = await getDocs(
+            query(collection(db, 'user_course_enrollments'), where('user_id', '==', user.id))
+          );
+          const enrolledCourseIds = enrollmentsSnap.docs.map(docSnap => docSnap.data().course_id).filter(Boolean);
+          
+          if (enrolledCourseIds.length > 0) {
+            const courseDocs = await Promise.all(
+              enrolledCourseIds.map(id => getDoc(doc(db, 'courses', id)))
+            );
+            courseDocs.forEach(docSnap => {
+              if (docSnap.exists() && docSnap.data().created_by) {
+                ids.add(docSnap.data().created_by);
+              }
             });
           }
 
           // If instructor (has created courses): get enrolled students
-          const { data: myCourses } = await supabase
-            .from('courses')
-            .select('id')
-            .eq('created_by', user.id);
-            
-          if (myCourses && myCourses.length > 0) {
-            const courseIds = myCourses.map(c => c.id);
-            const { data: studentEnrollments } = await supabase
-              .from('user_course_enrollments')
-              .select('user_id')
-              .in('course_id', courseIds);
-              
-            if (studentEnrollments) {
-              studentEnrollments.forEach(e => ids.add(e.user_id));
+          const myCoursesSnap = await getDocs(
+            query(collection(db, 'courses'), where('created_by', '==', user.id))
+          );
+          const myCourseIds = myCoursesSnap.docs.map(docSnap => docSnap.id);
+          
+          if (myCourseIds.length > 0) {
+            for (const chunk of chunkArray(myCourseIds, 10)) {
+              const studentEnrollmentsSnap = await getDocs(
+                query(collection(db, 'user_course_enrollments'), where('course_id', 'in', chunk))
+              );
+              studentEnrollmentsSnap.docs.forEach(docSnap => {
+                const data = docSnap.data();
+                if (data.user_id) ids.add(data.user_id);
+              });
             }
           }
 
@@ -89,15 +101,16 @@ export function NewMessageModal({ open, onOpenChange, onUserSelect }: NewMessage
     setLoading(true);
     
     try {
-      let q = supabase
-        .from('public_profiles')
-        .select('id, full_name, avatar_url, role')
-        .ilike('full_name', `%${searchQuery}%`)
-        .neq('id', user?.id)
-        .limit(20);
-        
-      const { data, error } = await q;
-      if (error) throw error;
+      // In Firestore, we do client-side filtering for case-insensitive substring search
+      const profilesSnap = await getDocs(collection(db, 'public_profiles'));
+      
+      let data = profilesSnap.docs
+        .map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as any))
+        .filter(u => 
+          u.id !== user?.id && 
+          u.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        .slice(0, 20);
       
       let filteredData = data;
       if (allowedIds !== null) {

@@ -5,7 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, doc, getDocs, getDoc, updateDoc, query, orderBy } from 'firebase/firestore';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { 
@@ -45,19 +46,40 @@ export default function AdminSubmissionsPage() {
 
   const fetchSubmissions = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('assignment_submissions')
-      .select(`
-        id, answer_text, file_url, status, score, feedback, submitted_at,
-        profiles!assignment_submissions_user_id_fkey(full_name, email),
-        assignments!assignment_submissions_assignment_id_fkey(title, max_score)
-      `)
-      .order('submitted_at', { ascending: false });
-
-    if (error) {
+    try {
+      const q = query(collection(db, 'assignment_submissions'), orderBy('submitted_at', 'desc'));
+      const querySnapshot = await getDocs(q);
+      
+      const subs = await Promise.all(querySnapshot.docs.map(async (docSnap) => {
+        const data = docSnap.data();
+        let profiles = null;
+        if (data.user_id) {
+          const profileDoc = await getDoc(doc(db, 'profiles', data.user_id));
+          if (profileDoc.exists()) {
+            profiles = profileDoc.data();
+          }
+        }
+        
+        let assignments = null;
+        if (data.assignment_id) {
+          const assignmentDoc = await getDoc(doc(db, 'assignments', data.assignment_id));
+          if (assignmentDoc.exists()) {
+            assignments = assignmentDoc.data();
+          }
+        }
+        
+        return {
+          id: docSnap.id,
+          ...data,
+          profiles,
+          assignments
+        };
+      }));
+      
+      setSubmissions(subs as unknown as Submission[]);
+    } catch (error) {
+      console.error(error);
       toast.error('Failed to load submissions');
-    } else {
-      setSubmissions((data as unknown as Submission[]) ?? []);
     }
     setLoading(false);
   };
@@ -76,19 +98,14 @@ export default function AdminSubmissionsPage() {
     const numScore = parseInt(scoreInput);
     if (isNaN(numScore)) { toast.error('Invalid score'); return; }
 
-    const { error } = await supabase
-      .from('assignment_submissions')
-      .update({
+    try {
+      await updateDoc(doc(db, 'assignment_submissions', selectedSub.id), {
         status: 'graded',
         score: numScore,
         feedback: feedbackInput,
         graded_at: new Date().toISOString()
-      })
-      .eq('id', selectedSub.id);
-
-    if (error) {
-      toast.error('Failed to save grade');
-    } else {
+      });
+      
       toast.success('Grade saved successfully');
       setGradingOpen(false);
       setSubmissions(submissions.map(s => 
@@ -96,6 +113,9 @@ export default function AdminSubmissionsPage() {
           ? { ...s, status: 'graded', score: numScore, feedback: feedbackInput } 
           : s
       ));
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to save grade');
     }
   };
 

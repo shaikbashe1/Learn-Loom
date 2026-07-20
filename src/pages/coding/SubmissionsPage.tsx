@@ -2,7 +2,9 @@ import { AppLayout } from '@/components/layouts/AppLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useState, useEffect } from 'react';
-import { supabase } from '@/db/supabase';
+import { db, storage } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '@/contexts/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
@@ -24,20 +26,40 @@ export default function SubmissionsPage() {
   useEffect(() => {
     if (!user) return;
     
-    // In reality, this would join with coding_problems to get the title
-    // But since Supabase handles relations, let's fetch with a join or 
-    // fetch problems separately. For this scaffold, we'll fetch submissions
-    // and assume `problem_id` works for display or we mock it.
     const fetchSubs = async () => {
       setLoading(true);
-      const { data } = await supabase
-        .from('submissions')
-        .select('*, coding_problems(title)')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(20);
+      try {
+        const subsRef = collection(db, 'submissions');
+        const q = query(
+          subsRef,
+          where('user_id', '==', user.id),
+          orderBy('created_at', 'desc'),
+          limit(20)
+        );
         
-      if (data) setSubmissions(data);
+        const snapshot = await getDocs(q);
+        const subs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        const populatedSubs = await Promise.all(
+          subs.map(async (sub: any) => {
+            if (sub.problem_id) {
+              const probRef = doc(db, 'coding_problems', sub.problem_id);
+              const probSnap = await getDoc(probRef);
+              if (probSnap.exists()) {
+                return {
+                  ...sub,
+                  coding_problems: { title: probSnap.data().title }
+                };
+              }
+            }
+            return sub;
+          })
+        );
+        
+        setSubmissions(populatedSubs);
+      } catch (err) {
+        console.error('Error fetching submissions:', err);
+      }
       setLoading(false);
     };
 

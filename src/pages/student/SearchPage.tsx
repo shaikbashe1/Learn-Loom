@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, getDocs } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Search, MessageSquare } from 'lucide-react';
 
@@ -30,23 +31,28 @@ export default function SearchPage() {
     (async () => {
       setLoading(true);
       
-      const [postsRes, profilesRes] = await Promise.all([
-        supabase
-          .from('forum_posts')
-          .select('id, title, content, profiles(full_name)')
-          .ilike('title', `%${query}%`)
-          .limit(10),
-        supabase
-          .from('profiles')
-          .select('id, full_name, bio, avatar_url')
-          .ilike('full_name', `%${query}%`)
-          .limit(10)
-      ]);
-      
-      const newResults: SearchResult[] = [];
-      
-      if (profilesRes.data) {
-        profilesRes.data.forEach(p => {
+      try {
+        const [postsSnap, profilesSnap] = await Promise.all([
+          getDocs(collection(db, 'forum_posts')),
+          getDocs(collection(db, 'profiles'))
+        ]);
+        
+        const profilesData = profilesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
+        const postsData = postsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
+
+        const queryLower = query.toLowerCase();
+
+        const matchedProfiles = profilesData
+          .filter(p => (p.full_name || '').toLowerCase().includes(queryLower))
+          .slice(0, 10);
+
+        const matchedPosts = postsData
+          .filter(p => (p.title || '').toLowerCase().includes(queryLower))
+          .slice(0, 10);
+        
+        const newResults: SearchResult[] = [];
+        
+        matchedProfiles.forEach(p => {
           newResults.push({
             id: p.id,
             type: 'user',
@@ -56,22 +62,24 @@ export default function SearchPage() {
             imageUrl: p.avatar_url
           });
         });
-      }
-      
-      if (postsRes.data) {
-        postsRes.data.forEach(p => {
+        
+        matchedPosts.forEach(p => {
+          const authorProfile = profilesData.find(prof => prof.id === p.author_id);
           newResults.push({
             id: p.id,
             type: 'post',
             title: p.title,
-            subtitle: `By ${(p.profiles as any)?.full_name || 'Anonymous'}`,
+            subtitle: `By ${authorProfile?.full_name || 'Anonymous'}`,
             url: `/community#post-${p.id}`,
           });
         });
+        
+        setResults(newResults);
+      } catch (err) {
+        console.error('Error fetching search results:', err);
+      } finally {
+        setLoading(false);
       }
-      
-      setResults(newResults);
-      setLoading(false);
     })();
   }, [query]);
 

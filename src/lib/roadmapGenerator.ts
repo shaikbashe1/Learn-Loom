@@ -1,4 +1,6 @@
-import { supabase } from '@/db/supabase';
+import { db, storage } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { staticRoadmaps } from '@/data/roadmaps';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -36,26 +38,28 @@ export async function generateAndSaveRoadmap(
   const totalWeeks = template.estimated_weeks ? Math.max(4, Math.round(template.estimated_weeks * multiplier)) : 12;
 
   // 2. Insert Roadmap
-  const { error: rError } = await supabase.from('user_roadmaps').insert({
-    id: roadmapId,
-    user_id: userId,
-    title: `${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)} ${template.title}`,
-    description: `A personalized ${difficulty} roadmap to become a ${targetRole}. ${template.description}`,
-    domain: domain,
-    target_role: targetRole,
-    difficulty: difficulty,
-    estimated_weeks: totalWeeks,
-    progress_percentage: 0
-  });
-
-  if (rError) throw rError;
+  try {
+    await setDoc(doc(db, 'user_roadmaps', roadmapId), {
+      id: roadmapId,
+      user_id: userId,
+      title: `${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)} ${template.title}`,
+      description: `A personalized ${difficulty} roadmap to become a ${targetRole}. ${template.description}`,
+      domain: domain,
+      target_role: targetRole,
+      difficulty: difficulty,
+      estimated_weeks: totalWeeks,
+      progress_percentage: 0
+    });
+  } catch (rError) {
+    throw rError;
+  }
 
   // 3. Prepare Stages & Items
   for (let i = 0; i < template.phases.length; i++) {
     const phase = template.phases[i];
     const stageId = uuidv4();
 
-    await supabase.from('roadmap_stages').insert({
+    await setDoc(doc(db, 'roadmap_stages', stageId), {
       id: stageId,
       roadmap_id: roadmapId,
       title: phase.title,
@@ -95,7 +99,9 @@ export async function generateAndSaveRoadmap(
     });
 
     if (items.length > 0) {
-      await supabase.from('roadmap_items').insert(items);
+      for (const item of items) {
+        await setDoc(doc(db, 'roadmap_items', item.id), item);
+      }
     }
   }
 

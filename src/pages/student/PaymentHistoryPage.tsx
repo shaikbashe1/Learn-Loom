@@ -11,7 +11,8 @@ import {
   Download, 
   PlusCircle 
 } from 'lucide-react';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
 
@@ -41,16 +42,26 @@ export default function PaymentHistoryPage() {
 
   useEffect(() => {
     if (!user) { setLoading(false); return; }
-    supabase
-      .from('payment_orders')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(50)
-      .then(({ data }) => {
-        setOrders((data as PaymentOrder[]) ?? []);
+
+    const fetchOrders = async () => {
+      try {
+        const q = query(
+          collection(db, 'payment_orders'),
+          where('user_id', '==', user.uid || user.id),
+          orderBy('created_at', 'desc'),
+          limit(50)
+        );
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as PaymentOrder[];
+        setOrders(data);
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchOrders();
   }, [user]);
 
   return (

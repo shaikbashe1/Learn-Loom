@@ -5,7 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Loading } from '@/components/ui/loading';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, addDoc, updateDoc, query, where, orderBy } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { enrollInCourse, getEnrollment, getCourseModuleProgress } from '@/lib/progress';
 import { toast } from 'sonner';
@@ -75,26 +76,36 @@ export default function CourseDetailPage() {
   const loadAssessments = useCallback(async (enroll: DBEnrollment | null) => {
     if (!courseId || !user) return;
 
-    const { data: asgns } = await supabase.from('assignments').select('*').eq('course_id', courseId).order('created_at', { ascending: true });
-    const asgList: DBAssignment[] = asgns ?? [];
+    const asgnsSnap = await getDocs(query(collection(db, 'assignments'), where('course_id', '==', courseId), orderBy('created_at', 'asc')));
+    const asgList: DBAssignment[] = asgnsSnap.docs.map(d => ({ id: d.id, ...d.data() } as DBAssignment));
     const asgIds = asgList.map(a => a.id);
 
     const subMap = new Map<string, DBAssignmentSubmission>();
     if (asgIds.length > 0) {
-      const { data: subs } = await supabase.from('assignment_submissions').select('*').eq('user_id', user.id).in('assignment_id', asgIds);
-      (subs ?? []).forEach((s: DBAssignmentSubmission) => subMap.set(s.assignment_id, s));
+      const subs: DBAssignmentSubmission[] = [];
+      for (let i = 0; i < asgIds.length; i += 10) {
+        const chunk = asgIds.slice(i, i + 10);
+        const subsSnap = await getDocs(query(collection(db, 'assignment_submissions'), where('user_id', '==', user.id), where('assignment_id', 'in', chunk)));
+        subs.push(...subsSnap.docs.map(d => ({ id: d.id, ...d.data() } as DBAssignmentSubmission)));
+      }
+      subs.forEach(s => subMap.set(s.assignment_id, s));
     }
 
     setAssignments(asgList.map(a => ({ ...a, submission: subMap.get(a.id) ?? null, draftText: subMap.get(a.id)?.answer_text ?? '', submitting: false })));
 
-    const { data: qzs } = await supabase.from('quizzes').select('*').eq('course_id', courseId).order('is_grand_test', { ascending: true });
-    const qzList: DBQuiz[] = qzs ?? [];
+    const qzsSnap = await getDocs(query(collection(db, 'quizzes'), where('course_id', '==', courseId), orderBy('is_grand_test', 'asc')));
+    const qzList: DBQuiz[] = qzsSnap.docs.map(d => ({ id: d.id, ...d.data() } as DBQuiz));
     const qzIds = qzList.map(q => q.id);
 
     const questionsMap = new Map<string, DBQuizQuestion[]>();
     if (qzIds.length > 0) {
-      const { data: allQ } = await supabase.from('quiz_questions').select('*').in('quiz_id', qzIds).order('sort_order', { ascending: true });
-      (allQ ?? []).forEach((q: DBQuizQuestion) => {
+      const allQ: DBQuizQuestion[] = [];
+      for (let i = 0; i < qzIds.length; i += 10) {
+        const chunk = qzIds.slice(i, i + 10);
+        const allQSnap = await getDocs(query(collection(db, 'quiz_questions'), where('quiz_id', 'in', chunk), orderBy('sort_order', 'asc')));
+        allQ.push(...allQSnap.docs.map(d => ({ id: d.id, ...d.data() } as DBQuizQuestion)));
+      }
+      allQ.forEach(q => {
         if (!questionsMap.has(q.quiz_id)) questionsMap.set(q.quiz_id, []);
         questionsMap.get(q.quiz_id)!.push(q);
       });
@@ -102,8 +113,13 @@ export default function CourseDetailPage() {
 
     const attemptMap = new Map<string, DBQuizAttempt>();
     if (qzIds.length > 0) {
-      const { data: attempts } = await supabase.from('quiz_attempts').select('*').eq('user_id', user.id).in('quiz_id', qzIds);
-      (attempts ?? []).forEach((a: DBQuizAttempt) => attemptMap.set(a.quiz_id, a));
+      const attempts: DBQuizAttempt[] = [];
+      for (let i = 0; i < qzIds.length; i += 10) {
+        const chunk = qzIds.slice(i, i + 10);
+        const attemptsSnap = await getDocs(query(collection(db, 'quiz_attempts'), where('user_id', '==', user.id), where('quiz_id', 'in', chunk)));
+        attempts.push(...attemptsSnap.docs.map(d => ({ id: d.id, ...d.data() } as DBQuizAttempt)));
+      }
+      attempts.forEach(a => attemptMap.set(a.quiz_id, a));
     }
 
     const modulequizzesArr: QuizWithState[] = [];
@@ -125,11 +141,11 @@ export default function CourseDetailPage() {
     if (!courseId) return;
     setLoading(true);
 
-    const { data: courseData } = await supabase.from('courses').select('*').eq('id', courseId).maybeSingle();
-    setCourse(courseData);
+    const courseDoc = await getDoc(doc(db, 'courses', courseId));
+    setCourse(courseDoc.exists() ? { id: courseDoc.id, ...courseDoc.data() } as DBCourse : null);
 
-    const { data: mods } = await supabase.from('course_modules').select('*').eq('course_id', courseId).order('order_index', { ascending: true });
-    const moduleList: DBModule[] = mods ?? [];
+    const modsSnap = await getDocs(query(collection(db, 'course_modules'), where('course_id', '==', courseId), orderBy('order_index', 'asc')));
+    const moduleList: DBModule[] = modsSnap.docs.map(d => ({ id: d.id, ...d.data() } as DBModule));
 
     let enrichedModules: ModuleWithStatus[] = moduleList.map(m => ({ ...m, status: 'locked' as const }));
     let enroll: DBEnrollment | null = null;
@@ -181,11 +197,23 @@ export default function CourseDetailPage() {
     const asg = assignments[asgIdx];
     if (!asg.draftText.trim()) { toast.error('Please write your answer first.'); return; }
     setAssignments(prev => prev.map((a, i) => i === asgIdx ? { ...a, submitting: true } : a));
-    const { error } = await supabase.from('assignment_submissions').upsert({ user_id: user.id, assignment_id: asg.id, answer_text: asg.draftText.trim(), status: 'submitted' }, { onConflict: 'user_id,assignment_id' });
-    if (error) { toast.error('Submission failed', { description: error.message }); setAssignments(prev => prev.map((a, i) => i === asgIdx ? { ...a, submitting: false } : a)); return; }
-    toast.success('Assignment submitted successfully!');
-    const { data: sub } = await supabase.from('assignment_submissions').select('*').eq('user_id', user.id).eq('assignment_id', asg.id).maybeSingle();
-    setAssignments(prev => prev.map((a, i) => i === asgIdx ? { ...a, submission: sub ?? null, submitting: false } : a));
+    try {
+      const q = query(collection(db, 'assignment_submissions'), where('user_id', '==', user.id), where('assignment_id', '==', asg.id));
+      const qSnap = await getDocs(q);
+      if (qSnap.empty) {
+        await addDoc(collection(db, 'assignment_submissions'), { user_id: user.id, assignment_id: asg.id, answer_text: asg.draftText.trim(), status: 'submitted' });
+      } else {
+        await updateDoc(doc(db, 'assignment_submissions', qSnap.docs[0].id), { answer_text: asg.draftText.trim(), status: 'submitted' });
+      }
+      toast.success('Assignment submitted successfully!');
+      
+      const newQSnap = await getDocs(q);
+      const sub = newQSnap.empty ? null : { id: newQSnap.docs[0].id, ...newQSnap.docs[0].data() } as DBAssignmentSubmission;
+      setAssignments(prev => prev.map((a, i) => i === asgIdx ? { ...a, submission: sub, submitting: false } : a));
+    } catch (error: any) {
+      toast.error('Submission failed', { description: error.message });
+      setAssignments(prev => prev.map((a, i) => i === asgIdx ? { ...a, submitting: false } : a));
+    }
   };
 
   const updateDraft = (asgIdx: number, text: string) => setAssignments(prev => prev.map((a, i) => i === asgIdx ? { ...a, draftText: text } : a));
@@ -214,13 +242,25 @@ export default function CourseDetailPage() {
     const total = quiz.questions.length;
     const score = Math.round((correct / total) * 100);
     const passed = score >= quiz.passing_score;
-    const { error } = await supabase.from('quiz_attempts').upsert({ user_id: user.id, quiz_id: quiz.id, answers: quiz.selectedAnswers, score: correct, total, passed }, { onConflict: 'user_id,quiz_id' });
-    if (error) { toast.error('Failed to save quiz result', { description: error.message }); setSubmitting(false); return; }
-    const attempt: DBQuizAttempt = { id: '', user_id: user.id, quiz_id: quiz.id, answers: quiz.selectedAnswers, score: correct, total, passed, completed_at: new Date().toISOString() };
-    if (isGrandTest) setGrandTest(prev => prev ? { ...prev, attempt, submitting: false, quizStarted: false } : prev);
-    else setModuleQuizzes(prev => prev.map((q, i) => i === quizIdx ? { ...q, attempt, submitting: false, quizStarted: false } : q));
-    toast.success(passed ? `Passed! Score: ${score}%` : `Score: ${score}% — Keep practicing!`);
-    setSubmitting(false);
+    try {
+      const q = query(collection(db, 'quiz_attempts'), where('user_id', '==', user.id), where('quiz_id', '==', quiz.id));
+      const qSnap = await getDocs(q);
+      const completedAt = new Date().toISOString();
+      if (qSnap.empty) {
+        await addDoc(collection(db, 'quiz_attempts'), { user_id: user.id, quiz_id: quiz.id, answers: quiz.selectedAnswers, score: correct, total, passed, completed_at: completedAt });
+      } else {
+        await updateDoc(doc(db, 'quiz_attempts', qSnap.docs[0].id), { answers: quiz.selectedAnswers, score: correct, total, passed, completed_at: completedAt });
+      }
+      const newQSnap = await getDocs(q);
+      const attempt = newQSnap.empty ? null : { id: newQSnap.docs[0].id, ...newQSnap.docs[0].data() } as DBQuizAttempt;
+      if (isGrandTest) setGrandTest(prev => prev ? { ...prev, attempt: attempt || prev.attempt, submitting: false, quizStarted: false } : prev);
+      else setModuleQuizzes(prev => prev.map((q, i) => i === quizIdx ? { ...q, attempt: attempt || q.attempt, submitting: false, quizStarted: false } : q));
+      toast.success(passed ? `Passed! Score: ${score}%` : `Score: ${score}% — Keep practicing!`);
+      setSubmitting(false);
+    } catch (error: any) {
+      toast.error('Failed to save quiz result', { description: error.message });
+      setSubmitting(false);
+    }
   };
 
   const retakeQuiz = (quizIdx: number, isGrandTest = false) => {

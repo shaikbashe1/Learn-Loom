@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { supabase } from '@/db/supabase';
+import { auth } from '@/db/firebase';
+import { sendPasswordResetEmail } from 'firebase/auth';
 import { toast } from 'sonner';
 import { 
   KeyRound, 
@@ -54,9 +55,12 @@ export default function ForgotPasswordPage() {
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      });
+      let error: Error | null = null;
+      try {
+        await sendPasswordResetEmail(auth, email.trim().toLowerCase());
+      } catch (err) {
+        error = err as Error;
+      }
       setLoading(false);
       // Security Requirement: Always show success to prevent email enumeration
       setSubmitted(true);

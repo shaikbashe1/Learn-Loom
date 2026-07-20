@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy } from 'firebase/firestore';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Bookmark, BookmarkCheck, FileText, Youtube, HelpCircle, FileQuestion, MessageSquare } from 'lucide-react';
 import type { DBMLSModule, DBMLSMaterial, DBMLSPractice } from '@/types/types';
@@ -33,63 +34,61 @@ export default function ModuleViewerPage() {
       setLoading(true);
       try {
         // Fetch Module
-        const { data: modData, error: modErr } = await supabase
-          .from('mls_modules')
-          .select('*')
-          .eq('id', moduleId)
-          .single();
+        const modSnap = await getDoc(doc(db, 'mls_modules', moduleId));
           
-        if (modErr || !modData) {
+        if (!modSnap.exists()) {
           toast.error("Module not found");
           navigate(`/mls/${trackId}`);
           return;
         }
-        setModuleData(modData);
+        setModuleData({ id: modSnap.id, ...modSnap.data() } as DBMLSModule);
 
         // Fetch Materials
-        const { data: matsData } = await supabase
-          .from('mls_materials')
-          .select('*')
-          .eq('module_id', moduleId)
-          .order('order_index', { ascending: true });
-        if (matsData) setMaterials(matsData);
+        const matsQuery = query(
+          collection(db, 'mls_materials'),
+          where('module_id', '==', moduleId),
+          orderBy('order_index', 'asc')
+        );
+        const matsSnap = await getDocs(matsQuery);
+        setMaterials(matsSnap.docs.map(d => ({ id: d.id, ...d.data() } as DBMLSMaterial)));
 
         // Fetch Practice
-        const { data: pracData } = await supabase
-          .from('mls_practice')
-          .select('*')
-          .eq('module_id', moduleId)
-          .order('order_index', { ascending: true });
-        if (pracData) setPracticeQs(pracData);
+        const pracQuery = query(
+          collection(db, 'mls_practice'),
+          where('module_id', '==', moduleId),
+          orderBy('order_index', 'asc')
+        );
+        const pracSnap = await getDocs(pracQuery);
+        setPracticeQs(pracSnap.docs.map(d => ({ id: d.id, ...d.data() } as DBMLSPractice)));
 
         // Fetch User State
         if (user) {
-          const { data: progData } = await supabase
-            .from('mls_user_progress')
-            .select('status')
-            .eq('user_id', user.id)
-            .eq('module_id', moduleId)
-            .maybeSingle();
+          const progQuery = query(
+            collection(db, 'mls_user_progress'),
+            where('user_id', '==', user.id),
+            where('module_id', '==', moduleId)
+          );
+          const progDocs = await getDocs(progQuery);
             
-          if (progData) {
-            setIsCompleted(progData.status === 'completed');
+          if (!progDocs.empty) {
+            setIsCompleted(progDocs.docs[0].data().status === 'completed');
           } else {
             // Mark as started if opening for the first time
-            await supabase.from('mls_user_progress').insert({
+            await addDoc(collection(db, 'mls_user_progress'), {
               user_id: user.id,
               module_id: moduleId,
               status: 'started'
             });
           }
 
-          const { data: bmkData } = await supabase
-            .from('mls_bookmarks')
-            .select('id')
-            .eq('user_id', user.id)
-            .eq('module_id', moduleId)
-            .maybeSingle();
+          const bmkQuery = query(
+            collection(db, 'mls_bookmarks'),
+            where('user_id', '==', user.id),
+            where('module_id', '==', moduleId)
+          );
+          const bmkDocs = await getDocs(bmkQuery);
             
-          if (bmkData) {
+          if (!bmkDocs.empty) {
             setIsBookmarked(true);
           }
         }
@@ -108,34 +107,57 @@ export default function ModuleViewerPage() {
     const newStatus = isCompleted ? 'started' : 'completed';
     setIsCompleted(!isCompleted);
     
-    const { error } = await supabase
-      .from('mls_user_progress')
-      .upsert({
+    try {
+      const progQuery = query(
+        collection(db, 'mls_user_progress'),
+        where('user_id', '==', user.id),
+        where('module_id', '==', moduleData.id)
+      );
+      const progDocs = await getDocs(progQuery);
+      
+      const payload = {
         user_id: user.id,
         module_id: moduleData.id,
         status: newStatus,
         completed_at: newStatus === 'completed' ? new Date().toISOString() : null
-      }, { onConflict: 'user_id,module_id' });
+      };
+
+      if (!progDocs.empty) {
+        await updateDoc(doc(db, 'mls_user_progress', progDocs.docs[0].id), payload);
+      } else {
+        await addDoc(collection(db, 'mls_user_progress'), payload);
+      }
       
-    if (error) {
+      if (newStatus === 'completed') toast.success("Module marked as complete! 🎉");
+    } catch (error) {
       toast.error("Failed to update progress");
       setIsCompleted(isCompleted); // revert
-    } else {
-      if (newStatus === 'completed') toast.success("Module marked as complete! 🎉");
     }
   };
 
   const toggleBookmark = async () => {
     if (!user || !moduleData) return;
     
-    if (isBookmarked) {
-      setIsBookmarked(false);
-      await supabase.from('mls_bookmarks').delete().eq('user_id', user.id).eq('module_id', moduleData.id);
-      toast.info("Bookmark removed");
-    } else {
-      setIsBookmarked(true);
-      await supabase.from('mls_bookmarks').insert({ user_id: user.id, module_id: moduleData.id });
-      toast.success("Module bookmarked");
+    try {
+      if (isBookmarked) {
+        setIsBookmarked(false);
+        const bmkQuery = query(
+          collection(db, 'mls_bookmarks'),
+          where('user_id', '==', user.id),
+          where('module_id', '==', moduleData.id)
+        );
+        const bmkDocs = await getDocs(bmkQuery);
+        if (!bmkDocs.empty) {
+          await deleteDoc(doc(db, 'mls_bookmarks', bmkDocs.docs[0].id));
+        }
+        toast.info("Bookmark removed");
+      } else {
+        setIsBookmarked(true);
+        await addDoc(collection(db, 'mls_bookmarks'), { user_id: user.id, module_id: moduleData.id });
+        toast.success("Module bookmarked");
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 

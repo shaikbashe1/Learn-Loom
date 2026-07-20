@@ -6,7 +6,8 @@ import { User, MapPin, GraduationCap, Briefcase, Target, Code, Award, Flame, Sta
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { doc, getDoc, collection, query, where, getDocs, deleteDoc, addDoc } from 'firebase/firestore';
 
 export default function PublicProfilePage() {
   const { id } = useParams<{ id: string }>();
@@ -23,31 +24,24 @@ export default function PublicProfilePage() {
       if (!id) return;
       try {
         setLoading(true);
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', id)
-          .single();
+        const profileRef = doc(db, 'profiles', id);
+        const profileSnap = await getDoc(profileRef);
 
-        if (error || !data) {
-          console.error("Failed to fetch profile:", error);
+        if (!profileSnap.exists()) {
+          console.error("Failed to fetch profile");
           setProfile(null);
         } else {
-          setProfile(data);
+          setProfile({ id: profileSnap.id, ...profileSnap.data() });
           
           // Fetch followers count
-          const { count: fCount } = await supabase
-            .from('user_followers')
-            .select('*', { count: 'exact', head: true })
-            .eq('following_id', id);
-          setFollowersCount(fCount || 0);
+          const followersQuery = query(collection(db, 'user_followers'), where('following_id', '==', id));
+          const followersSnap = await getDocs(followersQuery);
+          setFollowersCount(followersSnap.size);
 
           // Fetch following count
-          const { count: fngCount } = await supabase
-            .from('user_followers')
-            .select('*', { count: 'exact', head: true })
-            .eq('follower_id', id);
-          setFollowingCount(fngCount || 0);
+          const followingQuery = query(collection(db, 'user_followers'), where('follower_id', '==', id));
+          const followingSnap = await getDocs(followingQuery);
+          setFollowingCount(followingSnap.size);
         }
       } catch (err) {
         console.error("Error fetching profile:", err);
@@ -61,13 +55,13 @@ export default function PublicProfilePage() {
   useEffect(() => {
     const checkFollowing = async () => {
       if (!user || !id) return;
-      const { data } = await supabase
-        .from('user_followers')
-        .select('*')
-        .eq('follower_id', user.id)
-        .eq('following_id', id)
-        .single();
-      setIsFollowing(!!data);
+      const q = query(
+        collection(db, 'user_followers'),
+        where('follower_id', '==', user.id),
+        where('following_id', '==', id)
+      );
+      const snap = await getDocs(q);
+      setIsFollowing(!snap.empty);
     };
     checkFollowing();
   }, [user, id]);
@@ -83,21 +77,25 @@ export default function PublicProfilePage() {
     try {
       if (isFollowing) {
         // Unfollow
-        const { error } = await supabase
-          .from('user_followers')
-          .delete()
-          .eq('follower_id', user.id)
-          .eq('following_id', id);
-        if (error) throw error;
+        const q = query(
+          collection(db, 'user_followers'),
+          where('follower_id', '==', user.id),
+          where('following_id', '==', id)
+        );
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          await deleteDoc(snap.docs[0].ref);
+        }
         setIsFollowing(false);
         setFollowersCount(prev => Math.max(0, prev - 1));
         toast.success(`Unfollowed ${profile.full_name}`);
       } else {
         // Follow
-        const { error } = await supabase
-          .from('user_followers')
-          .insert({ follower_id: user.id, following_id: id });
-        if (error) throw error;
+        await addDoc(collection(db, 'user_followers'), { 
+          follower_id: user.id, 
+          following_id: id,
+          created_at: new Date().toISOString()
+        });
         setIsFollowing(true);
         setFollowersCount(prev => prev + 1);
         toast.success(`Following ${profile.full_name}`);

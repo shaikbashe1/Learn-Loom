@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '@/db/supabase';
+import { db, storage } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useDebounce } from '@/hooks/use-debounce';
 
 export type UsernameStatus =
@@ -14,10 +16,6 @@ const USERNAME_RE = /^[a-zA-Z0-9_]{3,30}$/;
 
 /**
  * Real-time, debounced username uniqueness check.
- *
- * RLS only lets a user read their own profile row, so a plain SELECT can't
- * detect collisions. This calls the `check_username_available` SECURITY DEFINER
- * RPC (added in migration 20260628120000) instead.
  *
  * `initialUsername` is treated as already-owned by the current user so editing
  * back to it reports "available" rather than "taken".
@@ -44,15 +42,21 @@ export function useUsernameAvailability(username: string, initialUsername?: stri
     }
 
     setStatus('checking');
-    supabase
-      .rpc('check_username_available', { p_username: debounced })
-      .then(({ data, error }) => {
+    const q = query(
+      collection(db, 'profiles'),
+      where('username', '==', debounced),
+      limit(1)
+    );
+
+    getDocs(q)
+      .then((snapshot) => {
         if (cancelled) return;
-        if (error) {
-          setStatus('error');
-          return;
-        }
-        setStatus(data ? 'available' : 'taken');
+        setStatus(snapshot.empty ? 'available' : 'taken');
+      })
+      .catch((error) => {
+        console.error(error);
+        if (cancelled) return;
+        setStatus('error');
       });
 
     return () => {

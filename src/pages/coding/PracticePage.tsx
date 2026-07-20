@@ -3,7 +3,9 @@ import { AppLayout } from '@/components/layouts/AppLayout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { supabase } from '@/db/supabase';
+import { db, storage } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -31,19 +33,17 @@ export default function PracticePage() {
   useEffect(() => {
     const fetchData = async () => {
       // Fetch problems
-      const { data: probData } = await supabase
-        .from('coding_problems')
-        .select('*')
-        .order('created_at', { ascending: true });
+      const q = query(collection(db, 'coding_problems'), orderBy('created_at', 'asc'));
+      const querySnapshot = await getDocs(q);
+      const probData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         
       if (probData) setProblems(probData as DBCodingProblem[]);
 
       // Fetch user solved status
       if (user) {
-        const { data: subData } = await supabase
-          .from('coding_submissions')
-          .select('problem_id, verdict')
-          .eq('user_id', user.id);
+        const subQ = query(collection(db, 'coding_submissions'), where('user_id', '==', user.id));
+        const subSnapshot = await getDocs(subQ);
+        const subData = subSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           
         if (subData) {
           const solved = new Set<string>();

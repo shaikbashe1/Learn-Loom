@@ -15,7 +15,8 @@ import {
   MessageSquare, 
   Star 
 } from 'lucide-react';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, getDocs, query, orderBy, limit, where } from 'firebase/firestore';
 import { toast } from 'sonner';
 
 interface ReportStats {
@@ -44,17 +45,57 @@ export default function AdminReportsPage() {
 
   const fetchData = async () => {
     setLoading(true);
-    const [statsRes, coursesRes] = await Promise.all([
-      supabase.rpc('get_admin_stats').single(),
-      supabase.from('courses')
-        .select('id, title, category, student_count, rating')
-        .order('student_count', { ascending: false })
-        .limit(8),
-    ]);
-    if (statsRes.error) toast.error('Failed to load report data');
-    setStats(statsRes.data as ReportStats | null);
-    setCourses(coursesRes.data ?? []);
-    setLoading(false);
+    try {
+      const [
+        allCoursesSnap,
+        topCoursesSnap,
+        usersSnap,
+        enrollmentsSnap,
+        certificatesSnap,
+        quizAttemptsSnap,
+        submissionsSnap,
+        forumPostsSnap
+      ] = await Promise.all([
+        getDocs(collection(db, 'courses')),
+        getDocs(query(collection(db, 'courses'), orderBy('student_count', 'desc'), limit(8))),
+        getDocs(query(collection(db, 'users'), where('role', '==', 'student'))),
+        getDocs(collection(db, 'enrollments')),
+        getDocs(collection(db, 'certificates')),
+        getDocs(collection(db, 'quiz_attempts')),
+        getDocs(collection(db, 'submissions')),
+        getDocs(collection(db, 'forum_posts'))
+      ]);
+
+      const total_enrollments = enrollmentsSnap.size;
+      const completed_enrollments = enrollmentsSnap.docs.filter(d => {
+        const data = d.data();
+        return data.progress >= 100 || data.status === 'completed';
+      }).length;
+
+      setStats({
+        total_students: usersSnap.size,
+        total_courses: allCoursesSnap.size,
+        total_enrollments,
+        completed_enrollments,
+        certificates_issued: certificatesSnap.size,
+        total_quiz_attempts: quizAttemptsSnap.size,
+        total_submissions: submissionsSnap.size,
+        forum_posts_count: forumPostsSnap.size,
+      });
+
+      setCourses(topCoursesSnap.docs.map(doc => ({
+        id: doc.id,
+        title: doc.data().title || '',
+        category: doc.data().category || '',
+        student_count: doc.data().student_count || 0,
+        rating: doc.data().rating || 0
+      })));
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to load report data');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { fetchData(); }, []);

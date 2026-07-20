@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { AIMentorChat } from '@/components/chat/AIMentorChat';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Target, TrendingUp, AlertTriangle, BookOpen } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -28,28 +29,29 @@ export default function AIMentorPage() {
     
     const fetchAnalytics = async () => {
       try {
-        const { data: enrollments } = await supabase
-          .from('user_course_enrollments')
-          .select('progress_percent, completed_at, courses(category)')
-          .eq('user_id', user.id);
+        const enrollmentsRef = collection(db, 'user_course_enrollments');
+        const enrollmentsQ = query(enrollmentsRef, where('user_id', '==', user.id));
+        const enrollmentsSnap = await getDocs(enrollmentsQ);
           
-        const { data: quizzes } = await supabase
-          .from('quiz_attempts')
-          .select('score, total, passed, quizzes(title, is_grand_test)')
-          .eq('user_id', user.id);
+        const quizzesRef = collection(db, 'quiz_attempts');
+        const quizzesQ = query(quizzesRef, where('user_id', '==', user.id));
+        const quizzesSnap = await getDocs(quizzesQ);
 
         let completed = 0;
         let categories: Record<string, number> = {};
         
-        if (enrollments) {
-          enrollments.forEach(e => {
-            if (e.completed_at || e.progress_percent === 100) completed++;
-            const c = (Array.isArray(e.courses) ? e.courses[0] : e.courses) as { category: string } | null;
-            const cat = c?.category;
-            if (cat) {
-              categories[cat] = (categories[cat] || 0) + 1;
+        for (const docSnap of enrollmentsSnap.docs) {
+          const e = docSnap.data();
+          if (e.completed_at || e.progress_percent === 100) completed++;
+          if (e.course_id) {
+            const courseDoc = await getDoc(doc(db, 'courses', e.course_id));
+            if (courseDoc.exists()) {
+              const cat = courseDoc.data().category;
+              if (cat) {
+                categories[cat] = (categories[cat] || 0) + 1;
+              }
             }
-          });
+          }
         }
 
         let totalScore = 0;
@@ -57,18 +59,21 @@ export default function AIMentorPage() {
         let strong: string[] = [];
         let weak: string[] = [];
 
-        if (quizzes && quizzes.length > 0) {
-          quizzes.forEach(q => {
-            totalScore += q.score;
-            totalMax += q.total;
-            const quiz = (Array.isArray(q.quizzes) ? q.quizzes[0] : q.quizzes) as { title: string; is_grand_test: boolean } | null;
-            const title = quiz?.title;
-            const pct = (q.score / q.total) * 100;
-            if (title) {
-              if (pct >= 80) strong.push(title.replace('Quiz: ', ''));
-              else if (pct < 60) weak.push(title.replace('Quiz: ', ''));
+        for (const docSnap of quizzesSnap.docs) {
+          const q = docSnap.data();
+          totalScore += q.score || 0;
+          totalMax += q.total || 0;
+          if (q.quiz_id) {
+            const quizDoc = await getDoc(doc(db, 'quizzes', q.quiz_id));
+            if (quizDoc.exists()) {
+              const title = quizDoc.data().title;
+              const pct = q.total > 0 ? (q.score / q.total) * 100 : 0;
+              if (title) {
+                if (pct >= 80) strong.push(title.replace('Quiz: ', ''));
+                else if (pct < 60) weak.push(title.replace('Quiz: ', ''));
+              }
             }
-          });
+          }
         }
         
         strong = Array.from(new Set(strong)).slice(0, 3);

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from './useSubscription';
 
@@ -42,20 +43,31 @@ export function useAIRateLimit(endpoint: string = 'ai-mentor'): AIRateLimitState
     }
 
     try {
-      const { data, error } = await supabase.rpc('get_rate_limit_usage', {
-        p_user_id: user.id,
-        p_endpoint: endpoint,
-      });
+      const q = query(
+        collection(db, 'rate_limits'),
+        where('user_id', '==', user.id),
+        where('endpoint', '==', endpoint)
+      );
 
-      if (error) {
-        console.error('Failed to fetch rate limit usage:', error);
-        setLoading(false);
-        return;
-      }
+      const querySnapshot = await getDocs(q);
 
-      if (data) {
-        setUsed(data.current_count ?? 0);
-        setResetAt(data.window_reset ?? null);
+      if (!querySnapshot.empty) {
+        const data = querySnapshot.docs[0].data();
+        
+        // Check if window has expired
+        const resetTime = data.window_reset ? new Date(data.window_reset).getTime() : 0;
+        const isExpired = resetTime > 0 && resetTime < Date.now();
+        
+        if (isExpired) {
+          setUsed(0);
+          setResetAt(null);
+        } else {
+          setUsed(data.current_count ?? 0);
+          setResetAt(data.window_reset ?? null);
+        }
+      } else {
+        setUsed(0);
+        setResetAt(null);
       }
     } catch (err) {
       console.error('Rate limit fetch error:', err);

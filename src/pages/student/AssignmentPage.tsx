@@ -3,7 +3,9 @@ import { AppLayout } from '@/components/layouts/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
-import { supabase } from '@/db/supabase';
+import { db, storage } from '@/db/firebase';
+import { collection, query, where, getDocs, doc, getDoc, setDoc, addDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
   FileText, 
@@ -42,40 +44,75 @@ export default function AssignmentPage() {
     if (!user) return;
     (async () => {
       setLoading(true);
-      const { data: enrollments } = await supabase
-        .from('user_course_enrollments')
-        .select('course_id')
-        .eq('user_id', user.id);
-      const courseIds = (enrollments ?? []).map(e => e.course_id);
+      try {
+        const enrollmentsRef = collection(db, 'user_course_enrollments');
+        const enrollmentsQuery = query(enrollmentsRef, where('user_id', '==', user.id));
+        const enrollmentsSnap = await getDocs(enrollmentsQuery);
+        const courseIds = enrollmentsSnap.docs.map(d => d.data().course_id);
 
-      if (courseIds.length === 0) { setLoading(false); return; }
+        if (courseIds.length === 0) { setLoading(false); return; }
 
-      const { data: asgns } = await supabase
-        .from('assignments')
-        .select('*, courses!assignments_course_id_fkey(title)')
-        .in('course_id', courseIds)
-        .order('created_at', { ascending: false });
+        const assignmentsList: any[] = [];
+        for (let i = 0; i < courseIds.length; i += 10) {
+          const chunk = courseIds.slice(i, i + 10);
+          const q = query(collection(db, 'assignments'), where('course_id', 'in', chunk));
+          const snap = await getDocs(q);
+          assignmentsList.push(...snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        }
+        assignmentsList.sort((a, b) => {
+          const tA = new Date(a.created_at || 0).getTime();
+          const tB = new Date(b.created_at || 0).getTime();
+          return tB - tA;
+        });
 
-      const asgIds = (asgns ?? []).map(a => a.id);
-      const { data: subs } = await supabase
-        .from('assignment_submissions')
-        .select('assignment_id, status, score, feedback, submitted_at')
-        .eq('user_id', user.id)
-        .in('assignment_id', asgIds);
+        const courseTitleMap: Record<string, string> = {};
+        await Promise.all(courseIds.map(async cid => {
+          try {
+            const dSnap = await getDoc(doc(db, 'courses', cid));
+            if (dSnap.exists() && dSnap.data().title) {
+              courseTitleMap[cid] = dSnap.data().title;
+            } else {
+              const cSnap = await getDocs(query(collection(db, 'courses'), where('id', '==', cid)));
+              if (!cSnap.empty) courseTitleMap[cid] = cSnap.docs[0].data().title;
+            }
+          } catch(e){}
+        }));
 
-      const subMap: Record<string, Assignment['submission']> = {};
-      (subs ?? []).forEach(s => { 
-        subMap[s.assignment_id] = { 
-          status: s.status, 
-          score: s.score, 
-          feedback: s.feedback, 
-          submitted_at: s.submitted_at 
-        }; 
-      });
+        const asgIds = assignmentsList.map(a => a.id);
+        const subMap: Record<string, Assignment['submission']> = {};
+        if (asgIds.length > 0) {
+          for (let i = 0; i < asgIds.length; i += 10) {
+            const chunk = asgIds.slice(i, i + 10);
+            const q = query(
+              collection(db, 'assignment_submissions'), 
+              where('user_id', '==', user.id), 
+              where('assignment_id', 'in', chunk)
+            );
+            const snap = await getDocs(q);
+            snap.forEach(docSnap => {
+              const s = docSnap.data();
+              subMap[s.assignment_id] = {
+                status: s.status,
+                score: s.score,
+                feedback: s.feedback,
+                submitted_at: s.submitted_at || new Date().toISOString()
+              };
+            });
+          }
+        }
 
-      const merged = (asgns ?? []).map(a => ({ ...a, submission: subMap[a.id] }));
-      setAssignments(merged);
-      setLoading(false);
+        const merged = assignmentsList.map(a => ({
+          ...a,
+          courses: { title: courseTitleMap[a.course_id] || 'Unknown Course' },
+          submission: subMap[a.id]
+        })) as Assignment[];
+
+        setAssignments(merged);
+      } catch (error) {
+        console.error('Error fetching assignments:', error);
+      } finally {
+        setLoading(false);
+      }
     })();
   }, [user]);
 
@@ -87,34 +124,48 @@ export default function AssignmentPage() {
 
     let answerText = note.trim();
 
-    if (file) {
-      const filePath = `assignments/${user.id}/${selected.id}/${file.name}`;
-      const { error: uploadErr } = await supabase.storage.from('submissions').upload(filePath, file, { upsert: true });
-      if (uploadErr) {
-        toast.error('File upload failed', { description: uploadErr.message });
-        setSubmitting(false);
-        return;
+    try {
+      if (file) {
+        const filePath = `submissions/${user.id}/${selected.id}/${file.name}`;
+        const fileRef = ref(storage, filePath);
+        await uploadBytes(fileRef, file);
+        const url = await getDownloadURL(fileRef);
+        answerText += (answerText ? '\n\n' : '') + `File: ${url}`;
       }
-      const { data: urlData } = supabase.storage.from('submissions').getPublicUrl(filePath);
-      answerText += (answerText ? '\n\n' : '') + `File: ${urlData.publicUrl}`;
+
+      const subId = `${user.id}_${selected.id}`;
+      const subRef = doc(db, 'assignment_submissions', subId);
+      await setDoc(subRef, {
+        user_id: user.id,
+        assignment_id: selected.id,
+        answer_text: answerText,
+        status: 'submitted',
+        submitted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }, { merge: true });
+
+      toast.success('Assignment submitted!', { description: `${selected.title} has been submitted for review.` });
+      
+      try {
+        await addDoc(collection(db, 'activity_logs'), {
+          user_id: user.id,
+          action_type: 'assignment',
+          value: 1,
+          created_at: new Date().toISOString()
+        });
+      } catch (logErr) {
+        // Optional log tracking error
+      }
+
+      const updated = { status: 'submitted' as const, score: null, feedback: null, submitted_at: new Date().toISOString() };
+      setAssignments(prev => prev.map(a => a.id === selected.id ? { ...a, submission: updated } : a));
+      setSelected(prev => prev ? { ...prev, submission: updated } : prev);
+      setNote(''); setFile(null);
+    } catch (error: any) {
+      toast.error('Submission failed', { description: error.message });
+    } finally {
+      setSubmitting(false);
     }
-
-    const { error } = await supabase.from('assignment_submissions').upsert({
-      user_id: user.id,
-      assignment_id: selected.id,
-      answer_text: answerText,
-      status: 'submitted',
-    }, { onConflict: 'user_id,assignment_id' });
-
-    setSubmitting(false);
-    if (error) { toast.error('Submission failed', { description: error.message }); return; }
-    toast.success('Assignment submitted!', { description: `${selected.title} has been submitted for review.` });
-    void supabase.rpc('log_activity', { p_user_id: user.id, p_type: 'assignment', p_value: 1 }).then(() => {});
-
-    const updated = { status: 'submitted' as const, score: null, feedback: null, submitted_at: new Date().toISOString() };
-    setAssignments(prev => prev.map(a => a.id === selected.id ? { ...a, submission: updated } : a));
-    setSelected(prev => prev ? { ...prev, submission: updated } : prev);
-    setNote(''); setFile(null);
   };
 
   const statusColor = (status?: string) => {

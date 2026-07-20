@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loading } from '@/components/ui/loading';
 import { 
@@ -40,23 +41,61 @@ export default function StudentDashboard() {
     
     const load = async () => {
       const [enrollRes, rankRes, roadmapRes] = await Promise.all([
-        supabase
-          .from('user_course_enrollments')
-          .select(`*, course:courses!user_course_enrollments_course_id_fkey(*), last_module:course_modules!user_course_enrollments_last_module_id_fkey(*)`)
-          .eq('user_id', user.id)
-          .order('enrolled_at', { ascending: false })
-          .limit(4),
-        supabase
-          .from('leaderboard_view')
-          .select('rank')
-          .eq('user_id', user.id)
-          .maybeSingle(),
-        supabase
-          .from('user_roadmaps')
-          .select('*, roadmap_stages(*)')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(1)
+        (async () => {
+          try {
+            const q = query(collection(db, 'user_course_enrollments'), where('user_id', '==', user.id), orderBy('enrolled_at', 'desc'), limit(4));
+            const snap = await getDocs(q);
+            const enrollments = await Promise.all(snap.docs.map(async (d) => {
+              const data = d.data();
+              let course = null;
+              if (data.course_id) {
+                const cSnap = await getDoc(doc(db, 'courses', data.course_id));
+                if (cSnap.exists()) course = { id: cSnap.id, ...cSnap.data() };
+              }
+              let last_module = null;
+              if (data.last_module_id) {
+                const mSnap = await getDoc(doc(db, 'course_modules', data.last_module_id));
+                if (mSnap.exists()) last_module = { id: mSnap.id, ...mSnap.data() };
+              }
+              return { id: d.id, ...data, course, last_module };
+            }));
+            return { data: enrollments };
+          } catch (e) {
+            console.error(e);
+            return { data: [] };
+          }
+        })(),
+        (async () => {
+          try {
+            const q = query(collection(db, 'leaderboard_view'), where('user_id', '==', user.id), limit(1));
+            const snap = await getDocs(q);
+            if (!snap.empty) {
+              return { data: { id: snap.docs[0].id, ...snap.docs[0].data() } };
+            }
+            return { data: null };
+          } catch (e) {
+            console.error(e);
+            return { data: null };
+          }
+        })(),
+        (async () => {
+          try {
+            const q = query(collection(db, 'user_roadmaps'), where('user_id', '==', user.id), orderBy('created_at', 'desc'), limit(1));
+            const snap = await getDocs(q);
+            if (!snap.empty) {
+              const d = snap.docs[0];
+              const roadmapData = d.data();
+              const stagesQ = query(collection(db, 'roadmap_stages'), where('roadmap_id', '==', d.id));
+              const stagesSnap = await getDocs(stagesQ);
+              const stages = stagesSnap.docs.map(sd => ({ id: sd.id, ...sd.data() }));
+              return { data: [{ id: d.id, ...roadmapData, roadmap_stages: stages }] };
+            }
+            return { data: null };
+          } catch (e) {
+            console.error(e);
+            return { data: null };
+          }
+        })()
       ]);
 
       const enrollList = Array.isArray(enrollRes.data) ? (enrollRes.data as unknown as EnrollWithCourse[]) : [];
@@ -70,15 +109,19 @@ export default function StudentDashboard() {
       }
 
       const enrolledIds = enrollList.map(e => e.course_id);
-      const { data: recData } = await supabase
-          .from('courses')
-          .select('*')
-          .eq('is_published', true)
-          .not('id', 'in', enrolledIds.length > 0 ? `(${enrolledIds.join(',')})` : '(00000000-0000-0000-0000-000000000000)')
-          .order('student_count', { ascending: false })
-          .limit(3);
+      let recData: DBCourse[] = [];
+      try {
+        const cQuery = query(collection(db, 'courses'), where('is_published', '==', true), orderBy('student_count', 'desc'), limit(10));
+        const cSnap = await getDocs(cQuery);
+        recData = cSnap.docs
+          .map(d => ({ id: d.id, ...d.data() } as DBCourse))
+          .filter(c => !enrolledIds.includes(c.id))
+          .slice(0, 3);
+      } catch (e) {
+        console.error(e);
+      }
         
-      setRecommended(Array.isArray(recData) ? (recData as DBCourse[]) : []);
+      setRecommended(recData);
       setLoading(false);
     };
     

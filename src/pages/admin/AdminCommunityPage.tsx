@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Skeleton } from '@/components/ui/skeleton';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, updateDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
 import { toast } from 'sonner';
 import { 
   RefreshCw, 
@@ -32,19 +33,30 @@ export default function AdminCommunityPage() {
 
   const fetchPosts = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('forum_posts')
-      .select(`
-        id, title, content, category, reply_count, created_at, is_hidden,
-        profiles!forum_posts_user_id_fkey(full_name, email)
-      `)
-      .order('created_at', { ascending: false });
-
-    if (error) {
+    try {
+      const q = query(collection(db, 'forum_posts'), orderBy('created_at', 'desc'));
+      const snapshot = await getDocs(q);
+      
+      const postsData = await Promise.all(snapshot.docs.map(async (document) => {
+        const data = document.data();
+        let profiles = null;
+        if (data.user_id) {
+          const profileRef = doc(db, 'profiles', data.user_id);
+          const profileSnap = await getDoc(profileRef);
+          if (profileSnap.exists()) {
+            profiles = profileSnap.data();
+          }
+        }
+        return {
+          id: document.id,
+          ...data,
+          profiles: profiles as any
+        } as ForumPost;
+      }));
+      setPosts(postsData);
+    } catch (error) {
       toast.error('Failed to load forum posts');
       console.error(error);
-    } else {
-      setPosts((data as unknown as ForumPost[]) ?? []);
     }
     setLoading(false);
   };
@@ -52,23 +64,25 @@ export default function AdminCommunityPage() {
   useEffect(() => { fetchPosts(); }, []);
 
   const toggleHide = async (id: string, currentHidden: boolean) => {
-    const { error } = await supabase.from('forum_posts').update({ is_hidden: !currentHidden }).eq('id', id);
-    if (error) {
-      toast.error('Failed to update post visibility');
-    } else {
+    try {
+      await updateDoc(doc(db, 'forum_posts', id), { is_hidden: !currentHidden });
       toast.success(currentHidden ? 'Post is now visible' : 'Post hidden from students');
       setPosts(posts.map(p => p.id === id ? { ...p, is_hidden: !currentHidden } : p));
+    } catch (error) {
+      toast.error('Failed to update post visibility');
+      console.error(error);
     }
   };
 
   const deletePost = async (id: string) => {
     if (!confirm('Are you sure you want to permanently delete this post?')) return;
-    const { error } = await supabase.from('forum_posts').delete().eq('id', id);
-    if (error) {
-      toast.error('Failed to delete post');
-    } else {
+    try {
+      await deleteDoc(doc(db, 'forum_posts', id));
       toast.success('Post deleted');
       setPosts(posts.filter(p => p.id !== id));
+    } catch (error) {
+      toast.error('Failed to delete post');
+      console.error(error);
     }
   };
 

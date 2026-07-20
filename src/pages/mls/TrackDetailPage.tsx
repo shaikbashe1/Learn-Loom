@@ -3,7 +3,8 @@ import { AppLayout } from '@/components/layouts/AppLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/db/supabase';
+import { db } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Clock, BarChart, CheckCircle2, Circle, PlayCircle } from 'lucide-react';
 import type { DBMLSTrack, DBMLSModule, DBMLSUserProgress } from '@/types/types';
@@ -25,40 +26,39 @@ export default function TrackDetailPage() {
       if (!trackId) return;
       setLoading(true);
       try {
-        const { data: trackData, error: trackErr } = await supabase
-          .from('mls_tracks')
-          .select('*')
-          .eq('id', trackId)
-          .single();
+        const trackRef = doc(db, 'mls_tracks', trackId);
+        const trackSnap = await getDoc(trackRef);
           
-        if (trackErr || !trackData) {
+        if (!trackSnap.exists()) {
           navigate('/mls');
           return;
         }
-        setTrack(trackData);
+        setTrack({ id: trackSnap.id, ...trackSnap.data() } as DBMLSTrack);
 
-        const { data: modsData } = await supabase
-          .from('mls_modules')
-          .select('*')
-          .eq('track_id', trackId)
-          .eq('is_published', true)
-          .order('order_index', { ascending: true });
+        const modsQuery = query(
+          collection(db, 'mls_modules'),
+          where('track_id', '==', trackId),
+          where('is_published', '==', true),
+          orderBy('order_index', 'asc')
+        );
+        const modsSnap = await getDocs(modsQuery);
+        const modsData = modsSnap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() })) as DBMLSModule[];
 
-        if (modsData) {
-          setModules(modsData);
-          
-          if (user) {
-            const { data: progData } = await supabase
-              .from('mls_user_progress')
-              .select('module_id, status')
-              .eq('user_id', user.id);
-              
-            if (progData) {
-              const pMap: Record<string, string> = {};
-              progData.forEach(p => pMap[p.module_id] = p.status);
-              setProgress(pMap);
-            }
-          }
+        setModules(modsData);
+        
+        if (user) {
+          const progQuery = query(
+            collection(db, 'mls_user_progress'),
+            where('user_id', '==', user.id)
+          );
+          const progSnap = await getDocs(progQuery);
+            
+          const pMap: Record<string, string> = {};
+          progSnap.docs.forEach(docSnap => {
+            const data = docSnap.data();
+            pMap[data.module_id] = data.status;
+          });
+          setProgress(pMap);
         }
       } catch (err) {
         console.error("Error fetching track data", err);

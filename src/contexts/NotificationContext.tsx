@@ -2,7 +2,9 @@ import {
   createContext, useContext, useEffect, useState, useCallback,
   type ReactNode,
 } from 'react';
-import { supabase } from '@/db/supabase';
+import { db, storage } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '@/contexts/AuthContext';
 import type { DBNotification } from '@/types/types';
 
@@ -24,14 +26,21 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const fetchNotifications = useCallback(async () => {
     if (!user) { setNotifications([]); return; }
     setLoading(true);
-    const { data } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(30);
-    setNotifications(Array.isArray(data) ? (data as DBNotification[]) : []);
-    setLoading(false);
+    try {
+      const q = query(
+        collection(db, 'notifications'),
+        where('user_id', '==', user.id),
+        orderBy('created_at', 'desc'),
+        limit(30)
+      );
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as DBNotification));
+      setNotifications(data);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    } finally {
+      setLoading(false);
+    }
   }, [user]);
 
   useEffect(() => {
@@ -41,40 +50,36 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   // Realtime subscription
   useEffect(() => {
     if (!user) return;
-    const channel = supabase
-      .channel(`notifications:${user.id}`)
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
-        (payload) => {
-          setNotifications(prev => [payload.new as DBNotification, ...prev]);
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
-        (payload) => {
-          setNotifications(prev =>
-            prev.map(n => n.id === (payload.new as DBNotification).id ? payload.new as DBNotification : n)
-          );
-        }
-      )
-      .subscribe();
-    return () => { void supabase.removeChannel(channel); };
+    const q = query(
+      collection(db, 'notifications'),
+      where('user_id', '==', user.id),
+      orderBy('created_at', 'desc'),
+      limit(30)
+    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as DBNotification));
+      setNotifications(data);
+    });
+    return () => unsubscribe();
   }, [user]);
 
   const markAllRead = async () => {
     if (!user) return;
-    await supabase
-      .from('notifications')
-      .update({ read: true })
-      .eq('user_id', user.id)
-      .eq('read', false);
+    const q = query(
+      collection(db, 'notifications'),
+      where('user_id', '==', user.id),
+      where('read', '==', false)
+    );
+    const snapshot = await getDocs(q);
+    const updatePromises = snapshot.docs.map(document => 
+      updateDoc(doc(db, 'notifications', document.id), { read: true })
+    );
+    await Promise.all(updatePromises);
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
   const markRead = async (id: string) => {
-    await supabase.from('notifications').update({ read: true }).eq('id', id);
+    await updateDoc(doc(db, 'notifications', id), { read: true });
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
   };
 

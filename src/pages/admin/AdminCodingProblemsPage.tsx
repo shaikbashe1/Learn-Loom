@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/db/supabase';
+import { db, storage } from '@/db/firebase';
+import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Play, Square, RefreshCw, Terminal, Activity, Server, AlertCircle } from 'lucide-react';
@@ -32,11 +34,17 @@ export default function AdminCodingProblemsPage() {
   }, []);
 
   const fetchProblems = async () => {
-    const { data } = await supabase
-      .from('coding_problems')
-      .select('id, title, difficulty, topic')
-      .order('created_at', { ascending: false });
-    if (data) setProblems(data as Problem[]);
+    try {
+      const q = query(
+        collection(db, 'coding_problems'),
+        orderBy('created_at', 'desc')
+      );
+      const querySnapshot = await getDocs(q);
+      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setProblems(data as Problem[]);
+    } catch (error) {
+      console.error("Error fetching problems:", error);
+    }
     setLoading(false);
   };
 
@@ -82,13 +90,19 @@ export default function AdminCodingProblemsPage() {
         const shuffled = availableProblems.sort(() => 0.5 - Math.random());
         const selected = shuffled.slice(0, 50);
 
-        const { error } = await supabase.from('coding_problems').insert(selected);
-        if (!error) {
+        let insertError: any = null;
+        try {
+          await Promise.all(selected.map((item: any) => addDoc(collection(db, 'coding_problems'), item)));
+        } catch (err) {
+          insertError = err;
+        }
+
+        if (!insertError) {
           addLog(`✅ Successfully imported ${selected.length} new dynamic problem(s).`);
           addLog(`📊 Total Database Size: ${problems.length + selected.length} / 1000`);
           fetchProblems();
         } else {
-          addLog("❌ Error inserting problems: " + error.message);
+          addLog("❌ Error inserting problems: " + insertError.message);
         }
       } catch (err) {
         addLog("❌ Database connection or fetch error.");
