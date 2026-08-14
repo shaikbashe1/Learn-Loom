@@ -43,11 +43,11 @@ export default function LeaderboardPage() {
       try {
         const q = query(collection(db, 'leaderboard_view'), limit(50));
         const snapshot = await getDocs(q);
-        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as unknown as LeaderboardEntry[];
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any)) as unknown as LeaderboardEntry[];
         
         setEntries(Array.isArray(data) ? data : []);
         if (user && data) {
-          const me = data.find(e => e.user_id === user.id);
+          const me = data.find(e => e.user_id === user.uid);
           setMyEntry(me ?? null);
         }
       } catch (error) {
@@ -215,7 +215,7 @@ export default function LeaderboardPage() {
                 </div>
                 <div className="flex-1 overflow-y-auto p-3 space-y-2 scrollbar-hide">
                   {tableEntries.map(entry => {
-                    const isMe = entry.user_id === user?.id;
+                    const isMe = entry.user_id === user?.uid;
                     return (
                       <div key={entry.user_id} className={cn(
                         "flex items-center gap-4 p-3 rounded-xl transition-all cursor-pointer border shadow-sm",

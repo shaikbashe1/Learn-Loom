@@ -31,7 +31,7 @@ export default function AdminRewardsPage() {
     try {
       const q = query(collection(db, 'reward_configurations'), orderBy('action_type', 'asc'));
       const snapshot = await getDocs(q);
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
       setConfigs(data as RewardConfig[]);
     } catch (error) {
       toast.error('Failed to load reward configurations');

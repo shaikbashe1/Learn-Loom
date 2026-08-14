@@ -162,7 +162,7 @@ export default function AdminCoursesPage() {
     setLoadingList(true);
     try {
       const snapshot = await getDocs(query(collection(db, 'courses'), orderBy('created_at', 'desc')));
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
       setCourses(data as DBCourse[]);
     } catch (error) {
       toast.error('Failed to load courses');

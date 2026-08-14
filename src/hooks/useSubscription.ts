@@ -41,7 +41,7 @@ export function useSubscription() {
     if (!user) { setActiveSub(null); setLoading(false); return; }
     getDocs(query(
       collection(db, 'user_subscriptions'),
-      where('user_id', '==', user.id),
+      where('user_id', '==', user.uid),
       where('status', '==', 'active'),
       orderBy('started_at', 'desc'),
       limit(1)

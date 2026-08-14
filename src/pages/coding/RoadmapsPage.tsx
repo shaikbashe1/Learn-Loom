@@ -22,7 +22,7 @@ export default function RoadmapsPage() {
     async function loadRoadmaps() {
       try {
         const querySnapshot = await getDocs(collection(db, 'roadmaps'));
-        const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Roadmap[];
+        const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any)) as Roadmap[];
         setRoadmaps(data);
       } catch (err) {
         console.error(err);

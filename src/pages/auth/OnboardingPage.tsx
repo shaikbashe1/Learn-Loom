@@ -39,7 +39,12 @@ export default function OnboardingPage() {
   // the furthest step reached (server value wins, falls back to localStorage).
   useEffect(() => {
     if (hydrated || !(profile || user)) return;
-    const meta = (user?.user_metadata ?? {}) as Record<string, string>;
+    const meta = { 
+      full_name: user?.displayName || '',
+      name: user?.displayName || '',
+      avatar_url: user?.photoURL || '',
+      picture: user?.photoURL || ''
+    } as Record<string, string>;
     setForm((prev) => ({
       ...prev,
       full_name: profile?.full_name || meta.full_name || meta.name || '',
@@ -94,7 +99,7 @@ export default function OnboardingPage() {
   const username = useUsernameAvailability(form.username, profile?.username || undefined);
   const isStudent = form.user_type === 'student';
 
-  // Avatar upload → avatars bucket, folder = user.id (per-user RLS).
+  // Avatar upload → avatars bucket, folder = user.uid (per-user RLS).
   const onAvatarFile = async (file: File | undefined) => {
     if (!file || !user) return;
     if (file.size > 5 * 1024 * 1024) {

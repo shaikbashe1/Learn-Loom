@@ -57,7 +57,7 @@ export default function PublicProfilePage() {
       if (!user || !id) return;
       const q = query(
         collection(db, 'user_followers'),
-        where('follower_id', '==', user.id),
+        where('follower_id', '==', user.uid),
         where('following_id', '==', id)
       );
       const snap = await getDocs(q);
@@ -71,7 +71,7 @@ export default function PublicProfilePage() {
       toast.error('You must be logged in to follow users');
       return;
     }
-    if (!id || user.id === id) return;
+    if (!id || user.uid === id) return;
 
     setFollowLoading(true);
     try {
@@ -79,7 +79,7 @@ export default function PublicProfilePage() {
         // Unfollow
         const q = query(
           collection(db, 'user_followers'),
-          where('follower_id', '==', user.id),
+          where('follower_id', '==', user.uid),
           where('following_id', '==', id)
         );
         const snap = await getDocs(q);
@@ -92,7 +92,7 @@ export default function PublicProfilePage() {
       } else {
         // Follow
         await addDoc(collection(db, 'user_followers'), { 
-          follower_id: user.id, 
+          follower_id: user.uid, 
           following_id: id,
           created_at: new Date().toISOString()
         });
@@ -192,7 +192,7 @@ export default function PublicProfilePage() {
                 </div>
 
                 {/* Follow Button */}
-                {user && user.id !== id && (
+                {user && user.uid !== id && (
                   <Button 
                     onClick={handleFollowToggle} 
                     disabled={followLoading}

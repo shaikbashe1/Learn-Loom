@@ -50,7 +50,7 @@ export default function CourseCatalogPage() {
         if (user) {
           const enrollQuery = query(
             collection(db, 'user_course_enrollments'),
-            where('user_id', '==', user.id)
+            where('user_id', '==', user.uid)
           );
           const enrollSnap = await getDocs(enrollQuery);
           const enrollData = enrollSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as DBEnrollment));

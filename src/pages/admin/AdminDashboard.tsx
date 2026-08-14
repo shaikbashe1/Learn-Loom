@@ -61,7 +61,7 @@ export default function AdminDashboard() {
       for (let i = 13; i >= 0; i--) {
         const d = new Date(today);
         d.setDate(d.getDate() - i);
-        newTrendData.push({ trend_date: d.toISOString().split('T')[0], signups: 0 });
+        newTrendData.push({ trend_date: d.toISOString().split('T')[0], signups: 0 } as any);
       }
       
       allEnrollmentsSnap.docs.forEach(doc => {

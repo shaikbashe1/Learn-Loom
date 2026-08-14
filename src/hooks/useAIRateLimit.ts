@@ -45,7 +45,7 @@ export function useAIRateLimit(endpoint: string = 'ai-mentor'): AIRateLimitState
     try {
       const q = query(
         collection(db, 'rate_limits'),
-        where('user_id', '==', user.id),
+        where('user_id', '==', user.uid),
         where('endpoint', '==', endpoint)
       );
 

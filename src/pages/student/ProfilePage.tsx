@@ -41,7 +41,7 @@ import { format, subDays } from 'date-fns';
 import { toast } from 'sonner';
 import { db, storage } from '@/db/firebase';
 import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { uploadFile } from '@/lib/uploadFile';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface ProfileFormData {
@@ -96,13 +96,13 @@ export default function ProfilePage() {
     const fetchCodingData = async () => {
       if (!user) return;
       try {
-        const progSnap = await getDocs(query(collection(db, 'coding_progress'), where('user_id', '==', user.id)));
+        const progSnap = await getDocs(query(collection(db, 'coding_progress'), where('user_id', '==', user.uid)));
         if (!progSnap.empty) setCodingProgress({ id: progSnap.docs[0].id, ...progSnap.docs[0].data() });
 
-        const statSnap = await getDocs(query(collection(db, 'coding_statistics'), where('user_id', '==', user.id)));
+        const statSnap = await getDocs(query(collection(db, 'coding_statistics'), where('user_id', '==', user.uid)));
         if (!statSnap.empty) setCodingStats({ id: statSnap.docs[0].id, ...statSnap.docs[0].data() });
 
-        const strkSnap = await getDocs(query(collection(db, 'coding_streaks'), where('user_id', '==', user.id)));
+        const strkSnap = await getDocs(query(collection(db, 'coding_streaks'), where('user_id', '==', user.uid)));
         if (!strkSnap.empty) setCodingStreaks({ id: strkSnap.docs[0].id, ...strkSnap.docs[0].data() });
       } catch (e) {
         console.error("Error fetching coding stats:", e);
@@ -172,7 +172,7 @@ export default function ProfilePage() {
     };
 
     try {
-      await updateDoc(doc(db, 'profiles', user.id), {
+      await updateDoc(doc(db, 'profiles', user.uid), {
         full_name: trimmedName,
         username: form.username.trim() || null,
         bio: form.bio.trim() || null,
@@ -217,15 +217,10 @@ export default function ProfilePage() {
     }
 
     setUploadingAvatar(true);
-    const ext = file.name.split('.').pop() ?? 'jpg';
-    const path = `avatars/${user.id}/avatar.${ext}`;
-
     try {
-      const storageRef = ref(storage, path);
-      await uploadBytes(storageRef, file);
-      const publicUrl = await getDownloadURL(storageRef);
+      const publicUrl = await uploadFile(file, `avatars/${user.uid}`);
 
-      await updateDoc(doc(db, 'profiles', user.id), { avatar_url: publicUrl });
+      await updateDoc(doc(db, 'profiles', user.uid), { avatar_url: publicUrl });
 
       await refreshProfile();
       toast.success('Avatar updated');

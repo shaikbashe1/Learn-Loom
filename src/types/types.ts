@@ -52,7 +52,7 @@ export interface Profile {
 
 export type DifficultyLevel = 'Beginner' | 'Intermediate' | 'Advanced';
 
-// ── Supabase DB row types ────────────────────────────────────────────────────
+// ── Database row types ────────────────────────────────────────────────────
 export interface DBCourse {
   id: string;
   title: string;

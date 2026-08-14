@@ -74,7 +74,7 @@ export default function GrandTestPage() {
     (async () => {
       setLoading(true);
       try {
-        const enrollmentsQ = query(collection(db, 'user_course_enrollments'), where('user_id', '==', user.id));
+        const enrollmentsQ = query(collection(db, 'user_course_enrollments'), where('user_id', '==', user.uid));
         const enrollmentsSnap = await getDocs(enrollmentsQ);
         const courseIds = enrollmentsSnap.docs.map(d => d.data().course_id);
         if (courseIds.length === 0) { setLoading(false); return; }
@@ -115,7 +115,7 @@ export default function GrandTestPage() {
     setLoadingQuestions(true);
     try {
       const questionsQ = query(collection(db, 'quiz_questions'), where('quiz_id', '==', quiz.id));
-      const attemptRef = doc(db, 'quiz_attempts', `${user.id}_${quiz.id}`);
+      const attemptRef = doc(db, 'quiz_attempts', `${user.uid}_${quiz.id}`);
 
       const [qSnap, aSnap] = await Promise.all([
         getDocs(questionsQ),
@@ -162,9 +162,9 @@ export default function GrandTestPage() {
     setFinalScore(score);
 
     try {
-      const attemptRef = doc(db, 'quiz_attempts', `${user.id}_${selectedQuiz.id}`);
+      const attemptRef = doc(db, 'quiz_attempts', `${user.uid}_${selectedQuiz.id}`);
       await setDoc(attemptRef, {
-        user_id: user.id,
+        user_id: user.uid,
         quiz_id: selectedQuiz.id,
         answers: finalAnswers,
         score: correct,
@@ -177,14 +177,14 @@ export default function GrandTestPage() {
       toast[passed ? 'success' : 'info'](passed ? `Passed! Score: ${score}%` : `Score: ${score}% — Keep practising!`);
       
       addDoc(collection(db, 'activity_logs'), {
-        user_id: user.id,
+        user_id: user.uid,
         type: 'quiz',
         value: 1,
         created_at: new Date().toISOString()
       }).catch(console.error);
 
       if (passed && selectedQuiz.module_id) {
-        void completeModule(user.id, selectedQuiz.course_id, selectedQuiz.module_id);
+        void completeModule(user.uid, selectedQuiz.course_id, selectedQuiz.module_id);
       }
     } catch (err: any) {
       toast.error('Failed to save result', { description: err.message });

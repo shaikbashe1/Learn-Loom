@@ -43,19 +43,19 @@ export default function StudentDashboard() {
       const [enrollRes, rankRes, roadmapRes] = await Promise.all([
         (async () => {
           try {
-            const q = query(collection(db, 'user_course_enrollments'), where('user_id', '==', user.id), orderBy('enrolled_at', 'desc'), limit(4));
+            const q = query(collection(db, 'user_course_enrollments'), where('user_id', '==', user.uid), orderBy('enrolled_at', 'desc'), limit(4));
             const snap = await getDocs(q);
             const enrollments = await Promise.all(snap.docs.map(async (d) => {
               const data = d.data();
               let course = null;
               if (data.course_id) {
                 const cSnap = await getDoc(doc(db, 'courses', data.course_id));
-                if (cSnap.exists()) course = { id: cSnap.id, ...cSnap.data() };
+                if (cSnap.exists()) course = { id: cSnap.id, ...cSnap.data() } as any;
               }
               let last_module = null;
               if (data.last_module_id) {
                 const mSnap = await getDoc(doc(db, 'course_modules', data.last_module_id));
-                if (mSnap.exists()) last_module = { id: mSnap.id, ...mSnap.data() };
+                if (mSnap.exists()) last_module = { id: mSnap.id, ...mSnap.data() } as any;
               }
               return { id: d.id, ...data, course, last_module };
             }));
@@ -67,7 +67,7 @@ export default function StudentDashboard() {
         })(),
         (async () => {
           try {
-            const q = query(collection(db, 'leaderboard_view'), where('user_id', '==', user.id), limit(1));
+            const q = query(collection(db, 'leaderboard_view'), where('user_id', '==', user.uid), limit(1));
             const snap = await getDocs(q);
             if (!snap.empty) {
               return { data: { id: snap.docs[0].id, ...snap.docs[0].data() } };
@@ -80,7 +80,7 @@ export default function StudentDashboard() {
         })(),
         (async () => {
           try {
-            const q = query(collection(db, 'user_roadmaps'), where('user_id', '==', user.id), orderBy('created_at', 'desc'), limit(1));
+            const q = query(collection(db, 'user_roadmaps'), where('user_id', '==', user.uid), orderBy('created_at', 'desc'), limit(1));
             const snap = await getDocs(q);
             if (!snap.empty) {
               const d = snap.docs[0];
@@ -101,11 +101,11 @@ export default function StudentDashboard() {
       const enrollList = Array.isArray(enrollRes.data) ? (enrollRes.data as unknown as EnrollWithCourse[]) : [];
       setEnrollments(enrollList);
 
-      if (rankRes.data) setMyRank((rankRes.data as { rank: number }).rank);
+      if (rankRes.data) setMyRank((rankRes.data as unknown as { rank: number }).rank);
 
       if (roadmapRes.data && roadmapRes.data.length > 0) {
         const rm = roadmapRes.data[0];
-        setActiveRoadmap({ ...rm, stages: rm.roadmap_stages || [] });
+        setActiveRoadmap({ ...rm, stages: (rm.roadmap_stages as any) || [] } as any);
       }
 
       const enrolledIds = enrollList.map(e => e.course_id);

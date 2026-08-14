@@ -62,7 +62,7 @@ export default function CertVerifyPage() {
         };
 
         // Get profile
-        let profileData = null;
+        let profileData: any = null;
         if (certData.user_id) {
           const profileDoc = await getDoc(doc(db, 'profiles', certData.user_id));
           if (profileDoc.exists()) {
@@ -71,7 +71,7 @@ export default function CertVerifyPage() {
         }
 
         // Get course
-        let courseData = null;
+        let courseData: any = null;
         if (certData.course_id) {
           const courseDoc = await getDoc(doc(db, 'courses', certData.course_id));
           if (courseDoc.exists()) {

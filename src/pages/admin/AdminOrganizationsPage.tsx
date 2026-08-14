@@ -39,7 +39,7 @@ export default function AdminOrganizationsPage() {
         orderBy('created_at', 'desc')
       );
       const querySnapshot = await getDocs(q);
-      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Organization[];
+      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any)) as Organization[];
       setOrganizations(data);
     } catch (error) {
       toast.error('Failed to load organizations');

@@ -40,7 +40,7 @@ export default function AdminCertificatesPage() {
     try {
       const q = query(collection(db, 'certificates'), orderBy('issued_at', 'desc'), limit(100));
       const snap = await getDocs(q);
-      const certData = snap.docs.map(d => ({ id: d.id, ...d.data() })) as any[];
+      const certData = snap.docs.map(d => ({ id: d.id, ...d.data() } as any)) as any[];
 
       const profileCache = new Map();
       const courseCache = new Map();

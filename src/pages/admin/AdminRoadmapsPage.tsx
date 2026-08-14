@@ -55,7 +55,7 @@ export default function AdminRoadmapsPage() {
     try {
       const q = query(collection(db, 'roadmap_templates'), orderBy('created_at', 'desc'));
       const snapshot = await getDocs(q);
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
       setTemplates(data as RoadmapTemplate[]);
     } catch (error) {
       toast.error('Failed to load roadmaps');
@@ -71,7 +71,7 @@ export default function AdminRoadmapsPage() {
         orderBy('week', 'asc')
       );
       const snapshot = await getDocs(q);
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
       setNodes(prev => ({ ...prev, [templateId]: data as RoadmapNode[] }));
     } catch (error) {
       console.error('Failed to fetch nodes', error);

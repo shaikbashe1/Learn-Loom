@@ -93,12 +93,12 @@ export default function CertificatePage() {
       try {
         const q = query(
           collection(db, 'certificates'),
-          where('user_id', '==', user.id),
+          where('user_id', '==', user.uid),
           where('is_valid', '==', true),
           orderBy('issued_at', 'desc')
         );
         const snapshot = await getDocs(q);
-        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Certificate[];
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any)) as Certificate[];
         setCerts(data);
       } catch (error) {
         console.error(error); 

@@ -1,9 +1,7 @@
 import { verifyAuth, unauthorizedResponse } from './_shared/auth';
 import { checkRateLimit, rateLimitResponse, rateLimitHeaders } from './_shared/rate-limit';
 
-export const config = {
-  runtime: 'edge',
-};
+
 
 const GATEWAY_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse';
 

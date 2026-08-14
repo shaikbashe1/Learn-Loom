@@ -3,6 +3,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { createParser } from 'eventsource-parser';
 import { db, auth } from '@/db/firebase';
 import { collection, doc, getDoc, getDocs, addDoc, query, where, orderBy, limit } from 'firebase/firestore';
+import { fetchAIMentorStream } from '@/lib/aiClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAIRateLimit } from '@/hooks/useAIRateLimit';
 import { toast } from 'sonner';
@@ -164,13 +165,13 @@ export function AIMentorChat({ externalPrompt, onExternalPromptHandled, isWidget
 
   // Load mentor chat draft from localStorage when user is ready
   useEffect(() => {
-    if (user?.id) {
-      const saved = localStorage.getItem(`mentor_chat_draft_${user.id}`);
+    if (user?.uid) {
+      const saved = localStorage.getItem(`mentor_chat_draft_${user.uid}`);
       if (saved) {
         setInput(saved);
       }
     }
-  }, [user?.id]);
+  }, [user?.uid]);
 
   
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
@@ -202,7 +203,7 @@ export function AIMentorChat({ externalPrompt, onExternalPromptHandled, isWidget
         const enrollmentsRef = collection(db, 'user_course_enrollments');
         const enrollmentsQuery = query(
           enrollmentsRef,
-          where('user_id', '==', user.id),
+          where('user_id', '==', user.uid),
           orderBy('enrolled_at', 'desc')
         );
         const enrollmentsSnap = await getDocs(enrollmentsQuery);
@@ -237,12 +238,12 @@ export function AIMentorChat({ externalPrompt, onExternalPromptHandled, isWidget
         const convosRef = collection(db, 'mentor_conversations');
         const convosQuery = query(
           convosRef,
-          where('user_id', '==', user.id),
+          where('user_id', '==', user.uid),
           orderBy('created_at', 'desc'),
           limit(1)
         );
         const existingConvosSnap = await getDocs(convosQuery);
-        const existingConvos = existingConvosSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const existingConvos = existingConvosSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
 
         let convoId = '';
         if (existingConvos.length > 0) {
@@ -271,7 +272,7 @@ export function AIMentorChat({ externalPrompt, onExternalPromptHandled, isWidget
         } else {
           // Create new conversation
           const newConvoRef = await addDoc(collection(db, 'mentor_conversations'), {
-            user_id: user.id,
+            user_id: user.uid,
             title: 'Learning Session',
             context_snapshot: { timestamp: new Date().toISOString() },
             created_at: new Date().toISOString()
@@ -331,8 +332,8 @@ YOUR ROLE:
 
     setMessages(prev => [...prev, userMsg, aiMsg]);
     setInput('');
-    if (user?.id) {
-      localStorage.removeItem(`mentor_chat_draft_${user.id}`);
+    if (user?.uid) {
+      localStorage.removeItem(`mentor_chat_draft_${user.uid}`);
     }
     setStreaming(true);
 
@@ -363,16 +364,8 @@ YOUR ROLE:
       const currentUser = auth.currentUser;
       const token = currentUser ? await currentUser.getIdToken() : '';
 
-      // Route all AI requests through the authenticated backend
-      const res = await fetch('/api/ai-mentor', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ contents }),
-        signal: abortRef.current.signal,
-      });
+      // Route all AI requests through the client directly since backend is unavailable
+      const res = await fetchAIMentorStream(contents, abortRef.current.signal);
 
       if (!res.ok) {
         // Handle rate limit specifically
@@ -461,13 +454,13 @@ YOUR ROLE:
     if (!user) return;
     setMessages([WELCOME_MESSAGE]); 
     setInput(''); 
-    if (user?.id) {
-      localStorage.removeItem(`mentor_chat_draft_${user.id}`);
+    if (user?.uid) {
+      localStorage.removeItem(`mentor_chat_draft_${user.uid}`);
     }
     
     // Create new fresh conversation branch
     const newConvoRef = await addDoc(collection(db, 'mentor_conversations'), {
-      user_id: user.id,
+      user_id: user.uid,
       title: 'New Learning Session',
       context_snapshot: { timestamp: new Date().toISOString() },
       created_at: new Date().toISOString()
@@ -487,8 +480,8 @@ YOUR ROLE:
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
     setInput(val);
-    if (user?.id) {
-      localStorage.setItem(`mentor_chat_draft_${user.id}`, val);
+    if (user?.uid) {
+      localStorage.setItem(`mentor_chat_draft_${user.uid}`, val);
     }
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';

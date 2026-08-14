@@ -29,7 +29,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     try {
       const q = query(
         collection(db, 'notifications'),
-        where('user_id', '==', user.id),
+        where('user_id', '==', user.uid),
         orderBy('created_at', 'desc'),
         limit(30)
       );
@@ -52,7 +52,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     if (!user) return;
     const q = query(
       collection(db, 'notifications'),
-      where('user_id', '==', user.id),
+      where('user_id', '==', user.uid),
       orderBy('created_at', 'desc'),
       limit(30)
     );
@@ -67,7 +67,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     if (!user) return;
     const q = query(
       collection(db, 'notifications'),
-      where('user_id', '==', user.id),
+      where('user_id', '==', user.uid),
       where('read', '==', false)
     );
     const snapshot = await getDocs(q);

@@ -66,7 +66,7 @@ interface JudgeResponse {
   stderr?: string;
 }
 
-const PISTON_URL = '/api/piston/execute';
+const PISTON_URL = 'https://emkc.org/api/v2/piston/execute';
 const LANG_MAP: Record<Lang, string> = {
   python: 'python', javascript: 'javascript', java: 'java', cpp: 'c++', c: 'c'
 };
@@ -125,7 +125,7 @@ export default function CodingPracticePage() {
   const problem = problems[idx];
 
   // Storage key for local storage persistence
-  const storageKey = problem ? `code_${user?.id || 'default'}_${problem.id}_${language}` : '';
+  const storageKey = problem ? `code_${user?.uid || 'default'}_${problem.id}_${language}` : '';
 
   // Load saved code when problem, language, or storage key changes
   useEffect(() => {
@@ -203,7 +203,7 @@ export default function CodingPracticePage() {
         toast.error('Compilation Error');
       } else {
         toast.success('Execution finished');
-        void logUserActivity(user.id, 'code_run', `Ran code for: ${problem?.title}`);
+        void logUserActivity(user.uid, 'code_run', `Ran code for: ${problem?.title}`);
       }
     } catch (err: any) {
       toast.error('Execution failed', { description: err.message });
@@ -291,7 +291,7 @@ export default function CodingPracticePage() {
 
       if (overallVerdict === 'accepted') {
         toast.success(`All ${testResults.length} test cases passed!`);
-        void logUserActivity(user.id, 'code_run', `Successfully submitted: ${problem?.title}`);
+        void logUserActivity(user.uid, 'code_run', `Successfully submitted: ${problem?.title}`);
       } else if (overallVerdict === 'compilation_error') {
         toast.error('Compilation Error', { description: 'Fix the syntax errors and try again.' });
       } else {

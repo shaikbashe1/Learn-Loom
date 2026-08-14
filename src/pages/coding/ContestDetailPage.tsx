@@ -62,7 +62,7 @@ export default function ContestDetailPage() {
         setContest({ id: contestDoc.id, ...contestDoc.data() } as Contest);
 
         if (user) {
-          const pQuery = query(collection(db, 'contest_participants'), where('contest_id', '==', id), where('user_id', '==', user.id));
+          const pQuery = query(collection(db, 'contest_participants'), where('contest_id', '==', id), where('user_id', '==', user.uid));
           const pSnap = await getDocs(pQuery);
           if (!pSnap.empty) setIsRegistered(true);
         }
@@ -76,10 +76,10 @@ export default function ContestDetailPage() {
           if (pData.problem_id) {
             const problemDoc = await getDoc(doc(db, 'coding_problems', pData.problem_id));
             if (problemDoc.exists()) {
-              coding_problems = { id: problemDoc.id, ...problemDoc.data() };
+              coding_problems = { id: problemDoc.id, ...problemDoc.data() } as any;
             }
           }
-          return { id: pDoc.id, ...pData, coding_problems } as ContestProblem;
+          return { id: pDoc.id, ...pData, coding_problems } as unknown as ContestProblem;
         }));
         
         setProblems(problemsList);
@@ -108,15 +108,15 @@ export default function ContestDetailPage() {
       const snap = await getDocs(q);
       
       const leaderboardList = await Promise.all(snap.docs.map(async (docSnap) => {
-        const data = docSnap.data();
+        const data = docSnap.data() as any;
         let profiles = null;
         if (data.user_id) {
           const profileDoc = await getDoc(doc(db, 'profiles', data.user_id));
           if (profileDoc.exists()) {
-            profiles = profileDoc.data();
+            profiles = profileDoc.data() as any;
           }
         }
-        return { user_id: data.user_id, score: data.score || 0, finish_time_ms: data.finish_time_ms || 0, profiles, ...data } as LeaderboardEntry;
+        return { user_id: data.user_id, score: data.score || 0, finish_time_ms: data.finish_time_ms || 0, profiles, ...data } as unknown as LeaderboardEntry;
       }));
       setLeaderboard(leaderboardList);
     } catch (error) {
@@ -142,7 +142,7 @@ export default function ContestDetailPage() {
     try {
       await addDoc(collection(db, 'contest_participants'), {
         contest_id: id,
-        user_id: user.id,
+        user_id: user.uid,
         score: 0,
         finish_time_ms: 0,
         registered_at: new Date().toISOString()

@@ -63,12 +63,16 @@ export default function AIRoadmapPage() {
     try {
       const q = query(
         collection(db, 'user_roadmaps'),
-        where('user_id', '==', user.id),
-        orderBy('created_at', 'desc'),
-        limit(1)
+        where('user_id', '==', user.uid)
       );
       const snapshot = await getDocs(q);
-      const roadmaps = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as DBUserRoadmap[];
+      let roadmaps = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any)) as DBUserRoadmap[];
+      
+      // Sort in memory to avoid needing a Firestore composite index
+      roadmaps.sort((a, b) => {
+        if (!a.created_at || !b.created_at) return 0;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
 
       if (roadmaps.length > 0) {
         const rm = roadmaps[0];
@@ -76,18 +80,20 @@ export default function AIRoadmapPage() {
         
         const stagesQ = query(
           collection(db, 'roadmap_stages'),
-          where('roadmap_id', '==', rm.id),
-          orderBy('order_index', 'asc')
+          where('roadmap_id', '==', rm.id)
         );
         const stagesSnap = await getDocs(stagesQ);
-        const stgData = stagesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as DBRoadmapStage[];
+        let stgData = stagesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as any)) as DBRoadmapStage[];
+        
+        // Sort stages by order_index manually
+        stgData.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
 
         if (stgData.length > 0) {
           const finalStages = await Promise.all(
             stgData.map(async (s) => {
               const itemsQ = query(collection(db, 'roadmap_items'), where('stage_id', '==', s.id));
               const itemsSnap = await getDocs(itemsQ);
-              const items = itemsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as DBRoadmapItem[];
+              const items = itemsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as any)) as DBRoadmapItem[];
               return { ...s, items };
             })
           );
@@ -113,7 +119,7 @@ export default function AIRoadmapPage() {
     }
     setGenerating(true);
     try {
-      await generateAndSaveRoadmap(user.id, domain, role, difficulty);
+      await generateAndSaveRoadmap(user.uid, domain, role, difficulty);
       toast.success('Your personalized roadmap is ready!');
       await fetchRoadmap();
     } catch (err) {

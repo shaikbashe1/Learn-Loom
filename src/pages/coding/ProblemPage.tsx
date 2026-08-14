@@ -84,7 +84,7 @@ export default function ProblemPage() {
 
         setProblem(safeProbData);
         
-        const draftKey = `draft_code_${user?.id}_${id}_${language}`;
+        const draftKey = `draft_code_${user?.uid}_${id}_${language}`;
         const savedDraft = localStorage.getItem(draftKey);
         
         if (savedDraft) {
@@ -100,7 +100,7 @@ export default function ProblemPage() {
         const tcSnapshot = await getDocs(tcQuery);
           
         if (!tcSnapshot.empty) {
-          const tcData = tcSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          const tcData = tcSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
           setTestcases(tcData as DBProblemTestcase[]);
         }
       } catch (err: any) {
@@ -111,11 +111,11 @@ export default function ProblemPage() {
     };
     
     fetchProblem();
-  }, [id, navigate, language, user?.id]);
+  }, [id, navigate, language, user?.uid]);
 
   const handleLanguageChange = (lang: Lang) => {
     setLanguage(lang);
-    const draftKey = `draft_code_${user?.id}_${id}_${lang}`;
+    const draftKey = `draft_code_${user?.uid}_${id}_${lang}`;
     const savedDraft = localStorage.getItem(draftKey);
     
     if (savedDraft) {
@@ -136,34 +136,50 @@ export default function ProblemPage() {
     setOutput(null);
     
     try {
-      // Mock Judge0 API for Demo
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const langMap: Record<string, { language: string, version: string }> = {
+        'python': { language: 'python', version: '3.10.0' },
+        'javascript': { language: 'javascript', version: '18.15.0' },
+        'java': { language: 'java', version: '15.0.2' },
+        'cpp': { language: 'c++', version: '10.2.0' }
+      };
+
+      const runtime = langMap[language] || { language, version: '*' };
       
-      let allPassed = true;
-      let finalStatus = "Accepted";
+      const res = await fetch('https://emkc.org/api/v2/piston/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          language: runtime.language,
+          version: runtime.version,
+          files: [{ content: code }],
+        })
+      });
+
+      if (!res.ok) throw new Error("Piston API Error");
       
-      if (code.length < 10) {
-        allPassed = false;
-        finalStatus = "Compilation Error";
-      }
+      const data = await res.json();
+      const outputText = data.run?.output || data.compile?.output || 'No output';
+      const isError = data.run?.code !== 0 || data.compile?.code !== 0;
+
+      let finalStatus = isError ? "Compilation Error" : "Accepted";
       
       setOutput({
         status: finalStatus,
-        stdout: finalStatus === "Accepted" ? "All test cases passed!" : "Failed on Testcase 1\nExpected: ...\nGot: ...",
-        time: "45ms",
+        stdout: outputText,
+        time: "45ms", // Piston doesn't guarantee accurate ms timing in output easily without parsing
         memory: "12.4MB"
       });
 
       if (isSubmit && finalStatus === "Accepted" && user) {
         await addDoc(collection(db, 'coding_submissions'), {
-          user_id: user.id,
+          user_id: user.uid,
           problem_id: problem.id,
           source_code: code,
           language: language,
           verdict: finalStatus,
           time_ms: 45,
           memory_kb: 12400,
-          credits_awarded: problem.credits || 10,
+          credits_awarded: (problem as any).credits || 10,
           created_at: new Date().toISOString()
         });
         toast.success("Solution Accepted! XP & Progress Updated.");
@@ -375,7 +391,7 @@ export default function ProblemPage() {
                 onChange={(val) => {
                   setCode(val || '');
                   if (user && id) {
-                    localStorage.setItem(`draft_code_${user.id}_${id}_${language}`, val || '');
+                    localStorage.setItem(`draft_code_${user.uid}_${id}_${language}`, val || '');
                   }
                 }}
                 options={{

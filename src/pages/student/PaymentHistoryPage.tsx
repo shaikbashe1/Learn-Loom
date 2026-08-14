@@ -47,12 +47,12 @@ export default function PaymentHistoryPage() {
       try {
         const q = query(
           collection(db, 'payment_orders'),
-          where('user_id', '==', user.uid || user.id),
+          where('user_id', '==', user.uid || user.uid),
           orderBy('created_at', 'desc'),
           limit(50)
         );
         const snapshot = await getDocs(q);
-        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as PaymentOrder[];
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any)) as PaymentOrder[];
         setOrders(data);
       } catch (error) {
         console.error('Error fetching orders:', error);

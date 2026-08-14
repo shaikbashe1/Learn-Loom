@@ -3,10 +3,10 @@ import { AppLayout } from '@/components/layouts/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
-import { db, storage } from '@/db/firebase';
-import { collection, query, where, getDocs, doc, getDoc, setDoc, addDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db } from '@/db/firebase';
+import { uploadFile } from '@/lib/uploadFile';
 import { useAuth } from '@/contexts/AuthContext';
+import { collection, query, where, getDocs, doc, getDoc, setDoc, addDoc } from 'firebase/firestore';
 import { 
   FileText, 
   Terminal, 
@@ -46,7 +46,7 @@ export default function AssignmentPage() {
       setLoading(true);
       try {
         const enrollmentsRef = collection(db, 'user_course_enrollments');
-        const enrollmentsQuery = query(enrollmentsRef, where('user_id', '==', user.id));
+        const enrollmentsQuery = query(enrollmentsRef, where('user_id', '==', user.uid));
         const enrollmentsSnap = await getDocs(enrollmentsQuery);
         const courseIds = enrollmentsSnap.docs.map(d => d.data().course_id);
 
@@ -57,7 +57,7 @@ export default function AssignmentPage() {
           const chunk = courseIds.slice(i, i + 10);
           const q = query(collection(db, 'assignments'), where('course_id', 'in', chunk));
           const snap = await getDocs(q);
-          assignmentsList.push(...snap.docs.map(d => ({ id: d.id, ...d.data() })));
+          assignmentsList.push(...snap.docs.map(d => ({ id: d.id, ...d.data() } as any)));
         }
         assignmentsList.sort((a, b) => {
           const tA = new Date(a.created_at || 0).getTime();
@@ -85,7 +85,7 @@ export default function AssignmentPage() {
             const chunk = asgIds.slice(i, i + 10);
             const q = query(
               collection(db, 'assignment_submissions'), 
-              where('user_id', '==', user.id), 
+              where('user_id', '==', user.uid), 
               where('assignment_id', 'in', chunk)
             );
             const snap = await getDocs(q);
@@ -126,17 +126,14 @@ export default function AssignmentPage() {
 
     try {
       if (file) {
-        const filePath = `submissions/${user.id}/${selected.id}/${file.name}`;
-        const fileRef = ref(storage, filePath);
-        await uploadBytes(fileRef, file);
-        const url = await getDownloadURL(fileRef);
+        const url = await uploadFile(file, `submissions/${user.uid}/${selected.id}`);
         answerText += (answerText ? '\n\n' : '') + `File: ${url}`;
       }
 
-      const subId = `${user.id}_${selected.id}`;
+      const subId = `${user.uid}_${selected.id}`;
       const subRef = doc(db, 'assignment_submissions', subId);
       await setDoc(subRef, {
-        user_id: user.id,
+        user_id: user.uid,
         assignment_id: selected.id,
         answer_text: answerText,
         status: 'submitted',
@@ -148,7 +145,7 @@ export default function AssignmentPage() {
       
       try {
         await addDoc(collection(db, 'activity_logs'), {
-          user_id: user.id,
+          user_id: user.uid,
           action_type: 'assignment',
           value: 1,
           created_at: new Date().toISOString()

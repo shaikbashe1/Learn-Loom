@@ -101,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const currentUser = userRef.current;
       const currentProfile = profileRef.current;
 
-      // Polyfill user.id for compatibility with 150+ components expecting Supabase's user.id
+      // Polyfill user.uid for compatibility with 150+ components expecting legacy user.uid
       if (firebaseUser) {
         (firebaseUser as any).id = firebaseUser.uid;
       }

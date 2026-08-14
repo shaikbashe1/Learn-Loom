@@ -35,25 +35,25 @@ export default function PracticePage() {
       // Fetch problems
       const q = query(collection(db, 'coding_problems'), orderBy('created_at', 'asc'));
       const querySnapshot = await getDocs(q);
-      const probData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const probData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
         
       if (probData) setProblems(probData as DBCodingProblem[]);
 
       // Fetch user solved status
       if (user) {
-        const subQ = query(collection(db, 'coding_submissions'), where('user_id', '==', user.id));
+        const subQ = query(collection(db, 'coding_submissions'), where('user_id', '==', user.uid));
         const subSnapshot = await getDocs(subQ);
-        const subData = subSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const subData = subSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
           
         if (subData) {
           const solved = new Set<string>();
           const attempted = new Set<string>();
           
           subData.forEach(sub => {
-            if (sub.verdict === 'Accepted') {
-              solved.add(sub.problem_id);
+            if ((sub as any).verdict === 'Accepted') {
+              solved.add((sub as any).problem_id);
             } else {
-              attempted.add(sub.problem_id);
+              attempted.add((sub as any).problem_id);
             }
           });
           
@@ -204,11 +204,11 @@ export default function PracticePage() {
                     <tr key={problem.id} className="hover:bg-surface-container-lowest transition-colors group">
                       <td className="px-6 py-4">
                         {isSolved ? (
-                          <CheckCircle2 className="w-5 h-5 text-green-500" title="Solved" />
+                          <CheckCircle2 className="w-5 h-5 text-green-500" />
                         ) : isAttempted ? (
-                          <Circle className="w-5 h-5 text-yellow-500 fill-yellow-500/20" title="Attempted" />
+                          <Circle className="w-5 h-5 text-yellow-500 fill-yellow-500/20" />
                         ) : (
-                          <Circle className="w-5 h-5 text-outline-variant" title="Not Started" />
+                          <Circle className="w-5 h-5 text-outline-variant" />
                         )}
                       </td>
                       <td className="px-6 py-4 font-medium text-on-surface">

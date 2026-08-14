@@ -1,6 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
+import { adminDb } from './_shared/firebase-admin';
 
-// Vercel serverless function handler
+// Serverless function handler
 export default async function handler(req: any, res: any) {
   // Only allow GET or POST
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -12,18 +12,6 @@ export default async function handler(req: any, res: any) {
   if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
-
-  // Initialize Supabase client
-  const supabaseUrl = process.env.VITE_SUPABASE_URL;
-  // MUST use Service Role Key to bypass RLS and insert!
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    console.error('Missing Supabase credentials.');
-    return res.status(500).json({ error: 'Missing Database Configuration' });
-  }
-
-  const supabase = createClient(supabaseUrl, supabaseKey);
 
   try {
     console.log('[Cron] Starting daily automated scraping pipeline...');
@@ -47,17 +35,13 @@ export default async function handler(req: any, res: any) {
         difficulty_level: 'intermediate',
         is_published: false, // Critical: MUST remain a draft
         tags: ['auto-generated', 'daily-cron'],
-        price: 49.99
+        price: 49.99,
+        created_at: new Date().toISOString()
       };
       
-      // Insert into database
-      const { data, error } = await supabase.from('courses').insert(dbPayload).select();
-      
-      if (error) {
-        console.error(`[Cron] Failed to insert ${topic}:`, error);
-      } else {
-        generatedCourses.push(data[0]);
-      }
+      // Insert into Firestore database
+      const docRef = await adminDb.collection('courses').add(dbPayload);
+      generatedCourses.push({ id: docRef.id, ...dbPayload });
     }
     
     console.log(`[Cron] Successfully generated ${generatedCourses.length} courses.`);

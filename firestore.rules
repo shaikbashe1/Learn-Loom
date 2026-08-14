@@ -55,7 +55,46 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Everything else default deny, explicitly whitelist below as needed
+    // Community Forum
+    match /forum_posts/{docId} { allow read: if true; allow write: if isAuthenticated(); }
+    match /forum_replies/{docId} { allow read: if true; allow write: if isAuthenticated(); }
+    match /forum_post_votes/{docId} { allow read: if true; allow write: if isAuthenticated(); }
+    match /forum_reply_votes/{docId} { allow read: if true; allow write: if isAuthenticated(); }
+
+    // Messages & Chat
+    match /messages/{docId} { allow read, write: if isAuthenticated(); }
+    match /conversations/{docId} { allow read, write: if isAuthenticated(); }
+    match /conversation_participants/{docId} { allow read, write: if isAuthenticated(); }
+    match /mentor_conversations/{docId} { allow read, write: if isAuthenticated(); }
+    match /mentor_messages/{docId} { allow read, write: if isAuthenticated(); }
+
+    // Course & Learning Progress
+    match /quiz_attempts/{docId} { allow read, write: if isAuthenticated(); }
+    match /assessment_attempts/{docId} { allow read, write: if isAuthenticated(); }
+    match /assignment_submissions/{docId} { allow read, write: if isAuthenticated(); }
+    match /user_course_enrollments/{docId} { allow read, write: if isAuthenticated(); }
+    match /user_module_progress/{docId} { allow read, write: if isAuthenticated(); }
+    match /mls_user_progress/{docId} { allow read, write: if isAuthenticated(); }
+    match /mls_bookmarks/{docId} { allow read, write: if isAuthenticated(); }
+    match /user_roadmaps/{docId} { allow read, write: if isAuthenticated(); }
+    match /roadmap_stages/{docId} { allow read, write: if isAuthenticated(); }
+    match /roadmap_items/{docId} { allow read, write: if isAuthenticated(); }
+
+    // Coding & Practice
+    match /coding_submissions/{docId} { allow read, write: if isAuthenticated(); }
+    match /contest_participants/{docId} { allow read, write: if isAuthenticated(); }
+    match /coding_progress/{docId} { allow read, write: if isAuthenticated(); }
+    match /coding_statistics/{docId} { allow read, write: if isAuthenticated(); }
+    match /coding_streaks/{docId} { allow read, write: if isAuthenticated(); }
+
+    // User Activity & Followers
+    match /user_activity_logs/{docId} { allow read, write: if isAuthenticated(); }
+    match /activity_logs/{docId} { allow read, write: if isAuthenticated(); }
+    match /certificates/{docId} { allow read, write: if isAuthenticated(); }
+    match /user_followers/{docId} { allow read, write: if isAuthenticated(); }
+    match /payment_orders/{docId} { allow read, write: if isAuthenticated(); }
+
+    // Everything else default deny (read-only for authenticated users)
     match /{document=**} {
       allow read: if isAuthenticated();
       allow write: if isAdmin();

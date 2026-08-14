@@ -44,7 +44,7 @@ export default function AdminCommunityPage() {
           const profileRef = doc(db, 'profiles', data.user_id);
           const profileSnap = await getDoc(profileRef);
           if (profileSnap.exists()) {
-            profiles = profileSnap.data();
+            profiles = profileSnap.data() as any;
           }
         }
         return {

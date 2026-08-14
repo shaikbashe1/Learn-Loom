@@ -42,7 +42,7 @@ export default function RoadmapDetailPage() {
           orderBy('order_index', 'asc')
         );
         const tSnap = await getDocs(topicsQuery);
-        const tData = tSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const tData = tSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
         setTopics(tData as RoadmapTopic[]);
 
         // Fetch actual problem names for all problem_ids in these topics
@@ -61,7 +61,7 @@ export default function RoadmapDetailPage() {
         if (user) {
           const subQ = query(
             collection(db, 'submissions'),
-            where('user_id', '==', user.id),
+            where('user_id', '==', user.uid),
             where('verdict', '==', 'Accepted')
           );
           const sSnap = await getDocs(subQ);

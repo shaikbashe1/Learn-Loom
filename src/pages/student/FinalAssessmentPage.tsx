@@ -69,7 +69,7 @@ export default function FinalAssessmentPage() {
       try {
         const q = query(
           collection(db, 'assessment_attempts'),
-          where('user_id', '==', user.id),
+          where('user_id', '==', user.uid),
           where('course_id', '==', courseId),
           orderBy('created_at', 'desc'),
           limit(1)
@@ -175,7 +175,7 @@ export default function FinalAssessmentPage() {
       };
 
       await addDoc(collection(db, 'assessment_attempts'), {
-        user_id: user.id,
+        user_id: user.uid,
         course_id: courseId,
         score_percentage: scorePercentage,
         is_passed: passed,
@@ -184,7 +184,7 @@ export default function FinalAssessmentPage() {
       });
 
       if (passed) {
-        await checkAndAwardCertificate(user.id, courseId);
+        await checkAndAwardCertificate(user.uid, courseId);
       }
     }
 

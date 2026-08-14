@@ -85,7 +85,7 @@ export default function CourseDetailPage() {
       const subs: DBAssignmentSubmission[] = [];
       for (let i = 0; i < asgIds.length; i += 10) {
         const chunk = asgIds.slice(i, i + 10);
-        const subsSnap = await getDocs(query(collection(db, 'assignment_submissions'), where('user_id', '==', user.id), where('assignment_id', 'in', chunk)));
+        const subsSnap = await getDocs(query(collection(db, 'assignment_submissions'), where('user_id', '==', user.uid), where('assignment_id', 'in', chunk)));
         subs.push(...subsSnap.docs.map(d => ({ id: d.id, ...d.data() } as DBAssignmentSubmission)));
       }
       subs.forEach(s => subMap.set(s.assignment_id, s));
@@ -116,7 +116,7 @@ export default function CourseDetailPage() {
       const attempts: DBQuizAttempt[] = [];
       for (let i = 0; i < qzIds.length; i += 10) {
         const chunk = qzIds.slice(i, i + 10);
-        const attemptsSnap = await getDocs(query(collection(db, 'quiz_attempts'), where('user_id', '==', user.id), where('quiz_id', 'in', chunk)));
+        const attemptsSnap = await getDocs(query(collection(db, 'quiz_attempts'), where('user_id', '==', user.uid), where('quiz_id', 'in', chunk)));
         attempts.push(...attemptsSnap.docs.map(d => ({ id: d.id, ...d.data() } as DBQuizAttempt)));
       }
       attempts.forEach(a => attemptMap.set(a.quiz_id, a));
@@ -151,10 +151,10 @@ export default function CourseDetailPage() {
     let enroll: DBEnrollment | null = null;
 
     if (user) {
-      enroll = await getEnrollment(user.id, courseId);
+      enroll = await getEnrollment(user.uid, courseId);
       setEnrollment(enroll);
       if (enroll) {
-        const progRows: DBModuleProgress[] = await getCourseModuleProgress(user.id, courseId);
+        const progRows: DBModuleProgress[] = await getCourseModuleProgress(user.uid, courseId);
         const statusMap = new Map(progRows.map(p => [p.module_id, p.status]));
         enrichedModules = moduleList.map(m => ({ ...m, status: statusMap.get(m.id) ?? 'locked' as const }));
       }
@@ -174,7 +174,7 @@ export default function CourseDetailPage() {
     if (!user) { navigate('/login', { state: { from: `/courses/${courseId}` } }); return; }
     if (!courseId) return;
     setEnrolling(true);
-    const { error } = await enrollInCourse(user.id, courseId);
+    const { error } = await enrollInCourse(user.uid, courseId);
     if (error) toast.error('Enrollment failed', { description: error });
     else { toast.success('Enrolled! Starting from Module 1.'); await loadData(); }
     setEnrolling(false);
@@ -198,10 +198,10 @@ export default function CourseDetailPage() {
     if (!asg.draftText.trim()) { toast.error('Please write your answer first.'); return; }
     setAssignments(prev => prev.map((a, i) => i === asgIdx ? { ...a, submitting: true } : a));
     try {
-      const q = query(collection(db, 'assignment_submissions'), where('user_id', '==', user.id), where('assignment_id', '==', asg.id));
+      const q = query(collection(db, 'assignment_submissions'), where('user_id', '==', user.uid), where('assignment_id', '==', asg.id));
       const qSnap = await getDocs(q);
       if (qSnap.empty) {
-        await addDoc(collection(db, 'assignment_submissions'), { user_id: user.id, assignment_id: asg.id, answer_text: asg.draftText.trim(), status: 'submitted' });
+        await addDoc(collection(db, 'assignment_submissions'), { user_id: user.uid, assignment_id: asg.id, answer_text: asg.draftText.trim(), status: 'submitted' });
       } else {
         await updateDoc(doc(db, 'assignment_submissions', qSnap.docs[0].id), { answer_text: asg.draftText.trim(), status: 'submitted' });
       }
@@ -243,11 +243,11 @@ export default function CourseDetailPage() {
     const score = Math.round((correct / total) * 100);
     const passed = score >= quiz.passing_score;
     try {
-      const q = query(collection(db, 'quiz_attempts'), where('user_id', '==', user.id), where('quiz_id', '==', quiz.id));
+      const q = query(collection(db, 'quiz_attempts'), where('user_id', '==', user.uid), where('quiz_id', '==', quiz.id));
       const qSnap = await getDocs(q);
       const completedAt = new Date().toISOString();
       if (qSnap.empty) {
-        await addDoc(collection(db, 'quiz_attempts'), { user_id: user.id, quiz_id: quiz.id, answers: quiz.selectedAnswers, score: correct, total, passed, completed_at: completedAt });
+        await addDoc(collection(db, 'quiz_attempts'), { user_id: user.uid, quiz_id: quiz.id, answers: quiz.selectedAnswers, score: correct, total, passed, completed_at: completedAt });
       } else {
         await updateDoc(doc(db, 'quiz_attempts', qSnap.docs[0].id), { answers: quiz.selectedAnswers, score: correct, total, passed, completed_at: completedAt });
       }

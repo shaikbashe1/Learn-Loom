@@ -70,7 +70,7 @@ export function MessagingProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     try {
       // Fetch all conversations this user is part of
-      const cpQuery = query(collection(db, 'conversation_participants'), where('user_id', '==', user.id));
+      const cpQuery = query(collection(db, 'conversation_participants'), where('user_id', '==', user.uid));
       const cpSnap = await getDocs(cpQuery);
       
       const myIds = cpSnap.docs.map(d => d.data().conversation_id as string);
@@ -109,7 +109,7 @@ export function MessagingProvider({ children }: { children: ReactNode }) {
         const snap = await getDocs(q);
         snap.docs.forEach(d => {
            const data = d.data();
-           if (data.user_id !== user.id) othersData.push(data);
+           if (data.user_id !== user.uid) othersData.push(data);
         });
       }
 
@@ -145,7 +145,7 @@ export function MessagingProvider({ children }: { children: ReactNode }) {
         const lastMessage = convMessages[0] || null;
         
         // Unread: message sender is NOT me, and read_at is null
-        const unreadCount = convMessages.filter(m => m.sender_id !== user.id && !m.read_at).length;
+        const unreadCount = convMessages.filter(m => m.sender_id !== user.uid && !m.read_at).length;
         
         builtConvs.push({
           conversation: conv as Conversation,
@@ -172,7 +172,7 @@ export function MessagingProvider({ children }: { children: ReactNode }) {
     if (!user) return;
     
     // Listen to our participants to detect new conversations
-    const qCp = query(collection(db, 'conversation_participants'), where('user_id', '==', user.id));
+    const qCp = query(collection(db, 'conversation_participants'), where('user_id', '==', user.uid));
     let initialCp = true;
     const unsubCp = onSnapshot(qCp, () => {
         if (initialCp) {
@@ -229,7 +229,7 @@ export function MessagingProvider({ children }: { children: ReactNode }) {
       const q = query(
          collection(db, 'messages'),
          where('conversation_id', '==', conversationId),
-         where('sender_id', '!=', user.id)
+         where('sender_id', '!=', user.uid)
       );
       const snap = await getDocs(q);
       

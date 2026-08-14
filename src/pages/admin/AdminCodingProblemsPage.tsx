@@ -40,7 +40,7 @@ export default function AdminCodingProblemsPage() {
         orderBy('created_at', 'desc')
       );
       const querySnapshot = await getDocs(q);
-      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
       setProblems(data as Problem[]);
     } catch (error) {
       console.error("Error fetching problems:", error);
@@ -86,7 +86,7 @@ export default function AdminCodingProblemsPage() {
            return;
         }
 
-        // Shuffle and pick up to 50 problems per batch to avoid Supabase payload limits
+        // Shuffle and pick up to 50 problems per batch to avoid database payload limits
         const shuffled = availableProblems.sort(() => 0.5 - Math.random());
         const selected = shuffled.slice(0, 50);
 

@@ -45,7 +45,7 @@ export default function AdminNotificationsPage() {
         limit(20)
       );
       const snapshot = await getDocs(q);
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as NotificationRow[];
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any)) as NotificationRow[];
       setNotifications(data);
     } catch (error) {
       toast.error('Failed to load notifications');

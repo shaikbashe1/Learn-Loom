@@ -62,7 +62,7 @@ interface JudgeResponse {
   stderr?: string;
 }
 
-const PISTON_URL = '/api/piston/execute';
+const PISTON_URL = 'https://emkc.org/api/v2/piston/execute';
 const LANG_MAP: Record<Lang, string> = {
   python: 'python', javascript: 'javascript', java: 'java', cpp: 'c++', c: 'c'
 };
@@ -135,7 +135,7 @@ export default function CodingAssessmentPage() {
   }, [courseId, navigate]);
 
   const problem = problems[idx];
-  const storageKey = problem ? `code_assess_${user?.id || 'default'}_${problem.id}_${language}` : '';
+  const storageKey = problem ? `code_assess_${user?.uid || 'default'}_${problem.id}_${language}` : '';
 
   useEffect(() => {
     if (!problem || !storageKey) return;
@@ -211,7 +211,7 @@ export default function CodingAssessmentPage() {
         toast.error('Compilation Error');
       } else {
         toast.success('Execution finished');
-        void logUserActivity(user.id, 'code_run', `Ran code for: ${problem?.title}`);
+        void logUserActivity(user.uid, 'code_run', `Ran code for: ${problem?.title}`);
       }
     } catch (err: any) {
       toast.error('Execution failed', { description: err.message });
@@ -300,10 +300,10 @@ export default function CodingAssessmentPage() {
 
       if (overallVerdict === 'accepted') {
         toast.success(`All ${testResults.length} test cases passed!`);
-        void logUserActivity(user.id, 'code_run', `Successfully completed coding assessment: ${problem?.title}`);
+        void logUserActivity(user.uid, 'code_run', `Successfully completed coding assessment: ${problem?.title}`);
         
         await addDoc(collection(db, 'assessment_attempts'), {
-          user_id: user.id,
+          user_id: user.uid,
           course_id: courseId!,
           score_percentage: 100,
           is_passed: true,
@@ -312,7 +312,7 @@ export default function CodingAssessmentPage() {
           created_at: new Date().toISOString()
         });
         
-        await checkAndAwardCertificate(user.id, courseId!);
+        await checkAndAwardCertificate(user.uid, courseId!);
 
       } else if (overallVerdict === 'compilation_error') {
         toast.error(`Compilation Error (Attempt ${attempts + 1}/${MAX_ATTEMPTS})`, { description: 'Fix the syntax errors and try again.' });
@@ -323,7 +323,7 @@ export default function CodingAssessmentPage() {
       if (attempts + 1 >= MAX_ATTEMPTS && overallVerdict !== 'accepted') {
          toast.error("Maximum attempts reached. Assessment failed.");
          await addDoc(collection(db, 'assessment_attempts'), {
-            user_id: user.id,
+            user_id: user.uid,
             course_id: courseId!,
             score_percentage: Math.round((passedCount / testResults.length) * 100),
             is_passed: false,

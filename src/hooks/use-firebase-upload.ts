@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { type FileError, type FileRejection, useDropzone } from 'react-dropzone'
-import { ref, uploadBytes } from 'firebase/storage'
-import { storage } from '@/db/firebase'
+import { uploadFile } from '@/lib/uploadFile'
 
 interface FileWithPreview extends File {
   preview?: string
@@ -121,12 +120,7 @@ const useFirebaseUpload = (options: UseFirebaseUploadOptions) => {
     const responses = await Promise.all(
       filesToUpload.map(async (file) => {
         try {
-          const filePath = path ? `${path}/${file.name}` : file.name
-          const storageRef = ref(storage, filePath)
-          
-          await uploadBytes(storageRef, file, {
-            cacheControl: cacheControl.toString(),
-          })
+          await uploadFile(file, path);
           
           return { name: file.name, message: undefined }
         } catch (error: any) {

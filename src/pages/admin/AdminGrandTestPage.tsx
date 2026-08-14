@@ -44,7 +44,7 @@ export default function AdminGrandTestPage() {
         orderBy('sort_order', 'asc')
       );
       const snapshot = await getDocs(q);
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as DBGrandTestQuestion[];
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any)) as DBGrandTestQuestion[];
       setQuestions(data);
     } catch (error) {
       console.error(error);

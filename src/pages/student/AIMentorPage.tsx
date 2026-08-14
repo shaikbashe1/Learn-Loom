@@ -30,11 +30,11 @@ export default function AIMentorPage() {
     const fetchAnalytics = async () => {
       try {
         const enrollmentsRef = collection(db, 'user_course_enrollments');
-        const enrollmentsQ = query(enrollmentsRef, where('user_id', '==', user.id));
+        const enrollmentsQ = query(enrollmentsRef, where('user_id', '==', user.uid));
         const enrollmentsSnap = await getDocs(enrollmentsQ);
           
         const quizzesRef = collection(db, 'quiz_attempts');
-        const quizzesQ = query(quizzesRef, where('user_id', '==', user.id));
+        const quizzesQ = query(quizzesRef, where('user_id', '==', user.uid));
         const quizzesSnap = await getDocs(quizzesQ);
 
         let completed = 0;

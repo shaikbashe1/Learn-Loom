@@ -48,7 +48,8 @@ export async function generateAndSaveRoadmap(
       target_role: targetRole,
       difficulty: difficulty,
       estimated_weeks: totalWeeks,
-      progress_percentage: 0
+      progress_percentage: 0,
+      created_at: new Date().toISOString()
     });
   } catch (rError) {
     throw rError;

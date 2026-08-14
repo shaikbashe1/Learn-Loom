@@ -5,9 +5,11 @@ import { UserAvatar } from '@/components/shared/UserAvatar';
 import { MarkdownToolbar } from '@/components/shared/MarkdownToolbar';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { db, storage } from '@/db/firebase';
+import { db } from '@/db/firebase';
+import { User } from 'firebase/auth';
+import { fetchAIMentorStream } from '@/lib/aiClient';
+import { uploadFile } from '@/lib/uploadFile';
 import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { renderMarkdown } from '@/lib/markdown';
@@ -30,7 +32,7 @@ import {
   FileText, 
   Share2, 
   RefreshCw, 
-  User, 
+  User as UserIcon, 
   Send, 
   Search, 
   ChevronDown, 
@@ -307,14 +309,14 @@ export default function CommunityPage() {
         let followedAuthors = new Set<string>();
 
         if (user) {
-          const votesSnap = await getDocs(query(collection(db, 'forum_post_votes'), where('user_id', '==', user.id)));
+          const votesSnap = await getDocs(query(collection(db, 'forum_post_votes'), where('user_id', '==', user.uid)));
           votesSnap.forEach(d => {
             const data = d.data();
             votedPostIds.add(data.post_id);
             if (data.reaction_type) reactionMap.set(data.post_id, data.reaction_type);
           });
 
-          const followsSnap = await getDocs(query(collection(db, 'user_followers'), where('follower_id', '==', user.id)));
+          const followsSnap = await getDocs(query(collection(db, 'user_followers'), where('follower_id', '==', user.uid)));
           followsSnap.forEach(d => followedAuthors.add(d.data().following_id));
         }
 
@@ -360,7 +362,7 @@ export default function CommunityPage() {
 
         let votedReplyIds = new Set<string>();
         if (user) {
-          const rVotesSnap = await getDocs(query(collection(db, 'forum_reply_votes'), where('user_id', '==', user.id)));
+          const rVotesSnap = await getDocs(query(collection(db, 'forum_reply_votes'), where('user_id', '==', user.uid)));
           rVotesSnap.forEach(v => votedReplyIds.add(v.data().reply_id));
         }
 
@@ -413,13 +415,13 @@ export default function CommunityPage() {
 
     try {
       if (isFollowing) {
-        const fSnap = await getDocs(query(collection(db, 'user_followers'), where('follower_id', '==', user.id), where('following_id', '==', post.user_id)));
+        const fSnap = await getDocs(query(collection(db, 'user_followers'), where('follower_id', '==', user.uid), where('following_id', '==', post.user_id)));
         for (const d of fSnap.docs) {
           await deleteDoc(d.ref);
         }
         toast.success(`Unfollowed ${post.profiles?.full_name}`);
       } else {
-        await addDoc(collection(db, 'user_followers'), { follower_id: user.id, following_id: post.user_id });
+        await addDoc(collection(db, 'user_followers'), { follower_id: user.uid, following_id: post.user_id });
         toast.success(`Following ${post.profiles?.full_name}`);
       }
       setPosts(prev => prev.map(p => p.user_id === post.user_id ? { ...p, author_is_followed: !isFollowing } : p));
@@ -441,7 +443,7 @@ export default function CommunityPage() {
     try {
       if (hasVoted && sameReaction) {
         // Remove Vote
-        const vSnap = await getDocs(query(collection(db, 'forum_post_votes'), where('post_id', '==', post.id), where('user_id', '==', user.id)));
+        const vSnap = await getDocs(query(collection(db, 'forum_post_votes'), where('post_id', '==', post.id), where('user_id', '==', user.uid)));
         for (const docSnap of vSnap.docs) {
           await deleteDoc(docSnap.ref);
         }
@@ -451,13 +453,13 @@ export default function CommunityPage() {
         }
       } else {
         // Upsert Vote
-        const vSnap = await getDocs(query(collection(db, 'forum_post_votes'), where('post_id', '==', post.id), where('user_id', '==', user.id)));
+        const vSnap = await getDocs(query(collection(db, 'forum_post_votes'), where('post_id', '==', post.id), where('user_id', '==', user.uid)));
         for (const docSnap of vSnap.docs) {
           await deleteDoc(docSnap.ref);
         }
         await addDoc(collection(db, 'forum_post_votes'), {
           post_id: post.id,
-          user_id: user.id,
+          user_id: user.uid,
           reaction_type: reactionType
         });
 
@@ -479,13 +481,13 @@ export default function CommunityPage() {
 
     try {
       if (hasVoted) {
-        const vSnap = await getDocs(query(collection(db, 'forum_reply_votes'), where('reply_id', '==', reply.id), where('user_id', '==', user.id)));
+        const vSnap = await getDocs(query(collection(db, 'forum_reply_votes'), where('reply_id', '==', reply.id), where('user_id', '==', user.uid)));
         for (const docSnap of vSnap.docs) {
           await deleteDoc(docSnap.ref);
         }
         toast.success('Vote removed');
       } else {
-        await addDoc(collection(db, 'forum_reply_votes'), { reply_id: reply.id, user_id: user.id });
+        await addDoc(collection(db, 'forum_reply_votes'), { reply_id: reply.id, user_id: user.uid });
         toast.success('Vote recorded');
       }
       
@@ -509,7 +511,7 @@ export default function CommunityPage() {
   // Accept Reply
   const handleAcceptReply = async (reply: ForumReply) => {
     if (!user || !selectedPost) return;
-    if (selectedPost.user_id !== user.id) return; // Only thread author can accept
+    if (selectedPost.user_id !== user.uid) return; // Only thread author can accept
 
     const nextState = !reply.is_accepted;
 
@@ -556,16 +558,7 @@ ${isReply ? `Previous replies:\n${threadContext}\n\nStudent query: "${userQuery}
 
       const contents = [{ role: 'user', parts: [{ text: systemPrompt }] }];
 
-      const token = '';
-
-      const res = await fetch('/api/ai-mentor', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ contents }),
-      });
+      const res = await fetchAIMentorStream(contents);
 
       if (!res.ok) return;
       if (!res.body) return;
@@ -663,12 +656,12 @@ ${isReply ? `Previous replies:\n${threadContext}\n\nStudent query: "${userQuery}
       const docRef = await addDoc(collection(db, 'forum_replies'), {
         post_id: selectedPost.id,
         parent_id: replyingTo?.id || null,
-        user_id: user.id,
+        user_id: user.uid,
         content: contentToSend,
         is_ai: false,
         created_at: new Date().toISOString()
       });
-      const data = [{ id: docRef.id, post_id: selectedPost.id, parent_id: replyingTo?.id || null, user_id: user.id, content: contentToSend, is_ai: false, created_at: new Date().toISOString() }];
+      const data = [{ id: docRef.id, post_id: selectedPost.id, parent_id: replyingTo?.id || null, user_id: user.uid, content: contentToSend, is_ai: false, created_at: new Date().toISOString() }];
 
       toast.success('Comment posted successfully');
       setReplyText('');
@@ -677,7 +670,8 @@ ${isReply ? `Previous replies:\n${threadContext}\n\nStudent query: "${userQuery}
       const newReply: ForumReply = {
         ...data[0],
         profiles: { full_name: user.email, avatar_url: null, bio: null },
-        user_voted: false
+        user_voted: false,
+        upvotes: 0
       };
 
       const addReplyToTree = (list: ForumReply[], parentId: string | null, node: ForumReply): ForumReply[] => {
@@ -720,11 +714,7 @@ ${isReply ? `Previous replies:\n${threadContext}\n\nStudent query: "${userQuery}
 
       // Upload Media
       for (const file of newMediaFiles) {
-        const ext = file.name.split('.').pop() || 'jpg';
-        const path = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
-        const storageRef = ref(storage, `forum_attachments/${path}`);
-        await uploadBytes(storageRef, file);
-        const file_url = await getDownloadURL(storageRef);
+        const file_url = await uploadFile(file, `forum_attachments/${user.uid}`);
         mediaList.push({ file_url, file_type: file.type.startsWith('image/') ? 'image' : 'document' });
       }
 
@@ -733,7 +723,7 @@ ${isReply ? `Previous replies:\n${threadContext}\n\nStudent query: "${userQuery}
         content: newContent.trim(),
         category: newCategory,
         tags: tagList,
-        user_id: user.id,
+        user_id: user.uid,
         media: mediaList,
         created_at: new Date().toISOString(),
         upvotes: 0,
@@ -786,16 +776,7 @@ ${threadContext}`;
 
       const contents = [{ role: 'user', parts: [{ text: systemPrompt }] }];
 
-      const token = '';
-
-      const res = await fetch('/api/ai-mentor', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ contents }),
-      });
+      const res = await fetchAIMentorStream(contents, undefined, false);
 
       if (!res.ok) throw new Error('AI Summary request failed');
       const json = await res.json();
@@ -836,7 +817,7 @@ ${threadContext}`;
                   </div>
 
                   <div className="flex items-center gap-2 select-none">
-                    {user && selectedPost.user_id !== user.id && (
+                    {user && selectedPost.user_id !== user.uid && (
                       <button 
                         onClick={(e) => void handleFollowAuthor(selectedPost, e)}
                         className={cn(
@@ -960,7 +941,7 @@ ${threadContext}`;
                         key={reply.id} 
                         reply={reply} 
                         postUserId={selectedPost.id} 
-                        currentUserId={user?.id}
+                        currentUserId={user?.uid}
                         onVoteReply={handleVoteReply}
                         onAcceptReply={handleAcceptReply}
                         onReplyTo={setReplyingTo}

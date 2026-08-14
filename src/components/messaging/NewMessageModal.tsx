@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Loader2 } from 'lucide-react';
 import { db } from '@/db/firebase';
-import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query as firestoreQuery, where } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -16,7 +16,7 @@ interface NewMessageModalProps {
 
 export function NewMessageModal({ open, onOpenChange, onUserSelect }: NewMessageModalProps) {
   const { user, profile } = useAuth();
-  const [query, setQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [allowedIds, setAllowedIds] = useState<Set<string> | null>(null);
@@ -28,7 +28,7 @@ export function NewMessageModal({ open, onOpenChange, onUserSelect }: NewMessage
   // Fetch allowed users once when modal opens
   useEffect(() => {
     if (open && user && profile) {
-      setQuery('');
+      setSearchQuery('');
       setResults([]);
       
       const fetchAllowed = async () => {
@@ -43,13 +43,13 @@ export function NewMessageModal({ open, onOpenChange, onUserSelect }: NewMessage
 
           // Get admins (students can message admins)
           const adminsSnap = await getDocs(
-            query(collection(db, 'public_profiles'), where('role', 'in', ['admin', 'super_admin', 'org_admin']))
+            firestoreQuery(collection(db, 'public_profiles'), where('role', 'in', ['admin', 'super_admin', 'org_admin']))
           );
           adminsSnap.forEach(docSnap => ids.add(docSnap.id));
 
           // If student: get instructors of enrolled courses
           const enrollmentsSnap = await getDocs(
-            query(collection(db, 'user_course_enrollments'), where('user_id', '==', user.id))
+            firestoreQuery(collection(db, 'user_course_enrollments'), where('user_id', '==', user.uid))
           );
           const enrolledCourseIds = enrollmentsSnap.docs.map(docSnap => docSnap.data().course_id).filter(Boolean);
           
@@ -66,23 +66,23 @@ export function NewMessageModal({ open, onOpenChange, onUserSelect }: NewMessage
 
           // If instructor (has created courses): get enrolled students
           const myCoursesSnap = await getDocs(
-            query(collection(db, 'courses'), where('created_by', '==', user.id))
+            firestoreQuery(collection(db, 'courses'), where('created_by', '==', user.uid))
           );
           const myCourseIds = myCoursesSnap.docs.map(docSnap => docSnap.id);
           
           if (myCourseIds.length > 0) {
             for (const chunk of chunkArray(myCourseIds, 10)) {
               const studentEnrollmentsSnap = await getDocs(
-                query(collection(db, 'user_course_enrollments'), where('course_id', 'in', chunk))
+                firestoreQuery(collection(db, 'user_course_enrollments'), where('course_id', 'in', chunk))
               );
               studentEnrollmentsSnap.docs.forEach(docSnap => {
-                const data = docSnap.data();
+                const data = docSnap.data() as any;
                 if (data.user_id) ids.add(data.user_id);
               });
             }
           }
 
-          ids.delete(user.id);
+          ids.delete(user.uid);
           setAllowedIds(ids);
         } catch (err) {
           console.error("Failed to fetch allowed IDs", err);
@@ -93,8 +93,8 @@ export function NewMessageModal({ open, onOpenChange, onUserSelect }: NewMessage
     }
   }, [open, user, profile]);
 
-  const handleSearch = async (searchQuery = query) => {
-    if (!searchQuery.trim()) {
+  const handleSearch = async (q = searchQuery) => {
+    if (!q.trim()) {
       setResults([]);
       return;
     }
@@ -107,8 +107,8 @@ export function NewMessageModal({ open, onOpenChange, onUserSelect }: NewMessage
       let data = profilesSnap.docs
         .map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as any))
         .filter(u => 
-          u.id !== user?.id && 
-          u.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
+          u.id !== user?.uid && 
+          u.full_name?.toLowerCase().includes(q.toLowerCase())
         )
         .slice(0, 20);
       
@@ -132,7 +132,7 @@ export function NewMessageModal({ open, onOpenChange, onUserSelect }: NewMessage
       handleSearch();
     }, 300);
     return () => clearTimeout(delayDebounceFn);
-  }, [query]);
+  }, [searchQuery]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -147,8 +147,10 @@ export function NewMessageModal({ open, onOpenChange, onUserSelect }: NewMessage
             <Input
               placeholder="Search by name to find someone..."
               className="pl-14 pr-12 h-16 text-lg rounded-2xl bg-surface border-2 border-border-base focus:border-primary shadow-sm focus:shadow-md transition-all placeholder:text-text-secondary/60"
-              value={query}
-              onChange={e => setQuery(e.target.value)}
+              value={searchQuery}
+              onChange={e => {
+                setSearchQuery(e.target.value);
+              }}
               autoFocus
             />
             {loading && (
@@ -157,7 +159,7 @@ export function NewMessageModal({ open, onOpenChange, onUserSelect }: NewMessage
           </div>
 
           <div className="max-h-[400px] overflow-y-auto space-y-3 mt-4 pr-2 custom-scrollbar">
-            {results.length === 0 && query && !loading && (
+            {results.length === 0 && searchQuery && !loading && (
               <div className="text-center py-8 text-text-secondary">
                 No users found that you can message.
               </div>

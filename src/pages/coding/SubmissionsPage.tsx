@@ -32,13 +32,13 @@ export default function SubmissionsPage() {
         const subsRef = collection(db, 'submissions');
         const q = query(
           subsRef,
-          where('user_id', '==', user.id),
+          where('user_id', '==', user.uid),
           orderBy('created_at', 'desc'),
           limit(20)
         );
         
         const snapshot = await getDocs(q);
-        const subs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        const subs = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as any));
 
         const populatedSubs = await Promise.all(
           subs.map(async (sub: any) => {

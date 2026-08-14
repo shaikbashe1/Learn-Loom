@@ -7,6 +7,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { auth, db, storage } from '@/db/firebase';
 import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { useAIRateLimit } from '@/hooks/useAIRateLimit';
+import { fetchAIMentorStream } from '@/lib/aiClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { getCourseModuleProgress, completeModule, getEnrollment } from '@/lib/progress';
 import { logUserActivity } from '@/lib/activity';
@@ -99,7 +101,7 @@ function ModuleDiscussionBoard({ courseId, moduleId, currentUserId }: ModuleDisc
         orderBy('created_at', 'desc')
       );
       const snapshot = await getDocs(qPosts);
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
 
       if (data && data.length > 0) {
         const uids = Array.from(new Set(data.map((d: any) => d.user_id)));
@@ -108,7 +110,7 @@ function ModuleDiscussionBoard({ courseId, moduleId, currentUserId }: ModuleDisc
           return { id: d.id, ...d.data() };
         }));
         const pMap = new Map(profs?.map(p => [p.id, p]) ?? []);
-        setPosts(data.map(p => ({ ...p, profiles: pMap.get(p.user_id) })));
+        setPosts(data.map(p => ({ ...p, profiles: pMap.get(p.user_id) as any })));
       } else {
         setPosts([]);
       }
@@ -135,7 +137,7 @@ function ModuleDiscussionBoard({ courseId, moduleId, currentUserId }: ModuleDisc
         orderBy('created_at', 'asc')
       );
       const snapshot = await getDocs(qReplies);
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
 
       if (data && data.length > 0) {
         const uids = Array.from(new Set(data.map((r: any) => r.user_id)));
@@ -144,7 +146,7 @@ function ModuleDiscussionBoard({ courseId, moduleId, currentUserId }: ModuleDisc
           return { id: d.id, ...d.data() };
         }));
         const pMap = new Map(profs?.map(p => [p.id, p]) ?? []);
-        setReplies(data.map(r => ({ ...r, profiles: pMap.get(r.user_id) })));
+        setReplies(data.map(r => ({ ...r, profiles: pMap.get(r.user_id) as any })));
       } else {
         setReplies([]);
       }
@@ -182,16 +184,7 @@ ${isReply ? `Previous replies:\n${threadContext}\n\nStudent query: "${userQuery}
 
       const contents = [{ role: 'user', parts: [{ text: systemPrompt }] }];
 
-      const token = await auth.currentUser?.getIdToken() ?? '';
-
-      const res = await fetch('/api/ai-mentor', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ contents }),
-      });
+      const res = await fetchAIMentorStream(contents);
 
       if (!res.ok) return;
       if (!res.body) return;
@@ -581,9 +574,9 @@ export default function CoursePlayerPage() {
     setCourse(courseData);
 
     const modsSnap = await getDocs(query(collection(db, 'course_modules'), where('course_id', '==', courseId), orderBy('order_index', 'asc')));
-    const moduleList: DBModule[] = modsSnap.docs.map(d => ({ id: d.id, ...d.data() })) as DBModule[];
+    const moduleList: DBModule[] = modsSnap.docs.map(d => ({ id: d.id, ...d.data() } as any)) as DBModule[];
 
-    const enrollment = await getEnrollment(user.id, courseId);
+    const enrollment = await getEnrollment(user.uid, courseId);
     if (!enrollment) { navigate(`/courses/${courseId}`); return; }
 
     setProgressPercent(enrollment.progress_percent);
@@ -592,7 +585,7 @@ export default function CoursePlayerPage() {
     const codingSnap = await getDocs(query(collection(db, 'coding_questions'), where('course_id', '==', courseId), limit(1)));
     setHasCodingQuestions(!codingSnap.empty);
 
-    const progRows: DBModuleProgress[] = await getCourseModuleProgress(user.id, courseId);
+    const progRows: DBModuleProgress[] = await getCourseModuleProgress(user.uid, courseId);
     const statusMap = new Map(progRows.map(p => [p.module_id, p.status]));
 
     const enriched: ModuleWithStatus[] = moduleList.map(m => ({
@@ -609,7 +602,7 @@ export default function CoursePlayerPage() {
     if (currentActive) {
       // Load all quizzes for this module
       const qSnap = await getDocs(query(collection(db, 'quizzes'), where('module_id', '==', currentActive.id), orderBy('quiz_type')));
-      const qData = qSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const qData = qSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
       
       // Load coding assessment for this module
       const cSnap = await getDocs(query(collection(db, 'coding_questions'), where('module_id', '==', currentActive.id), limit(1)));
@@ -619,9 +612,9 @@ export default function CoursePlayerPage() {
       currentActive.codingId = cData?.id || null;
 
       // Check which are passed
-      const qIds = currentActive.quizzes.map((q: DBQuiz) => q.id);
+      const qIds = (currentActive.quizzes || []).map((q: DBQuiz) => q.id);
       if (qIds.length > 0) {
-        const attemptsSnap = await getDocs(query(collection(db, 'quiz_attempts'), where('user_id', '==', user.id), where('passed', '==', true)));
+        const attemptsSnap = await getDocs(query(collection(db, 'quiz_attempts'), where('user_id', '==', user.uid), where('passed', '==', true)));
         const attempts = attemptsSnap.docs.map(d => d.data()).filter(a => qIds.includes(a.quiz_id));
         currentActive.passedQuizzes = attempts.map((a: any) => a.quiz_id);
       } else {
@@ -630,7 +623,7 @@ export default function CoursePlayerPage() {
 
       // Check if coding is passed
       if (currentActive.codingId) {
-         const cAttSnap = await getDocs(query(collection(db, 'assessment_attempts'), where('user_id', '==', user.id), where('module_id', '==', currentActive.id), where('is_passed', '==', true), limit(1)));
+         const cAttSnap = await getDocs(query(collection(db, 'assessment_attempts'), where('user_id', '==', user.uid), where('module_id', '==', currentActive.id), where('is_passed', '==', true), limit(1)));
          currentActive.codingPassed = !cAttSnap.empty;
       }
     }
@@ -651,7 +644,7 @@ export default function CoursePlayerPage() {
     if (activeModule.status === 'completed') return;
     setCompleting(true);
 
-    const { error, isCourseDone } = await completeModule(user.id, courseId, activeModule.id);
+    const { error, isCourseDone } = await completeModule(user.uid, courseId, activeModule.id);
     if (error) {
       toast.error('Failed to save progress', { description: error });
       setCompleting(false);
@@ -659,11 +652,11 @@ export default function CoursePlayerPage() {
     }
 
     toast.success(isCourseDone ? 'Course completed!' : 'Module completed — next one unlocked!');
-    void logUserActivity(user.id, 'module_completed', `Completed module: ${activeModule.title}`);
+    void logUserActivity(user.uid, 'module_completed', `Completed module: ${activeModule.title}`);
     
     if (isCourseDone) {
       setCourseDone(true);
-      void logUserActivity(user.id, 'course_completed', `Completed course: ${course?.title}`);
+      void logUserActivity(user.uid, 'course_completed', `Completed course: ${course?.title}`);
     }
 
     await loadData();
@@ -693,16 +686,7 @@ Question / Request: ${promptMap[action]}`;
 
       const contents = [{ role: 'user', parts: [{ text: systemPrompt }] }];
 
-      const token = await auth.currentUser?.getIdToken() ?? '';
-
-      const res = await fetch('/api/ai-mentor', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ contents }),
-      });
+      const res = await fetchAIMentorStream(contents);
 
       if (!res.ok) throw new Error('Failed to ask AI Tutor');
       if (!res.body) return;
@@ -1146,7 +1130,7 @@ Question / Request: ${promptMap[action]}`;
                 <ModuleDiscussionBoard 
                   courseId={courseId ?? ''} 
                   moduleId={activeModule.id} 
-                  currentUserId={user.id} 
+                  currentUserId={user.uid} 
                 />
               )}
             </div>

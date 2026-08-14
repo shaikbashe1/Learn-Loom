@@ -1,5 +1,7 @@
-// Shared authentication helper for Vercel Edge API routes
-// Verifies Supabase JWT tokens by calling the Supabase Auth API
+// Shared authentication helper for API routes
+// Verifies Firebase JWT tokens
+
+import { adminAuth, adminDb } from './firebase-admin';
 
 export interface AuthUser {
   id: string;
@@ -13,35 +15,36 @@ export async function verifyAuth(req: Request): Promise<AuthUser | null> {
     return null;
   }
 
-  const supabaseUrl = process.env.VITE_SUPABASE_URL;
-  const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    return null;
-  }
+  const token = authHeader.split('Bearer ')[1];
 
   try {
-    const res = await fetch(`${supabaseUrl}/auth/v1/user`, {
-      headers: {
-        Authorization: authHeader,
-        apikey: supabaseAnonKey,
-      },
-    });
+    const decodedToken = await adminAuth.verifyIdToken(token);
+    
+    // Fetch user profile from Firestore to get the role
+    const profileDoc = await adminDb.collection('profiles').doc(decodedToken.uid).get();
+    let role = 'student'; // Default role
+    
+    if (profileDoc.exists) {
+      const profileData = profileDoc.data();
+      if (profileData && profileData.role) {
+        role = profileData.role;
+      }
+    }
 
-    if (!res.ok) return null;
-
-    const user = await res.json();
-    if (!user?.id) return null;
-
-    return { id: user.id, email: user.email, role: user.role };
-  } catch {
+    return { 
+      id: decodedToken.uid, 
+      email: decodedToken.email, 
+      role 
+    };
+  } catch (error) {
+    console.error('Error verifying Firebase ID token:', error);
     return null;
   }
 }
 
 export function unauthorizedResponse(): Response {
   return new Response(
-    JSON.stringify({ error: 'Unauthorized. A valid Supabase access token is required.' }),
+    JSON.stringify({ error: 'Unauthorized. A valid Firebase access token is required.' }),
     {
       status: 401,
       headers: {

@@ -42,14 +42,14 @@ export default function TrackDetailPage() {
           orderBy('order_index', 'asc')
         );
         const modsSnap = await getDocs(modsQuery);
-        const modsData = modsSnap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() })) as DBMLSModule[];
+        const modsData = modsSnap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as any)) as DBMLSModule[];
 
         setModules(modsData);
         
         if (user) {
           const progQuery = query(
             collection(db, 'mls_user_progress'),
-            where('user_id', '==', user.id)
+            where('user_id', '==', user.uid)
           );
           const progSnap = await getDocs(progQuery);
             

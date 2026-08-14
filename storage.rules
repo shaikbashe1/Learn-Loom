@@ -26,6 +26,12 @@ service firebase.storage {
       allow write: if isAuthenticated(); // Restrict to admin in actual deployment based on custom claims
     }
 
+    // Community Attachments: Users can upload attachments to their own folder
+    match /forum_attachments/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth.uid == userId;
+    }
+
     // Default deny for anything not explicitly matched above
     match /{allPaths=**} {
       allow read, write: if false;

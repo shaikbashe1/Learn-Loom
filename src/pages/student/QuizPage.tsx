@@ -74,7 +74,7 @@ export default function QuizPage() {
       setLoading(true);
       try {
         const enrollmentsSnapshot = await getDocs(
-          query(collection(db, 'user_course_enrollments'), where('user_id', '==', user.id))
+          query(collection(db, 'user_course_enrollments'), where('user_id', '==', user.uid))
         );
         const courseIds = enrollmentsSnapshot.docs.map(d => d.data().course_id);
         if (courseIds.length === 0) { 
@@ -83,7 +83,7 @@ export default function QuizPage() {
           return; 
         }
 
-        const chunks = [];
+        const chunks: string[][] = [];
         for (let i = 0; i < courseIds.length; i += 10) {
           chunks.push(courseIds.slice(i, i + 10));
         }
@@ -135,7 +135,7 @@ export default function QuizPage() {
       );
       const aQuery = query(
         collection(db, 'quiz_attempts'),
-        where('user_id', '==', user.id),
+        where('user_id', '==', user.uid),
         where('quiz_id', '==', quiz.id),
         orderBy('completed_at', 'desc'),
         limit(1)
@@ -189,9 +189,9 @@ export default function QuizPage() {
     setFinalScore(score);
 
     try {
-      const attemptId = `${user.id}_${selectedQuiz.id}`;
+      const attemptId = `${user.uid}_${selectedQuiz.id}`;
       await setDoc(doc(db, 'quiz_attempts', attemptId), {
-        user_id: user.id,
+        user_id: user.uid,
         quiz_id: selectedQuiz.id,
         answers: finalAnswers,
         score: correct,
@@ -203,7 +203,7 @@ export default function QuizPage() {
       setPastAttempt({ score: correct, total, passed, completed_at: new Date().toISOString() });
       toast[passed ? 'success' : 'info'](passed ? `Passed! Score: ${score}%` : `Score: ${score}% — Keep practising!`);
       
-      void addDoc(collection(db, 'activity_logs'), { user_id: user.id, type: 'quiz', value: 1, created_at: new Date().toISOString() }).then(() => {});
+      void addDoc(collection(db, 'activity_logs'), { user_id: user.uid, type: 'quiz', value: 1, created_at: new Date().toISOString() }).then(() => {});
     } catch (error: any) {
       toast.error('Failed to save result', { description: error.message });
     }

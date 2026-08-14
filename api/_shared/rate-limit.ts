@@ -1,5 +1,4 @@
-// Shared rate-limiting utility for Vercel Edge AI endpoints
-// Uses the Supabase `check_and_increment_rate_limit` RPC for atomic enforcement
+import { adminDb } from './firebase-admin';
 
 export interface RateLimitResult {
   allowed: boolean;
@@ -29,101 +28,80 @@ const RATE_LIMITS: Record<string, Record<string, number>> = {
 };
 
 /**
- * Fetch the user's active subscription plan from Supabase.
+ * Fetch the user's active subscription plan from Firestore.
  */
-async function getUserPlan(
-  userId: string,
-  supabaseUrl: string,
-  supabaseKey: string
-): Promise<string> {
+async function getUserPlan(userId: string): Promise<string> {
   try {
-    const res = await fetch(
-      `${supabaseUrl}/rest/v1/user_subscriptions?user_id=eq.${userId}&status=eq.active&select=plan_id&order=started_at.desc&limit=1`,
-      {
-        headers: {
-          apikey: supabaseKey,
-          Authorization: `Bearer ${supabaseKey}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    const subscriptionsRef = adminDb.collection('subscriptions');
+    const snapshot = await subscriptionsRef
+      .where('user_id', '==', userId)
+      .where('status', '==', 'active')
+      .orderBy('started_at', 'desc')
+      .limit(1)
+      .get();
 
-    if (!res.ok) return 'free';
-    const data = await res.json();
-    return data?.[0]?.plan_id ?? 'free';
-  } catch {
+    if (snapshot.empty) return 'free';
+    const data = snapshot.docs[0].data();
+    return data.plan_id ?? 'free';
+  } catch (err) {
     return 'free';
   }
 }
 
 /**
- * Check and enforce rate limiting for an AI endpoint.
+ * Check and enforce rate limiting for an AI endpoint using Firestore transactions.
  * Returns the rate limit result with plan context.
  */
 export async function checkRateLimit(
   userId: string,
   endpoint: string
 ): Promise<RateLimitResult> {
-  const supabaseUrl = process.env.VITE_SUPABASE_URL;
-  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    // If Supabase is not configured, allow the request (fail open)
-    return {
-      allowed: true,
-      currentCount: 0,
-      maxCount: 999,
-      windowReset: new Date(Date.now() + 86400000).toISOString(),
-      planId: 'unknown',
-    };
-  }
-
-  const planId = await getUserPlan(userId, supabaseUrl, supabaseKey);
+  const planId = await getUserPlan(userId);
   const endpointLimits = RATE_LIMITS[endpoint] ?? RATE_LIMITS['ai-mentor'];
   const maxCount = endpointLimits[planId] ?? endpointLimits['free'] ?? 5;
 
+  const today = new Date().toISOString().split('T')[0];
+  const rateLimitRef = adminDb.collection('rate_limits').doc(`${userId}_${endpoint}_${today}`);
+  const windowReset = new Date(new Date().setUTCHours(24, 0, 0, 0)).toISOString();
+
   try {
-    const res = await fetch(`${supabaseUrl}/rest/v1/rpc/check_and_increment_rate_limit`, {
-      method: 'POST',
-      headers: {
-        apikey: supabaseKey,
-        Authorization: `Bearer ${supabaseKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        p_user_id: userId,
-        p_endpoint: endpoint,
-        p_max_count: maxCount,
-      }),
+    const result = await adminDb.runTransaction(async (t) => {
+      const doc = await t.get(rateLimitRef);
+      
+      if (!doc.exists) {
+        t.set(rateLimitRef, {
+          user_id: userId,
+          endpoint,
+          date: today,
+          count: 1,
+        });
+        return { allowed: true, current_count: 1 };
+      }
+      
+      const currentCount = doc.data()?.count || 0;
+      if (currentCount >= maxCount) {
+        return { allowed: false, current_count: currentCount };
+      }
+      
+      t.update(rateLimitRef, { count: currentCount + 1 });
+      return { allowed: true, current_count: currentCount + 1 };
     });
 
-    if (!res.ok) {
-      // If the RPC fails, allow the request (fail open)
-      console.error('Rate limit RPC error:', await res.text());
-      return {
-        allowed: true,
-        currentCount: 0,
-        maxCount,
-        windowReset: new Date(Date.now() + 86400000).toISOString(),
-        planId,
-      };
-    }
-
-    const result = await res.json();
     return {
       allowed: result.allowed,
       currentCount: result.current_count,
-      maxCount: result.max_count,
-      windowReset: result.window_reset,
+      maxCount,
+      windowReset,
       planId,
     };
   } catch (err) {
-    console.error('Rate limit check failed:', err);
+    console.error('Rate limit transaction failed:', err);
+    // Fail open
     return {
       allowed: true,
       currentCount: 0,
       maxCount,
-      windowReset: new Date(Date.now() + 86400000).toISOString(),
+      windowReset,
       planId,
     };
   }

@@ -51,12 +51,12 @@ export default function AdminSubmissionsPage() {
       const querySnapshot = await getDocs(q);
       
       const subs = await Promise.all(querySnapshot.docs.map(async (docSnap) => {
-        const data = docSnap.data();
+        const data = docSnap.data() as any;
         let profiles = null;
         if (data.user_id) {
           const profileDoc = await getDoc(doc(db, 'profiles', data.user_id));
           if (profileDoc.exists()) {
-            profiles = profileDoc.data();
+            profiles = profileDoc.data() as any;
           }
         }
         
@@ -64,7 +64,7 @@ export default function AdminSubmissionsPage() {
         if (data.assignment_id) {
           const assignmentDoc = await getDoc(doc(db, 'assignments', data.assignment_id));
           if (assignmentDoc.exists()) {
-            assignments = assignmentDoc.data();
+            assignments = assignmentDoc.data() as any;
           }
         }
         

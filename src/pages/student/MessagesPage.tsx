@@ -102,7 +102,7 @@ export default function MessagesPage() {
             return [...prev, messageData].sort((a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime());
           });
           // If the message is from someone else, mark it as read immediately since we are viewing it
-          if (messageData.sender_id !== user?.id) {
+          if (messageData.sender_id !== user?.uid) {
             void markConversationAsRead(activeConvId);
           }
         }
@@ -131,7 +131,7 @@ export default function MessagesPage() {
     try {
       await addDoc(collection(db, 'messages'), {
         conversation_id: activeConvId,
-        sender_id: user.id,
+        sender_id: user.uid,
         content,
         created_at: new Date().toISOString()
       });
@@ -167,7 +167,7 @@ export default function MessagesPage() {
       // 2. Add participants
       await addDoc(collection(db, 'conversation_participants'), {
         conversation_id: convRef.id,
-        user_id: user.id,
+        user_id: user.uid,
         created_at: new Date().toISOString()
       });
       await addDoc(collection(db, 'conversation_participants'), {
@@ -274,7 +274,7 @@ export default function MessagesPage() {
                         )}>
                           {conv.lastMessage ? (
                             <>
-                              {conv.lastMessage.sender_id === user?.id && <span className="text-muted-foreground mr-1 font-semibold">You:</span>}
+                              {conv.lastMessage.sender_id === user?.uid && <span className="text-muted-foreground mr-1 font-semibold">You:</span>}
                               {conv.lastMessage.content}
                             </>
                           ) : 'Started a conversation'}
@@ -319,7 +319,7 @@ export default function MessagesPage() {
                   </div>
                 ) : (
                   messages.map(msg => {
-                    const isMine = msg.sender_id === user?.id;
+                    const isMine = msg.sender_id === user?.uid;
                     return (
                       <div key={msg.id} className={cn("flex", isMine ? 'justify-end' : 'justify-start')}>
                         <div className={cn(

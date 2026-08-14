@@ -33,7 +33,7 @@ export default function ModularHubPage() {
           orderBy('order_index', 'asc')
         );
         const tracksSnapshot = await getDocs(tracksQuery);
-        const tracksData = tracksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as DBMLSTrack[];
+        const tracksData = tracksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any)) as DBMLSTrack[];
         
         if (tracksData) {
           setTracks(tracksData);
@@ -42,11 +42,11 @@ export default function ModularHubPage() {
           if (user) {
             // First fetch all modules to count totals per track
             const modulesSnapshot = await getDocs(collection(db, 'mls_modules'));
-            const modulesData = modulesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const modulesData = modulesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
             // Then fetch user progress
-            const userProgQuery = query(collection(db, 'mls_user_progress'), where('user_id', '==', user.id));
+            const userProgQuery = query(collection(db, 'mls_user_progress'), where('user_id', '==', user.uid));
             const userProgSnapshot = await getDocs(userProgQuery);
-            const userProg = userProgSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const userProg = userProgSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
             
             const pData: any = {};
             tracksData.forEach(t => pData[t.id] = { completed: 0, total: 0 });

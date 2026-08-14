@@ -1,9 +1,5 @@
 import { verifyAuth, unauthorizedResponse } from './_shared/auth';
-import { createClient } from '@supabase/supabase-js';
-
-export const config = {
-  runtime: 'edge',
-};
+import { adminDb } from './_shared/firebase-admin';
 
 // Generates a beautiful HTML email matching the Quovexi premium aesthetic
 export function getBrandedEmailHtml(title: string, contentHtml: string, ctaText?: string, ctaUrl?: string): string {
@@ -159,29 +155,16 @@ export default async function handler(req: Request) {
       });
     }
 
-    // Initialize Supabase to get user profile and verify permissions
-    const supabaseUrl = process.env.VITE_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!supabaseUrl || !supabaseServiceKey) {
-      return new Response(JSON.stringify({ error: 'Database service keys not configured' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+    const profileDoc = await adminDb.collection('profiles').doc(authUser.id).get();
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('role, email')
-      .eq('id', authUser.id)
-      .single();
-
-    if (profileError || !profile) {
+    if (!profileDoc.exists) {
       return new Response(JSON.stringify({ error: 'Failed to retrieve sender profile' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
       });
     }
+
+    const profile = profileDoc.data();
 
     const isAdmin = profile.role === 'admin';
     const recipientList = Array.isArray(to) ? to : [to];

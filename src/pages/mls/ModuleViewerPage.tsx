@@ -65,7 +65,7 @@ export default function ModuleViewerPage() {
         if (user) {
           const progQuery = query(
             collection(db, 'mls_user_progress'),
-            where('user_id', '==', user.id),
+            where('user_id', '==', user.uid),
             where('module_id', '==', moduleId)
           );
           const progDocs = await getDocs(progQuery);
@@ -75,7 +75,7 @@ export default function ModuleViewerPage() {
           } else {
             // Mark as started if opening for the first time
             await addDoc(collection(db, 'mls_user_progress'), {
-              user_id: user.id,
+              user_id: user.uid,
               module_id: moduleId,
               status: 'started'
             });
@@ -83,7 +83,7 @@ export default function ModuleViewerPage() {
 
           const bmkQuery = query(
             collection(db, 'mls_bookmarks'),
-            where('user_id', '==', user.id),
+            where('user_id', '==', user.uid),
             where('module_id', '==', moduleId)
           );
           const bmkDocs = await getDocs(bmkQuery);
@@ -110,13 +110,13 @@ export default function ModuleViewerPage() {
     try {
       const progQuery = query(
         collection(db, 'mls_user_progress'),
-        where('user_id', '==', user.id),
+        where('user_id', '==', user.uid),
         where('module_id', '==', moduleData.id)
       );
       const progDocs = await getDocs(progQuery);
       
       const payload = {
-        user_id: user.id,
+        user_id: user.uid,
         module_id: moduleData.id,
         status: newStatus,
         completed_at: newStatus === 'completed' ? new Date().toISOString() : null
@@ -143,7 +143,7 @@ export default function ModuleViewerPage() {
         setIsBookmarked(false);
         const bmkQuery = query(
           collection(db, 'mls_bookmarks'),
-          where('user_id', '==', user.id),
+          where('user_id', '==', user.uid),
           where('module_id', '==', moduleData.id)
         );
         const bmkDocs = await getDocs(bmkQuery);
@@ -153,7 +153,7 @@ export default function ModuleViewerPage() {
         toast.info("Bookmark removed");
       } else {
         setIsBookmarked(true);
-        await addDoc(collection(db, 'mls_bookmarks'), { user_id: user.id, module_id: moduleData.id });
+        await addDoc(collection(db, 'mls_bookmarks'), { user_id: user.uid, module_id: moduleData.id });
         toast.success("Module bookmarked");
       }
     } catch (error) {

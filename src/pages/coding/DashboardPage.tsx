@@ -24,7 +24,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       if (!user) return;
-      const userId = user.id || (user as any).uid;
+      const userId = user.uid || (user as any).uid;
       setLoading(true);
       try {
         // Fetch progress
@@ -44,7 +44,7 @@ export default function DashboardPage() {
 
         // Fetch all badges for reference
         const allBSnap = await getDocs(collection(db, 'coding_badges'));
-        const allB = allBSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const allB = allBSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
         setAllBadges(allB);
 
         // Fetch user badges

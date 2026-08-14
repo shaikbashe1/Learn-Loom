@@ -368,22 +368,22 @@ export async function getUserEnrollments(
       if (enr.course_id) {
         let cDoc = await getDoc(doc(db, 'courses', enr.course_id));
         if (cDoc.exists()) {
-          course = { id: cDoc.id, ...cDoc.data() };
+          course = { id: cDoc.id, ...cDoc.data() } as any;
         } else {
           const cQ = query(collection(db, 'courses'), where('id', '==', enr.course_id), limit(1));
           const cSnap = await getDocs(cQ);
-          if (!cSnap.empty) course = { id: cSnap.docs[0].id, ...cSnap.docs[0].data() };
+          if (!cSnap.empty) course = { id: cSnap.docs[0].id, ...cSnap.docs[0].data() } as any;
         }
       }
 
       if (enr.last_module_id) {
         let mDoc = await getDoc(doc(db, 'course_modules', enr.last_module_id));
         if (mDoc.exists()) {
-          last_module = { id: mDoc.id, ...mDoc.data() };
+          last_module = { id: mDoc.id, ...mDoc.data() } as any;
         } else {
           const mQ = query(collection(db, 'course_modules'), where('id', '==', enr.last_module_id), limit(1));
           const mSnap = await getDocs(mQ);
-          if (!mSnap.empty) last_module = { id: mSnap.docs[0].id, ...mSnap.docs[0].data() };
+          if (!mSnap.empty) last_module = { id: mSnap.docs[0].id, ...mSnap.docs[0].data() } as any;
         }
       }
 

@@ -24,12 +24,12 @@ export default function AchievementsPage() {
     async function fetchBadges() {
       try {
         const allBadgesSnap = await getDocs(collection(db, 'badges'));
-        const allBadges = allBadgesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const allBadges = allBadgesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
 
         let userBadgeIds = new Set<string>();
         if (user) {
           try {
-            const q = query(collection(db, 'user_badges'), where('user_id', '==', user.id));
+            const q = query(collection(db, 'user_badges'), where('user_id', '==', user.uid));
             const userBadgesSnap = await getDocs(q);
             userBadgesSnap.docs.forEach(doc => {
               userBadgeIds.add(doc.data().badge_id);
