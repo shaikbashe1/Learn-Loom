@@ -1,0 +1,1 @@
+import{t as e}from"./firebase-DZVv0JO3.js";async function t(t,n,r=!0){let i=``;try{e.currentUser&&(i=await e.currentUser.getIdToken())}catch(e){console.error(`Failed to get auth token`,e)}return fetch(`/api/ai-mentor`,{method:`POST`,headers:{"Content-Type":`application/json`,...i?{Authorization:`Bearer ${i}`}:{}},body:JSON.stringify({contents:t}),signal:n})}export{t};
