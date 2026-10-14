@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { db } from '@/db/firebase';
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { Loading } from '@/components/ui/loading';
@@ -40,11 +40,16 @@ export default function CourseCatalogPage() {
       try {
         const coursesQuery = query(
           collection(db, 'courses'),
-          where('is_published', '==', true),
-          orderBy('created_at', 'desc')
+          where('is_published', '==', true)
         );
         const coursesSnap = await getDocs(coursesQuery);
-        const coursesData = coursesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as DBCourse));
+        const coursesData = coursesSnap.docs
+          .map(doc => ({ id: doc.id, ...doc.data() } as DBCourse))
+          .sort((a: any, b: any) => {
+            const aTime = a.created_at?.seconds ?? 0;
+            const bTime = b.created_at?.seconds ?? 0;
+            return bTime - aTime;
+          });
         setCourses(coursesData);
 
         if (user) {

@@ -1,5 +1,5 @@
 import { verifyAuth, unauthorizedResponse } from './_shared/auth';
-import { adminDb } from './_shared/firebase-admin';
+import { adminDb } from './_shared/firebase-setup';
 
 // Generates a beautiful HTML email matching the Quovexi premium aesthetic
 export function getBrandedEmailHtml(title: string, contentHtml: string, ctaText?: string, ctaUrl?: string): string {

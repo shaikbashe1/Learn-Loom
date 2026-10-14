@@ -1,4 +1,4 @@
-import { adminDb } from './_shared/firebase-admin';
+import { adminDb } from './_shared/firebase-setup';
 
 // Serverless function handler
 export default async function handler(req: any, res: any) {

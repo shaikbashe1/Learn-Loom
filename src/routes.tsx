@@ -45,6 +45,12 @@ const PaymentHistoryPage  = lazy(() => import('./pages/student/PaymentHistoryPag
 const SearchPage          = lazy(() => import('./pages/student/SearchPage'));
 const MessagesPage        = lazy(() => import('./pages/student/MessagesPage'));
 
+// Lazy-loaded Dart pages
+const DartPlaygroundPage  = lazy(() => import('./pages/dart/DartPlaygroundPage'));
+const DartDashboardPage   = lazy(() => import('./pages/dart/DartDashboardPage'));
+const DartPracticePage    = lazy(() => import('./pages/dart/DartPracticePage'));
+const DartPracticeDetailPage = lazy(() => import('./pages/dart/DartPracticeDetailPage'));
+
 // Lazy-loaded MLS pages
 const ModularHubPage      = lazy(() => import('./pages/mls/ModularHubPage'));
 const TrackDetailPage     = lazy(() => import('./pages/mls/TrackDetailPage'));
@@ -120,6 +126,12 @@ export const routes: RouteConfig[] = [
   { name: 'Modular Hub',          path: '/mls',                     component: ModularHubPage },
   { name: 'Modular Track',        path: '/mls/:trackId',            component: TrackDetailPage },
   { name: 'Module Viewer',        path: '/mls/:trackId/:moduleId',  component: ModuleViewerPage },
+
+  // ── Dart Module ────────────────────────────────────────────────────────
+  { name: 'Dart Hub',             path: '/dart',                    component: DartDashboardPage },
+  { name: 'Dart Playground',      path: '/dart/compiler',           component: DartPlaygroundPage },
+
+
 
   // ── Admin ─────────────────────────────────────────────────────────────
   { name: 'Admin Dashboard',      path: '/admin',                   component: AdminDashboard },

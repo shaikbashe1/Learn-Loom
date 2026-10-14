@@ -1,4 +1,4 @@
-import { adminDb } from './firebase-admin';
+import { adminDb } from './firebase-setup';
 
 export interface RateLimitResult {
   allowed: boolean;

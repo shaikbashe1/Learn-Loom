@@ -1,8 +1,6 @@
 import { verifyAuth, unauthorizedResponse } from './_shared/auth';
 
-export const config = {
-  runtime: 'edge',
-};
+
 
 export default async function handler(req: Request) {
   // Verify Supabase authentication

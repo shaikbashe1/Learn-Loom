@@ -2,73 +2,62 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper function to check if the user is authenticated
     function isAuthenticated() {
       return request.auth != null;
     }
     
-    // Helper function to check if the user is an admin
     function isAdmin() {
       return isAuthenticated() && exists(/databases/$(database)/documents/profiles/$(request.auth.uid)) && 
              get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Profiles Collection
     match /profiles/{userId} {
-      allow read: if true; // Public profiles can be read by anyone
+      allow read: if true;
       allow write: if request.auth.uid == userId || isAdmin();
     }
 
-    // Courses Collection
+    // Courses Collection — LOCKED (seeding complete)
     match /courses/{courseId} {
-      allow read: if true; // Courses can be viewed by anyone
+      allow read: if true;
       allow write: if isAdmin();
     }
 
-    // User Course Enrollments
     match /user_course_enrollments/{enrollmentId} {
       allow read: if isAuthenticated() && resource.data.user_id == request.auth.uid || isAdmin();
       allow write: if isAuthenticated() && request.resource.data.user_id == request.auth.uid || isAdmin();
     }
 
-    // User Subscriptions (Payments)
     match /subscriptions/{subscriptionId} {
       allow read: if isAuthenticated() && resource.data.user_id == request.auth.uid || isAdmin();
-      allow write: if isAdmin(); // Only backend or admin should create subscriptions
+      allow write: if isAdmin();
     }
 
-    // Activity Logs
     match /activity_logs/{logId} {
       allow read: if isAdmin();
       allow write: if isAuthenticated() && request.resource.data.user_id == request.auth.uid;
     }
 
-    // Leaderboard (Public)
     match /leaderboard_view/{userId} {
       allow read: if true;
-      allow write: if false; // Read-only aggregated view
+      allow write: if false;
     }
 
-    // Notifications
     match /notifications/{notificationId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Community Forum
     match /forum_posts/{docId} { allow read: if true; allow write: if isAuthenticated(); }
     match /forum_replies/{docId} { allow read: if true; allow write: if isAuthenticated(); }
     match /forum_post_votes/{docId} { allow read: if true; allow write: if isAuthenticated(); }
     match /forum_reply_votes/{docId} { allow read: if true; allow write: if isAuthenticated(); }
 
-    // Messages & Chat
     match /messages/{docId} { allow read, write: if isAuthenticated(); }
     match /conversations/{docId} { allow read, write: if isAuthenticated(); }
     match /conversation_participants/{docId} { allow read, write: if isAuthenticated(); }
     match /mentor_conversations/{docId} { allow read, write: if isAuthenticated(); }
     match /mentor_messages/{docId} { allow read, write: if isAuthenticated(); }
 
-    // Course & Learning Progress
     match /quiz_attempts/{docId} { allow read, write: if isAuthenticated(); }
     match /assessment_attempts/{docId} { allow read, write: if isAuthenticated(); }
     match /assignment_submissions/{docId} { allow read, write: if isAuthenticated(); }
@@ -80,21 +69,18 @@ service cloud.firestore {
     match /roadmap_stages/{docId} { allow read, write: if isAuthenticated(); }
     match /roadmap_items/{docId} { allow read, write: if isAuthenticated(); }
 
-    // Coding & Practice
     match /coding_submissions/{docId} { allow read, write: if isAuthenticated(); }
     match /contest_participants/{docId} { allow read, write: if isAuthenticated(); }
     match /coding_progress/{docId} { allow read, write: if isAuthenticated(); }
     match /coding_statistics/{docId} { allow read, write: if isAuthenticated(); }
     match /coding_streaks/{docId} { allow read, write: if isAuthenticated(); }
 
-    // User Activity & Followers
     match /user_activity_logs/{docId} { allow read, write: if isAuthenticated(); }
     match /activity_logs/{docId} { allow read, write: if isAuthenticated(); }
     match /certificates/{docId} { allow read, write: if isAuthenticated(); }
     match /user_followers/{docId} { allow read, write: if isAuthenticated(); }
     match /payment_orders/{docId} { allow read, write: if isAuthenticated(); }
 
-    // Everything else default deny (read-only for authenticated users)
     match /{document=**} {
       allow read: if isAuthenticated();
       allow write: if isAdmin();

@@ -7,6 +7,11 @@ import path from "path";
 // https://vite.dev/config/
 export default defineConfig({
   base: '/',
+  // @ts-ignore
+  test: {
+    exclude: ['**/node_modules/**', '**/dist/**', 'apps/**', 'dart-execution-backend/**'],
+    passWithNoTests: true,
+  },
   plugins: [
     react(),
     svgr({

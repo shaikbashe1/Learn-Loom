@@ -1,4 +1,4 @@
-import { db, storage } from '@/db/firebase';
+import { auth, db, storage } from '@/db/firebase';
 import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { staticRoadmaps } from '@/data/roadmaps';
@@ -10,12 +10,24 @@ export async function generateAndSaveRoadmap(
   targetRole: string,
   difficulty: 'beginner' | 'intermediate' | 'advanced'
 ) {
+  let token = '';
+  try {
+    if (auth.currentUser) {
+      token = await auth.currentUser.getIdToken();
+    }
+  } catch (error) {
+    console.error('Failed to get auth token', error);
+  }
+
   // 1. Fetch template
   let template;
   try {
     const res = await fetch('/api/ai-roadmap', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
       body: JSON.stringify({ domain, role: targetRole, difficulty })
     });
     if (res.ok) {

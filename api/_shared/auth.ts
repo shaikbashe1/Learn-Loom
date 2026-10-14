@@ -1,7 +1,7 @@
 // Shared authentication helper for API routes
 // Verifies Firebase JWT tokens
 
-import { adminAuth, adminDb } from './firebase-admin';
+import { adminAuth, adminDb } from './firebase-setup';
 
 export interface AuthUser {
   id: string;
