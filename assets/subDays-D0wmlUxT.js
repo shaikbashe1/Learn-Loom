@@ -1,0 +1,1 @@
+import{d as e,f as t}from"./AppLayout-CEs9dmu8.js";function n(n,r){let i=t(n);return isNaN(r)?e(n,NaN):(r&&i.setDate(i.getDate()+r),i)}function r(e,t){return n(e,-t)}export{r as t};
